@@ -703,7 +703,8 @@ export const BillModalMixin = {
         allPrice: mInfo.billPrice,
         taxRate: 0,
         taxMoney: 0,
-        taxLastMoney: mInfo.billPrice
+        taxLastMoney: mInfo.billPrice,
+        weight: mInfo.weight
       }
     },
     //使得型号、颜色、扩展信息、sku等为隐藏

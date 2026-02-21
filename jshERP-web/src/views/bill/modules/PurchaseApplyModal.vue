@@ -180,6 +180,7 @@
             { title: '数量', key: 'operNumber', width: '6%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '8%', type: FormTypes.input},
           ]
         },

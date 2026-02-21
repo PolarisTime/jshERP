@@ -265,6 +265,7 @@
             },
             { title: '单价', key: 'unitPrice', width: '6%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '6%', type: FormTypes.inputNumber, statistics: true },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '7%', type: FormTypes.input }
           ]
         },
