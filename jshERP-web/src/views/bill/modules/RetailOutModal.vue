@@ -254,7 +254,6 @@
             { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
-            { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '5%', type: FormTypes.normal },
             { title: '序列号', key: 'snList', width: '12%', type: FormTypes.popupJsh, kind: 'sn', multi: true },
             { title: '批号', key: 'batchNumber', width: '8%', type: FormTypes.popupJsh, kind: 'batch', multi: false },
@@ -263,9 +262,10 @@
             { title: '数量', key: 'operNumber', width: '6%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
             { title: '单价', key: 'unitPrice', width: '6%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '6%', type: FormTypes.inputNumber, statistics: true },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
+            { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '7%', type: FormTypes.input }
           ]
         },

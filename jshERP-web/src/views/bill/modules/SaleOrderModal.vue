@@ -253,18 +253,18 @@
             { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
-            { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '4%', type: FormTypes.normal },
             { title: '多属性', key: 'sku', width: '4%', type: FormTypes.normal },
             { title: '数量', key: 'operNumber', width: '5%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
             { title: '单价', key: 'unitPrice', width: '5%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
             { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},
-            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.inputNumber, readonly: true, statistics: true },
-            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.inputNumber, statistics: true },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
+            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.hidden },
+            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.hidden },
+            { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '6%', type: FormTypes.input }
           ]
         },
