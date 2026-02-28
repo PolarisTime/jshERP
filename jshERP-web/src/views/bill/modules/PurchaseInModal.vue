@@ -470,6 +470,8 @@
         if(selectBillDetailRows && selectBillDetailRows.length>0) {
           let listEx = []
           let allTaxLastMoney = 0
+          // 取采购订单号后8位作为批号
+          let autoBatchNumber = linkNumber ? linkNumber.slice(-8) : ''
           for(let j=0; j<selectBillDetailRows.length; j++) {
             let info = selectBillDetailRows[j];
             if(info.finishNumber>0) {
@@ -482,6 +484,8 @@
             info.linkId = info.id
             allTaxLastMoney += info.taxLastMoney
             if(info.operNumber>0) {
+              // 自动填入批号：采购订单号后8位
+              info.batchNumber = autoBatchNumber
               listEx.push(info)
               this.changeColumnShow(info)
             }
