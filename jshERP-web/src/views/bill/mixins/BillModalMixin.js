@@ -46,6 +46,8 @@ export const BillModalMixin = {
       //零收付款的场景开关
       zeroChangeAmountFlag: false,
       setTimeFlag: null,
+      // 商品单位重量映射表（barCode → 单位重量），用于数量变化时重新计算总重量
+      unitWeightMap: {},
       validatorRules:{
         price:{
           rules: [
@@ -144,6 +146,10 @@ export const BillModalMixin = {
             let info = tab.dataSource[i]
             info.isEdit = this.model.id?1:0
             this.changeColumnShow(info)
+            //填充单位重量映射：单位重量 = 总重量 ÷ 数量
+            if(info.barCode) {
+              this.unitWeightMap[info.barCode] = (info.weight-0) / ((info.operNumber-0) || 1)
+            }
           }
           typeof success === 'function' ? success(res) : ''
         }
@@ -572,9 +578,9 @@ export const BillModalMixin = {
             allPrice = (unitPrice*operNumber).toFixed(2)-0
             taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
-            //重量联动：单位重量 × 新数量
-            let snPreNum = (row.operNumber-0) || 1
-            let snNewWeight = parseFloat(((row.weight-0) / snPreNum * operNumber).toFixed(4))
+            //重量联动：从单位重量映射表取单位重量 × 新数量
+            let snUnitWeight = that.unitWeightMap[row.barCode] || 0
+            let snNewWeight = parseFloat((snUnitWeight * operNumber).toFixed(4))
             target.setValues([{rowKey: row.id, values: {operNumber: operNumber, allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: snNewWeight}}])
             target.recalcAllStatisticsColumns()
             that.autoChangePrice(target)
@@ -613,9 +619,9 @@ export const BillModalMixin = {
                   allPrice = (unitPrice*operNumber).toFixed(2)-0
                   taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
                   taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
-                  //重量联动：单位重量 × 新数量
-                  let bnPreNum = (row.operNumber-0) || 1
-                  let bnNewWeight = parseFloat(((row.weight-0) / bnPreNum * operNumber).toFixed(4))
+                  //重量联动：从单位重量映射表取单位重量 × 新数量
+                  let bnUnitWeight = that.unitWeightMap[row.barCode] || 0
+                  let bnNewWeight = parseFloat((bnUnitWeight * operNumber).toFixed(4))
                   target.setValues([{rowKey: row.id, values: {expirationDate: info.expirationDateStr, operNumber: operNumber,
                       allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: bnNewWeight}}])
                   target.recalcAllStatisticsColumns()
@@ -632,9 +638,9 @@ export const BillModalMixin = {
           allPrice = (unitPrice*operNumber).toFixed(2)-0
           taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
           taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
-          //重量联动：单位重量 × 新数量
-          let preOperNum = (row.operNumber-0) || 1
-          let newWeight = parseFloat(((row.weight-0) / preOperNum * operNumber).toFixed(4))
+          //重量联动：从单位重量映射表取单位重量 × 新数量
+          let unitWeightVal = that.unitWeightMap[row.barCode] || 0
+          let newWeight = parseFloat((unitWeightVal * operNumber).toFixed(4))
           target.setValues([{rowKey: row.id, values: {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}}])
           target.recalcAllStatisticsColumns()
           that.autoChangePrice(target)
@@ -694,6 +700,10 @@ export const BillModalMixin = {
     },
     //转为商品对象
     parseInfoToObj(mInfo) {
+      //同步单位重量到映射表，数量默认为1，单位重量即商品档案重量
+      if(mInfo.mBarCode) {
+        this.unitWeightMap[mInfo.mBarCode] = mInfo.weight-0
+      }
       return {
         barCode: mInfo.mBarCode,
         name: mInfo.name,
