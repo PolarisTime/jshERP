@@ -572,7 +572,10 @@ export const BillModalMixin = {
             allPrice = (unitPrice*operNumber).toFixed(2)-0
             taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
-            target.setValues([{rowKey: row.id, values: {operNumber: operNumber, allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney}}])
+            //重量联动：单位重量 × 新数量
+            let snPreNum = (row.operNumber-0) || 1
+            let snNewWeight = parseFloat(((row.weight-0) / snPreNum * operNumber).toFixed(4))
+            target.setValues([{rowKey: row.id, values: {operNumber: operNumber, allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: snNewWeight}}])
             target.recalcAllStatisticsColumns()
             that.autoChangePrice(target)
           }
@@ -610,8 +613,11 @@ export const BillModalMixin = {
                   allPrice = (unitPrice*operNumber).toFixed(2)-0
                   taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
                   taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
+                  //重量联动：单位重量 × 新数量
+                  let bnPreNum = (row.operNumber-0) || 1
+                  let bnNewWeight = parseFloat(((row.weight-0) / bnPreNum * operNumber).toFixed(4))
                   target.setValues([{rowKey: row.id, values: {expirationDate: info.expirationDateStr, operNumber: operNumber,
-                      allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney}}])
+                      allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: bnNewWeight}}])
                   target.recalcAllStatisticsColumns()
                   that.autoChangePrice(target)
                 }
@@ -626,7 +632,10 @@ export const BillModalMixin = {
           allPrice = (unitPrice*operNumber).toFixed(2)-0
           taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
           taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
-          target.setValues([{rowKey: row.id, values: {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney}}])
+          //重量联动：单位重量 × 新数量
+          let preOperNum = (row.operNumber-0) || 1
+          let newWeight = parseFloat(((row.weight-0) / preOperNum * operNumber).toFixed(4))
+          target.setValues([{rowKey: row.id, values: {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}}])
           target.recalcAllStatisticsColumns()
           that.autoChangePrice(target)
           break;
