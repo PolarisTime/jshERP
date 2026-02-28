@@ -797,9 +797,9 @@ export const BillModalMixin = {
     },
     //改变优惠、本次付款、欠款的值
     autoChangePrice(target) {
-      let allTaxLastMoney = target.statisticsColumns.taxLastMoney-0
-      let discount = this.form.getFieldValue('discount')-0
-      let otherMoney = this.form.getFieldValue('otherMoney')?this.form.getFieldValue('otherMoney')-0:0
+      let allTaxLastMoney = parseFloat(target.statisticsColumns.taxLastMoney) || 0
+      let discount = parseFloat(this.form.getFieldValue('discount')) || 0
+      let otherMoney = this.form.getFieldValue('otherMoney')?(parseFloat(this.form.getFieldValue('otherMoney')) || 0):0
       let deposit = this.form.getFieldValue('deposit')
       let discountMoney = (discount*0.01*allTaxLastMoney).toFixed(2)-0
       let discountLastMoney = (allTaxLastMoney-discountMoney).toFixed(2)-0
@@ -817,9 +817,9 @@ export const BillModalMixin = {
     //改变优惠率
     onChangeDiscount(e) {
       const value = e.target.value-0
-      let otherMoney = this.form.getFieldValue('otherMoney')?this.form.getFieldValue('otherMoney')-0:0
+      let otherMoney = this.form.getFieldValue('otherMoney')?(parseFloat(this.form.getFieldValue('otherMoney')) || 0):0
       let deposit = this.form.getFieldValue('deposit')
-      let allTaxLastMoney = this.$refs.materialDataTable.statisticsColumns.taxLastMoney-0
+      let allTaxLastMoney = parseFloat(this.$refs.materialDataTable.statisticsColumns.taxLastMoney) || 0
       let discountMoneyNew = (allTaxLastMoney*value*0.01).toFixed(2)-0
       let discountLastMoneyNew = (allTaxLastMoney - discountMoneyNew).toFixed(2)-0
       let changeAmountNew = (discountLastMoneyNew + otherMoney).toFixed(2)-0
@@ -836,9 +836,9 @@ export const BillModalMixin = {
     //改变付款优惠
     onChangeDiscountMoney(e) {
       const value = e.target.value-0
-      let otherMoney = this.form.getFieldValue('otherMoney')?this.form.getFieldValue('otherMoney')-0:0
+      let otherMoney = this.form.getFieldValue('otherMoney')?(parseFloat(this.form.getFieldValue('otherMoney')) || 0):0
       let deposit = this.form.getFieldValue('deposit')
-      let allTaxLastMoney = this.$refs.materialDataTable.statisticsColumns.taxLastMoney-0
+      let allTaxLastMoney = parseFloat(this.$refs.materialDataTable.statisticsColumns.taxLastMoney) || 0
       let discountNew = (value/allTaxLastMoney*100).toFixed(2)-0
       let discountLastMoneyNew = (allTaxLastMoney - value).toFixed(2)-0
       let changeAmountNew = (discountLastMoneyNew + otherMoney).toFixed(2)-0
