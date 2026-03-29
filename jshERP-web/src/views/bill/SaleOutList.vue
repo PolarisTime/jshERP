@@ -216,7 +216,7 @@
         <sale-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-back-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
-        <freight-detail ref="freightDetail"></freight-detail>
+        <freight-bill-modal ref="freightDetailModal"></freight-bill-modal>
       </a-card>
     </a-col>
   </a-row>
@@ -226,7 +226,7 @@
   import SaleBackModal from './modules/SaleBackModal'
   import BillDetail from './dialog/BillDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
-  import FreightDetail from '@/views/freight/dialog/FreightDetail'
+  import FreightBillModal from '@/views/freight/modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { BillListMixin } from './mixins/BillListMixin'
@@ -241,7 +241,7 @@
       SaleBackModal,
       BillDetail,
       BillExcelIframe,
-      FreightDetail,
+      FreightBillModal,
       ColumnSettingPopover,
       JEllipsis,
       JDate,
@@ -364,7 +364,7 @@
       handleViewFreight(billNo) {
         // 物流单号可能包含多个（逗号分隔），取第一个
         let no = billNo.split(',')[0].trim()
-        this.$refs.freightDetail.showByBillNo(no)
+        this.$refs.freightDetailModal.detailByBillNo(no)
       }
     }
   }

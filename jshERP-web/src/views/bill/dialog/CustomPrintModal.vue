@@ -7,54 +7,42 @@
     :footer="null"
     @cancel="handleCancel"
     style="top:20px;">
-    <a-tabs v-model="activeTab" @change="onTabChange">
-      <!-- 模板编辑 Tab -->
-      <a-tab-pane key="edit" tab="模板编辑" forceRender>
-        <a-row :gutter="16">
-          <a-col :span="18">
-            <div style="margin-bottom:8px;">
-              <a-input v-model="templateName" placeholder="模板名称" style="width:200px;margin-right:8px;" />
-              <a-button type="primary" @click="handleSave" :loading="saving">保存模板</a-button>
-              <a-button style="margin-left:8px;" @click="handleResetDefault">恢复默认</a-button>
-            </div>
-            <editor
-              v-if="editorReady"
-              v-model="templateHtml"
-              :init="editorInit"
-            />
-          </a-col>
-          <a-col :span="6">
-            <div style="border:1px solid #e8e8e8;border-radius:4px;padding:8px;max-height:600px;overflow-y:auto;">
-              <h4 style="margin:0 0 8px;">主表字段</h4>
-              <div v-for="f in headerFields" :key="'h_'+f.key" style="margin-bottom:4px;">
-                <a-tag color="blue" style="cursor:pointer;" @click="insertField(f.key, false)">{{ f.label }}</a-tag>
-              </div>
-              <a-divider style="margin:8px 0;" />
-              <h4 style="margin:0 0 8px;">明细字段</h4>
-              <div v-for="f in detailFields" :key="'d_'+f.key" style="margin-bottom:4px;">
-                <a-tag color="green" style="cursor:pointer;" @click="insertField(f.key, true)">{{ f.label }}</a-tag>
-              </div>
-              <a-divider style="margin:8px 0;" />
-              <h4 style="margin:0 0 8px;">内置变量</h4>
-              <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_index}}')">行序号</a-tag>
-              <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printDate}}')">打印日期</a-tag>
-              <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printTime}}')">打印时间</a-tag>
-            </div>
-          </a-col>
-        </a-row>
-      </a-tab-pane>
-      <!-- 打印预览 Tab -->
-      <a-tab-pane key="preview" tab="打印预览" forceRender>
-        <div style="margin-bottom:10px;">
-          <a-button type="primary" icon="printer" @click="handlePrint">打印</a-button>
+    <!-- 操作栏 -->
+    <div style="margin-bottom:10px;">
+      <a-input v-model="templateName" placeholder="模板名称" style="width:200px;margin-right:8px;" />
+      <a-button type="primary" @click="handleSave" :loading="saving">保存模板</a-button>
+      <a-button style="margin-left:8px;" @click="handleResetDefault">恢复默认</a-button>
+      <a-button style="margin-left:8px;" type="primary" icon="printer" @click="handlePrint">打印预览</a-button>
+    </div>
+    <a-row :gutter="16">
+      <!-- 编辑器 -->
+      <a-col :span="18">
+        <editor
+          v-if="editorReady"
+          v-model="templateHtml"
+          :init="editorInit"
+        />
+      </a-col>
+      <!-- 字段面板 -->
+      <a-col :span="6">
+        <div style="border:1px solid #e8e8e8;border-radius:4px;padding:8px;max-height:600px;overflow-y:auto;">
+          <h4 style="margin:0 0 8px;">主表字段</h4>
+          <div v-for="f in headerFields" :key="'h_'+f.key" style="margin-bottom:4px;">
+            <a-tag color="blue" style="cursor:pointer;" @click="insertField(f.key, false)">{{ f.label }}</a-tag>
+          </div>
+          <a-divider style="margin:8px 0;" />
+          <h4 style="margin:0 0 8px;">明细字段</h4>
+          <div v-for="f in detailFields" :key="'d_'+f.key" style="margin-bottom:4px;">
+            <a-tag color="green" style="cursor:pointer;" @click="insertField(f.key, true)">{{ f.label }}</a-tag>
+          </div>
+          <a-divider style="margin:8px 0;" />
+          <h4 style="margin:0 0 8px;">内置变量</h4>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_index}}')">行序号</a-tag>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printDate}}')">打印日期</a-tag>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printTime}}')">打印时间</a-tag>
         </div>
-        <div
-          ref="previewArea"
-          style="border:1px solid #d9d9d9;padding:20px;min-height:400px;background:#fff;"
-          v-html="renderedHtml">
-        </div>
-      </a-tab-pane>
-    </a-tabs>
+      </a-col>
+    </a-row>
   </a-modal>
 </template>
 <script>
@@ -81,7 +69,6 @@
     data() {
       return {
         visible: false,
-        activeTab: 'edit',
         saving: false,
         editorReady: false,
         templateId: null,
@@ -108,15 +95,9 @@
         }
       }
     },
-    computed: {
-      renderedHtml() {
-        return render(this.templateHtml, this.model, this.dataSource)
-      }
-    },
     methods: {
       show() {
         this.visible = true
-        this.activeTab = 'edit'
         this.templateId = null
         this.templateName = '默认模板'
         this.templateHtml = getDefaultTemplate(this.billType)
@@ -130,6 +111,9 @@
             this.templateId = res.data.id
             this.templateName = res.data.templateName
             this.templateHtml = res.data.templateHtml
+            if (this.editorInstance) {
+              this.editorInstance.setContent(this.templateHtml)
+            }
           }
         })
       },
@@ -176,19 +160,19 @@
           this.templateHtml = this.editorInstance.getContent()
         }
       },
-      onTabChange(key) {
-        if (key === 'preview') {
-          // 切到预览前，从编辑器实例同步最新内容
-          this.syncEditorContent()
-        }
-      },
       handleResetDefault() {
         this.templateHtml = getDefaultTemplate(this.billType)
         this.templateId = null
         this.templateName = '默认模板'
+        // 主动同步到编辑器实例，防止 syncEditorContent 读取旧内容覆盖
+        if (this.editorInstance) {
+          this.editorInstance.setContent(this.templateHtml)
+        }
       },
       handlePrint() {
-        doPrint(this.renderedHtml)
+        this.syncEditorContent()
+        const html = render(this.templateHtml, this.model, this.dataSource)
+        doPrint(html)
       },
       handleCancel() {
         this.visible = false

@@ -3,12 +3,13 @@
     :title="title"
     :width="width"
     :visible="visible"
-    :confirmLoading="confirmLoading"
-    :keyboard="false"
+    :maskClosable="false"
+    :forceRender="true"
+    :style="modalStyle"
     fullscreen
     switchFullscreen
     @cancel="handleCancel"
-    style="top:20px;height: 95%;">
+    wrapClassName="ant-modal-cust-warp">
     <template slot="footer">
       <a-button @click="handleCancel">取消(ESC)</a-button>
       <template v-if="!isReadOnly">
@@ -20,24 +21,23 @@
         <a-button v-if="isCanBackCheck && model.status==='1'" @click="handleBackCheck">反审核</a-button>
       </template>
     </template>
-    <a-spin :spinning="confirmLoading">
-      <a-form :form="form">
+    <a-form :form="form">
         <section id="freightBillPrint">
         <a-row class="form-row" :gutter="24">
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据编号">
               <span v-if="isReadOnly">{{ model.billNo }}</span>
               <a-input v-else placeholder="请输入单据编号（为空则自动生成）" v-decorator.trim="['billNo']" />
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
               <span v-if="isReadOnly">{{ model.billTimeStr }}</span>
               <a-date-picker v-else style="width:100%" v-decorator="['billTime', validatorRules.billTime]"
                 format="YYYY-MM-DD" placeholder="请选择日期" />
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算方">
               <span v-if="isReadOnly">{{ model.carrierName }}</span>
               <a-select v-else placeholder="请选择结算方" v-decorator="['carrierId', validatorRules.carrierId]"
@@ -48,7 +48,7 @@
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单价(元/吨)">
               <span v-if="isReadOnly">{{ model.unitPrice }}</span>
               <a-input-number v-else style="width:100%" placeholder="请输入单价" :min="0" :precision="2"
@@ -57,19 +57,19 @@
           </a-col>
         </a-row>
         <a-row class="form-row" :gutter="24">
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总重量(吨)">
               <span v-if="isReadOnly">{{ totalWeight }}</span>
               <a-input v-else :readOnly="true" v-model="totalWeight" />
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总运费(元)">
               <span v-if="isReadOnly">{{ totalFreight }}</span>
               <a-input v-else :readOnly="true" v-model="totalFreight" />
             </a-form-item>
           </a-col>
-          <a-col v-if="isReadOnly" :lg="6" :md="12" :sm="24">
+          <a-col v-if="isReadOnly" :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
               <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
               <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
@@ -91,7 +91,7 @@
           :columns="currentDetailColumns"
           :dataSource="selectedSaleOutList"
           :pagination="false"
-          :scroll="{ x: 800 }">
+          :components="detailDragComponents">
           <span slot="action" slot-scope="text, record, index">
             <a-popconfirm title="确定移除吗?" @confirm="() => removeSaleOut(index)">
               <a style="color:red;">移除</a>
@@ -101,15 +101,14 @@
         <!-- 备注（位于表格下方，与出入库单一致） -->
         <a-row class="form-row" :gutter="24">
           <a-col :lg="24" :md="24" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="{xs: { span: 24 },sm: { span: 24 }}" label="">
-              <span v-if="isReadOnly" style="margin-top:8px;display:inline-block;">备注：{{ model.remark }}</span>
+            <a-form-item :labelCol="labelCol" :wrapperCol="{xs: { span: 24 },sm: { span: 24 }}" label="" style="padding:20px 10px;">
+              <span v-if="isReadOnly">备注：{{ model.remark }}</span>
               <a-textarea v-else :rows="1" placeholder="请输入备注" v-decorator="['remark']" style="margin-top:8px;"/>
             </a-form-item>
           </a-col>
         </a-row>
         </section>
       </a-form>
-    </a-spin>
     <!-- 选择出库单弹窗 -->
     <a-modal
       title="选择销售出库单"
@@ -137,6 +136,7 @@
         :loading="saleOutLoading"
         :pagination="saleOutPagination"
         :rowSelection="{selectedRowKeys: saleOutSelectedKeys, onChange: onSaleOutSelectChange}"
+        :components="saleOutDragComponents"
         @change="handleSaleOutTableChange">
       </a-table>
     </a-modal>
@@ -146,16 +146,17 @@
 <script>
   import pick from 'lodash.pick'
   import moment from 'moment'
+  import VueDraggableResizable from 'vue-draggable-resizable'
   import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, freightBatchSetStatus } from '@/api/api'
   import { getAction, postAction } from '@/api/manage'
   import CustomPrintModal from '@/views/bill/dialog/CustomPrintModal'
   export default {
     name: "FreightBillModal",
-    components: { CustomPrintModal },
+    components: { CustomPrintModal, VueDraggableResizable },
     data() {
       return {
         title: "操作",
-        width: '1600px',
+        width: document.body.clientWidth > 1800 ? '1600px' : '1200px',
         visible: false,
         confirmLoading: false,
         isReadOnly: false,
@@ -166,6 +167,10 @@
         totalFreight: '0.00',
         currentUnitPrice: 0,
         selectedSaleOutList: [],
+        modalStyle: {
+          top: '20px',
+          height: '95%'
+        },
         // 选择出库单弹窗
         selectModalVisible: false,
         saleOutSearchKey: '',
@@ -183,7 +188,7 @@
         },
         labelCol: {
           xs: { span: 24 },
-          sm: { span: 8 },
+          sm: { span: 5 },
         },
         wrapperCol: {
           xs: { span: 24 },
@@ -235,9 +240,38 @@
           return this.detailColumns.filter(col => col.dataIndex !== 'action')
         }
         return this.detailColumns
+      },
+      detailDragComponents() {
+        return this.buildDragComponents(this.detailColumns)
+      },
+      saleOutDragComponents() {
+        return this.buildDragComponents(this.saleOutColumns)
       }
     },
     methods: {
+      buildDragComponents(columns) {
+        const that = this
+        return {
+          header: {
+            cell: (h, props, children) => {
+              const { key, ...restProps } = props
+              const col = columns.find(c => (c.dataIndex || c.key) === key)
+              if (!col || !col.width) {
+                return h('th', { ...restProps }, children)
+              }
+              const dragProps = {
+                key: col.dataIndex || col.key,
+                class: 'table-draggable-handle',
+                attrs: { w: 10, x: col.width, z: 1, axis: 'x', draggable: true, resizable: false },
+                on: {
+                  dragging: (x) => { col.width = Math.max(x, 1) }
+                }
+              }
+              return h('th', { ...restProps, class: 'resize-table-th' }, [children, h(VueDraggableResizable, { ...dragProps })])
+            }
+          }
+        }
+      },
       detail(record) {
         this.isReadOnly = true;
         this.form.resetFields();
@@ -251,6 +285,40 @@
         if (record.id) {
           this.loadDetailForView(record.id);
         }
+      },
+      detailByBillNo(billNo) {
+        this.isReadOnly = true;
+        this.form.resetFields();
+        this.model = {};
+        this.selectedSaleOutList = [];
+        this.totalWeight = '0.00';
+        this.totalFreight = '0.00';
+        this.currentUnitPrice = 0;
+        this.visible = true;
+        this.title = '物流单-详情';
+        this.confirmLoading = true;
+        getFreightDetail({ billNo: billNo }).then((res) => {
+          if (res.code === 200 && res.data) {
+            let data = res.data;
+            this.model = {
+              id: data.id,
+              billNo: data.billNo,
+              billTimeStr: data.billTimeStr,
+              carrierName: data.carrierName,
+              carrierId: data.carrierId,
+              unitPrice: data.unitPrice,
+              totalWeight: data.totalWeight,
+              totalFreight: data.totalFreight,
+              remark: data.remark,
+              status: String(data.status)
+            };
+            this.currentUnitPrice = data.unitPrice || 0;
+            this.selectedSaleOutList = data.detailList || [];
+            this.calcTotal();
+          }
+        }).finally(() => {
+          this.confirmLoading = false;
+        })
       },
       loadDetailForView(id) {
         this.confirmLoading = true;
@@ -489,4 +557,17 @@
   }
 </script>
 <style scoped>
+  .resize-table-th {
+    position: relative;
+  }
+  .table-draggable-handle {
+    height: 100% !important;
+    bottom: 0;
+    left: auto !important;
+    right: -5px;
+    cursor: col-resize;
+    touch-action: none;
+    position: absolute;
+    transform: none !important;
+  }
 </style>
