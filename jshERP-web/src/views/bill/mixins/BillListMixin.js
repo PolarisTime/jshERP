@@ -2,7 +2,8 @@ import Vue from 'vue'
 import { getAction, postAction } from '@/api/manage'
 import { FormTypes } from '@/utils/JEditableTableUtil'
 import { findBillDetailByNumber, findBySelectSup, findBySelectCus, findBySelectRetail, getUserList, getAccount,
-  waitBillCount, getCurrentSystemConfig, getPlatformConfigByKey, getPersonByNumType } from '@/api/api'
+  waitBillCount, getCurrentSystemConfig, getPlatformConfigByKey, getPersonByNumType,
+  getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
 import { getCheckFlag, getFormatDate, getMpListShort, getPrevMonthFormatDate } from '@/utils/util'
 import moment from 'moment'
 import pick from 'lodash.pick'
@@ -682,29 +683,66 @@ export const BillListMixin = {
         }
       })
     },
-    //加载初始化列
+    //加载初始化列（优先从服务端加载，支持排序）
     initColumnsSetting(){
-      let columnsStr = Vue.ls.get(this.prefixNo)
-      if(columnsStr && columnsStr.indexOf(',')>-1) {
-        this.settingDataIndex = columnsStr.split(',')
-      } else {
-        this.settingDataIndex = this.defDataIndex
-      }
-      this.columns = this.defColumns.filter(item => {
-        if(this.purchaseBySaleFlag) {
-          //以销定购-开启
-          return this.settingDataIndex.includes(item.dataIndex)
-        } else {
-          //以销定购-关闭
-          if(this.prefixNo === 'CGDD') {
-            //采购订单只显示除了关联订单之外的列
-            if(item.dataIndex!=='linkNumber') {
-              return this.settingDataIndex.includes(item.dataIndex)
-            }
-          } else {
-            return this.settingDataIndex.includes(item.dataIndex)
+      // 先用默认列渲染，不阻塞
+      this.settingDataIndex = [...this.defDataIndex]
+      this.applyColumnsOrdered(this.settingDataIndex)
+      // 异步从服务端加载
+      if(this.prefixNo) {
+        getColumnConfig({ pageCode: this.prefixNo }).then((res) => {
+          if(res && res.code === 200 && res.data && res.data.columnConfig) {
+            try {
+              let configArr = JSON.parse(res.data.columnConfig)
+              if(configArr && configArr.length > 0) {
+                this.settingDataIndex = configArr
+                this.applyColumnsOrdered(configArr)
+                Vue.ls.set(this.prefixNo, configArr.join(','))
+                return
+              }
+            } catch(e) { /* ignore parse error */ }
           }
+          // 服务端无配置，检查localStorage是否有旧配置需要迁移
+          let columnsStr = Vue.ls.get(this.prefixNo)
+          if(columnsStr && columnsStr.indexOf(',')>-1) {
+            this.settingDataIndex = columnsStr.split(',')
+            this.applyColumnsOrdered(this.settingDataIndex)
+            // 自动迁移到服务端
+            this.saveColumnsToServer(this.settingDataIndex)
+          }
+        }).catch(() => {
+          // 网络异常回退localStorage
+          let columnsStr = Vue.ls.get(this.prefixNo)
+          if(columnsStr && columnsStr.indexOf(',')>-1) {
+            this.settingDataIndex = columnsStr.split(',')
+            this.applyColumnsOrdered(this.settingDataIndex)
+          }
+        })
+      }
+    },
+    //按有序数组重排列
+    applyColumnsOrdered(orderedArr) {
+      let colMap = {}
+      this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
+      let result = []
+      orderedArr.forEach(di => {
+        if(colMap[di]) {
+          if(!this.purchaseBySaleFlag && this.prefixNo === 'CGDD' && di === 'linkNumber') {
+            return
+          }
+          result.push(colMap[di])
         }
+      })
+      this.columns = result
+    },
+    //保存列配置到服务端
+    saveColumnsToServer(dataIndexArr) {
+      if(!this.prefixNo) return
+      saveColumnConfig({
+        pageCode: this.prefixNo,
+        columnConfig: JSON.stringify(dataIndexArr)
+      }).then(() => {
+        Vue.ls.set(this.prefixNo, dataIndexArr.join(','))
       })
     },
     //加载快捷按钮：转入库、转出库等
@@ -841,18 +879,20 @@ export const BillListMixin = {
         }
       }
     },
-    //列设置更改事件
-    onColChange (checkedValues) {
-      this.columns = this.defColumns.filter(item => {
-        return checkedValues.includes(item.dataIndex)
-      })
-      let columnsStr = checkedValues.join()
-      Vue.ls.set(this.prefixNo, columnsStr)
+    //列设置更改事件（接收有序数组）
+    onColChange (orderedArr) {
+      this.settingDataIndex = orderedArr
+      this.applyColumnsOrdered(orderedArr)
+      this.saveColumnsToServer(orderedArr)
     },
     //恢复默认
     handleRestDefault() {
       Vue.ls.remove(this.prefixNo)
-      this.initColumnsSetting()
+      if(this.prefixNo) {
+        resetColumnConfig({ pageCode: this.prefixNo })
+      }
+      this.settingDataIndex = [...this.defDataIndex]
+      this.applyColumnsOrdered(this.settingDataIndex)
     },
     //导出单据
     handleExport() {

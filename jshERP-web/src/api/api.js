@@ -130,6 +130,10 @@ const getFreightDetail = (params)=>getAction('/freightHead/detail',params);
 const getAvailableSaleOut = (params)=>getAction('/freightHead/availableSaleOut',params);
 //运费对账
 const getFreightReconciliation = (params)=>getAction('/freightHead/reconciliation',params);
+//列配置
+const getColumnConfig = (params)=>getAction('/columnConfig/getByPageCode',params);
+const saveColumnConfig = (params)=>postAction('/columnConfig/save',params);
+const resetColumnConfig = (params)=>deleteAction('/columnConfig/reset',params);
 
 export {
   getBuyAndSaleStatistics,
@@ -237,7 +241,10 @@ export {
   freightBatchSetStatus,
   getFreightDetail,
   getAvailableSaleOut,
-  getFreightReconciliation
+  getFreightReconciliation,
+  getColumnConfig,
+  saveColumnConfig,
+  resetColumnConfig
 }
 
 
