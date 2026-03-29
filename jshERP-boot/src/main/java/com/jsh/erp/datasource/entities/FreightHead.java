@@ -33,6 +33,14 @@ public class FreightHead {
 
     private String deleteFlag;
 
+    private String paymentStatus;
+
+    private BigDecimal paidAmount;
+
+    private Date paymentTime;
+
+    private Long paymentOperator;
+
     public Long getId() {
         return id;
     }
@@ -135,5 +143,37 @@ public class FreightHead {
 
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(BigDecimal paidAmount) {
+        this.paidAmount = paidAmount;
+    }
+
+    public Date getPaymentTime() {
+        return paymentTime;
+    }
+
+    public void setPaymentTime(Date paymentTime) {
+        this.paymentTime = paymentTime;
+    }
+
+    public Long getPaymentOperator() {
+        return paymentOperator;
+    }
+
+    public void setPaymentOperator(Long paymentOperator) {
+        this.paymentOperator = paymentOperator;
     }
 }

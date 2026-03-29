@@ -219,4 +219,113 @@ public class FreightHeadController extends BaseController {
         }
         return res;
     }
+
+    @GetMapping(value = "/reconciliationDetail")
+    @ApiOperation(value = "对账明细查询")
+    public TableDataInfo reconciliationDetail(@RequestParam(value = "search", required = false) String search,
+                                              HttpServletRequest request) throws Exception {
+        Long carrierId = null;
+        String beginTime = "";
+        String endTime = "";
+        String paymentStatus = "";
+        if (StringUtil.isNotEmpty(search)) {
+            JSONObject obj = JSONObject.parseObject(search);
+            carrierId = obj.getLong("carrierId");
+            beginTime = obj.getString("beginTime");
+            endTime = obj.getString("endTime");
+            paymentStatus = obj.getString("paymentStatus");
+        }
+        List<Map<String, Object>> list = freightHeadService.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus);
+        return getDataTable(list);
+    }
+
+    @PostMapping(value = "/batchSetPaymentStatus")
+    @ApiOperation(value = "批量标记付款状态")
+    public BaseResponseInfo batchSetPaymentStatus(@RequestBody JSONObject jsonObject,
+                                                   HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            String paymentStatus = jsonObject.getString("paymentStatus");
+            java.math.BigDecimal paidAmount = jsonObject.getBigDecimal("paidAmount");
+            String ids = jsonObject.getString("ids");
+            int result = freightHeadService.batchSetPaymentStatus(paymentStatus, paidAmount, ids);
+            if (result > 0) {
+                res.code = 200;
+                res.data = "操作成功";
+            } else {
+                res.code = 500;
+                res.data = "操作失败";
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "操作失败";
+        }
+        return res;
+    }
+
+    @PostMapping(value = "/cancelPayment")
+    @ApiOperation(value = "取消付款标记")
+    public BaseResponseInfo cancelPayment(@RequestBody JSONObject jsonObject,
+                                           HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            String ids = jsonObject.getString("ids");
+            int result = freightHeadService.cancelPayment(ids);
+            if (result > 0) {
+                res.code = 200;
+                res.data = "操作成功";
+            } else {
+                res.code = 500;
+                res.data = "操作失败";
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "操作失败";
+        }
+        return res;
+    }
+
+    @GetMapping(value = "/exportReconciliation")
+    @ApiOperation(value = "导出对账明细Excel")
+    public void exportReconciliation(@RequestParam(value = "carrierId", required = false) Long carrierId,
+                                      @RequestParam(value = "beginTime", required = false) String beginTime,
+                                      @RequestParam(value = "endTime", required = false) String endTime,
+                                      @RequestParam(value = "paymentStatus", required = false) String paymentStatus,
+                                      @RequestParam(value = "carrierName", required = false) String carrierName,
+                                      HttpServletRequest request,
+                                      javax.servlet.http.HttpServletResponse response) throws Exception {
+        try {
+            List<Map<String, Object>> dataList = freightHeadService.getReconciliationDetailForExport(carrierId, beginTime, endTime, paymentStatus);
+            // 使用 ExcelUtils 导出
+            String tip = "运费对账明细" + (carrierName != null ? " - " + carrierName : "");
+            String[] names = {"单据编号", "日期", "结算方", "总重量(吨)", "单价(元/吨)", "总运费(元)", "付款状态", "已付金额", "付款时间", "操作人", "备注"};
+            String title = "运费对账明细";
+            List<Object[]> objects = new ArrayList<>();
+            for (Map<String, Object> row : dataList) {
+                String ps = String.valueOf(row.get("paymentStatus"));
+                String psName = "0".equals(ps) ? "未付款" : "1".equals(ps) ? "已付款" : "2".equals(ps) ? "部分付款" : "未付款";
+                objects.add(new Object[]{
+                        row.get("billNo"),
+                        row.get("billTimeStr"),
+                        row.get("carrierName"),
+                        row.get("totalWeight"),
+                        row.get("unitPrice"),
+                        row.get("totalFreight"),
+                        psName,
+                        row.get("paidAmount"),
+                        row.get("paymentTimeStr") != null ? row.get("paymentTimeStr") : "",
+                        row.get("paymentOperatorName") != null ? row.get("paymentOperatorName") : "",
+                        row.get("remark") != null ? row.get("remark") : ""
+                });
+            }
+            String path = System.getProperty("java.io.tmpdir");
+            String fileName = "freight_reconciliation_" + System.currentTimeMillis() + ".xls";
+            java.io.File file = com.jsh.erp.utils.ExcelUtils.exportObjectsOneSheet(path, fileName, tip, names, title, objects);
+            com.jsh.erp.utils.ExcelUtils.downloadExcel(file, file.getName(), response);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 }

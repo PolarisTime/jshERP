@@ -153,6 +153,9 @@ public class FreightHeadService {
         if (freightHead != null && !"0".equals(freightHead.getStatus())) {
             throw new BusinessRunTimeException(0, "已审核的运费单不能删除，请先反审核");
         }
+        if (freightHead != null && !"0".equals(freightHead.getPaymentStatus())) {
+            throw new BusinessRunTimeException(0, "已付款的运费单不能删除，请先取消付款标记");
+        }
         //逻辑删除明细
         freightItemMapperEx.deleteByHeaderId(id);
         //逻辑删除主表
@@ -184,6 +187,18 @@ public class FreightHeadService {
         int result = 0;
         try {
             String[] idArray = ids.split(",");
+            //反审核时校验付款状态
+            if ("0".equals(status)) {
+                for (String idStr : idArray) {
+                    if (idStr != null && !idStr.trim().isEmpty()) {
+                        FreightHead head = getFreightHead(Long.parseLong(idStr.trim()));
+                        if (head != null && !"0".equals(head.getPaymentStatus())) {
+                            throw new BusinessRunTimeException(0,
+                                    "单据[" + head.getBillNo() + "]已有付款记录，不能反审核，请先取消付款标记");
+                        }
+                    }
+                }
+            }
             result = freightHeadMapperEx.batchSetStatus(status, idArray);
             //记录日志
             String statusStr = "1".equals(status) ? "[审核]" : "[反审核]";
@@ -386,5 +401,77 @@ public class FreightHeadService {
         } catch (Exception e) {
             JshException.writeFail(logger, e);
         }
+    }
+
+    /**
+     * 对账明细查询（带付款状态筛选）
+     */
+    public List<Map<String, Object>> selectReconciliationDetail(Long carrierId, String beginTime, String endTime, String paymentStatus) throws Exception {
+        List<Map<String, Object>> list = new ArrayList<>();
+        try {
+            User userInfo = userService.getCurrentUser();
+            Long tenantId = userInfo.getTenantId();
+            beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
+            endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
+            PageUtils.startPage();
+            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus, tenantId);
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+        }
+        return list;
+    }
+
+    /**
+     * 批量标记付款状态
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public int batchSetPaymentStatus(String paymentStatus, BigDecimal paidAmount, String ids) throws Exception {
+        int result = 0;
+        try {
+            User userInfo = userService.getCurrentUser();
+            String[] idArray = ids.split(",");
+            result = freightHeadMapperEx.batchSetPaymentStatus(paymentStatus, paidAmount, new Date(), userInfo.getId(), idArray);
+            String statusStr = "1".equals(paymentStatus) ? "标记已付款" : "2".equals(paymentStatus) ? "标记部分付款" : "标记未付款";
+            logService.insertLog("运费单", statusStr + ":" + ids,
+                    ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
+        } catch (Exception e) {
+            JshException.writeFail(logger, e);
+        }
+        return result;
+    }
+
+    /**
+     * 取消付款标记
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public int cancelPayment(String ids) throws Exception {
+        int result = 0;
+        try {
+            String[] idArray = ids.split(",");
+            result = freightHeadMapperEx.cancelPayment(idArray);
+            logService.insertLog("运费单", "取消付款标记:" + ids,
+                    ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
+        } catch (Exception e) {
+            JshException.writeFail(logger, e);
+        }
+        return result;
+    }
+
+    /**
+     * 导出对账明细（不分页，全量查询）
+     */
+    public List<Map<String, Object>> getReconciliationDetailForExport(Long carrierId, String beginTime, String endTime, String paymentStatus) throws Exception {
+        List<Map<String, Object>> list = new ArrayList<>();
+        try {
+            User userInfo = userService.getCurrentUser();
+            Long tenantId = userInfo.getTenantId();
+            beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
+            endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
+            // 不调用 PageUtils.startPage()，全量查询
+            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus, tenantId);
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+        }
+        return list;
     }
 }

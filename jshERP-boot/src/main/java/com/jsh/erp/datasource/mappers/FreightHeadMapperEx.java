@@ -3,7 +3,10 @@ package com.jsh.erp.datasource.mappers;
 import com.jsh.erp.datasource.entities.FreightHeadVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 运费单主表扩展Mapper接口
@@ -39,9 +42,34 @@ public interface FreightHeadMapperEx {
      */
     Long selectIdByBillNo(@Param("billNo") String billNo);
 
-    List<java.util.Map<String, Object>> selectReconciliation(
+    List<Map<String, Object>> selectReconciliation(
             @Param("carrierId") Long carrierId,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
             @Param("tenantId") Long tenantId);
+
+    /**
+     * 对账明细查询（带付款状态）
+     */
+    List<Map<String, Object>> selectReconciliationDetail(
+            @Param("carrierId") Long carrierId,
+            @Param("beginTime") String beginTime,
+            @Param("endTime") String endTime,
+            @Param("paymentStatus") String paymentStatus,
+            @Param("tenantId") Long tenantId);
+
+    /**
+     * 批量标记付款状态
+     */
+    int batchSetPaymentStatus(
+            @Param("paymentStatus") String paymentStatus,
+            @Param("paidAmount") BigDecimal paidAmount,
+            @Param("paymentTime") Date paymentTime,
+            @Param("paymentOperator") Long paymentOperator,
+            @Param("ids") String[] ids);
+
+    /**
+     * 取消付款标记
+     */
+    int cancelPayment(@Param("ids") String[] ids);
 }

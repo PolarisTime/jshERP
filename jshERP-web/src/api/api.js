@@ -131,6 +131,9 @@ const getAvailableSaleOut = (params)=>getAction('/freightHead/availableSaleOut',
 const getFreightDepotItems = (params)=>getAction('/freightHead/getDepotItems',params);
 //运费对账
 const getFreightReconciliation = (params)=>getAction('/freightHead/reconciliation',params);
+const getReconciliationDetail = (params)=>getAction('/freightHead/reconciliationDetail',params);
+const batchSetPaymentStatus = (params)=>postAction('/freightHead/batchSetPaymentStatus',params);
+const cancelPayment = (params)=>postAction('/freightHead/cancelPayment',params);
 //列配置
 const getColumnConfig = (params)=>getAction('/columnConfig/getByPageCode',params);
 const saveColumnConfig = (params)=>postAction('/columnConfig/save',params);
@@ -249,6 +252,9 @@ export {
   getAvailableSaleOut,
   getFreightDepotItems,
   getFreightReconciliation,
+  getReconciliationDetail,
+  batchSetPaymentStatus,
+  cancelPayment,
   getColumnConfig,
   saveColumnConfig,
   resetColumnConfig,

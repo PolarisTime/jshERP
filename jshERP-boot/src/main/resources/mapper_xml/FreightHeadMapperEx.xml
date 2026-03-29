@@ -56,7 +56,9 @@
         select fc.id as carrierId, fc.name as carrierName,
                count(fh.id) as billCount,
                IFNULL(sum(fh.total_weight), 0) as totalWeight,
-               IFNULL(sum(fh.total_freight), 0) as totalFreight
+               IFNULL(sum(fh.total_freight), 0) as totalFreight,
+               IFNULL(sum(fh.paid_amount), 0) as paidAmount,
+               IFNULL(sum(fh.total_freight), 0) - IFNULL(sum(fh.paid_amount), 0) as unpaidAmount
         from jsh_freight_head fh
         left join jsh_freight_carrier fc on fh.carrier_id = fc.id
         where fh.delete_flag = '0' and fh.status = '1' and fh.tenant_id = #{tenantId}
@@ -72,6 +74,63 @@
         group by fc.id, fc.name
         order by totalFreight desc
     </select>
+
+    <!-- 对账明细查询（带付款状态） -->
+    <select id="selectReconciliationDetail" resultType="java.util.HashMap">
+        select fh.id, fh.bill_no as billNo,
+               date_format(fh.bill_time, '%Y-%m-%d') as billTimeStr,
+               fc.name as carrierName,
+               fh.total_weight as totalWeight,
+               fh.unit_price as unitPrice,
+               fh.total_freight as totalFreight,
+               ifnull(fh.payment_status, '0') as paymentStatus,
+               ifnull(fh.paid_amount, 0) as paidAmount,
+               date_format(fh.payment_time, '%Y-%m-%d %H:%i') as paymentTimeStr,
+               u2.username as paymentOperatorName,
+               fh.remark
+        from jsh_freight_head fh
+        left join jsh_freight_carrier fc on fh.carrier_id = fc.id
+        left join jsh_user u2 on fh.payment_operator = u2.id
+        where fh.delete_flag = '0' and fh.status = '1' and fh.tenant_id = #{tenantId}
+        <if test="carrierId != null">
+            and fh.carrier_id = #{carrierId}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and fh.bill_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and fh.bill_time &lt;= #{endTime}
+        </if>
+        <if test="paymentStatus != null and paymentStatus != ''">
+            and ifnull(fh.payment_status, '0') = #{paymentStatus}
+        </if>
+        order by fh.bill_time desc
+    </select>
+
+    <!-- 批量标记付款状态：已付款时paid_amount=total_freight -->
+    <update id="batchSetPaymentStatus">
+        update jsh_freight_head
+        set payment_status = #{paymentStatus},
+            paid_amount = case when #{paymentStatus} = '1' then total_freight else #{paidAmount} end,
+            payment_time = #{paymentTime},
+            payment_operator = #{paymentOperator}
+        where delete_flag = '0' and status = '1'
+        and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 取消付款标记 -->
+    <update id="cancelPayment">
+        update jsh_freight_head
+        set payment_status = '0', paid_amount = 0, payment_time = null, payment_operator = null
+        where delete_flag = '0'
+        and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
     <update id="batchSetStatus">
         update jsh_freight_head
