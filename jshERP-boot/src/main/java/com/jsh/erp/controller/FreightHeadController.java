@@ -196,4 +196,26 @@ public class FreightHeadController extends BaseController {
         }
         return res;
     }
+
+    @GetMapping(value = "/getDepotItems")
+    @ApiOperation(value = "按出库单ID列表查询商品明细行")
+    public BaseResponseInfo getDepotItems(@RequestParam("headerIds") String headerIds,
+                                          HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            List<Long> idList = new ArrayList<>();
+            if (StringUtil.isNotEmpty(headerIds)) {
+                for (String s : headerIds.split(",")) {
+                    idList.add(Long.parseLong(s.trim()));
+                }
+            }
+            res.code = 200;
+            res.data = freightHeadService.getDepotItemsByHeaderIds(idList);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "获取数据失败";
+        }
+        return res;
+    }
 }

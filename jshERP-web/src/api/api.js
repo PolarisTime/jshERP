@@ -128,6 +128,7 @@ const deleteFreightBill = (params)=>deleteAction('/freightHead/deleteFreightBill
 const freightBatchSetStatus = (params)=>postAction('/freightHead/batchSetStatus',params);
 const getFreightDetail = (params)=>getAction('/freightHead/detail',params);
 const getAvailableSaleOut = (params)=>getAction('/freightHead/availableSaleOut',params);
+const getFreightDepotItems = (params)=>getAction('/freightHead/getDepotItems',params);
 //运费对账
 const getFreightReconciliation = (params)=>getAction('/freightHead/reconciliation',params);
 //列配置
@@ -246,6 +247,7 @@ export {
   freightBatchSetStatus,
   getFreightDetail,
   getAvailableSaleOut,
+  getFreightDepotItems,
   getFreightReconciliation,
   getColumnConfig,
   saveColumnConfig,

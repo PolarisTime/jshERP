@@ -77,17 +77,13 @@
           </a-col>
         </a-row>
         <!-- 已选出库单明细区域 -->
-        <div v-if="!isReadOnly" class="table-operator" style="padding-bottom:8px;">
-          <a-row :gutter="24" style="float:left;padding-bottom:8px;">
-            <a-col :md="24" :sm="24">
-              <a-button type="primary" icon="plus" @click="showSelectSaleOut">选择出库单</a-button>
-            </a-col>
-          </a-row>
+        <div v-if="!isReadOnly" style="padding-bottom:8px;">
+          <a-button type="primary" icon="plus" @click="showSelectSaleOut">选择出库单</a-button>
         </div>
         <a-table
           size="middle"
           bordered
-          rowKey="id"
+          :rowKey="(record, index) => record.itemId || index"
           :columns="currentDetailColumns"
           :dataSource="selectedSaleOutList"
           :pagination="false"
@@ -147,7 +143,7 @@
   import pick from 'lodash.pick'
   import moment from 'moment'
   import VueDraggableResizable from 'vue-draggable-resizable'
-  import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, freightBatchSetStatus } from '@/api/api'
+  import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, getFreightDepotItems, freightBatchSetStatus } from '@/api/api'
   import { getAction, postAction } from '@/api/manage'
   import CustomPrintModal from '@/views/bill/dialog/CustomPrintModal'
   export default {
@@ -206,25 +202,28 @@
           }
         },
         detailColumns: [
-          { title: '出库单号', dataIndex: 'billNo', width: 180 },
-          { title: '客户名称', dataIndex: 'customerName', width: 150 },
-          { title: '出库日期', dataIndex: 'billTimeStr', width: 110 },
-          { title: '商品摘要', dataIndex: 'materialNames', width: 200, ellipsis: true },
-          { title: '金额(元)', dataIndex: 'totalAmount', width: 110 },
-          { title: '重量(吨)', dataIndex: 'totalWeight', width: 110 },
-          { title: '仓库', dataIndex: 'depotName', width: 120 },
-          { title: '业务员', dataIndex: 'salesMan', width: 100 },
-          { title: '备注', dataIndex: 'remark', width: 150, ellipsis: true },
           {
             title: '操作', dataIndex: 'action', width: 80, align: 'center',
             scopedSlots: { customRender: 'action' }
-          }
+          },
+          { title: '出库单号', dataIndex: 'billNo', width: 160 },
+          { title: '出库日期', dataIndex: 'billTimeStr', width: 100 },
+          { title: '客户名称', dataIndex: 'customerName', width: 120 },
+          { title: '名称', dataIndex: 'materialName', width: 150 },
+          { title: '规格', dataIndex: 'standard', width: 100 },
+          { title: '型号', dataIndex: 'model', width: 100 },
+          { title: '批号', dataIndex: 'batchNumber', width: 100 },
+          { title: '数量', dataIndex: 'operNumber', width: 80 },
+          { title: '单位', dataIndex: 'materialUnit', width: 60 },
+          { title: '重量(吨)', dataIndex: 'itemWeight', width: 90 },
+          { title: '仓库', dataIndex: 'depotName', width: 100 },
+          { title: '业务员', dataIndex: 'salesMan', width: 80 }
         ],
         saleOutColumns: [
           { title: '出库单号', dataIndex: 'billNo', width: 180 },
           { title: '客户名称', dataIndex: 'customerName', width: 150 },
           { title: '日期', dataIndex: 'billTimeStr', width: 110 },
-          { title: '商品摘要', dataIndex: 'materialNames', width: 200, ellipsis: true },
+          { title: '商品信息', dataIndex: 'materialNames', width: 300, ellipsis: true },
           { title: '金额(元)', dataIndex: 'totalAmount', width: 110 },
           { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110 },
           { title: '仓库', dataIndex: 'depotName', width: 120 },
@@ -427,13 +426,15 @@
       calcTotal() {
         let weight = 0;
         this.selectedSaleOutList.forEach(item => {
-          weight += parseFloat(item.totalWeight || 0);
+          weight += parseFloat(item.itemWeight || item.totalWeight || 0);
         });
         this.totalWeight = weight.toFixed(2);
         this.totalFreight = (weight * this.currentUnitPrice).toFixed(2);
       },
       removeSaleOut(index) {
-        this.selectedSaleOutList.splice(index, 1);
+        // 移除同一出库单的所有明细行
+        let depotHeadId = this.selectedSaleOutList[index].depotHeadId
+        this.selectedSaleOutList = this.selectedSaleOutList.filter(item => item.depotHeadId !== depotHeadId)
         this.calcTotal();
       },
       showSelectSaleOut() {
@@ -476,25 +477,25 @@
           this.$message.warning('请至少选择一条出库单！');
           return;
         }
-        this.saleOutSelectedRows.forEach(row => {
-          // 避免重复添加
-          let exists = this.selectedSaleOutList.find(item => (item.depotHeadId || item.id) === row.id);
-          if (!exists) {
-            this.selectedSaleOutList.push({
-              depotHeadId: row.id,
-              billNo: row.billNo,
-              customerName: row.customerName,
-              billTimeStr: row.billTimeStr,
-              totalWeight: row.totalWeight,
-              totalAmount: row.totalAmount,
-              materialNames: row.materialNames,
-              depotName: row.depotName,
-              salesMan: row.salesMan,
-              remark: row.remark
-            });
+        // 收集新选的出库单ID（排除已有的）
+        let existIds = this.selectedSaleOutList.map(item => item.depotHeadId)
+        let newIds = this.saleOutSelectedRows
+          .map(row => row.id)
+          .filter(id => existIds.indexOf(id) === -1)
+        if (newIds.length === 0) {
+          this.$message.warning('所选出库单已全部添加');
+          this.selectModalVisible = false;
+          return;
+        }
+        // 调用后端获取商品明细行
+        getFreightDepotItems({ headerIds: newIds.join(',') }).then((res) => {
+          if (res.code === 200 && res.data) {
+            res.data.forEach(item => {
+              this.selectedSaleOutList.push(item)
+            })
+            this.calcTotal()
           }
-        });
-        this.calcTotal();
+        })
         this.selectModalVisible = false;
       },
       close() {
@@ -518,11 +519,15 @@
             billMain.totalWeight = that.totalWeight;
             billMain.totalFreight = that.totalFreight;
             billMain.remark = values.remark;
-            let rows = that.selectedSaleOutList.map(item => {
-              return {
-                depotHeadId: item.depotHeadId || item.id,
-                totalWeight: item.totalWeight
-              }
+            // 从明细行提取唯一出库单，按 depotHeadId 汇总重量
+            let weightMap = {}
+            that.selectedSaleOutList.forEach(item => {
+              let hid = item.depotHeadId || item.id
+              if (!weightMap[hid]) weightMap[hid] = 0
+              weightMap[hid] += parseFloat(item.itemWeight || item.totalWeight || 0)
+            })
+            let rows = Object.keys(weightMap).map(hid => {
+              return { depotHeadId: parseInt(hid), totalWeight: weightMap[hid].toFixed(2) }
             });
             let formData = {
               info: JSON.stringify(billMain),

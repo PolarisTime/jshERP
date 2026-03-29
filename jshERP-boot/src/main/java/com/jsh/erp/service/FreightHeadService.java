@@ -233,31 +233,18 @@ public class FreightHeadService {
                     data.put("carrierName", carrier != null ? carrier.getName() : "");
                 }
             }
-            //查询明细列表，并关联出库单信息
+            //查询明细列表，按商品明细行展开（每个商品一行）
             List<FreightItem> items = freightItemMapperEx.selectByHeaderId(id);
             List<Map<String, Object>> detailList = new ArrayList<>();
-            if (items != null) {
+            if (items != null && items.size() > 0) {
+                List<Long> headerIds = new ArrayList<>();
                 for (FreightItem item : items) {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("id", item.getId());
-                    row.put("depotHeadId", item.getDepotHeadId());
-                    row.put("billNo", item.getDepotNumber());
-                    row.put("totalWeight", item.getWeight());
-                    row.put("remark", item.getRemark());
-                    //查询出库单的客户名称和日期
                     if (item.getDepotHeadId() != null) {
-                        Map<String, Object> depotInfo = freightItemMapperEx.selectDepotHeadInfo(item.getDepotHeadId());
-                        if (depotInfo != null) {
-                            row.put("customerName", depotInfo.get("customerName"));
-                            row.put("billTimeStr", depotInfo.get("billTimeStr"));
-                            row.put("totalAmount", depotInfo.get("totalAmount"));
-                            row.put("materialNames", depotInfo.get("materialNames"));
-                            row.put("depotName", depotInfo.get("depotName"));
-                            row.put("salesMan", depotInfo.get("salesMan"));
-                            row.put("remark", depotInfo.get("remark"));
-                        }
+                        headerIds.add(item.getDepotHeadId());
                     }
-                    detailList.add(row);
+                }
+                if (headerIds.size() > 0) {
+                    detailList = freightItemMapperEx.selectDepotItemsByHeaderIds(headerIds);
                 }
             }
             data.put("detailList", detailList);
@@ -298,6 +285,21 @@ public class FreightHeadService {
             JshException.readFail(logger, e);
         }
         return weight;
+    }
+
+    /**
+     * 按出库单ID列表查询商品明细行
+     */
+    public List<Map<String, Object>> getDepotItemsByHeaderIds(List<Long> headerIds) throws Exception {
+        List<Map<String, Object>> list = new ArrayList<>();
+        try {
+            if (headerIds != null && headerIds.size() > 0) {
+                list = freightItemMapperEx.selectDepotItemsByHeaderIds(headerIds);
+            }
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+        }
+        return list;
     }
 
     /**

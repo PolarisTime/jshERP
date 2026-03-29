@@ -53,4 +53,9 @@ public interface FreightItemMapperEx {
      * 根据出库单ID列表批量查询关联的物流单号
      */
     List<Map<String, Object>> selectFreightBillNoByDepotHeadIds(@Param("idList") List<Long> idList);
+
+    /**
+     * 按出库单ID列表查询商品明细行（每个商品一行，附带出库单头信息）
+     */
+    List<Map<String, Object>> selectDepotItemsByHeaderIds(@Param("headerIds") List<Long> headerIds);
 }

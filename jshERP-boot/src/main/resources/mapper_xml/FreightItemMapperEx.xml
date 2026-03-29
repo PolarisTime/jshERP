@@ -49,14 +49,15 @@
     <select id="selectDepotHeadInfo" resultType="java.util.HashMap">
         select s.supplier as customerName,
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
-               ifnull(dh.discount_last_money, 0) as totalAmount,
+               (select ifnull(sum(di4.all_price), 0) from jsh_depot_item di4
+                where di4.header_id = dh.id and ifnull(di4.delete_flag, '0') != '1') as totalAmount,
                dh.sales_man as salesMan,
                dh.remark as remark,
                (select GROUP_CONCAT(DISTINCT dp2.name SEPARATOR '、')
                 from jsh_depot_item di3
                 left join jsh_depot dp2 on di3.depot_id = dp2.id
                 where di3.header_id = dh.id and ifnull(di3.delete_flag, '0') != '1') as depotName,
-               (select GROUP_CONCAT(DISTINCT m2.name SEPARATOR '、')
+               (select GROUP_CONCAT(CONCAT(m2.name, ' ', di2.oper_number, ifnull(m2.commodity_unit,''), ' ', round(di2.basic_number * ifnull(m2.weight,0), 2), '吨') SEPARATOR '、')
                 from jsh_depot_item di2
                 left join jsh_material m2 on di2.material_id = m2.id
                 where di2.header_id = dh.id and ifnull(di2.delete_flag, '0') != '1') as materialNames
@@ -77,16 +78,44 @@
         </foreach>
     </select>
 
+    <!-- 按出库单ID列表查询商品明细行（每个商品一行，附带出库单头信息） -->
+    <select id="selectDepotItemsByHeaderIds" resultType="java.util.HashMap">
+        select di.id as itemId, di.header_id as depotHeadId, dh.number as billNo,
+               date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
+               s.supplier as customerName,
+               m.name as materialName,
+               ifnull(m.standard, '') as standard,
+               ifnull(m.model, '') as model,
+               ifnull(di.batch_number, '') as batchNumber,
+               di.oper_number as operNumber,
+               round(di.basic_number * ifnull(m.weight, 0), 2) as itemWeight,
+               ifnull(m.commodity_unit, '') as materialUnit,
+               dp.name as depotName,
+               dh.sales_man as salesMan,
+               dh.remark as remark
+        from jsh_depot_item di
+        left join jsh_depot_head dh on di.header_id = dh.id
+        left join jsh_material m on di.material_id = m.id
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
+        left join jsh_depot dp on di.depot_id = dp.id
+        where di.header_id in
+        <foreach collection="headerIds" item="hid" open="(" separator="," close=")">
+            #{hid}
+        </foreach>
+        and ifnull(di.delete_flag, '0') != '1'
+        order by di.header_id, di.id
+    </select>
+
     <!-- 查询可关联的销售出库单（已审核、未被其他运费单关联） -->
     <select id="selectAvailableSaleOut" resultType="java.util.HashMap">
         select dh.id as id, dh.number as billNo,
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
                s.supplier as customerName,
-               ifnull(dh.discount_last_money, 0) as totalAmount,
+               ifnull(sum(di.all_price), 0) as totalAmount,
                dh.sales_man as salesMan,
                dh.remark as remark,
                GROUP_CONCAT(DISTINCT dp.name SEPARATOR '、') as depotName,
-               GROUP_CONCAT(DISTINCT m.name SEPARATOR '、') as materialNames,
+               GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.commodity_unit,''), ' ', round(di.basic_number * ifnull(m.weight,0), 2), '吨') SEPARATOR '、') as materialNames,
                ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0) as totalWeight
         from jsh_depot_head dh
         left join jsh_depot_item di on dh.id = di.header_id and ifnull(di.delete_flag, '0') != '1'
@@ -101,7 +130,7 @@
             <bind name="bindNumber" value="'%'+number+'%'"/>
             and dh.number like #{bindNumber}
         </if>
-        group by dh.id, dh.number, dh.oper_time, s.supplier, dh.discount_last_money, dh.sales_man, dh.remark
+        group by dh.id, dh.number, dh.oper_time, s.supplier, dh.sales_man, dh.remark
         order by dh.id desc
     </select>
 </mapper>

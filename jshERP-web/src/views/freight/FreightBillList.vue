@@ -82,6 +82,8 @@
             :scroll="scroll"
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
+            :expandedRowKeys="expandedRowKeys"
+            @expand="onExpandFreight"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
               <a @click="myHandleDetail(record)">查看</a>
@@ -96,6 +98,17 @@
               <a-tag v-if="status === '0' || status === 0" color="red">未审核</a-tag>
               <a-tag v-if="status === '1' || status === 1" color="green">已审核</a-tag>
             </template>
+            <a-table
+              bordered
+              size="small"
+              slot="expandedRowRender"
+              slot-scope="record"
+              :loading="record.loading"
+              :columns="expandDetailColumns"
+              :dataSource="record.childrens"
+              :row-key="(record, index) => record.itemId || index"
+              :pagination="false">
+            </a-table>
           </a-table>
         </div>
         <freight-bill-modal ref="modalForm" @ok="modalFormOk"></freight-bill-modal>
@@ -107,7 +120,7 @@
   import FreightBillModal from './modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
   import { postAction } from '@/api/manage'
   import Vue from 'vue'
   export default {
@@ -159,12 +172,32 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        expandedRowKeys: [],
+        expandDetailColumns: [
+          { title: '出库单号', dataIndex: 'billNo', width: 160 },
+          { title: '出库日期', dataIndex: 'billTimeStr', width: 100 },
+          { title: '客户名称', dataIndex: 'customerName', width: 120 },
+          { title: '名称', dataIndex: 'materialName', width: 150 },
+          { title: '规格', dataIndex: 'standard', width: 100 },
+          { title: '型号', dataIndex: 'model', width: 100 },
+          { title: '批号', dataIndex: 'batchNumber', width: 100 },
+          { title: '数量', dataIndex: 'operNumber', width: 80 },
+          { title: '单位', dataIndex: 'materialUnit', width: 60 },
+          { title: '重量(吨)', dataIndex: 'itemWeight', width: 90 },
+          { title: '仓库', dataIndex: 'depotName', width: 100 },
+          { title: '业务员', dataIndex: 'salesMan', width: 80 }
+        ],
         url: {
           list: "/freightHead/list",
           delete: "/freightHead/deleteFreightBill",
           deleteBatch: "/freightHead/deleteBatchFreightBill",
           batchSetStatusUrl: "/freightHead/batchSetStatus"
         }
+      }
+    },
+    watch: {
+      dataSource() {
+        this.expandedRowKeys = []
       }
     },
     created() {
@@ -242,10 +275,28 @@
           }
         })
       },
+      onExpandFreight(expanded, record) {
+        if (expanded) {
+          this.expandedRowKeys = [...new Set([...this.expandedRowKeys, record.id])]
+          this.$set(record, 'loading', true)
+          this.$set(record, 'childrens', [])
+          getFreightDetail({ id: record.id }).then((res) => {
+            if (res.code === 200 && res.data) {
+              this.$set(record, 'childrens', res.data.detailList || [])
+            }
+          }).finally(() => {
+            this.$set(record, 'loading', false)
+          })
+        } else {
+          this.expandedRowKeys = this.expandedRowKeys.filter(key => key !== record.id)
+        }
+      },
       searchQuery() {
+        this.expandedRowKeys = []
         this.loadData(1);
       },
       searchReset() {
+        this.expandedRowKeys = []
         this.queryParam = {
           billNo: '',
           carrierId: undefined,
