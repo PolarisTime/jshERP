@@ -19,6 +19,7 @@ import jxl.Workbook;
 import jxl.write.WritableWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -78,6 +79,9 @@ public class DepotHeadService {
     DepotItemMapperEx depotItemMapperEx;
     @Resource
     private LogService logService;
+
+    @Value(value="${file.exportTmp}")
+    private String fileExportTmp;
 
     public DepotHead getDepotHead(long id)throws Exception {
         DepotHead result=null;
@@ -673,6 +677,9 @@ public class DepotHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int batchSetStatus(String status, String depotHeadIDs)throws Exception {
         int result = 0;
+        boolean forceApprovalFlag = systemConfigService.getForceApprovalFlag();
+        boolean minusStockFlag = systemConfigService.getMinusStockFlag();
+        boolean inOutManageFlag = systemConfigService.getInOutManageFlag();
         List<Long> dhIds = new ArrayList<>();
         List<String> noList = new ArrayList<>();
         List<Long> ids = StringUtil.strToLongList(depotHeadIDs);
@@ -701,6 +708,25 @@ public class DepotHeadService {
                 } else {
                     throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_UN_AUDIT_TO_AUDIT_FAILED_CODE,
                             String.format(ExceptionConstants.DEPOT_HEAD_UN_AUDIT_TO_AUDIT_FAILED_MSG));
+                }
+            }
+            // 开启强审核，并且没有开启负库存：
+            // 1、开启出入库管理，销售出库和采购退货单据审核的时候不做校验，其它出库做校验；
+            // 2、未开启出入库管理，销售出库和采购退货单据审核的时候做校验，其它出库不做校验。
+            if("1".equals(status)) {
+                if(forceApprovalFlag && !minusStockFlag) {
+                    if(inOutManageFlag) {
+                        if("出库".equals(depotHead.getType()) && "其它".equals(depotHead.getSubType())) {
+                            //校验单据中的商品库存是否不足
+                            depotItemService.checkMaterialStock(depotHead.getNumber(), depotHead.getId());
+                        }
+                    } else {
+                        if(("出库".equals(depotHead.getType()) && "销售".equals(depotHead.getSubType()))
+                                || ("出库".equals(depotHead.getType()) && "采购退货".equals(depotHead.getSubType()))) {
+                            //校验单据中的商品库存是否不足
+                            depotItemService.checkMaterialStock(depotHead.getNumber(), depotHead.getId());
+                        }
+                    }
                 }
             }
         }
@@ -1504,7 +1530,7 @@ public class DepotHeadService {
             }
             //生成Excel文件
             String fileName = "单据信息";
-            File file = new File("/opt/"+ fileName);
+            File file = new File(fileExportTmp + fileName);
             WritableWorkbook wtwb = Workbook.createWorkbook(file);
             String oneTip = "";
             String sheetOneStr = "";

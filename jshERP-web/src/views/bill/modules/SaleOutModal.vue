@@ -18,7 +18,7 @@
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrintPro('销售出库')">三联打印-新版</a-button>
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrint('销售出库')">三联打印</a-button>
       <a-button v-if="checkFlag && isCanCheck" :loading="confirmLoading" @click="handleOkAndCheck">保存并审核</a-button>
-      <a-button type="primary" :loading="confirmLoading" @click="handleOk">保存（Ctrl+S）</a-button>
+      <a-button type="primary" :loading="confirmLoading" @click="handleOkOnly">保存（Ctrl+S）</a-button>
       <!--发起多级审核-->
       <a-button v-if="!checkFlag" @click="handleWorkflow()" type="primary">提交流程</a-button>
     </template>
@@ -493,8 +493,14 @@
               info.operNumber = info.preNumber - info.finishNumber
               info.allPrice = info.operNumber * info.unitPrice-0
               let taxRate = info.taxRate-0
-              info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
-              info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
+              if(this.materialPriceTaxFlag) {
+                let realAllPrice = (info.allPrice/(1+taxRate*0.01)).toFixed(2)-0
+                info.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
+                info.taxLastMoney = info.allPrice
+              } else {
+                info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
+                info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
+              }
             }
             info.linkId = info.id
             allTaxLastMoney += info.taxLastMoney

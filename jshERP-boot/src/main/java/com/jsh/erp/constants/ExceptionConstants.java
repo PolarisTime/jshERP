@@ -360,6 +360,9 @@ public class ExceptionConstants {
     //EXCEL中有副条码在系统中已存在（除自身商品之外）
     public static final int MATERIAL_EXCEL_IMPORT_MANY_BARCODE_EXIST_CODE = 80000028;
     public static final String MATERIAL_EXCEL_IMPORT_MANY_BARCODE_EXIST_MSG = "抱歉，EXCEL中有副条码在系统中已存在，具体副条码为：%s";
+    //单据中商品库存不足
+    public static final int BILL_MATERIAL_STOCK_NOT_ENOUGH_CODE = 80000029;
+    public static final String BILL_MATERIAL_STOCK_NOT_ENOUGH_MSG = "单据:%s中商品:%s库存不足";
 
     /**
      *  单据信息
@@ -458,6 +461,10 @@ public class ExceptionConstants {
     //单据录入-单据明细中存在重复的序列号
     public static final int DEPOT_HEAD_CHECK_SERIAL_NUMBER_REPEAT_CODE = 8500033;
     public static final String DEPOT_HEAD_CHECK_SERIAL_NUMBER_REPEAT_MSG = "抱歉，单据明细中存在重复的序列号:%s";
+    //单据录入-序列号已被出库，不允许修改该单据
+    public static final int DEPOT_HEAD_SN_NOT_ALLOW_UPDATE_CODE = 8500035;
+    public static final String DEPOT_HEAD_SN_NOT_ALLOW_UPDATE_MSG = "抱歉，序列号:%s已被出库，不允许修改该单据";
+
 
     /**
      *  单据明细信息

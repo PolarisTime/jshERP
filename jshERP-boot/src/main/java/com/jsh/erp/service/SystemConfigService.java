@@ -62,6 +62,9 @@ public class SystemConfigService {
     @Value(value="${file.path}")
     private String filePath;
 
+    @Value(value="${file.exportTmp}")
+    private String fileExportTmp;
+
     private static String DELETED = "deleted";
 
     public SystemConfig getSystemConfig(long id)throws Exception {
@@ -637,6 +640,23 @@ public class SystemConfigService {
     }
 
     /**
+     * 获取商品价格含税开关
+     * @return
+     * @throws Exception
+     */
+    public boolean getMaterialPriceTaxFlag() throws Exception {
+        boolean materialPriceTaxFlag = false;
+        List<SystemConfig> list = getSystemConfig();
+        if(list.size()>0) {
+            String flag = list.get(0).getMaterialPriceTaxFlag();
+            if(("1").equals(flag)) {
+                materialPriceTaxFlag = true;
+            }
+        }
+        return materialPriceTaxFlag;
+    }
+
+    /**
      * Excel导出统一方法
      * @param title
      * @param head
@@ -661,7 +681,7 @@ public class SystemConfigService {
                 objects.add(objs);
             }
         }
-        File file = ExcelUtils.exportObjectsOneSheet(title, tip, names, title, objects);
+        File file = ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, tip, names, title, objects);
         ExcelUtils.downloadExcel(file, file.getName(), response);
     }
 }
