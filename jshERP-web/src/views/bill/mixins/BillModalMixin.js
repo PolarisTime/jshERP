@@ -517,8 +517,8 @@ export const BillModalMixin = {
                     mObj.depotId = mInfo.depotId
                     mObj.stock = mInfo.stock
                     mObj.snList = ''
-                    mObj.batchNumber = ''
-                    mObj.expirationDate = ''
+                    mObj.batchNumber = that.prefixNo==='CGRK' ? that.buildAutoBatchNumber() : ''
+                    mObj.expirationDate = that.prefixNo==='CGRK' ? that.buildTodayDate() : ''
                     mArr.push(mObj)
                   }
                   let allPriceTotal = 0
@@ -554,8 +554,8 @@ export const BillModalMixin = {
                     let mInfoEx = this.parseInfoToObj(mInfo)
                     mInfoEx.stock = res.data.stock
                     mInfoEx.snList = ''
-                    mInfoEx.batchNumber = ''
-                    mInfoEx.expirationDate = ''
+                    mInfoEx.batchNumber = that.prefixNo==='CGRK' ? that.buildAutoBatchNumber() : ''
+                    mInfoEx.expirationDate = that.prefixNo==='CGRK' ? that.buildTodayDate() : ''
                     let mObj = {
                       rowKey: row.id,
                       values: mInfoEx
@@ -887,6 +887,23 @@ export const BillModalMixin = {
           target.recalcAllStatisticsColumns()
         }
       })
+    },
+    //生成自动批号：当前日期MMdd + 单据号后4位
+    buildAutoBatchNumber() {
+      let now = new Date()
+      let mm = String(now.getMonth() + 1).padStart(2, '0')
+      let dd = String(now.getDate()).padStart(2, '0')
+      let numberStr = this.form.getFieldValue('number') || ''
+      let last4 = numberStr.slice(-4)
+      return mm + dd + last4
+    },
+    //生成当天日期字符串：YYYY-MM-DD
+    buildTodayDate() {
+      let now = new Date()
+      let y = now.getFullYear()
+      let m = String(now.getMonth() + 1).padStart(2, '0')
+      let d = String(now.getDate()).padStart(2, '0')
+      return y + '-' + m + '-' + d
     },
     //改变优惠、本次付款、欠款的值
     autoChangePrice(target) {

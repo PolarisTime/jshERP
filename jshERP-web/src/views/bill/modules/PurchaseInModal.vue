@@ -470,8 +470,13 @@
         if(selectBillDetailRows && selectBillDetailRows.length>0) {
           let listEx = []
           let allTaxLastMoney = 0
-          // 取采购订单号后8位作为批号
-          let autoBatchNumber = linkNumber ? linkNumber.slice(-8) : ''
+          // 生成批号：当前日期MMdd + 单据号后4位
+          let now = new Date()
+          let mm = String(now.getMonth() + 1).padStart(2, '0')
+          let dd = String(now.getDate()).padStart(2, '0')
+          let numberStr = this.form.getFieldValue('number') || ''
+          let last4 = numberStr.slice(-4)
+          let autoBatchNumber = mm + dd + last4
           for(let j=0; j<selectBillDetailRows.length; j++) {
             let info = selectBillDetailRows[j];
             if(info.finishNumber>0) {
@@ -490,8 +495,9 @@
             info.linkId = info.id
             allTaxLastMoney += info.taxLastMoney
             if(info.operNumber>0) {
-              // 自动填入批号：采购订单号后8位
+              // 自动填入批号和有效期
               info.batchNumber = autoBatchNumber
+              info.expirationDate = now.getFullYear() + '-' + mm + '-' + dd
               listEx.push(info)
               this.changeColumnShow(info)
             }
