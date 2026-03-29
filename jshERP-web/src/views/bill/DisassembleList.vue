@@ -211,6 +211,7 @@
           { title: '数量', dataIndex: 'materialCount',width:60},
           { title: '金额合计', dataIndex: 'totalPrice',width:80},
           { title: '备注', dataIndex: 'remark',width:200},
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
           { title: '状态', dataIndex: 'status', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

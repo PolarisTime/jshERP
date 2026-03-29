@@ -212,6 +212,7 @@
           { title: '操作员', dataIndex: 'userName',width:120, ellipsis:true},
           { title: '数量', dataIndex: 'materialCount',width:80},
           { title: '备注', dataIndex: 'remark',width:250},
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
           { title: '状态', dataIndex: 'status', width: 100, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

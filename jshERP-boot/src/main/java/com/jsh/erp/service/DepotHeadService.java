@@ -144,6 +144,7 @@ public class DepotHeadService {
                 Map<Long,String> materialsListMap = findMaterialsListMapByHeaderIdList(idList);
                 Map<Long,BigDecimal> materialCountListMap = getMaterialCountListMapByHeaderIdList(idList);
                 Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
+                Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 for (DepotHeadVo4List dh : list) {
                     if(accountMap!=null && StringUtil.isNotEmpty(dh.getAccountIdList()) && StringUtil.isNotEmpty(dh.getAccountMoneyList())) {
                         String accountStr = accountService.getAccountStrByIdAndMoney(accountMap, dh.getAccountIdList(), dh.getAccountMoneyList());
@@ -215,6 +216,10 @@ public class DepotHeadService {
                     //关联物流单号
                     if(freightBillNoMap!=null) {
                         dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
+                    }
+                    //总重量(吨)
+                    if(totalWeightMap!=null) {
+                        dh.setTotalWeight(totalWeightMap.get(dh.getId()));
                     }
                     //以销定购的情况（不能显示销售单据的金额和客户名称）
                     if(StringUtil.isNotEmpty(purchaseStatus)) {
@@ -809,6 +814,20 @@ public class DepotHeadService {
             }
         }
         return materialCountListMap;
+    }
+
+    /**
+     * 根据单据ID列表批量查询总重量(吨)
+     */
+    public Map<Long,BigDecimal> getTotalWeightMapByHeaderIdList(List<Long> idList) {
+        Map<Long,BigDecimal> totalWeightMap = new HashMap<>();
+        if(idList.size()>0) {
+            List<TotalWeightVo> list = depotHeadMapperEx.getTotalWeightListByHeaderIdList(idList);
+            for(TotalWeightVo vo : list){
+                totalWeightMap.put(vo.getHeaderId(), vo.getTotalWeight());
+            }
+        }
+        return totalWeightMap;
     }
 
     public List<DepotHeadVo4InDetail> findInOutDetail(String beginTime, String endTime, String type, String[] creatorArray,

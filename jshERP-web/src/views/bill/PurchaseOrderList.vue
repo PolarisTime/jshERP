@@ -283,6 +283,7 @@
           { title: '结算账户', dataIndex: 'accountName',width:80},
           { title: '支付订金', dataIndex: 'changeAmount',width:80},
           { title: '备注', dataIndex: 'remark',width:200},
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
           { title: '状态', dataIndex: 'status', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

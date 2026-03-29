@@ -88,6 +88,11 @@ public class DepotHeadVo4List extends DepotHead{
      */
     private String freightBillNo;
 
+    /**
+     * 总重量(吨)
+     */
+    private BigDecimal totalWeight;
+
     public String getProjectName() {
         return projectName;
     }
@@ -302,5 +307,13 @@ public class DepotHeadVo4List extends DepotHead{
 
     public void setFreightBillNo(String freightBillNo) {
         this.freightBillNo = freightBillNo;
+    }
+
+    public BigDecimal getTotalWeight() {
+        return totalWeight;
+    }
+
+    public void setTotalWeight(BigDecimal totalWeight) {
+        this.totalWeight = totalWeight;
     }
 }

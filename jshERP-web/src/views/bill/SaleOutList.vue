@@ -331,6 +331,7 @@
           { title: '物流单号', dataIndex: 'freightBillNo', width: 180,
             scopedSlots: { customRender: 'customRenderFreight' }
           },
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
           { title: '状态', dataIndex: 'status', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

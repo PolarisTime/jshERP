@@ -43,6 +43,9 @@ public interface DepotHeadMapperEx {
     List<MaterialCountVo> getMaterialCountListByHeaderIdList(
             @Param("idList") List<Long> idList);
 
+    List<TotalWeightVo> getTotalWeightListByHeaderIdList(
+            @Param("idList") List<Long> idList);
+
     List<DepotHeadVo4InDetail> findInOutDetail(
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,

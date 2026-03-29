@@ -203,6 +203,21 @@
         group by header_id
     </select>
 
+    <select id="getTotalWeightListByHeaderIdList" resultType="com.jsh.erp.datasource.vo.TotalWeightVo">
+        select di.header_id, sum(di.basic_number * ifnull(m.weight, 0)) as totalWeight
+        from jsh_depot_item di
+        left join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') !='1'
+        where 1=1
+        <if test="idList.size()>0">
+            and di.header_id in
+            <foreach collection="idList" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        and ifnull(di.delete_flag,'0') !='1'
+        group by di.header_id
+    </select>
+
     <select id="findInOutDetail" parameterType="com.jsh.erp.datasource.entities.DepotItemExample" resultMap="ResultWithInfoExMap">
         select dh.number,me.bar_code barCode, m.name mname,m.model,m.standard,m.color,m.brand,m.mfrs,di.unit_price unitPrice,di.material_unit as mUnit, di.sku,
         di.oper_number operNumber,di.all_price allPrice, ifnull(di.tax_rate,0) taxRate, ifnull(di.tax_money,0) taxMoney, ifnull(di.tax_last_money,0) taxLastMoney,

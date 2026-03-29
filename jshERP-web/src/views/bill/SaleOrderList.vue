@@ -292,6 +292,7 @@
           { title: '采购进度', dataIndex: 'purchaseStatus', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderPurchaseStatus' }
           },
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
           { title: '状态', dataIndex: 'status', width: 70, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }
