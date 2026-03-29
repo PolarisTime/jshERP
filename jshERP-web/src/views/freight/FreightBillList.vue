@@ -62,6 +62,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域 -->
         <div>
@@ -78,7 +84,7 @@
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
-              <a @click="handleDetail(record)">查看</a>
+              <a @click="myHandleDetail(record)">查看</a>
               <a-divider v-if="btnEnableList.indexOf(1)>-1" type="vertical" />
               <a v-if="btnEnableList.indexOf(1)>-1" @click="handleEdit(record)">编辑</a>
               <a-divider v-if="btnEnableList.indexOf(1)>-1" type="vertical" />
@@ -93,23 +99,23 @@
           </a-table>
         </div>
         <freight-bill-modal ref="modalForm" @ok="modalFormOk"></freight-bill-modal>
-        <freight-detail ref="modalDetail"></freight-detail>
       </a-card>
     </a-col>
   </a-row>
 </template>
 <script>
   import FreightBillModal from './modules/FreightBillModal'
-  import FreightDetail from './dialog/FreightDetail'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
   import { postAction } from '@/api/manage'
+  import Vue from 'vue'
   export default {
     name: "FreightBillList",
     mixins: [JeecgListMixin],
     components: {
       FreightBillModal,
-      FreightDetail
+      ColumnSettingPopover
     },
     data() {
       return {
@@ -129,7 +135,11 @@
         },
         carrierList: [],
         urlPath: '/freight/bill',
-        columns: [
+        prefixNo: 'WLBILL',
+        settingDataIndex: [],
+        defDataIndex: ['action','billNo','billTimeStr','carrierName','totalWeight','unitPrice','totalFreight','remark','status'],
+        columns: [],
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -159,8 +169,72 @@
     },
     created() {
       this.initCarrierList();
+      this.initColumnsSetting();
     },
     methods: {
+      initColumnsSetting() {
+        this.settingDataIndex = [...this.defDataIndex]
+        this.applyColumnsOrdered(this.settingDataIndex)
+        getColumnConfig({ pageCode: this.prefixNo }).then((res) => {
+          if(res && res.code === 200 && res.data && res.data.columnConfig) {
+            try {
+              let configArr = JSON.parse(res.data.columnConfig)
+              if(configArr && configArr.length > 0) {
+                this.settingDataIndex = configArr
+                this.applyColumnsOrdered(configArr)
+                Vue.ls.set(this.prefixNo, configArr.join(','))
+                return
+              }
+            } catch(e) { /* ignore */ }
+          }
+          let columnsStr = Vue.ls.get(this.prefixNo)
+          if(columnsStr && columnsStr.indexOf(',')>-1) {
+            this.settingDataIndex = columnsStr.split(',')
+            this.applyColumnsOrdered(this.settingDataIndex)
+            this.saveColumnsToServer(this.settingDataIndex)
+          }
+        }).catch(() => {
+          let columnsStr = Vue.ls.get(this.prefixNo)
+          if(columnsStr && columnsStr.indexOf(',')>-1) {
+            this.settingDataIndex = columnsStr.split(',')
+            this.applyColumnsOrdered(this.settingDataIndex)
+          }
+        })
+      },
+      applyColumnsOrdered(orderedArr) {
+        let colMap = {}
+        this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
+        let result = []
+        orderedArr.forEach(di => {
+          if(colMap[di]) result.push(colMap[di])
+        })
+        this.columns = result
+      },
+      saveColumnsToServer(dataIndexArr) {
+        saveColumnConfig({
+          pageCode: this.prefixNo,
+          columnConfig: JSON.stringify(dataIndexArr)
+        }).then(() => {
+          Vue.ls.set(this.prefixNo, dataIndexArr.join(','))
+        })
+      },
+      onColChange(orderedArr) {
+        this.settingDataIndex = orderedArr
+        this.applyColumnsOrdered(orderedArr)
+        this.saveColumnsToServer(orderedArr)
+      },
+      myHandleDetail(record) {
+        if(this.btnEnableList.indexOf(7)===-1) {
+          this.$refs.modalForm.isCanBackCheck = false
+        }
+        this.$refs.modalForm.detail(record);
+      },
+      handleRestDefault() {
+        Vue.ls.remove(this.prefixNo)
+        resetColumnConfig({ pageCode: this.prefixNo })
+        this.settingDataIndex = [...this.defDataIndex]
+        this.applyColumnsOrdered(this.settingDataIndex)
+      },
       initCarrierList() {
         selectAllFreightCarrier({}).then((res) => {
           if (res.code === 200) {
@@ -189,9 +263,6 @@
           this.queryParam.beginTime = '';
           this.queryParam.endTime = '';
         }
-      },
-      handleDetail(record) {
-        this.$refs.modalDetail.show(record);
       },
       handleDeleteBill(record) {
         let that = this;

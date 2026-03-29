@@ -34,6 +34,11 @@ public interface FreightHeadMapperEx {
     /**
      * 运费对账聚合查询（按物流方汇总已审核物流单）
      */
+    /**
+     * 根据单据编号查询运费单ID
+     */
+    Long selectIdByBillNo(@Param("billNo") String billNo);
+
     List<java.util.Map<String, Object>> selectReconciliation(
             @Param("carrierId") Long carrierId,
             @Param("beginTime") String beginTime,

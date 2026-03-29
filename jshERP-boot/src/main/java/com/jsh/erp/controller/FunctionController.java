@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
@@ -192,11 +189,22 @@ public class FunctionController extends BaseController {
         return dataArray;
     }
 
+    /**
+     * admin专属功能ID集合：功能管理(16)、租户管理(18)、插件管理(245)、平台配置(258)
+     * 这些功能仅admin可见，租户用户即使角色中分配了也不显示
+     */
+    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, 18L, 245L, 258L));
+
     public JSONArray getMenuByFunction(List<Function> dataList, String fc, String approvalFlag, Map<Long, Long> funIdMap, User userInfo) throws Exception {
         JSONArray dataArray = new JSONArray();
+        boolean isAdmin = "admin".equals(userInfo.getLoginName());
         for (Function function : dataList) {
+            //非admin用户跳过平台管理专属功能
+            if(!isAdmin && ADMIN_ONLY_FUN_IDS.contains(function.getId())) {
+                continue;
+            }
             //如果不是超管也不是租户就需要校验，防止分配下级用户的功能权限，大于租户的权限
-            if("admin".equals(userInfo.getLoginName()) || userInfo.getId().equals(userInfo.getTenantId()) || funIdMap.get(function.getId())!=null) {
+            if(isAdmin || userInfo.getId().equals(userInfo.getTenantId()) || funIdMap.get(function.getId())!=null) {
                 //如果关闭多级审核，遇到任务审核菜单直接跳过
                 if("0".equals(approvalFlag) && "/workflow".equals(function.getUrl())) {
                     continue;

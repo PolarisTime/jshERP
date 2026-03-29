@@ -197,6 +197,17 @@ public class FreightHeadService {
     }
 
     /**
+     * 根据单据编号查询运费单详情
+     */
+    public Map<String, Object> getDetailByBillNo(String billNo) throws Exception {
+        Long id = freightHeadMapperEx.selectIdByBillNo(billNo);
+        if (id == null) {
+            return new HashMap<>();
+        }
+        return getDetail(id);
+    }
+
+    /**
      * 获取运费单详情（主表+明细列表），返回前端可直接使用的扁平结构
      */
     public Map<String, Object> getDetail(Long id) throws Exception {

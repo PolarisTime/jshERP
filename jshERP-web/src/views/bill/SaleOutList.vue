@@ -187,7 +187,7 @@
               <span v-if="value===0">{{value}}</span>
             </template>
             <template slot="customRenderFreight" slot-scope="text">
-              <span v-if="text" style="color:#1890ff">{{text}}</span>
+              <a v-if="text" style="color:#1890ff" @click="handleViewFreight(text)">{{text}}</a>
               <a-tag v-else color="orange">未关联</a-tag>
             </template>
             <template slot="customRenderStatus" slot-scope="status">
@@ -216,6 +216,7 @@
         <sale-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-back-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
+        <freight-detail ref="freightDetail"></freight-detail>
       </a-card>
     </a-col>
   </a-row>
@@ -225,6 +226,7 @@
   import SaleBackModal from './modules/SaleBackModal'
   import BillDetail from './dialog/BillDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
+  import FreightDetail from '@/views/freight/dialog/FreightDetail'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { BillListMixin } from './mixins/BillListMixin'
@@ -239,6 +241,7 @@
       SaleBackModal,
       BillDetail,
       BillExcelIframe,
+      FreightDetail,
       ColumnSettingPopover,
       JEllipsis,
       JDate,
@@ -358,6 +361,11 @@
       this.getDepotByCurrentUser()
     },
     methods: {
+      handleViewFreight(billNo) {
+        // 物流单号可能包含多个（逗号分隔），取第一个
+        let no = billNo.split(',')[0].trim()
+        this.$refs.freightDetail.showByBillNo(no)
+      }
     }
   }
 </script>

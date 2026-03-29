@@ -58,11 +58,17 @@
         this.visible = true;
         this.detail = {};
         this.detailList = [];
-        this.loadDetail(record.id);
+        this.loadDetail({ id: record.id });
       },
-      loadDetail(id) {
+      showByBillNo(billNo) {
+        this.visible = true;
+        this.detail = {};
+        this.detailList = [];
+        this.loadDetail({ billNo: billNo });
+      },
+      loadDetail(params) {
         this.loading = true;
-        getFreightDetail({ id: id }).then((res) => {
+        getFreightDetail(params).then((res) => {
           if (res.code === 200 && res.data) {
             this.detail = res.data;
             this.detailList = res.data.detailList || [];

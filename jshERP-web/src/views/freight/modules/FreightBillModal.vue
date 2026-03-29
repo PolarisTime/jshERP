@@ -10,26 +10,36 @@
     @cancel="handleCancel"
     style="top:20px;height: 95%;">
     <template slot="footer">
-      <a-button @click="handleCancel">取消</a-button>
-      <a-button type="primary" :loading="confirmLoading" @click="handleOk">保存</a-button>
+      <a-button @click="handleCancel">取消(ESC)</a-button>
+      <template v-if="!isReadOnly">
+        <a-button type="primary" :loading="confirmLoading" @click="handleOk">保存</a-button>
+      </template>
+      <template v-else>
+        <a-button v-print="'#freightBillPrint'">普通打印</a-button>
+        <a-button v-if="isCanBackCheck && model.status==='1'" @click="handleBackCheck">反审核</a-button>
+      </template>
     </template>
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
+        <section id="freightBillPrint">
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据编号">
-              <a-input placeholder="请输入单据编号（为空则自动生成）" v-decorator.trim="['billNo']" />
+              <span v-if="isReadOnly">{{ model.billNo }}</span>
+              <a-input v-else placeholder="请输入单据编号（为空则自动生成）" v-decorator.trim="['billNo']" />
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
-              <a-date-picker style="width:100%" v-decorator="['billTime', validatorRules.billTime]"
+              <span v-if="isReadOnly">{{ model.billTimeStr }}</span>
+              <a-date-picker v-else style="width:100%" v-decorator="['billTime', validatorRules.billTime]"
                 format="YYYY-MM-DD" placeholder="请选择日期" />
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算方">
-              <a-select placeholder="请选择结算方" v-decorator="['carrierId', validatorRules.carrierId]"
+              <span v-if="isReadOnly">{{ model.carrierName }}</span>
+              <a-select v-else placeholder="请选择结算方" v-decorator="['carrierId', validatorRules.carrierId]"
                 :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children">
                 <a-select-option v-for="(item,index) in carrierList" :key="index" :value="item.id">
                   {{ item.name }}
@@ -39,7 +49,8 @@
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单价(元/吨)">
-              <a-input-number style="width:100%" placeholder="请输入单价" :min="0" :precision="2"
+              <span v-if="isReadOnly">{{ model.unitPrice }}</span>
+              <a-input-number v-else style="width:100%" placeholder="请输入单价" :min="0" :precision="2"
                 v-decorator="['unitPrice', validatorRules.unitPrice]" @change="onUnitPriceChange" />
             </a-form-item>
           </a-col>
@@ -47,17 +58,25 @@
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总重量(吨)">
-              <a-input :readOnly="true" v-model="totalWeight" />
+              <span v-if="isReadOnly">{{ totalWeight }}</span>
+              <a-input v-else :readOnly="true" v-model="totalWeight" />
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总运费(元)">
-              <a-input :readOnly="true" v-model="totalFreight" />
+              <span v-if="isReadOnly">{{ totalFreight }}</span>
+              <a-input v-else :readOnly="true" v-model="totalFreight" />
+            </a-form-item>
+          </a-col>
+          <a-col v-if="isReadOnly" :lg="6" :md="12" :sm="24">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
+              <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
+              <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
             </a-form-item>
           </a-col>
         </a-row>
         <!-- 已选出库单明细区域 -->
-        <div class="table-operator" style="padding-bottom:8px;">
+        <div v-if="!isReadOnly" class="table-operator" style="padding-bottom:8px;">
           <a-row :gutter="24" style="float:left;padding-bottom:8px;">
             <a-col :md="24" :sm="24">
               <a-button type="primary" icon="plus" @click="showSelectSaleOut">选择出库单</a-button>
@@ -68,7 +87,7 @@
           size="middle"
           bordered
           rowKey="id"
-          :columns="detailColumns"
+          :columns="currentDetailColumns"
           :dataSource="selectedSaleOutList"
           :pagination="false"
           :scroll="{ x: 800 }">
@@ -82,10 +101,12 @@
         <a-row class="form-row" :gutter="24">
           <a-col :lg="24" :md="24" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="{xs: { span: 24 },sm: { span: 24 }}" label="">
-              <a-textarea :rows="1" placeholder="请输入备注" v-decorator="['remark']" style="margin-top:8px;"/>
+              <span v-if="isReadOnly" style="margin-top:8px;display:inline-block;">备注：{{ model.remark }}</span>
+              <a-textarea v-else :rows="1" placeholder="请输入备注" v-decorator="['remark']" style="margin-top:8px;"/>
             </a-form-item>
           </a-col>
         </a-row>
+        </section>
       </a-form>
     </a-spin>
     <!-- 选择出库单弹窗 -->
@@ -123,8 +144,8 @@
 <script>
   import pick from 'lodash.pick'
   import moment from 'moment'
-  import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail } from '@/api/api'
-  import { getAction } from '@/api/manage'
+  import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, freightBatchSetStatus } from '@/api/api'
+  import { getAction, postAction } from '@/api/manage'
   export default {
     name: "FreightBillModal",
     data() {
@@ -133,6 +154,8 @@
         width: '1600px',
         visible: false,
         confirmLoading: false,
+        isReadOnly: false,
+        isCanBackCheck: true,
         model: {},
         carrierList: [],
         totalWeight: '0.00',
@@ -202,7 +225,71 @@
         form: this.$form.createForm(this)
       }
     },
+    computed: {
+      currentDetailColumns() {
+        if (this.isReadOnly) {
+          return this.detailColumns.filter(col => col.dataIndex !== 'action')
+        }
+        return this.detailColumns
+      }
+    },
     methods: {
+      detail(record) {
+        this.isReadOnly = true;
+        this.form.resetFields();
+        this.model = Object.assign({}, record);
+        this.selectedSaleOutList = [];
+        this.totalWeight = '0.00';
+        this.totalFreight = '0.00';
+        this.currentUnitPrice = 0;
+        this.visible = true;
+        this.title = '物流单-详情';
+        if (record.id) {
+          this.loadDetailForView(record.id);
+        }
+      },
+      loadDetailForView(id) {
+        this.confirmLoading = true;
+        getFreightDetail({ id: id }).then((res) => {
+          if (res.code === 200 && res.data) {
+            let data = res.data;
+            this.model = Object.assign(this.model, {
+              billNo: data.billNo,
+              billTimeStr: data.billTimeStr,
+              carrierName: data.carrierName,
+              carrierId: data.carrierId,
+              unitPrice: data.unitPrice,
+              totalWeight: data.totalWeight,
+              totalFreight: data.totalFreight,
+              remark: data.remark,
+              status: String(data.status)
+            });
+            this.currentUnitPrice = data.unitPrice || 0;
+            this.selectedSaleOutList = data.detailList || [];
+            this.calcTotal();
+          }
+        }).finally(() => {
+          this.confirmLoading = false;
+        })
+      },
+      handleBackCheck() {
+        let that = this;
+        this.$confirm({
+          title: '确认反审核',
+          content: '是否反审核该物流单？',
+          onOk() {
+            postAction('/freightHead/batchSetStatus', { status: '0', ids: that.model.id + '' }).then((res) => {
+              if (res.code === 200) {
+                that.$message.success('反审核成功');
+                that.$emit('ok');
+                that.close();
+              } else {
+                that.$message.warning(res.data.message || '操作失败');
+              }
+            })
+          }
+        });
+      },
       add() {
         this.edit({});
         // 自动生成 YF 前缀单据号，与出入库编码规格一致
@@ -215,6 +302,7 @@
         })
       },
       edit(record) {
+        this.isReadOnly = false;
         this.form.resetFields();
         this.model = Object.assign({}, record);
         this.selectedSaleOutList = [];

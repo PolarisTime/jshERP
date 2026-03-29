@@ -139,11 +139,21 @@ public class FreightHeadController extends BaseController {
      */
     @GetMapping(value = "/detail")
     @ApiOperation(value = "获取运费单详情")
-    public BaseResponseInfo getDetail(@RequestParam("id") Long id,
+    public BaseResponseInfo getDetail(@RequestParam(value = "id", required = false) Long id,
+                                      @RequestParam(value = "billNo", required = false) String billNo,
                                       HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
-            Map<String, Object> data = freightHeadService.getDetail(id);
+            Map<String, Object> data;
+            if (id != null) {
+                data = freightHeadService.getDetail(id);
+            } else if (billNo != null && !billNo.isEmpty()) {
+                data = freightHeadService.getDetailByBillNo(billNo);
+            } else {
+                res.code = 400;
+                res.data = "参数id或billNo必须提供一个";
+                return res;
+            }
             res.code = 200;
             res.data = data;
         } catch (Exception e) {
