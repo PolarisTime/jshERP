@@ -72,14 +72,17 @@ public class PrintTemplateService {
             headerFields.add(field("status", "状态"));
             // 物流单明细字段
             detailFields.add(field("billNo", "出库单号"));
-            detailFields.add(field("customerName", "客户名称"));
             detailFields.add(field("billTimeStr", "出库日期"));
-            detailFields.add(field("totalWeight", "重量(吨)"));
-            detailFields.add(field("totalAmount", "金额"));
-            detailFields.add(field("materialNames", "商品摘要"));
+            detailFields.add(field("customerName", "客户名称"));
+            detailFields.add(field("materialName", "名称"));
+            detailFields.add(field("standard", "规格"));
+            detailFields.add(field("model", "型号"));
+            detailFields.add(field("batchNumber", "批号"));
+            detailFields.add(field("operNumber", "数量"));
+            detailFields.add(field("materialUnit", "单位"));
+            detailFields.add(field("itemWeight", "重量(吨)"));
             detailFields.add(field("depotName", "仓库"));
             detailFields.add(field("salesMan", "业务员"));
-            detailFields.add(field("remark", "备注"));
         } else {
             // 出入库单据通用主表字段
             headerFields.add(field("organName", "往来单位"));

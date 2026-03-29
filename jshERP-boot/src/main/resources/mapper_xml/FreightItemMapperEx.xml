@@ -89,7 +89,7 @@
                ifnull(di.batch_number, '') as batchNumber,
                di.oper_number as operNumber,
                round(di.basic_number * ifnull(m.weight, 0), 2) as itemWeight,
-               ifnull(m.commodity_unit, '') as materialUnit,
+               ifnull(m.unit, '') as materialUnit,
                dp.name as depotName,
                dh.sales_man as salesMan,
                dh.remark as remark
@@ -115,7 +115,7 @@
                dh.sales_man as salesMan,
                dh.remark as remark,
                GROUP_CONCAT(DISTINCT dp.name SEPARATOR '、') as depotName,
-               GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.commodity_unit,''), ' ', round(di.basic_number * ifnull(m.weight,0), 2), '吨') SEPARATOR '、') as materialNames,
+               GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.unit,''), ' ', round(di.basic_number * ifnull(m.weight,0), 2), '吨') SEPARATOR '、') as materialNames,
                ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0) as totalWeight
         from jsh_depot_head dh
         left join jsh_depot_item di on dh.id = di.header_id and ifnull(di.delete_flag, '0') != '1'

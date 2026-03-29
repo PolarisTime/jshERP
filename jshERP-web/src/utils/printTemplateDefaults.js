@@ -85,12 +85,12 @@ const freightBillTemplate = `<div style="padding:10px;">
 </table>
 <table>
 <thead><tr>
-  <th>序号</th><th>出库单号</th><th>客户名称</th><th>出库日期</th><th>商品摘要</th><th>金额</th><th>重量(吨)</th><th>仓库</th><th>业务员</th>
+  <th>序号</th><th>出库单号</th><th>出库日期</th><th>客户名称</th><th>名称</th><th>规格</th><th>型号</th><th>批号</th><th>数量</th><th>单位</th><th>重量(吨)</th><th>仓库</th><th>业务员</th>
 </tr></thead>
 <tbody>
 <!--DETAIL_ROW_START-->
 <tr>
-  <td>{{_index}}</td><td>{{detail.billNo}}</td><td>{{detail.customerName}}</td><td>{{detail.billTimeStr}}</td><td>{{detail.materialNames}}</td><td>{{detail.totalAmount}}</td><td>{{detail.totalWeight}}</td><td>{{detail.depotName}}</td><td>{{detail.salesMan}}</td>
+  <td>{{_index}}</td><td>{{detail.billNo}}</td><td>{{detail.billTimeStr}}</td><td>{{detail.customerName}}</td><td>{{detail.materialName}}</td><td>{{detail.standard}}</td><td>{{detail.model}}</td><td>{{detail.batchNumber}}</td><td>{{detail.operNumber}}</td><td>{{detail.materialUnit}}</td><td>{{detail.itemWeight}}</td><td>{{detail.depotName}}</td><td>{{detail.salesMan}}</td>
 </tr>
 <!--DETAIL_ROW_END-->
 </tbody>
