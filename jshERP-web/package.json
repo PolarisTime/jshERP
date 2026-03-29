@@ -23,6 +23,7 @@
     "lodash.pick": "^4.4.0",
     "md5": "^2.2.1",
     "nprogress": "^0.2.0",
+    "tinymce": "5",
     "viser-vue": "^2.4.4",
     "vue": "^2.7.16",
     "vue-area-linkage": "^5.1.0",
@@ -51,6 +52,7 @@
     "html-webpack-plugin": "^4.2.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
+    "tinymce-i18n": "^26.3.23",
     "vue-template-compiler": "^2.6.10"
   },
   "eslintConfig": {

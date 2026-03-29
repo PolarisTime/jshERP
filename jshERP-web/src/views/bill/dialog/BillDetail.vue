@@ -32,6 +32,7 @@
         <a-button v-if="billType === '组装单'" v-print="'#assemblePrint'">普通打印</a-button>
         <a-button v-if="billType === '拆卸单'" v-print="'#disassemblePrint'">普通打印</a-button>
         <a-button v-if="billType === '盘点复盘'" v-print="'#stockCheckReplayPrint'">普通打印</a-button>
+        <a-button @click="handleCustomPrint">自定义格式打印</a-button>
       </template>
       <!--导出Excel-->
       <a-button v-if="billType === '零售出库'||billType === '零售退货入库'" @click="retailExportExcel()">导出</a-button>
@@ -1180,6 +1181,7 @@
     <bill-print-iframe ref="modalDetail"></bill-print-iframe>
     <bill-print-pro-iframe ref="modalProDetail"></bill-print-pro-iframe>
     <financial-detail ref="financialDetailModal"></financial-detail>
+    <custom-print-modal ref="customPrintModal" :billType="billTypeCode" :model="model" :dataSource="dataSource"></custom-print-modal>
   </j-modal>
 </template>
 
@@ -1191,6 +1193,8 @@
   import BillPrintIframe from './BillPrintIframe'
   import BillPrintProIframe from './BillPrintProIframe'
   import FinancialDetail from '../../financial/dialog/FinancialDetail'
+  import CustomPrintModal from './CustomPrintModal'
+  import { getBillTypeCode } from '@/utils/printBillTypeMap'
   import JUpload from '@/components/jeecg/JUpload'
   import Vue from 'vue'
   export default {
@@ -1199,6 +1203,7 @@
       BillPrintIframe,
       BillPrintProIframe,
       FinancialDetail,
+      CustomPrintModal,
       JUpload
     },
     data () {
@@ -1622,7 +1627,15 @@
         'width': '100%'
       }
     },
+    computed: {
+      billTypeCode() {
+        return getBillTypeCode(this.billType)
+      }
+    },
     methods: {
+      handleCustomPrint() {
+        this.$refs.customPrintModal.show()
+      },
       initSetting(record, type, ds) {
         if (type === '零售出库') {
           this.defColumns = this.retailOutColumns

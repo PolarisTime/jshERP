@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.PrintTemplateMapperEx">
+
+    <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.PrintTemplate">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="bill_type" jdbcType="VARCHAR" property="billType" />
+        <result column="template_name" jdbcType="VARCHAR" property="templateName" />
+        <result column="template_html" jdbcType="LONGVARCHAR" property="templateHtml" />
+        <result column="is_default" jdbcType="CHAR" property="isDefault" />
+        <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
+        <result column="delete_flag" jdbcType="CHAR" property="deleteFlag" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    </resultMap>
+
+    <select id="selectDefaultByBillType" resultMap="BaseResultMap">
+        select * from jsh_print_template
+        where bill_type = #{billType}
+        and is_default = '1'
+        and ifnull(delete_flag, '0') != '1'
+        limit 1
+    </select>
+
+    <select id="selectListByBillType" resultMap="BaseResultMap">
+        select id, bill_type, template_name, is_default, create_time, update_time
+        from jsh_print_template
+        where bill_type = #{billType}
+        and ifnull(delete_flag, '0') != '1'
+        order by is_default desc, update_time desc
+    </select>
+
+    <insert id="insertTemplate">
+        insert into jsh_print_template (bill_type, template_name, template_html, is_default, delete_flag, create_time, update_time)
+        values (#{billType}, #{templateName}, #{templateHtml}, #{isDefault}, '0', now(), now())
+    </insert>
+
+    <update id="updateById">
+        update jsh_print_template
+        set template_name = #{templateName},
+            template_html = #{templateHtml},
+            is_default = #{isDefault},
+            update_time = now()
+        where id = #{id}
+        and ifnull(delete_flag, '0') != '1'
+    </update>
+
+    <update id="deleteById">
+        update jsh_print_template
+        set delete_flag = '1', update_time = now()
+        where id = #{id}
+    </update>
+
+</mapper>

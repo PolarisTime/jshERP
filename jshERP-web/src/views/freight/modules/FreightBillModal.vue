@@ -16,6 +16,7 @@
       </template>
       <template v-else>
         <a-button v-print="'#freightBillPrint'">普通打印</a-button>
+        <a-button @click="handleCustomPrint">自定义格式打印</a-button>
         <a-button v-if="isCanBackCheck && model.status==='1'" @click="handleBackCheck">反审核</a-button>
       </template>
     </template>
@@ -139,6 +140,7 @@
         @change="handleSaleOutTableChange">
       </a-table>
     </a-modal>
+  <custom-print-modal ref="customPrintModal" billType="freightBill" :model="model" :dataSource="selectedSaleOutList" />
   </j-modal>
 </template>
 <script>
@@ -146,8 +148,10 @@
   import moment from 'moment'
   import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, freightBatchSetStatus } from '@/api/api'
   import { getAction, postAction } from '@/api/manage'
+  import CustomPrintModal from '@/views/bill/dialog/CustomPrintModal'
   export default {
     name: "FreightBillModal",
+    components: { CustomPrintModal },
     data() {
       return {
         title: "操作",
@@ -474,6 +478,9 @@
             })
           }
         })
+      },
+      handleCustomPrint() {
+        this.$refs.customPrintModal.show()
       },
       handleCancel() {
         this.close();

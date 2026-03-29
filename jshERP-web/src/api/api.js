@@ -134,6 +134,11 @@ const getFreightReconciliation = (params)=>getAction('/freightHead/reconciliatio
 const getColumnConfig = (params)=>getAction('/columnConfig/getByPageCode',params);
 const saveColumnConfig = (params)=>postAction('/columnConfig/save',params);
 const resetColumnConfig = (params)=>deleteAction('/columnConfig/reset',params);
+//打印模板
+const getPrintTemplate = (params)=>getAction('/printTemplate/getByBillType',params);
+const savePrintTemplate = (params)=>postAction('/printTemplate/save',params);
+const deletePrintTemplate = (params)=>deleteAction('/printTemplate/delete',params);
+const getPrintFieldMeta = (params)=>getAction('/printTemplate/getFieldMeta',params);
 
 export {
   getBuyAndSaleStatistics,
@@ -244,7 +249,11 @@ export {
   getFreightReconciliation,
   getColumnConfig,
   saveColumnConfig,
-  resetColumnConfig
+  resetColumnConfig,
+  getPrintTemplate,
+  savePrintTemplate,
+  deletePrintTemplate,
+  getPrintFieldMeta
 }
 
 
