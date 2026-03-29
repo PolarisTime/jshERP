@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightCarrierMapperEx">
+  <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.FreightCarrier">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="contacts" jdbcType="VARCHAR" property="contacts" />
+    <result column="phone_num" jdbcType="VARCHAR" property="phoneNum" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="bank_name" jdbcType="VARCHAR" property="bankName" />
+    <result column="account_number" jdbcType="VARCHAR" property="accountNumber" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="enabled" jdbcType="BIT" property="enabled" />
+    <result column="sort" jdbcType="VARCHAR" property="sort" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
+    <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
+  </resultMap>
+
+  <select id="selectByCondition" resultMap="BaseResultMap">
+    select fc.*
+    from jsh_freight_carrier fc
+    where fc.delete_flag = '0'
+    <if test="tenantId != null">
+      and fc.tenant_id = #{tenantId}
+    </if>
+    <if test="name != null and name != ''">
+      and fc.name like concat('%', #{name}, '%')
+    </if>
+    order by fc.sort asc, fc.id desc
+    <if test="offset != null and rows != null">
+      limit #{offset}, #{rows}
+    </if>
+  </select>
+
+  <select id="countByCondition" resultType="java.lang.Integer">
+    select count(1)
+    from jsh_freight_carrier fc
+    where fc.delete_flag = '0'
+    <if test="tenantId != null">
+      and fc.tenant_id = #{tenantId}
+    </if>
+    <if test="name != null and name != ''">
+      and fc.name like concat('%', #{name}, '%')
+    </if>
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select fc.*
+    from jsh_freight_carrier fc
+    where fc.enabled = 1
+    and fc.delete_flag = '0'
+    <if test="tenantId != null">
+      and fc.tenant_id = #{tenantId}
+    </if>
+    order by fc.sort asc, fc.id desc
+  </select>
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightHeadMapperEx">
+
+    <resultMap extends="com.jsh.erp.datasource.mappers.FreightHeadMapper.BaseResultMap"
+               id="ResultMapEx" type="com.jsh.erp.datasource.entities.FreightHeadVo">
+        <result column="carrierName" jdbcType="VARCHAR" property="carrierName" />
+        <result column="creatorName" jdbcType="VARCHAR" property="creatorName" />
+        <result column="billTimeStr" jdbcType="VARCHAR" property="billTimeStr" />
+    </resultMap>
+
+    <select id="selectByConditionFreightHead" resultMap="ResultMapEx">
+        select fh.*, fc.name as carrierName, u.username as creatorName,
+               date_format(fh.bill_time, '%Y-%m-%d') as billTimeStr
+        from jsh_freight_head fh
+        left join jsh_freight_carrier fc on fh.carrier_id = fc.id
+        left join jsh_user u on fh.creator = u.id
+        where fh.delete_flag = '0' and fh.tenant_id = #{tenantId}
+        <if test="billNo != null and billNo != ''">
+            <bind name="bindBillNo" value="'%'+billNo+'%'"/>
+            and fh.bill_no like #{bindBillNo}
+        </if>
+        <if test="carrierId != null">
+            and fh.carrier_id = #{carrierId}
+        </if>
+        <if test="status != null and status != ''">
+            and fh.status = #{status}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and fh.bill_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and fh.bill_time &lt;= #{endTime}
+        </if>
+        order by fh.id desc
+    </select>
+
+    <update id="batchDeleteFreightHeadByIds">
+        update jsh_freight_head
+        set delete_flag = '1'
+        where delete_flag = '0'
+        and id in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </update>
+
+    <select id="selectReconciliation" resultType="java.util.HashMap">
+        select fc.id as carrierId, fc.name as carrierName,
+               count(fh.id) as billCount,
+               IFNULL(sum(fh.total_weight), 0) as totalWeight,
+               IFNULL(sum(fh.total_freight), 0) as totalFreight
+        from jsh_freight_head fh
+        left join jsh_freight_carrier fc on fh.carrier_id = fc.id
+        where fh.delete_flag = '0' and fh.status = '1' and fh.tenant_id = #{tenantId}
+        <if test="carrierId != null">
+            and fh.carrier_id = #{carrierId}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and fh.bill_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and fh.bill_time &lt;= #{endTime}
+        </if>
+        group by fc.id, fc.name
+        order by totalFreight desc
+    </select>
+
+    <update id="batchSetStatus">
+        update jsh_freight_head
+        set status = #{status}
+        where delete_flag = '0'
+        and id in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </update>
+</mapper>

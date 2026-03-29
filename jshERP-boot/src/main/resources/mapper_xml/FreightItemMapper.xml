@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightItemMapper">
+  <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.FreightItem">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="header_id" jdbcType="BIGINT" property="headerId" />
+    <result column="depot_head_id" jdbcType="BIGINT" property="depotHeadId" />
+    <result column="depot_number" jdbcType="VARCHAR" property="depotNumber" />
+    <result column="weight" jdbcType="DECIMAL" property="weight" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
+    <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, header_id, depot_head_id, depot_number, weight, remark, tenant_id, delete_flag
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from jsh_freight_item
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from jsh_freight_item
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.FreightItem">
+    insert into jsh_freight_item (id, header_id, depot_head_id,
+      depot_number, weight, remark,
+      tenant_id, delete_flag)
+    values (#{id,jdbcType=BIGINT}, #{headerId,jdbcType=BIGINT}, #{depotHeadId,jdbcType=BIGINT},
+      #{depotNumber,jdbcType=VARCHAR}, #{weight,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR},
+      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.FreightItem">
+    insert into jsh_freight_item
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="headerId != null">
+        header_id,
+      </if>
+      <if test="depotHeadId != null">
+        depot_head_id,
+      </if>
+      <if test="depotNumber != null">
+        depot_number,
+      </if>
+      <if test="weight != null">
+        weight,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="tenantId != null">
+        tenant_id,
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="headerId != null">
+        #{headerId,jdbcType=BIGINT},
+      </if>
+      <if test="depotHeadId != null">
+        #{depotHeadId,jdbcType=BIGINT},
+      </if>
+      <if test="depotNumber != null">
+        #{depotNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null">
+        #{weight,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantId != null">
+        #{tenantId,jdbcType=BIGINT},
+      </if>
+      <if test="deleteFlag != null">
+        #{deleteFlag,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.jsh.erp.datasource.entities.FreightItem">
+    update jsh_freight_item
+    <set>
+      <if test="headerId != null">
+        header_id = #{headerId,jdbcType=BIGINT},
+      </if>
+      <if test="depotHeadId != null">
+        depot_head_id = #{depotHeadId,jdbcType=BIGINT},
+      </if>
+      <if test="depotNumber != null">
+        depot_number = #{depotNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null">
+        weight = #{weight,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantId != null">
+        tenant_id = #{tenantId,jdbcType=BIGINT},
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag = #{deleteFlag,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.FreightItem">
+    update jsh_freight_item
+    set header_id = #{headerId,jdbcType=BIGINT},
+      depot_head_id = #{depotHeadId,jdbcType=BIGINT},
+      depot_number = #{depotNumber,jdbcType=VARCHAR},
+      weight = #{weight,jdbcType=DECIMAL},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_id = #{tenantId,jdbcType=BIGINT},
+      delete_flag = #{deleteFlag,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

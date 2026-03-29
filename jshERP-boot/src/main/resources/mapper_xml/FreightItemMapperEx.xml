@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightItemMapperEx">
+
+    <resultMap extends="com.jsh.erp.datasource.mappers.FreightItemMapper.BaseResultMap"
+               id="ResultMapItemEx" type="com.jsh.erp.datasource.entities.FreightItem">
+        <result column="depotNumber" jdbcType="VARCHAR" property="depotNumber" />
+    </resultMap>
+
+    <!-- 按运费单主表id查询明细（关联出库单编号） -->
+    <select id="selectByHeaderId" resultMap="ResultMapItemEx">
+        select fi.*, dh.number as depotNumber
+        from jsh_freight_item fi
+        left join jsh_depot_head dh on fi.depot_head_id = dh.id
+        where fi.header_id = #{headerId} and fi.delete_flag = '0'
+        order by fi.id asc
+    </select>
+
+    <!-- 查询所有已关联的出库单id -->
+    <select id="selectLinkedDepotHeadIds" resultType="java.lang.Long">
+        select depot_head_id from jsh_freight_item where delete_flag = '0'
+    </select>
+
+    <!-- 检查指定出库单id是否已被关联 -->
+    <select id="selectLinkedByDepotHeadIds" resultType="java.lang.Long">
+        select depot_head_id from jsh_freight_item
+        where delete_flag = '0'
+        and depot_head_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 按运费单主表id逻辑删除明细 -->
+    <update id="deleteByHeaderId">
+        update jsh_freight_item set delete_flag = '1'
+        where header_id = #{headerId}
+    </update>
+
+    <!-- 计算单张出库单的总重量 -->
+    <select id="calcDepotHeadWeight" resultType="java.math.BigDecimal">
+        select ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0)
+        from jsh_depot_item di
+        left join jsh_material m on di.material_id = m.id
+        where di.header_id = #{depotHeadId} and ifnull(di.delete_flag, '0') != '1'
+    </select>
+
+    <!-- 查询出库单的客户名称、日期及扩展信息 -->
+    <select id="selectDepotHeadInfo" resultType="java.util.HashMap">
+        select s.supplier as customerName,
+               date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
+               ifnull(dh.discount_last_money, 0) as totalAmount,
+               dh.sales_man as salesMan,
+               dh.remark as remark,
+               (select GROUP_CONCAT(DISTINCT dp2.name SEPARATOR '、')
+                from jsh_depot_item di3
+                left join jsh_depot dp2 on di3.depot_id = dp2.id
+                where di3.header_id = dh.id and ifnull(di3.delete_flag, '0') != '1') as depotName,
+               (select GROUP_CONCAT(DISTINCT m2.name SEPARATOR '、')
+                from jsh_depot_item di2
+                left join jsh_material m2 on di2.material_id = m2.id
+                where di2.header_id = dh.id and ifnull(di2.delete_flag, '0') != '1') as materialNames
+        from jsh_depot_head dh
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
+        where dh.id = #{depotHeadId}
+    </select>
+
+    <!-- 根据出库单ID列表批量查询关联的物流单号 -->
+    <select id="selectFreightBillNoByDepotHeadIds" resultType="java.util.HashMap">
+        select fi.depot_head_id as depotHeadId, fh.bill_no as freightBillNo
+        from jsh_freight_item fi
+        left join jsh_freight_head fh on fi.header_id = fh.id and fh.delete_flag = '0'
+        where fi.delete_flag = '0'
+        and fi.depot_head_id in
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询可关联的销售出库单（已审核、未被其他运费单关联） -->
+    <select id="selectAvailableSaleOut" resultType="java.util.HashMap">
+        select dh.id as id, dh.number as billNo,
+               date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
+               s.supplier as customerName,
+               ifnull(dh.discount_last_money, 0) as totalAmount,
+               dh.sales_man as salesMan,
+               dh.remark as remark,
+               GROUP_CONCAT(DISTINCT dp.name SEPARATOR '、') as depotName,
+               GROUP_CONCAT(DISTINCT m.name SEPARATOR '、') as materialNames,
+               ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0) as totalWeight
+        from jsh_depot_head dh
+        left join jsh_depot_item di on dh.id = di.header_id and ifnull(di.delete_flag, '0') != '1'
+        left join jsh_material m on di.material_id = m.id
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
+        left join jsh_depot dp on di.depot_id = dp.id
+        where dh.type = '出库' and dh.sub_type = '销售'
+          and dh.status = '1' and ifnull(dh.delete_flag, '0') != '1'
+          and dh.tenant_id = #{tenantId}
+          and dh.id not in (select fi.depot_head_id from jsh_freight_item fi where fi.delete_flag = '0')
+        <if test="number != null and number != ''">
+            <bind name="bindNumber" value="'%'+number+'%'"/>
+            and dh.number like #{bindNumber}
+        </if>
+        group by dh.id, dh.number, dh.oper_time, s.supplier, dh.discount_last_money, dh.sales_man, dh.remark
+        order by dh.id desc
+    </select>
+</mapper>

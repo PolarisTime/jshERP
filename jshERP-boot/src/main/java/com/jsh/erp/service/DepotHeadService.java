@@ -78,6 +78,8 @@ public class DepotHeadService {
     @Resource
     DepotItemMapperEx depotItemMapperEx;
     @Resource
+    private com.jsh.erp.datasource.mappers.FreightItemMapperEx freightItemMapperEx;
+    @Resource
     private LogService logService;
 
     @Value(value="${file.exportTmp}")
@@ -141,6 +143,7 @@ public class DepotHeadService {
                 Map<String,Integer> billSizeMap = getBillSizeMapByLinkNumberList(numberList);
                 Map<Long,String> materialsListMap = findMaterialsListMapByHeaderIdList(idList);
                 Map<Long,BigDecimal> materialCountListMap = getMaterialCountListMapByHeaderIdList(idList);
+                Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
                 for (DepotHeadVo4List dh : list) {
                     if(accountMap!=null && StringUtil.isNotEmpty(dh.getAccountIdList()) && StringUtil.isNotEmpty(dh.getAccountMoneyList())) {
                         String accountStr = accountService.getAccountStrByIdAndMoney(accountMap, dh.getAccountIdList(), dh.getAccountMoneyList());
@@ -208,6 +211,10 @@ public class DepotHeadService {
                     //商品总数量
                     if(materialCountListMap!=null) {
                         dh.setMaterialCount(materialCountListMap.get(dh.getId()));
+                    }
+                    //关联物流单号
+                    if(freightBillNoMap!=null) {
+                        dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
                     }
                     //以销定购的情况（不能显示销售单据的金额和客户名称）
                     if(StringUtil.isNotEmpty(purchaseStatus)) {
@@ -769,6 +776,28 @@ public class DepotHeadService {
             }
         }
         return materialsListMap;
+    }
+
+    /**
+     * 根据出库单ID列表批量查询关联的物流单号
+     */
+    public Map<Long,String> getFreightBillNoMapByDepotHeadIdList(List<Long> idList) {
+        Map<Long,String> freightBillNoMap = new HashMap<>();
+        if(idList != null && idList.size() > 0) {
+            try {
+                List<Map<String, Object>> list = freightItemMapperEx.selectFreightBillNoByDepotHeadIds(idList);
+                if(list != null) {
+                    for(Map<String, Object> map : list) {
+                        Long depotHeadId = Long.parseLong(map.get("depotHeadId").toString());
+                        String freightBillNo = map.get("freightBillNo") != null ? map.get("freightBillNo").toString() : "";
+                        freightBillNoMap.put(depotHeadId, freightBillNo);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("查询物流单关联信息异常", e);
+            }
+        }
+        return freightBillNoMap;
     }
 
     public Map<Long,BigDecimal> getMaterialCountListMapByHeaderIdList(List<Long> idList)throws Exception {

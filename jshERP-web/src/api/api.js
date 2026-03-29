@@ -114,6 +114,22 @@ const batchAddDepotHeadAndDetail = (params)=>postAction("/depotHead/batchAddDepo
 const findStockByDepotAndBarCode = (params)=>getAction("/depotItem/findStockByDepotAndBarCode",params);
 const getBatchNumberList = (params)=>getAction("/depotItem/getBatchNumberList",params);
 const findFinancialDetailByNumber = (params)=>getAction("/accountHead/getDetailByNumber",params);
+//运费结算方
+const getFreightCarrierList = (params)=>getAction('/freightCarrier/list',params);
+const selectAllFreightCarrier = (params)=>getAction('/freightCarrier/selectAll',params);
+const addFreightCarrier = (params)=>postAction('/freightCarrier/add',params);
+const editFreightCarrier = (params)=>putAction('/freightCarrier/update',params);
+const deleteFreightCarrier = (params)=>deleteAction('/freightCarrier/delete',params);
+//运费单
+const getFreightHeadList = (params)=>getAction('/freightHead/list',params);
+const addFreightBill = (params)=>postAction('/freightHead/addFreightBill',params);
+const editFreightBill = (params)=>putAction('/freightHead/updateFreightBill',params);
+const deleteFreightBill = (params)=>deleteAction('/freightHead/deleteFreightBill',params);
+const freightBatchSetStatus = (params)=>postAction('/freightHead/batchSetStatus',params);
+const getFreightDetail = (params)=>getAction('/freightHead/detail',params);
+const getAvailableSaleOut = (params)=>getAction('/freightHead/availableSaleOut',params);
+//运费对账
+const getFreightReconciliation = (params)=>getAction('/freightHead/reconciliation',params);
 
 export {
   getBuyAndSaleStatistics,
@@ -208,7 +224,20 @@ export {
   batchAddDepotHeadAndDetail,
   findStockByDepotAndBarCode,
   getBatchNumberList,
-  findFinancialDetailByNumber
+  findFinancialDetailByNumber,
+  getFreightCarrierList,
+  selectAllFreightCarrier,
+  addFreightCarrier,
+  editFreightCarrier,
+  deleteFreightCarrier,
+  getFreightHeadList,
+  addFreightBill,
+  editFreightBill,
+  deleteFreightBill,
+  freightBatchSetStatus,
+  getFreightDetail,
+  getAvailableSaleOut,
+  getFreightReconciliation
 }
 
 

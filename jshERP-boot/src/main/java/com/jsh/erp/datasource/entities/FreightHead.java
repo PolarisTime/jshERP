@@ -1,0 +1,139 @@
+package com.jsh.erp.datasource.entities;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+/**
+ * 运费单主表实体类
+ */
+public class FreightHead {
+    private Long id;
+
+    private String billNo;
+
+    private Date billTime;
+
+    private Long carrierId;
+
+    private BigDecimal unitPrice;
+
+    private BigDecimal totalWeight;
+
+    private BigDecimal totalFreight;
+
+    private String remark;
+
+    private String status;
+
+    private Long creator;
+
+    private Date createTime;
+
+    private Long tenantId;
+
+    private String deleteFlag;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getBillNo() {
+        return billNo;
+    }
+
+    public void setBillNo(String billNo) {
+        this.billNo = billNo == null ? null : billNo.trim();
+    }
+
+    public Date getBillTime() {
+        return billTime;
+    }
+
+    public void setBillTime(Date billTime) {
+        this.billTime = billTime;
+    }
+
+    public Long getCarrierId() {
+        return carrierId;
+    }
+
+    public void setCarrierId(Long carrierId) {
+        this.carrierId = carrierId;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getTotalWeight() {
+        return totalWeight;
+    }
+
+    public void setTotalWeight(BigDecimal totalWeight) {
+        this.totalWeight = totalWeight;
+    }
+
+    public BigDecimal getTotalFreight() {
+        return totalFreight;
+    }
+
+    public void setTotalFreight(BigDecimal totalFreight) {
+        this.totalFreight = totalFreight;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark == null ? null : remark.trim();
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status == null ? null : status.trim();
+    }
+
+    public Long getCreator() {
+        return creator;
+    }
+
+    public void setCreator(Long creator) {
+        this.creator = creator;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getDeleteFlag() {
+        return deleteFlag;
+    }
+
+    public void setDeleteFlag(String deleteFlag) {
+        this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+}

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightHeadMapper">
+  <resultMap id="BaseResultMap" type="com.jsh.erp.datasource.entities.FreightHead">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="bill_no" jdbcType="VARCHAR" property="billNo" />
+    <result column="bill_time" jdbcType="TIMESTAMP" property="billTime" />
+    <result column="carrier_id" jdbcType="BIGINT" property="carrierId" />
+    <result column="unit_price" jdbcType="DECIMAL" property="unitPrice" />
+    <result column="total_weight" jdbcType="DECIMAL" property="totalWeight" />
+    <result column="total_freight" jdbcType="DECIMAL" property="totalFreight" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="creator" jdbcType="BIGINT" property="creator" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
+    <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, bill_no, bill_time, carrier_id, unit_price, total_weight, total_freight,
+    remark, status, creator, create_time, tenant_id, delete_flag
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from jsh_freight_head
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from jsh_freight_head
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.FreightHead">
+    insert into jsh_freight_head (id, bill_no, bill_time,
+      carrier_id, unit_price, total_weight,
+      total_freight, remark, status,
+      creator, create_time, tenant_id, delete_flag)
+    values (#{id,jdbcType=BIGINT}, #{billNo,jdbcType=VARCHAR}, #{billTime,jdbcType=TIMESTAMP},
+      #{carrierId,jdbcType=BIGINT}, #{unitPrice,jdbcType=DECIMAL}, #{totalWeight,jdbcType=DECIMAL},
+      #{totalFreight,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+      #{creator,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{tenantId,jdbcType=BIGINT},
+      #{deleteFlag,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.FreightHead"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    insert into jsh_freight_head
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="billNo != null">
+        bill_no,
+      </if>
+      <if test="billTime != null">
+        bill_time,
+      </if>
+      <if test="carrierId != null">
+        carrier_id,
+      </if>
+      <if test="unitPrice != null">
+        unit_price,
+      </if>
+      <if test="totalWeight != null">
+        total_weight,
+      </if>
+      <if test="totalFreight != null">
+        total_freight,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="creator != null">
+        creator,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="tenantId != null">
+        tenant_id,
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="billNo != null">
+        #{billNo,jdbcType=VARCHAR},
+      </if>
+      <if test="billTime != null">
+        #{billTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="carrierId != null">
+        #{carrierId,jdbcType=BIGINT},
+      </if>
+      <if test="unitPrice != null">
+        #{unitPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="totalWeight != null">
+        #{totalWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="totalFreight != null">
+        #{totalFreight,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="tenantId != null">
+        #{tenantId,jdbcType=BIGINT},
+      </if>
+      <if test="deleteFlag != null">
+        #{deleteFlag,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.jsh.erp.datasource.entities.FreightHead">
+    update jsh_freight_head
+    <set>
+      <if test="billNo != null">
+        bill_no = #{billNo,jdbcType=VARCHAR},
+      </if>
+      <if test="billTime != null">
+        bill_time = #{billTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="carrierId != null">
+        carrier_id = #{carrierId,jdbcType=BIGINT},
+      </if>
+      <if test="unitPrice != null">
+        unit_price = #{unitPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="totalWeight != null">
+        total_weight = #{totalWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="totalFreight != null">
+        total_freight = #{totalFreight,jdbcType=DECIMAL},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="creator != null">
+        creator = #{creator,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="tenantId != null">
+        tenant_id = #{tenantId,jdbcType=BIGINT},
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag = #{deleteFlag,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.FreightHead">
+    update jsh_freight_head
+    set bill_no = #{billNo,jdbcType=VARCHAR},
+      bill_time = #{billTime,jdbcType=TIMESTAMP},
+      carrier_id = #{carrierId,jdbcType=BIGINT},
+      unit_price = #{unitPrice,jdbcType=DECIMAL},
+      total_weight = #{totalWeight,jdbcType=DECIMAL},
+      total_freight = #{totalFreight,jdbcType=DECIMAL},
+      remark = #{remark,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      creator = #{creator,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      tenant_id = #{tenantId,jdbcType=BIGINT},
+      delete_flag = #{deleteFlag,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -203,6 +203,10 @@
               </a-tooltip>
               <span v-if="value===0">{{value}}</span>
             </template>
+            <template slot="customRenderFreight" slot-scope="text">
+              <span v-if="text" style="color:#1890ff">{{text}}</span>
+              <a-tag v-else color="orange">未关联</a-tag>
+            </template>
             <template slot="customRenderStatus" slot-scope="status">
               <a-tag v-if="status == '0'" color="red">未审核</a-tag>
               <a-tag v-if="status == '1'" color="green">已审核</a-tag>
@@ -339,6 +343,9 @@
           { title: '最终欠款', dataIndex: 'lastDebt',width:80},
           { title: '销售人员', dataIndex: 'salesManStr',width:120},
           { title: '备注', dataIndex: 'remark',width:200},
+          { title: '物流单号', dataIndex: 'freightBillNo', width: 180,
+            scopedSlots: { customRender: 'customRenderFreight' }
+          },
           { title: '状态', dataIndex: 'status', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

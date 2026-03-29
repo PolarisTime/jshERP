@@ -83,6 +83,11 @@ public class DepotHeadVo4List extends DepotHead{
      */
     private String phoneNum;
 
+    /**
+     * 关联物流单号
+     */
+    private String freightBillNo;
+
     public String getProjectName() {
         return projectName;
     }
@@ -289,5 +294,13 @@ public class DepotHeadVo4List extends DepotHead{
 
     public void setPhoneNum(String phoneNum) {
         this.phoneNum = phoneNum;
+    }
+
+    public String getFreightBillNo() {
+        return freightBillNo;
+    }
+
+    public void setFreightBillNo(String freightBillNo) {
+        this.freightBillNo = freightBillNo;
     }
 }
