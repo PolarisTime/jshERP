@@ -136,6 +136,12 @@
                   （启用后，商品中录入的价格变成含税价格，在单据录入中包含了税额）
                 </a-form-item>
               </a-col>
+              <a-col :lg="24" :md="24" :sm="24">
+                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="按重量计价">
+                  <a-switch checked-children="启用" un-checked-children="关闭" v-model="priceByWeightFlagSwitch" @change="onPriceByWeightChange"></a-switch>
+                  （启用后，单据金额按<b>重量 x 单价</b>计算，而非数量 x 单价）
+                </a-form-item>
+              </a-col>
               <a-col :lg="24" :md="24" :sm="24" v-if="isShowApproval">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="多级审核">
                   <a-switch checked-children="启用" un-checked-children="关闭" v-model="multiLevelApprovalFlagSwitch" @change="onMultiLevelApprovalChange"></a-switch>
@@ -198,6 +204,7 @@
         zeroChangeAmountFlagSwitch: false, //零收付款
         customerStaticPriceFlagSwitch: false, //客户静态单价
         materialPriceTaxFlagSwitch: false, //商品价格含税
+        priceByWeightFlagSwitch: false, //按重量计价
         labelCol: {
           xs: { span: 24 },
           sm: { span: 2 },
@@ -325,6 +332,9 @@
               }
               if (record.materialPriceTaxFlag != null) {
                 this.materialPriceTaxFlagSwitch = record.materialPriceTaxFlag == '1' ? true : false;
+              }
+              if (record.priceByWeightFlag != null) {
+                this.priceByWeightFlagSwitch = record.priceByWeightFlag == '1' ? true : false;
               }
             }
           } else {
@@ -460,6 +470,10 @@
       },
       onMaterialPriceTaxChange(checked) {
         this.model.materialPriceTaxFlag = checked?'1':'0'
+        this.handleChange()
+      },
+      onPriceByWeightChange(checked) {
+        this.model.priceByWeightFlag = checked?'1':'0'
         this.handleChange()
       },
       //改变内容

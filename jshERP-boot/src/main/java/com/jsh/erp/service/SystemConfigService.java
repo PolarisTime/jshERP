@@ -657,6 +657,23 @@ public class SystemConfigService {
     }
 
     /**
+     * 获取按重量计价开关
+     * @return
+     * @throws Exception
+     */
+    public boolean getPriceByWeightFlag() throws Exception {
+        boolean priceByWeightFlag = false;
+        List<SystemConfig> list = getSystemConfig();
+        if(list.size()>0) {
+            String flag = list.get(0).getPriceByWeightFlag();
+            if(("1").equals(flag)) {
+                priceByWeightFlag = true;
+            }
+        }
+        return priceByWeightFlag;
+    }
+
+    /**
      * Excel导出统一方法
      * @param title
      * @param head

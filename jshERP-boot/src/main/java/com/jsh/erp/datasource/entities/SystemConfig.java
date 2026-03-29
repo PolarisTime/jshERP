@@ -49,6 +49,8 @@ public class SystemConfig {
 
     private String materialPriceTaxFlag;
 
+    private String priceByWeightFlag;
+
     private Long tenantId;
 
     private String deleteFlag;
@@ -243,6 +245,14 @@ public class SystemConfig {
 
     public void setMaterialPriceTaxFlag(String materialPriceTaxFlag) {
         this.materialPriceTaxFlag = materialPriceTaxFlag == null ? null : materialPriceTaxFlag.trim();
+    }
+
+    public String getPriceByWeightFlag() {
+        return priceByWeightFlag;
+    }
+
+    public void setPriceByWeightFlag(String priceByWeightFlag) {
+        this.priceByWeightFlag = priceByWeightFlag == null ? null : priceByWeightFlag.trim();
     }
 
     public Long getTenantId() {

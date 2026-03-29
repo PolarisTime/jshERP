@@ -1449,7 +1449,15 @@ public class DepotItemService {
                     item.put("unitPrice", unitPrice);
                     BigDecimal allPrice = BigDecimal.ZERO;
                     if(unitPrice!=null && unitPrice.compareTo(BigDecimal.ZERO)!=0) {
-                        allPrice = unitPrice.multiply(operNumber).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        if(systemConfigService.getPriceByWeightFlag()) {
+                            //按重量计价：allPrice = unitPrice * (单位重量 * 数量)
+                            BigDecimal unitWeight = m.getWeight() != null ? m.getWeight() : BigDecimal.ZERO;
+                            BigDecimal totalWeight = unitWeight.multiply(operNumber).setScale(4, BigDecimal.ROUND_HALF_UP);
+                            item.put("weight", totalWeight);
+                            allPrice = unitPrice.multiply(totalWeight).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        } else {
+                            allPrice = unitPrice.multiply(operNumber).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        }
                     }
                     BigDecimal taxMoney = BigDecimal.ZERO;
                     BigDecimal taxLastMoney = BigDecimal.ZERO;
