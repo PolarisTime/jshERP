@@ -39,6 +39,27 @@ public class FreightHeadController extends BaseController {
     private FreightHeadService freightHeadService;
 
     /**
+     * 生成运费单编号（格式: yyyyW0001）
+     */
+    @GetMapping(value = "/buildBillNo")
+    @ApiOperation(value = "生成运费单编号")
+    public BaseResponseInfo buildBillNo(HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            String billNo = freightHeadService.buildFreightBillNo();
+            Map<String, Object> map = new HashMap<>();
+            map.put("billNo", billNo);
+            res.code = 200;
+            res.data = map;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "生成编号失败";
+        }
+        return res;
+    }
+
+    /**
      * 运费单列表查询
      */
     @GetMapping(value = "/list")

@@ -26,6 +26,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,6 +56,27 @@ public class FreightHeadService {
     private UserService userService;
     @Resource
     private LogService logService;
+
+    /**
+     * 生成运费单编号，格式: yyyyW0001
+     * 按年度递增，每年从0001开始
+     */
+    public String buildFreightBillNo() throws Exception {
+        String yearStr = String.valueOf(LocalDate.now().getYear());
+        String prefix = yearStr + "W";
+        Long tenantId = userService.getCurrentUser().getTenantId();
+        String maxBillNo = freightHeadMapperEx.selectMaxBillNoByPrefix(prefix, tenantId);
+        int nextSeq = 1;
+        if (StringUtil.isNotEmpty(maxBillNo) && maxBillNo.length() > prefix.length()) {
+            try {
+                int currentSeq = Integer.parseInt(maxBillNo.substring(prefix.length()));
+                nextSeq = currentSeq + 1;
+            } catch (NumberFormatException e) {
+                logger.warn("无法解析运费单编号序号: {}", maxBillNo);
+            }
+        }
+        return prefix + String.format("%04d", nextSeq);
+    }
 
     /**
      * 根据id获取运费单

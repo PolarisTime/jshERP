@@ -1,1002 +1,1311 @@
-/*
- Navicat Premium Data Transfer
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+-- MySQL dump 10.13  Distrib 8.0.45, for Linux (x86_64)
+--
+-- Host: localhost    Database: jsh_erp
+-- ------------------------------------------------------
+-- Server version	8.0.45
 
- Source Server         : 127.0.0.1
- Source Server Type    : MySQL
- Source Server Version : 80029
- Source Host           : 127.0.0.1:3306
- Source Schema         : jsh_erp
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+mysqldump: Error: 'Access denied; you need (at least one of) the PROCESS privilege(s) for this operation' when trying to dump tablespaces
 
- Target Server Type    : MySQL
- Target Server Version : 80029
- File Encoding         : 65001
+--
+-- Current Database: `jsh_erp`
+--
 
- Date: 05/11/2025 22:26:57
-*/
+/*!40000 DROP DATABASE IF EXISTS `jsh_erp`*/;
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `jsh_erp` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
--- ----------------------------
--- Table structure for jsh_account
--- ----------------------------
+USE `jsh_erp`;
+
+--
+-- Table structure for table `jsh_account`
+--
+
 DROP TABLE IF EXISTS `jsh_account`;
-CREATE TABLE `jsh_account`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `serial_no` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '编号',
-  `initial_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '期初金额',
-  `current_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '当前余额',
-  `remark` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `is_default` bit(1) NULL DEFAULT NULL COMMENT '是否默认',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_account` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `serial_no` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '编号',
+  `initial_amount` decimal(24,6) DEFAULT NULL COMMENT '期初金额',
+  `current_amount` decimal(24,6) DEFAULT NULL COMMENT '当前余额',
+  `remark` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `is_default` bit(1) DEFAULT NULL COMMENT '是否默认',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '账户信息' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='账户信息';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_account
--- ----------------------------
-INSERT INTO `jsh_account` VALUES (17, '账户1', 'zzz111', 100.000000, 829.000000, 'aabb', b'1', NULL, b'1', 63, '0');
-INSERT INTO `jsh_account` VALUES (18, '账户2', '1234131324', 200.000000, -1681.000000, 'bbbb', b'1', NULL, b'0', 63, '0');
+--
+-- Dumping data for table `jsh_account`
+--
 
--- ----------------------------
--- Table structure for jsh_account_head
--- ----------------------------
+LOCK TABLES `jsh_account` WRITE;
+/*!40000 ALTER TABLE `jsh_account` DISABLE KEYS */;
+INSERT INTO `jsh_account` VALUES (17,'账户1','zzz111',100.000000,829.000000,'aabb',_binary '',NULL,_binary '',63,'0'),(18,'账户2','1234131324',200.000000,-1681.000000,'bbbb',_binary '',NULL,_binary '\0',63,'0'),(24,'test',NULL,0.000000,NULL,NULL,_binary '',NULL,_binary '',147,'0');
+/*!40000 ALTER TABLE `jsh_account` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_account_head`
+--
+
 DROP TABLE IF EXISTS `jsh_account_head`;
-CREATE TABLE `jsh_account_head`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型(支出/收入/收款/付款/转账)',
-  `organ_id` bigint(0) NULL DEFAULT NULL COMMENT '单位Id(收款/付款单位)',
-  `hands_person_id` bigint(0) NULL DEFAULT NULL COMMENT '经手人id',
-  `creator` bigint(0) NULL DEFAULT NULL COMMENT '操作员',
-  `change_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '变动金额(优惠/收款/付款/实付)',
-  `discount_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '优惠金额',
-  `total_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '合计金额',
-  `account_id` bigint(0) NULL DEFAULT NULL COMMENT '账户(收款/付款)',
-  `bill_no` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '单据编号',
-  `bill_time` datetime(0) NULL DEFAULT NULL COMMENT '单据日期',
-  `remark` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `file_name` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '附件名称',
-  `status` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '状态，0未审核、1已审核、9审核中',
-  `source` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '单据来源，0-pc，1-手机',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_account_head` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型(支出/收入/收款/付款/转账)',
+  `organ_id` bigint DEFAULT NULL COMMENT '单位Id(收款/付款单位)',
+  `hands_person_id` bigint DEFAULT NULL COMMENT '经手人id',
+  `creator` bigint DEFAULT NULL COMMENT '操作员',
+  `change_amount` decimal(24,6) DEFAULT NULL COMMENT '变动金额(优惠/收款/付款/实付)',
+  `discount_money` decimal(24,6) DEFAULT NULL COMMENT '优惠金额',
+  `total_price` decimal(24,6) DEFAULT NULL COMMENT '合计金额',
+  `account_id` bigint DEFAULT NULL COMMENT '账户(收款/付款)',
+  `bill_no` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '单据编号',
+  `bill_time` datetime DEFAULT NULL COMMENT '单据日期',
+  `remark` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `file_name` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '附件名称',
+  `status` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '状态，0未审核、1已审核、9审核中',
+  `source` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '单据来源，0-pc，1-手机',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK9F4C0D8DB610FC06`(`organ_id`) USING BTREE,
-  INDEX `FK9F4C0D8DAAE50527`(`account_id`) USING BTREE,
-  INDEX `FK9F4C0D8DC4170B37`(`hands_person_id`) USING BTREE,
-  INDEX `bill_no`(`bill_no`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 127 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '财务主表' ROW_FORMAT = Dynamic;
+  KEY `FK9F4C0D8DB610FC06` (`organ_id`) USING BTREE,
+  KEY `FK9F4C0D8DAAE50527` (`account_id`) USING BTREE,
+  KEY `FK9F4C0D8DC4170B37` (`hands_person_id`) USING BTREE,
+  KEY `bill_no` (`bill_no`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='财务主表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_account_item
--- ----------------------------
+--
+-- Dumping data for table `jsh_account_head`
+--
+
+LOCK TABLES `jsh_account_head` WRITE;
+/*!40000 ALTER TABLE `jsh_account_head` DISABLE KEYS */;
+/*!40000 ALTER TABLE `jsh_account_head` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_account_item`
+--
+
 DROP TABLE IF EXISTS `jsh_account_item`;
-CREATE TABLE `jsh_account_item`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `header_id` bigint(0) NOT NULL COMMENT '表头Id',
-  `account_id` bigint(0) NULL DEFAULT NULL COMMENT '账户Id',
-  `in_out_item_id` bigint(0) NULL DEFAULT NULL COMMENT '收支项目Id',
-  `bill_id` bigint(0) NULL DEFAULT NULL COMMENT '单据id',
-  `need_debt` decimal(24, 6) NULL DEFAULT NULL COMMENT '应收欠款',
-  `finish_debt` decimal(24, 6) NULL DEFAULT NULL COMMENT '已收欠款',
-  `each_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '单项金额',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '单据备注',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_account_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `header_id` bigint NOT NULL COMMENT '表头Id',
+  `account_id` bigint DEFAULT NULL COMMENT '账户Id',
+  `in_out_item_id` bigint DEFAULT NULL COMMENT '收支项目Id',
+  `bill_id` bigint DEFAULT NULL COMMENT '单据id',
+  `need_debt` decimal(24,6) DEFAULT NULL COMMENT '应收欠款',
+  `finish_debt` decimal(24,6) DEFAULT NULL COMMENT '已收欠款',
+  `each_amount` decimal(24,6) DEFAULT NULL COMMENT '单项金额',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '单据备注',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK9F4CBAC0AAE50527`(`account_id`) USING BTREE,
-  INDEX `FK9F4CBAC0C5FE6007`(`header_id`) USING BTREE,
-  INDEX `FK9F4CBAC0D203EDC5`(`in_out_item_id`) USING BTREE,
-  INDEX `bill_id`(`bill_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 152 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '财务子表' ROW_FORMAT = Dynamic;
+  KEY `FK9F4CBAC0AAE50527` (`account_id`) USING BTREE,
+  KEY `FK9F4CBAC0C5FE6007` (`header_id`) USING BTREE,
+  KEY `FK9F4CBAC0D203EDC5` (`in_out_item_id`) USING BTREE,
+  KEY `bill_id` (`bill_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=152 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='财务子表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_depot
--- ----------------------------
+--
+-- Dumping data for table `jsh_account_item`
+--
+
+LOCK TABLES `jsh_account_item` WRITE;
+/*!40000 ALTER TABLE `jsh_account_item` DISABLE KEYS */;
+/*!40000 ALTER TABLE `jsh_account_item` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_column_config`
+--
+
+DROP TABLE IF EXISTS `jsh_column_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_column_config` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `page_code` varchar(20) NOT NULL COMMENT '页面编码(prefixNo)',
+  `column_config` text COMMENT '列配置JSON，有序dataIndex数组',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COMMENT='租户列配置';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jsh_column_config`
+--
+
+LOCK TABLES `jsh_column_config` WRITE;
+/*!40000 ALTER TABLE `jsh_column_config` DISABLE KEYS */;
+INSERT INTO `jsh_column_config` VALUES (1,'XSCK','[\"action\",\"number\",\"status\",\"freightBillNo\",\"organName\",\"materialsList\",\"operTimeStr\",\"materialCount\",\"totalWeight\",\"totalPrice\",\"linkNumber\"]',147,'0'),(2,'CGRK','[\"action\",\"status\",\"organName\",\"number\",\"materialsList\",\"operTimeStr\",\"userName\",\"materialCount\",\"totalPrice\",\"totalWeight\"]',147,'0'),(3,'CGDD','[\"action\",\"status\",\"organName\",\"number\",\"materialsList\",\"operTimeStr\",\"userName\",\"materialCount\",\"totalPrice\"]',147,'0'),(4,'WLBILL','[\"action\",\"status\",\"billNo\",\"billTimeStr\",\"carrierName\",\"totalWeight\",\"unitPrice\",\"totalFreight\",\"remark\"]',147,'0');
+/*!40000 ALTER TABLE `jsh_column_config` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_depot`
+--
+
 DROP TABLE IF EXISTS `jsh_depot`;
-CREATE TABLE `jsh_depot`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '仓库名称',
-  `address` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '仓库地址',
-  `warehousing` decimal(24, 6) NULL DEFAULT NULL COMMENT '仓储费',
-  `truckage` decimal(24, 6) NULL DEFAULT NULL COMMENT '搬运费',
-  `type` int(0) NULL DEFAULT NULL COMMENT '类型',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `remark` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '描述',
-  `principal` bigint(0) NULL DEFAULT NULL COMMENT '负责人',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_Flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
-  `is_default` bit(1) NULL DEFAULT NULL COMMENT '是否默认',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_depot` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '仓库名称',
+  `address` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '仓库地址',
+  `warehousing` decimal(24,6) DEFAULT NULL COMMENT '仓储费',
+  `truckage` decimal(24,6) DEFAULT NULL COMMENT '搬运费',
+  `type` int DEFAULT NULL COMMENT '类型',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `remark` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '描述',
+  `principal` bigint DEFAULT NULL COMMENT '负责人',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_Flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+  `is_default` bit(1) DEFAULT NULL COMMENT '是否默认',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '仓库表' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='仓库表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_depot
--- ----------------------------
-INSERT INTO `jsh_depot` VALUES (14, '仓库1', 'dizhi', 12.000000, 12.000000, 0, '1', '描述', 131, b'1', 63, '0', b'1');
-INSERT INTO `jsh_depot` VALUES (15, '仓库2', '地址100', 555.000000, 666.000000, 0, '2', 'dfdf', 131, b'1', 63, '0', b'0');
-INSERT INTO `jsh_depot` VALUES (17, '仓库3', '123123', 123.000000, 123.000000, 0, '3', '123', 131, b'1', 63, '0', b'0');
+--
+-- Dumping data for table `jsh_depot`
+--
 
--- ----------------------------
--- Table structure for jsh_depot_head
--- ----------------------------
+LOCK TABLES `jsh_depot` WRITE;
+/*!40000 ALTER TABLE `jsh_depot` DISABLE KEYS */;
+INSERT INTO `jsh_depot` VALUES (14,'仓库1','dizhi',12.000000,12.000000,0,'1','描述',131,_binary '',63,'0',_binary ''),(15,'仓库2','地址100',555.000000,666.000000,0,'2','dfdf',131,_binary '',63,'0',_binary '\0'),(17,'仓库3','123123',123.000000,123.000000,0,'3','123',131,_binary '',63,'0',_binary '\0'),(19,'ck',NULL,NULL,NULL,0,NULL,NULL,NULL,_binary '',147,'0',_binary '');
+/*!40000 ALTER TABLE `jsh_depot` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_depot_head`
+--
+
 DROP TABLE IF EXISTS `jsh_depot_head`;
-CREATE TABLE `jsh_depot_head`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型(出库/入库)',
-  `sub_type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '出入库分类',
-  `default_number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '初始票据号',
-  `number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '票据号',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `oper_time` datetime(0) NULL DEFAULT NULL COMMENT '出入库时间',
-  `organ_id` bigint(0) NULL DEFAULT NULL COMMENT '供应商id',
-  `creator` bigint(0) NULL DEFAULT NULL COMMENT '操作员',
-  `account_id` bigint(0) NULL DEFAULT NULL COMMENT '账户id',
-  `change_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '变动金额(收款/付款)',
-  `back_amount` decimal(24, 6) NULL DEFAULT NULL COMMENT '找零金额',
-  `total_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '合计金额',
-  `pay_type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '付款类型(现金、记账等)',
-  `bill_type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '单据类型',
-  `remark` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `file_name` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '附件名称',
-  `sales_man` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '销售员（可以多个）',
-  `account_id_list` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '多账户ID列表',
-  `account_money_list` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '多账户金额列表',
-  `discount` decimal(24, 6) NULL DEFAULT NULL COMMENT '优惠率',
-  `discount_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '优惠金额',
-  `discount_last_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '优惠后金额',
-  `other_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '销售或采购费用合计',
-  `deposit` decimal(24, 6) NULL DEFAULT NULL COMMENT '订金',
-  `status` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '状态，0未审核、1已审核、2完成采购|销售、3部分采购|销售、9审核中',
-  `purchase_status` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '采购状态，0未采购、2完成采购、3部分采购',
-  `source` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '单据来源，0-pc，1-手机',
-  `link_number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '关联订单号',
-  `link_apply` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '关联请购单',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_depot_head` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型(出库/入库)',
+  `sub_type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '出入库分类',
+  `default_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '初始票据号',
+  `number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '票据号',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `oper_time` datetime DEFAULT NULL COMMENT '出入库时间',
+  `organ_id` bigint DEFAULT NULL COMMENT '供应商id',
+  `creator` bigint DEFAULT NULL COMMENT '操作员',
+  `account_id` bigint DEFAULT NULL COMMENT '账户id',
+  `change_amount` decimal(24,6) DEFAULT NULL COMMENT '变动金额(收款/付款)',
+  `back_amount` decimal(24,6) DEFAULT NULL COMMENT '找零金额',
+  `total_price` decimal(24,6) DEFAULT NULL COMMENT '合计金额',
+  `pay_type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '付款类型(现金、记账等)',
+  `bill_type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '单据类型',
+  `remark` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `file_name` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '附件名称',
+  `sales_man` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '销售员（可以多个）',
+  `account_id_list` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '多账户ID列表',
+  `account_money_list` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '多账户金额列表',
+  `discount` decimal(24,6) DEFAULT NULL COMMENT '优惠率',
+  `discount_money` decimal(24,6) DEFAULT NULL COMMENT '优惠金额',
+  `discount_last_money` decimal(24,6) DEFAULT NULL COMMENT '优惠后金额',
+  `other_money` decimal(24,6) DEFAULT NULL COMMENT '销售或采购费用合计',
+  `deposit` decimal(24,6) DEFAULT NULL COMMENT '订金',
+  `status` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '状态，0未审核、1已审核、2完成采购|销售、3部分采购|销售、9审核中',
+  `purchase_status` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '采购状态，0未采购、2完成采购、3部分采购',
+  `source` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '单据来源，0-pc，1-手机',
+  `link_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '关联订单号',
+  `link_apply` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '关联请购单',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK2A80F214B610FC06`(`organ_id`) USING BTREE,
-  INDEX `FK2A80F214AAE50527`(`account_id`) USING BTREE,
-  INDEX `number`(`number`) USING BTREE,
-  INDEX `link_number`(`link_number`) USING BTREE,
-  INDEX `creator`(`creator`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 277 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '单据主表' ROW_FORMAT = Dynamic;
+  KEY `FK2A80F214B610FC06` (`organ_id`) USING BTREE,
+  KEY `FK2A80F214AAE50527` (`account_id`) USING BTREE,
+  KEY `number` (`number`) USING BTREE,
+  KEY `link_number` (`link_number`) USING BTREE,
+  KEY `creator` (`creator`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='单据主表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_depot_item
--- ----------------------------
+--
+-- Dumping data for table `jsh_depot_head`
+--
+
+LOCK TABLES `jsh_depot_head` WRITE;
+/*!40000 ALTER TABLE `jsh_depot_head` DISABLE KEYS */;
+INSERT INTO `jsh_depot_head` VALUES (277,'入库','采购','CGRK00000000677','CGRK00000000677','2026-03-29 11:35:35','2026-03-29 11:32:39',90,147,24,0.000000,NULL,-119880.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(278,'出库','销售','XSCK00000000678','XSCK00000000678','2026-03-29 11:37:25','2026-03-29 11:36:58',91,147,24,0.000000,NULL,79920.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(279,'出库','销售','XSCK00000000679','XSCK00000000679','2026-03-29 11:37:46','2026-03-29 11:37:29',91,147,24,0.000000,NULL,79920.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(280,'入库','采购','CGRK00000000683','CGRK00000000683','2026-03-29 11:55:32','2026-03-29 11:55:22',90,147,24,0.000000,NULL,-119880.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(281,'出库','销售','XSCK00000000687','XSCK00000000687','2026-03-29 21:33:38','2026-03-29 21:33:17',91,147,24,0.000000,NULL,159840.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(282,'其它','采购订单','CGDD00000000696','CGDD00000000696','2026-03-29 23:42:19','2026-03-29 23:42:02',90,147,24,0.000000,NULL,-119880.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,NULL,NULL,'2','0','0',NULL,NULL,147,'0'),(283,'入库','采购','CGRK00000000697','CGRK00000000697','2026-03-29 23:42:38','2026-03-29 23:42:21',90,147,24,-119880.000000,NULL,-119880.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,119880.000000,0.000000,NULL,'1','0','0','CGDD00000000696',NULL,147,'0'),(285,'入库','采购','CGRK00000000694','CGRK00000000694','2026-03-29 23:46:17','2026-03-29 23:39:10',90,147,24,0.000000,NULL,-599400.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(286,'出库','销售','XSCK00000000701','XSCK00000000701','2026-03-29 23:46:59','2026-03-29 23:46:33',91,147,24,0.000000,0.000000,87912.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,0.000000,'1','0','0',NULL,NULL,147,'0'),(287,'出库','销售','XSCK00000000702','XSCK00000000702','2026-03-29 23:47:13','2026-03-29 23:47:00',91,147,24,0.000000,0.000000,39960.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,0.000000,'1','0','0',NULL,NULL,147,'0'),(288,'出库','销售','XSCK00000000703','XSCK00000000703','2026-03-29 23:47:29','2026-03-29 23:47:14',91,147,24,0.000000,NULL,399600.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(289,'入库','采购','CGRK00000000705','CGRK00000000705','2026-03-30 00:11:43','2026-03-30 00:11:09',90,147,24,0.000000,NULL,-126000.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(290,'其它','采购订单','CGDD00000000706','CGDD00000000706','2026-03-30 00:12:06','2026-03-30 00:11:54',90,147,24,0.000000,NULL,-126000.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,0.000000,NULL,NULL,'2','0','0',NULL,NULL,147,'0'),(291,'入库','采购','CGRK00000000707','CGRK00000000707','2026-03-30 00:13:12','2026-03-30 00:12:21',90,147,24,-126000.000000,NULL,-126000.000000,'现付',NULL,NULL,'',NULL,'','',0.000000,0.000000,126000.000000,0.000000,NULL,'1','0','0','CGDD00000000706',NULL,147,'0'),(292,'出库','销售','XSCK00000000716','XSCK00000000716','2026-03-30 00:27:06','2026-03-30 00:26:51',91,147,24,0.000000,NULL,138600.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(293,'出库','销售','XSCK00000000718','XSCK00000000718','2026-03-30 00:31:52','2026-03-30 00:31:34',91,147,24,0.000000,NULL,69300.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(294,'出库','销售','XSCK00000000719','XSCK00000000719','2026-03-30 00:32:07','2026-03-30 00:31:53',91,147,24,0.000000,NULL,34650.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0'),(295,'出库','销售','XSCK00000000720','XSCK00000000720','2026-03-30 00:32:37','2026-03-30 00:32:08',91,147,24,0.000000,NULL,180630.000000,'现付',NULL,NULL,'','','','',0.000000,0.000000,0.000000,0.000000,NULL,'1','0','0',NULL,NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_depot_head` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_depot_item`
+--
+
 DROP TABLE IF EXISTS `jsh_depot_item`;
-CREATE TABLE `jsh_depot_item`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `header_id` bigint(0) NOT NULL COMMENT '表头Id',
-  `material_id` bigint(0) NOT NULL COMMENT '商品Id',
-  `material_extend_id` bigint(0) NULL DEFAULT NULL COMMENT '商品扩展id',
-  `material_unit` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品单位',
-  `sku` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '多属性',
-  `oper_number` decimal(24, 6) NULL DEFAULT NULL COMMENT '数量',
-  `basic_number` decimal(24, 6) NULL DEFAULT NULL COMMENT '基础数量，如kg、瓶',
-  `unit_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '单价',
-  `purchase_unit_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '采购单价',
-  `tax_unit_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '含税单价',
-  `all_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '金额',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `depot_id` bigint(0) NULL DEFAULT NULL COMMENT '仓库ID',
-  `another_depot_id` bigint(0) NULL DEFAULT NULL COMMENT '调拨时，对方仓库Id',
-  `tax_rate` decimal(24, 6) NULL DEFAULT NULL COMMENT '税率',
-  `tax_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '税额',
-  `tax_last_money` decimal(24, 6) NULL DEFAULT NULL COMMENT '价税合计',
-  `material_type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品类型',
-  `sn_list` varchar(2000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '序列号列表',
-  `batch_number` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '批号',
-  `expiration_date` datetime(0) NULL DEFAULT NULL COMMENT '有效日期',
-  `link_id` bigint(0) NULL DEFAULT NULL COMMENT '关联明细id',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_depot_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `header_id` bigint NOT NULL COMMENT '表头Id',
+  `material_id` bigint NOT NULL COMMENT '商品Id',
+  `material_extend_id` bigint DEFAULT NULL COMMENT '商品扩展id',
+  `material_unit` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '商品单位',
+  `sku` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '多属性',
+  `oper_number` decimal(24,6) DEFAULT NULL COMMENT '数量',
+  `basic_number` decimal(24,6) DEFAULT NULL COMMENT '基础数量，如kg、瓶',
+  `unit_price` decimal(24,6) DEFAULT NULL COMMENT '单价',
+  `purchase_unit_price` decimal(24,6) DEFAULT NULL COMMENT '采购单价',
+  `tax_unit_price` decimal(24,6) DEFAULT NULL COMMENT '含税单价',
+  `all_price` decimal(24,6) DEFAULT NULL COMMENT '金额',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `depot_id` bigint DEFAULT NULL COMMENT '仓库ID',
+  `another_depot_id` bigint DEFAULT NULL COMMENT '调拨时，对方仓库Id',
+  `tax_rate` decimal(24,6) DEFAULT NULL COMMENT '税率',
+  `tax_money` decimal(24,6) DEFAULT NULL COMMENT '税额',
+  `tax_last_money` decimal(24,6) DEFAULT NULL COMMENT '价税合计',
+  `material_type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '商品类型',
+  `sn_list` varchar(2000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '序列号列表',
+  `batch_number` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '批号',
+  `expiration_date` datetime DEFAULT NULL COMMENT '有效日期',
+  `link_id` bigint DEFAULT NULL COMMENT '关联明细id',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK2A819F475D61CCF7`(`material_id`) USING BTREE,
-  INDEX `FK2A819F474BB6190E`(`header_id`) USING BTREE,
-  INDEX `FK2A819F479485B3F5`(`depot_id`) USING BTREE,
-  INDEX `FK2A819F47729F5392`(`another_depot_id`) USING BTREE,
-  INDEX `material_extend_id`(`material_extend_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 334 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '单据子表' ROW_FORMAT = Dynamic;
+  KEY `FK2A819F475D61CCF7` (`material_id`) USING BTREE,
+  KEY `FK2A819F474BB6190E` (`header_id`) USING BTREE,
+  KEY `FK2A819F479485B3F5` (`depot_id`) USING BTREE,
+  KEY `FK2A819F47729F5392` (`another_depot_id`) USING BTREE,
+  KEY `material_extend_id` (`material_extend_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=355 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='单据子表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_function
--- ----------------------------
+--
+-- Dumping data for table `jsh_depot_item`
+--
+
+LOCK TABLES `jsh_depot_item` WRITE;
+/*!40000 ALTER TABLE `jsh_depot_item` DISABLE KEYS */;
+INSERT INTO `jsh_depot_item` VALUES (334,277,620,40,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,119880.000000,NULL,19,NULL,0.000000,0.000000,119880.000000,NULL,NULL,'000677','2026-03-29 00:00:00',NULL,147,'0'),(335,278,620,40,'吨',NULL,10.000000,10.000000,4000.000000,3000.000000,NULL,79920.000000,NULL,19,NULL,0.000000,0.000000,79920.000000,NULL,NULL,'000677','2026-03-29 00:00:00',NULL,147,'0'),(336,279,620,40,'吨',NULL,10.000000,10.000000,4000.000000,3000.000000,NULL,79920.000000,NULL,19,NULL,0.000000,0.000000,79920.000000,NULL,NULL,'000677','2026-03-29 00:00:00',NULL,147,'0'),(337,280,620,40,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,119880.000000,NULL,19,NULL,0.000000,0.000000,119880.000000,NULL,NULL,'03290683',NULL,NULL,147,'0'),(338,281,620,40,'吨',NULL,20.000000,20.000000,4000.000000,3000.000000,NULL,159840.000000,NULL,19,NULL,0.000000,0.000000,159840.000000,NULL,NULL,'03290683',NULL,NULL,147,'0'),(339,282,620,40,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,119880.000000,NULL,NULL,NULL,0.000000,0.000000,119880.000000,NULL,NULL,NULL,NULL,NULL,147,'0'),(340,283,620,40,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,119880.000000,NULL,19,NULL,0.000000,0.000000,119880.000000,NULL,NULL,'03290697','2026-03-29 00:00:00',339,147,'0'),(341,285,620,40,'吨',NULL,100.000000,100.000000,3000.000000,NULL,NULL,599400.000000,NULL,19,NULL,0.000000,0.000000,599400.000000,NULL,NULL,'03290694','2026-03-29 00:00:00',NULL,147,'0'),(344,288,620,40,'吨',NULL,50.000000,50.000000,4000.000000,3000.000000,NULL,399600.000000,NULL,19,NULL,0.000000,0.000000,399600.000000,NULL,NULL,'03290694','2026-03-29 00:00:00',NULL,147,'0'),(345,289,621,41,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,126000.000000,NULL,19,NULL,0.000000,0.000000,126000.000000,NULL,NULL,'03300705',NULL,NULL,147,'0'),(346,290,621,41,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,126000.000000,NULL,NULL,NULL,0.000000,0.000000,126000.000000,NULL,NULL,NULL,NULL,NULL,147,'0'),(347,291,621,41,'吨',NULL,20.000000,20.000000,3000.000000,NULL,NULL,126000.000000,NULL,19,NULL,0.000000,0.000000,126000.000000,NULL,NULL,'03300707','2026-03-30 00:00:00',346,147,'0'),(348,287,620,40,'吨',NULL,5.000000,5.000000,4000.000000,3000.000000,NULL,39960.000000,NULL,19,NULL,0.000000,0.000000,39960.000000,NULL,NULL,'03290697','2026-03-29 00:00:00',NULL,147,'0'),(349,286,620,40,'吨',NULL,11.000000,11.000000,4000.000000,3000.000000,NULL,87912.000000,NULL,19,NULL,0.000000,0.000000,87912.000000,NULL,NULL,'03290697','2026-03-29 00:00:00',NULL,147,'0'),(350,292,621,41,'吨',NULL,20.000000,20.000000,3300.000000,3000.000000,NULL,138600.000000,NULL,19,NULL,0.000000,0.000000,138600.000000,NULL,NULL,'03300705',NULL,NULL,147,'0'),(351,293,621,41,'吨',NULL,10.000000,10.000000,3300.000000,3000.000000,NULL,69300.000000,NULL,19,NULL,0.000000,0.000000,69300.000000,NULL,NULL,'03300707','2026-03-30 00:00:00',NULL,147,'0'),(352,294,621,41,'吨',NULL,5.000000,5.000000,3300.000000,3000.000000,NULL,34650.000000,NULL,19,NULL,0.000000,0.000000,34650.000000,NULL,NULL,'03300707','2026-03-30 00:00:00',NULL,147,'0'),(353,295,621,41,'吨',NULL,3.000000,3.000000,3300.000000,3000.000000,NULL,20790.000000,NULL,19,NULL,0.000000,0.000000,20790.000000,NULL,NULL,'03300707','2026-03-30 00:00:00',NULL,147,'0'),(354,295,620,40,'吨',NULL,20.000000,20.000000,4000.000000,3000.000000,NULL,159840.000000,NULL,19,NULL,0.000000,0.000000,159840.000000,NULL,NULL,'03290694','2026-03-29 00:00:00',NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_depot_item` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_freight_carrier`
+--
+
+DROP TABLE IF EXISTS `jsh_freight_carrier`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_freight_carrier` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) DEFAULT NULL COMMENT '结算方名称',
+  `contacts` varchar(100) DEFAULT NULL COMMENT '联系人',
+  `phone_num` varchar(30) DEFAULT NULL COMMENT '联系电话',
+  `address` varchar(200) DEFAULT NULL COMMENT '地址',
+  `bank_name` varchar(100) DEFAULT NULL COMMENT '开户行',
+  `account_number` varchar(50) DEFAULT NULL COMMENT '银行账号',
+  `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  `enabled` bit(1) DEFAULT b'1' COMMENT '启用 0-禁用 1-启用',
+  `sort` varchar(10) DEFAULT NULL COMMENT '排序',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) DEFAULT '0' COMMENT '删除标记',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='运费结算方';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jsh_freight_carrier`
+--
+
+LOCK TABLES `jsh_freight_carrier` WRITE;
+/*!40000 ALTER TABLE `jsh_freight_carrier` DISABLE KEYS */;
+INSERT INTO `jsh_freight_carrier` VALUES (1,'陈',NULL,NULL,NULL,NULL,NULL,NULL,_binary '',NULL,147,'0'),(2,'钢',NULL,NULL,NULL,NULL,NULL,NULL,_binary '',NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_freight_carrier` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_freight_head`
+--
+
+DROP TABLE IF EXISTS `jsh_freight_head`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_freight_head` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `bill_no` varchar(50) DEFAULT NULL COMMENT '单据编号',
+  `bill_time` datetime DEFAULT NULL COMMENT '单据日期',
+  `carrier_id` bigint NOT NULL COMMENT '结算方id',
+  `unit_price` decimal(24,6) DEFAULT NULL COMMENT '单价(元/吨)',
+  `total_weight` decimal(24,6) DEFAULT NULL COMMENT '总重量(吨)',
+  `total_freight` decimal(24,6) DEFAULT NULL COMMENT '总运费(元)',
+  `remark` varchar(1000) DEFAULT NULL COMMENT '备注',
+  `status` varchar(1) DEFAULT '0' COMMENT '0未审核 1已审核',
+  `creator` bigint DEFAULT NULL COMMENT '操作员',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) DEFAULT '0' COMMENT '删除标记',
+  `payment_status` varchar(2) DEFAULT '0' COMMENT '付款状态:0未付款,1已付款,2部分付款',
+  `paid_amount` decimal(24,6) DEFAULT '0.000000' COMMENT '已付金额',
+  `payment_time` datetime DEFAULT NULL COMMENT '最近付款标记时间',
+  `payment_operator` bigint DEFAULT NULL COMMENT '付款标记操作人ID',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `bill_no` (`bill_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='运费单主表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jsh_freight_head`
+--
+
+LOCK TABLES `jsh_freight_head` WRITE;
+/*!40000 ALTER TABLE `jsh_freight_head` DISABLE KEYS */;
+INSERT INTO `jsh_freight_head` VALUES (1,NULL,'2026-03-29 00:00:00',1,40.000000,39.960000,1598.400000,NULL,'0',147,'2026-03-29 15:29:08',147,'1','0',0.000000,NULL,NULL),(2,'YF00000000689','2026-03-29 00:00:00',2,0.000000,39.960000,0.000000,NULL,'0',147,'2026-03-29 21:45:34',147,'1','0',0.000000,NULL,NULL),(3,'YF00000000698','2026-03-29 00:00:00',1,50.000000,79.920000,3996.000000,NULL,'1',147,'2026-03-29 23:45:02',147,'0','1',3996.000000,'2026-03-30 01:22:11',147),(4,'YF00000000704','2026-03-29 00:00:00',1,50.000000,31.968000,1598.400000,NULL,'1',147,'2026-03-29 23:48:02',147,'0','1',1598.400000,'2026-03-30 01:22:11',147),(5,'YF00000000713','2026-03-30 00:00:00',2,90.000000,99.900000,8991.000000,NULL,'1',147,'2026-03-30 00:21:50',147,'0','1',8991.000000,'2026-03-30 01:22:36',147),(6,'YF00000000715','2026-03-30 00:00:00',2,100.000000,42.000000,4200.000000,NULL,'1',147,'2026-03-30 00:27:45',147,'0','1',4200.000000,'2026-03-30 01:22:36',147),(7,'YF00000000721','2026-03-30 00:00:00',2,100.000000,46.260000,4626.000000,NULL,'1',147,'2026-03-30 00:33:16',147,'0','1',4626.000000,'2026-03-30 01:22:36',147),(8,'YF00000000724','2026-03-30 00:00:00',1,60.000000,31.500000,1890.000000,NULL,'1',147,'2026-03-30 00:50:35',147,'0','1',1890.000000,'2026-03-30 01:22:11',147);
+/*!40000 ALTER TABLE `jsh_freight_head` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_freight_item`
+--
+
+DROP TABLE IF EXISTS `jsh_freight_item`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_freight_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `header_id` bigint NOT NULL COMMENT '运费主表id',
+  `depot_head_id` bigint NOT NULL COMMENT '销售出库单id',
+  `depot_number` varchar(50) DEFAULT NULL COMMENT '出库单据号',
+  `weight` decimal(24,6) DEFAULT NULL COMMENT '该单总重量(吨)',
+  `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) DEFAULT '0' COMMENT '删除标记',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_depot_head` (`depot_head_id`,`delete_flag`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='运费单明细表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jsh_freight_item`
+--
+
+LOCK TABLES `jsh_freight_item` WRITE;
+/*!40000 ALTER TABLE `jsh_freight_item` DISABLE KEYS */;
+INSERT INTO `jsh_freight_item` VALUES (1,1,279,NULL,19.980000,NULL,147,'1'),(2,1,278,NULL,19.980000,NULL,147,'1'),(3,2,281,NULL,39.960000,NULL,147,'1'),(4,3,281,NULL,39.960000,NULL,147,'0'),(5,3,279,NULL,19.980000,NULL,147,'0'),(6,3,278,NULL,19.980000,NULL,147,'0'),(7,4,287,NULL,9.990000,NULL,147,'0'),(8,4,286,NULL,21.978000,NULL,147,'0'),(9,5,288,NULL,99.900000,NULL,147,'1'),(10,5,288,NULL,99.900000,NULL,147,'0'),(11,6,292,NULL,42.000000,NULL,147,'0'),(12,7,295,NULL,46.260000,NULL,147,'0'),(13,8,293,NULL,21.000000,NULL,147,'0'),(14,8,294,NULL,10.500000,NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_freight_item` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_function`
+--
+
 DROP TABLE IF EXISTS `jsh_function`;
-CREATE TABLE `jsh_function`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '编号',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `parent_number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '上级编号',
-  `url` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '链接',
-  `component` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '组件',
-  `state` bit(1) NULL DEFAULT NULL COMMENT '收缩',
-  `sort` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型',
-  `push_btn` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '功能按钮',
-  `icon` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '图标',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_function` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '编号',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `parent_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '上级编号',
+  `url` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '链接',
+  `component` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '组件',
+  `state` bit(1) DEFAULT NULL COMMENT '收缩',
+  `sort` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型',
+  `push_btn` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '功能按钮',
+  `icon` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '图标',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `url`(`url`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 262 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '功能模块表' ROW_FORMAT = Dynamic;
+  UNIQUE KEY `url` (`url`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=267 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='功能模块表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_function
--- ----------------------------
-INSERT INTO `jsh_function` VALUES (1, '0001', '系统管理', '0', '/system', '/layouts/TabLayout', b'1', '0910', b'1', '电脑版', '', 'setting', '0');
-INSERT INTO `jsh_function` VALUES (13, '000102', '角色管理', '0001', '/system/role', '/system/RoleList', b'0', '0130', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (14, '000103', '用户管理', '0001', '/system/user', '/system/UserList', b'0', '0140', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (15, '000104', '日志管理', '0001', '/system/log', '/system/LogList', b'0', '0160', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (16, '000105', '功能管理', '0001', '/system/function', '/system/FunctionList', b'0', '0166', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (18, '000109', '租户管理', '0001', '/system/tenant', '/system/TenantList', b'0', '0167', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (21, '0101', '商品管理', '0', '/material', '/layouts/TabLayout', b'0', '0620', b'1', '电脑版', NULL, 'shopping', '0');
-INSERT INTO `jsh_function` VALUES (22, '010101', '商品类别', '0101', '/material/material_category', '/material/MaterialCategoryList', b'0', '0230', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (23, '010102', '商品信息', '0101', '/material/material', '/material/MaterialList', b'0', '0240', b'1', '电脑版', '1,3', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (24, '0102', '基础资料', '0', '/systemA', '/layouts/TabLayout', b'0', '0750', b'1', '电脑版', NULL, 'appstore', '0');
-INSERT INTO `jsh_function` VALUES (25, '01020101', '供应商信息', '0102', '/system/vendor', '/system/VendorList', b'0', '0260', b'1', '电脑版', '1,3', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (26, '010202', '仓库信息', '0102', '/system/depot', '/system/DepotList', b'0', '0270', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (31, '010206', '经手人管理', '0102', '/system/person', '/system/PersonList', b'0', '0284', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (32, '0502', '采购管理', '0', '/bill', '/layouts/TabLayout', b'0', '0330', b'1', '电脑版', '', 'retweet', '0');
-INSERT INTO `jsh_function` VALUES (33, '050201', '采购入库', '0502', '/bill/purchase_in', '/bill/PurchaseInList', b'0', '0340', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (38, '0603', '销售管理', '0', '/billB', '/layouts/TabLayout', b'0', '0390', b'1', '电脑版', '', 'shopping-cart', '0');
-INSERT INTO `jsh_function` VALUES (40, '080107', '调拨出库', '0801', '/bill/allocation_out', '/bill/AllocationOutList', b'0', '0807', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (41, '060303', '销售出库', '0603', '/bill/sale_out', '/bill/SaleOutList', b'0', '0394', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (44, '0704', '财务管理', '0', '/financial', '/layouts/TabLayout', b'0', '0450', b'1', '电脑版', '', 'money-collect', '0');
-INSERT INTO `jsh_function` VALUES (59, '030101', '进销存统计', '0301', '/report/in_out_stock_report', '/report/InOutStockReport', b'0', '0658', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (194, '010204', '收支项目', '0102', '/system/in_out_item', '/system/InOutItemList', b'0', '0282', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (195, '010205', '结算账户', '0102', '/system/account', '/system/AccountList', b'0', '0283', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (197, '070402', '收入单', '0704', '/financial/item_in', '/financial/ItemInList', b'0', '0465', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (198, '0301', '报表查询', '0', '/report', '/layouts/TabLayout', b'0', '0570', b'1', '电脑版', NULL, 'pie-chart', '0');
-INSERT INTO `jsh_function` VALUES (199, '050204', '采购退货', '0502', '/bill/purchase_back', '/bill/PurchaseBackList', b'0', '0345', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (200, '060305', '销售退货', '0603', '/bill/sale_back', '/bill/SaleBackList', b'0', '0396', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (201, '080103', '其它入库', '0801', '/bill/other_in', '/bill/OtherInList', b'0', '0803', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (202, '080105', '其它出库', '0801', '/bill/other_out', '/bill/OtherOutList', b'0', '0805', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (203, '070403', '支出单', '0704', '/financial/item_out', '/financial/ItemOutList', b'0', '0470', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (204, '070404', '收款单', '0704', '/financial/money_in', '/financial/MoneyInList', b'0', '0475', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (205, '070405', '付款单', '0704', '/financial/money_out', '/financial/MoneyOutList', b'0', '0480', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (206, '070406', '转账单', '0704', '/financial/giro', '/financial/GiroList', b'0', '0490', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (207, '030102', '账户统计', '0301', '/report/account_report', '/report/AccountReport', b'0', '0610', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (208, '030103', '采购统计', '0301', '/report/buy_in_report', '/report/BuyInReport', b'0', '0620', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (209, '030104', '销售统计', '0301', '/report/sale_out_report', '/report/SaleOutReport', b'0', '0630', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (210, '040102', '零售出库', '0401', '/bill/retail_out', '/bill/RetailOutList', b'0', '0405', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (211, '040104', '零售退货', '0401', '/bill/retail_back', '/bill/RetailBackList', b'0', '0407', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (212, '070407', '收预付款', '0704', '/financial/advance_in', '/financial/AdvanceInList', b'0', '0495', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (217, '01020102', '客户信息', '0102', '/system/customer', '/system/CustomerList', b'0', '0262', b'1', '电脑版', '1,3', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (218, '01020103', '会员信息', '0102', '/system/member', '/system/MemberList', b'0', '0263', b'1', '电脑版', '1,3', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (220, '010103', '多单位', '0101', '/system/unit', '/system/UnitList', b'0', '0245', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (225, '0401', '零售管理', '0', '/billC', '/layouts/TabLayout', b'0', '0101', b'1', '电脑版', '', 'gift', '0');
-INSERT INTO `jsh_function` VALUES (226, '030106', '入库明细', '0301', '/report/in_detail', '/report/InDetail', b'0', '0640', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (227, '030107', '出库明细', '0301', '/report/out_detail', '/report/OutDetail', b'0', '0645', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (228, '030108', '入库汇总', '0301', '/report/in_material_count', '/report/InMaterialCount', b'0', '0650', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (229, '030109', '出库汇总', '0301', '/report/out_material_count', '/report/OutMaterialCount', b'0', '0655', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (232, '080109', '组装单', '0801', '/bill/assemble', '/bill/AssembleList', b'0', '0809', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (233, '080111', '拆卸单', '0801', '/bill/disassemble', '/bill/DisassembleList', b'0', '0811', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (234, '000105', '系统配置', '0001', '/system/system_config', '/system/SystemConfigList', b'0', '0164', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (235, '030110', '客户对账', '0301', '/report/customer_account', '/report/CustomerAccount', b'0', '0660', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (236, '000106', '商品属性', '0001', '/material/material_property', '/material/MaterialPropertyList', b'0', '0163', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (237, '030111', '供应商对账', '0301', '/report/vendor_account', '/report/VendorAccount', b'0', '0665', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (239, '0801', '仓库管理', '0', '/billD', '/layouts/TabLayout', b'0', '0420', b'1', '电脑版', '', 'hdd', '0');
-INSERT INTO `jsh_function` VALUES (241, '050202', '采购订单', '0502', '/bill/purchase_order', '/bill/PurchaseOrderList', b'0', '0335', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (242, '060301', '销售订单', '0603', '/bill/sale_order', '/bill/SaleOrderList', b'0', '0392', b'1', '电脑版', '1,2,3,7', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (243, '000108', '机构管理', '0001', '/system/organization', '/system/OrganizationList', b'1', '0150', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (244, '030112', '库存预警', '0301', '/report/stock_warning_report', '/report/StockWarningReport', b'0', '0670', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (245, '000107', '插件管理', '0001', '/system/plugin', '/system/PluginList', b'0', '0170', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (246, '030113', '商品库存', '0301', '/report/material_stock', '/report/MaterialStock', b'0', '0605', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (247, '010105', '多属性', '0101', '/material/material_attribute', '/material/MaterialAttributeList', b'0', '0250', b'1', '电脑版', '1', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (248, '030150', '调拨明细', '0301', '/report/allocation_detail', '/report/AllocationDetail', b'0', '0646', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (258, '000112', '平台配置', '0001', '/system/platform_config', '/system/PlatformConfigList', b'0', '0175', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (259, '030105', '零售统计', '0301', '/report/retail_out_report', '/report/RetailOutReport', b'0', '0615', b'1', '电脑版', '', 'profile', '0');
-INSERT INTO `jsh_function` VALUES (261, '050203', '请购单', '0502', '/bill/purchase_apply', '/bill/PurchaseApplyList', b'0', '0330', b'1', '电脑版', '1,2,3,7', 'profile', '0');
+--
+-- Dumping data for table `jsh_function`
+--
 
--- ----------------------------
--- Table structure for jsh_in_out_item
--- ----------------------------
+LOCK TABLES `jsh_function` WRITE;
+/*!40000 ALTER TABLE `jsh_function` DISABLE KEYS */;
+INSERT INTO `jsh_function` VALUES (1,'0001','系统管理','0','/system','/layouts/TabLayout',_binary '','0910',_binary '','电脑版','','setting','0'),(13,'000102','角色管理','0001','/system/role','/system/RoleList',_binary '\0','0130',_binary '','电脑版','1','profile','0'),(14,'000103','用户管理','0001','/system/user','/system/UserList',_binary '\0','0140',_binary '','电脑版','1','profile','0'),(15,'000104','日志管理','0001','/system/log','/system/LogList',_binary '\0','0160',_binary '','电脑版','','profile','0'),(16,'000105','功能管理','0001','/system/function','/system/FunctionList',_binary '\0','0166',_binary '','电脑版','1','profile','0'),(18,'000109','租户管理','0001','/system/tenant','/system/TenantList',_binary '\0','0167',_binary '','电脑版','1','profile','0'),(21,'0101','商品管理','0','/material','/layouts/TabLayout',_binary '\0','0620',_binary '','电脑版',NULL,'shopping','0'),(22,'010101','商品类别','0101','/material/material_category','/material/MaterialCategoryList',_binary '\0','0230',_binary '','电脑版','1','profile','0'),(23,'010102','商品信息','0101','/material/material','/material/MaterialList',_binary '\0','0240',_binary '','电脑版','1,3','profile','0'),(24,'0102','基础资料','0','/systemA','/layouts/TabLayout',_binary '\0','0750',_binary '','电脑版',NULL,'appstore','0'),(25,'01020101','供应商信息','0102','/system/vendor','/system/VendorList',_binary '\0','0260',_binary '','电脑版','1,3','profile','0'),(26,'010202','仓库信息','0102','/system/depot','/system/DepotList',_binary '\0','0270',_binary '','电脑版','1','profile','0'),(31,'010206','经手人管理','0102','/system/person','/system/PersonList',_binary '\0','0284',_binary '','电脑版','1','profile','0'),(32,'0502','采购管理','0','/bill','/layouts/TabLayout',_binary '\0','0330',_binary '','电脑版','','retweet','0'),(33,'050201','采购入库','0502','/bill/purchase_in','/bill/PurchaseInList',_binary '\0','0340',_binary '','电脑版','1,2,3,7','profile','0'),(38,'0603','销售管理','0','/billB','/layouts/TabLayout',_binary '\0','0390',_binary '','电脑版','','shopping-cart','0'),(40,'080107','调拨出库','0801','/bill/allocation_out','/bill/AllocationOutList',_binary '\0','0807',_binary '','电脑版','1,2,3,7','profile','0'),(41,'060303','销售出库','0603','/bill/sale_out','/bill/SaleOutList',_binary '\0','0394',_binary '','电脑版','1,2,3,7','profile','0'),(44,'0704','财务管理','0','/financial','/layouts/TabLayout',_binary '\0','0450',_binary '','电脑版','','money-collect','0'),(59,'030101','进销存统计','0301','/report/in_out_stock_report','/report/InOutStockReport',_binary '\0','0658',_binary '','电脑版','','profile','0'),(194,'010204','收支项目','0102','/system/in_out_item','/system/InOutItemList',_binary '\0','0282',_binary '','电脑版','1','profile','0'),(195,'010205','结算账户','0102','/system/account','/system/AccountList',_binary '\0','0283',_binary '','电脑版','1','profile','0'),(197,'070402','收入单','0704','/financial/item_in','/financial/ItemInList',_binary '\0','0465',_binary '','电脑版','1,2,3,7','profile','0'),(198,'0301','报表查询','0','/report','/layouts/TabLayout',_binary '\0','0570',_binary '','电脑版',NULL,'pie-chart','0'),(199,'050204','采购退货','0502','/bill/purchase_back','/bill/PurchaseBackList',_binary '\0','0345',_binary '','电脑版','1,2,3,7','profile','0'),(200,'060305','销售退货','0603','/bill/sale_back','/bill/SaleBackList',_binary '\0','0396',_binary '','电脑版','1,2,3,7','profile','0'),(201,'080103','其它入库','0801','/bill/other_in','/bill/OtherInList',_binary '\0','0803',_binary '','电脑版','1,2,3,7','profile','0'),(202,'080105','其它出库','0801','/bill/other_out','/bill/OtherOutList',_binary '\0','0805',_binary '','电脑版','1,2,3,7','profile','0'),(203,'070403','支出单','0704','/financial/item_out','/financial/ItemOutList',_binary '\0','0470',_binary '','电脑版','1,2,3,7','profile','0'),(204,'070404','收款单','0704','/financial/money_in','/financial/MoneyInList',_binary '\0','0475',_binary '','电脑版','1,2,3,7','profile','0'),(205,'070405','付款单','0704','/financial/money_out','/financial/MoneyOutList',_binary '\0','0480',_binary '','电脑版','1,2,3,7','profile','0'),(206,'070406','转账单','0704','/financial/giro','/financial/GiroList',_binary '\0','0490',_binary '','电脑版','1,2,3,7','profile','0'),(207,'030102','账户统计','0301','/report/account_report','/report/AccountReport',_binary '\0','0610',_binary '','电脑版','','profile','0'),(208,'030103','采购统计','0301','/report/buy_in_report','/report/BuyInReport',_binary '\0','0620',_binary '','电脑版','','profile','0'),(209,'030104','销售统计','0301','/report/sale_out_report','/report/SaleOutReport',_binary '\0','0630',_binary '','电脑版','','profile','0'),(210,'040102','零售出库','0401','/bill/retail_out','/bill/RetailOutList',_binary '\0','0405',_binary '','电脑版','1,2,3,7','profile','0'),(211,'040104','零售退货','0401','/bill/retail_back','/bill/RetailBackList',_binary '\0','0407',_binary '','电脑版','1,2,3,7','profile','0'),(212,'070407','收预付款','0704','/financial/advance_in','/financial/AdvanceInList',_binary '\0','0495',_binary '','电脑版','1,2,3,7','profile','0'),(217,'01020102','客户信息','0102','/system/customer','/system/CustomerList',_binary '\0','0262',_binary '','电脑版','1,3','profile','0'),(218,'01020103','会员信息','0102','/system/member','/system/MemberList',_binary '\0','0263',_binary '','电脑版','1,3','profile','0'),(220,'010103','多单位','0101','/system/unit','/system/UnitList',_binary '\0','0245',_binary '','电脑版','1','profile','0'),(225,'0401','零售管理','0','/billC','/layouts/TabLayout',_binary '\0','0101',_binary '','电脑版','','gift','0'),(226,'030106','入库明细','0301','/report/in_detail','/report/InDetail',_binary '\0','0640',_binary '','电脑版','','profile','0'),(227,'030107','出库明细','0301','/report/out_detail','/report/OutDetail',_binary '\0','0645',_binary '','电脑版','','profile','0'),(228,'030108','入库汇总','0301','/report/in_material_count','/report/InMaterialCount',_binary '\0','0650',_binary '','电脑版','','profile','0'),(229,'030109','出库汇总','0301','/report/out_material_count','/report/OutMaterialCount',_binary '\0','0655',_binary '','电脑版','','profile','0'),(232,'080109','组装单','0801','/bill/assemble','/bill/AssembleList',_binary '\0','0809',_binary '','电脑版','1,2,3,7','profile','0'),(233,'080111','拆卸单','0801','/bill/disassemble','/bill/DisassembleList',_binary '\0','0811',_binary '','电脑版','1,2,3,7','profile','0'),(234,'000105','系统配置','0001','/system/system_config','/system/SystemConfigList',_binary '\0','0164',_binary '','电脑版','1','profile','0'),(235,'030110','客户对账','0301','/report/customer_account','/report/CustomerAccount',_binary '\0','0660',_binary '','电脑版','','profile','0'),(236,'000106','商品属性','0001','/material/material_property','/material/MaterialPropertyList',_binary '\0','0163',_binary '','电脑版','1','profile','0'),(237,'030111','供应商对账','0301','/report/vendor_account','/report/VendorAccount',_binary '\0','0665',_binary '','电脑版','','profile','0'),(239,'0801','仓库管理','0','/billD','/layouts/TabLayout',_binary '\0','0420',_binary '','电脑版','','hdd','0'),(241,'050202','采购订单','0502','/bill/purchase_order','/bill/PurchaseOrderList',_binary '\0','0335',_binary '','电脑版','1,2,3,7','profile','0'),(242,'060301','销售订单','0603','/bill/sale_order','/bill/SaleOrderList',_binary '\0','0392',_binary '','电脑版','1,2,3,7','profile','0'),(243,'000108','机构管理','0001','/system/organization','/system/OrganizationList',_binary '','0150',_binary '','电脑版','1','profile','0'),(244,'030112','库存预警','0301','/report/stock_warning_report','/report/StockWarningReport',_binary '\0','0670',_binary '','电脑版','','profile','0'),(245,'000107','插件管理','0001','/system/plugin','/system/PluginList',_binary '\0','0170',_binary '','电脑版','1','profile','0'),(246,'030113','商品库存','0301','/report/material_stock','/report/MaterialStock',_binary '\0','0605',_binary '','电脑版','','profile','0'),(247,'010105','多属性','0101','/material/material_attribute','/material/MaterialAttributeList',_binary '\0','0250',_binary '','电脑版','1','profile','0'),(248,'030150','调拨明细','0301','/report/allocation_detail','/report/AllocationDetail',_binary '\0','0646',_binary '','电脑版','','profile','0'),(258,'000112','平台配置','0001','/system/platform_config','/system/PlatformConfigList',_binary '\0','0175',_binary '','电脑版','','profile','0'),(259,'030105','零售统计','0301','/report/retail_out_report','/report/RetailOutReport',_binary '\0','0615',_binary '','电脑版','','profile','0'),(261,'050203','请购单','0502','/bill/purchase_apply','/bill/PurchaseApplyList',_binary '\0','0330',_binary '','电脑版','1,2,3,7','profile','0'),(262,'0905','运费管理','0','/freight','/layouts/TabLayout',_binary '\0','0455',_binary '','电脑版',NULL,'car','0'),(263,'01020107','物流方','0102','/systemA/freight_carrier','/system/FreightCarrierList',_binary '\0','0286',_binary '','电脑版','1','profile','0'),(264,'090502','物流单','0905','/freight/bill','/freight/FreightBillList',_binary '\0','0457',_binary '','电脑版','1,2,7','profile','0'),(265,'070408','运费查看','0704','/financial/freight_view','/financial/FreightViewList',_binary '\0','0498',_binary '','电脑版','',NULL,'0'),(266,'090503','运费对账','0905','/freight/reconciliation','/freight/FreightReconciliationList',_binary '\0','0458',_binary '','电脑版','','profile','0');
+/*!40000 ALTER TABLE `jsh_function` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_in_out_item`
+--
+
 DROP TABLE IF EXISTS `jsh_in_out_item`;
-CREATE TABLE `jsh_in_out_item`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型',
-  `remark` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_in_out_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型',
+  `remark` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '收支项目' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='收支项目';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_in_out_item
--- ----------------------------
-INSERT INTO `jsh_in_out_item` VALUES (21, '快递费', '支出', '', b'1', NULL, 63, '0');
-INSERT INTO `jsh_in_out_item` VALUES (22, '房租收入', '收入', '', b'1', NULL, 63, '0');
-INSERT INTO `jsh_in_out_item` VALUES (23, '利息收入', '收入', '收入', b'1', NULL, 63, '0');
+--
+-- Dumping data for table `jsh_in_out_item`
+--
 
--- ----------------------------
--- Table structure for jsh_log
--- ----------------------------
+LOCK TABLES `jsh_in_out_item` WRITE;
+/*!40000 ALTER TABLE `jsh_in_out_item` DISABLE KEYS */;
+INSERT INTO `jsh_in_out_item` VALUES (21,'快递费','支出','',_binary '',NULL,63,'0'),(22,'房租收入','收入','',_binary '',NULL,63,'0'),(23,'利息收入','收入','收入',_binary '',NULL,63,'0');
+/*!40000 ALTER TABLE `jsh_in_out_item` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_log`
+--
+
 DROP TABLE IF EXISTS `jsh_log`;
-CREATE TABLE `jsh_log`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `user_id` bigint(0) NULL DEFAULT NULL COMMENT '用户id',
-  `operation` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '操作模块名称',
-  `client_ip` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '客户端IP',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `status` tinyint(0) NULL DEFAULT NULL COMMENT '操作状态 0==成功，1==失败',
-  `content` varchar(5000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '详情',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` bigint DEFAULT NULL COMMENT '用户id',
+  `operation` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '操作模块名称',
+  `client_ip` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '客户端IP',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `status` tinyint DEFAULT NULL COMMENT '操作状态 0==成功，1==失败',
+  `content` varchar(5000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '详情',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FKF2696AA13E226853`(`user_id`) USING BTREE,
-  INDEX `create_time`(`create_time`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7608 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '操作日志' ROW_FORMAT = Dynamic;
+  KEY `FKF2696AA13E226853` (`user_id`) USING BTREE,
+  KEY `create_time` (`create_time`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=7702 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='操作日志';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_material
--- ----------------------------
+--
+-- Dumping data for table `jsh_log`
+--
+
+LOCK TABLES `jsh_log` WRITE;
+/*!40000 ALTER TABLE `jsh_log` DISABLE KEYS */;
+INSERT INTO `jsh_log` VALUES (7608,63,'用户','127.0.0.1/127.0.0.1','2026-03-29 10:56:34',0,'登录jsh',63),(7609,63,'用户','127.0.0.1/127.0.0.1','2026-03-29 10:58:06',0,'修改63',63),(7610,63,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 10:58:06',0,'修改',63),(7611,63,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 10:59:08',0,'修改',63),(7612,63,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 10:59:12',0,'修改角色的按钮权限',63),(7613,63,'用户','127.0.0.1/127.0.0.1','2026-03-29 10:59:54',0,'新增',63),(7614,63,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 10:59:54',0,'新增',63),(7615,146,'用户','127.0.0.1/127.0.0.1','2026-03-29 11:00:07',0,'登录test',63),(7616,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 11:00:49',0,'登录test0',147),(7617,120,'用户','127.0.0.1/127.0.0.1','2026-03-29 11:01:13',0,'登录admin',0),(7618,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 11:02:21',0,'登录test0',147),(7619,147,'商品','127.0.0.1/127.0.0.1','2026-03-29 11:03:46',0,'新增中天*12*12',147),(7620,147,'商家','127.0.0.1/127.0.0.1','2026-03-29 11:03:57',0,'新增test',147),(7621,147,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 11:04:03',0,'新增',147),(7622,147,'仓库','127.0.0.1/127.0.0.1','2026-03-29 11:04:03',0,'新增test',147),(7623,147,'商品','127.0.0.1/127.0.0.1','2026-03-29 11:08:22',0,'修改中天*12*12',147),(7624,147,'系统配置','127.0.0.1/127.0.0.1','2026-03-29 11:31:31',0,'新增配置信息',147),(7625,147,'系统配置','127.0.0.1/127.0.0.1','2026-03-29 11:32:14',0,'修改配置信息',147),(7626,147,'系统配置','127.0.0.1/127.0.0.1','2026-03-29 11:32:30',0,'修改配置信息',147),(7627,147,'账户','127.0.0.1/127.0.0.1','2026-03-29 11:35:33',0,'新增test',147),(7628,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 11:35:35',0,'新增CGRK00000000677',147),(7629,147,'商家','127.0.0.1/127.0.0.1','2026-03-29 11:37:03',0,'新增test',147),(7630,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 11:37:25',0,'新增XSCK00000000678',147),(7631,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 11:37:46',0,'新增XSCK00000000679',147),(7632,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 11:55:32',0,'新增CGRK00000000683',147),(7633,120,'用户','127.0.0.1/127.0.0.1','2026-03-29 13:06:58',0,'登录admin',0),(7634,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 13:07:25',0,'修改',NULL),(7635,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 13:07:35',0,'修改角色的按钮权限',NULL),(7636,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 13:07:48',0,'登录test0',147),(7637,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 14:47:20',0,'登录test0',147),(7638,120,'用户','127.0.0.1/127.0.0.1','2026-03-29 15:08:21',0,'登录admin',0),(7639,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 15:08:48',0,'修改',NULL),(7640,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 15:08:59',0,'修改角色的按钮权限',NULL),(7641,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 15:24:03',0,'登录test0',147),(7642,147,'结算方','127.0.0.1/127.0.0.1','2026-03-29 15:27:37',0,'新增陈',147),(7643,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 15:28:12',0,'[审核]XSCK00000000679, XSCK00000000678',147),(7644,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 15:29:08',0,'新增null',147),(7645,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 15:29:12',0,'[审核]1,',147),(7646,147,'结算方','127.0.0.1/127.0.0.1','2026-03-29 20:37:38',0,'新增钢',147),(7647,120,'用户','127.0.0.1/127.0.0.1','2026-03-29 21:22:50',0,'登录admin',0),(7648,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 21:23:58',0,'修改',NULL),(7649,120,'关联关系','127.0.0.1/127.0.0.1','2026-03-29 21:24:10',0,'修改角色的按钮权限',NULL),(7650,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 21:24:29',0,'登录test0',147),(7651,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 21:24:53',0,'[反审核]1,',147),(7652,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 21:24:57',0,'删除null',147),(7653,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 21:33:39',0,'新增XSCK00000000687[审核]',147),(7654,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 21:45:34',0,'新增YF00000000689',147),(7655,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 21:45:41',0,'[审核]2,',147),(7656,147,'用户','127.0.0.1/127.0.0.1','2026-03-29 22:35:26',0,'登录test0',147),(7657,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:38:03',0,'[反审核]2,',147),(7658,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:38:05',0,'删除YF00000000689',147),(7659,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:42:19',0,'新增CGDD00000000696[审核]',147),(7660,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:42:38',0,'新增CGRK00000000697[审核]',147),(7661,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:45:02',0,'新增YF00000000698',147),(7662,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:45:13',0,'[审核]3,',147),(7663,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:46:17',0,'新增CGRK00000000694[审核]',147),(7664,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:46:59',0,'新增XSCK00000000701[审核]',147),(7665,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:47:13',0,'新增XSCK00000000702[审核]',147),(7666,147,'单据','127.0.0.1/127.0.0.1','2026-03-29 23:47:29',0,'新增XSCK00000000703[审核]',147),(7667,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:48:02',0,'新增YF00000000704',147),(7668,147,'运费单','127.0.0.1/127.0.0.1','2026-03-29 23:48:06',0,'[审核]4,',147),(7669,147,'商品','127.0.0.1/127.0.0.1','2026-03-30 00:10:59',0,'新增中天盘螺8',147),(7670,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:11:09',0,'[审核]CGRK00000000683, CGRK00000000677',147),(7671,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:11:43',0,'新增CGRK00000000705[审核]',147),(7672,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:12:07',0,'新增CGDD00000000706[审核]',147),(7673,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:13:12',0,'新增CGRK00000000707[审核]',147),(7674,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:21:50',0,'新增YF00000000713',147),(7675,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:23:21',0,'修改YF00000000713',147),(7676,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:23:24',0,'[审核]5,',147),(7677,147,'商家','127.0.0.1/127.0.0.1','2026-03-30 00:24:29',0,'新增test1',147),(7678,147,'商家','127.0.0.1/127.0.0.1','2026-03-30 00:24:37',0,'修改test3',147),(7679,147,'仓库','127.0.0.1/127.0.0.1','2026-03-30 00:24:42',0,'修改19',147),(7680,147,'仓库','127.0.0.1/127.0.0.1','2026-03-30 00:24:50',0,'修改ck',147),(7681,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:25:29',0,'[反审核]XSCK00000000703, XSCK00000000702, XSCK00000000701, XSCK00000000687, XSCK00000000679, XSCK00000000678',147),(7682,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:25:37',0,'修改XSCK00000000702',147),(7683,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:25:40',0,'修改XSCK00000000701',147),(7684,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:25:46',0,'[审核]XSCK00000000703, XSCK00000000702, XSCK00000000701, XSCK00000000687, XSCK00000000679, XSCK00000000678',147),(7685,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:25:57',0,'[反审核]CGRK00000000707, CGRK00000000705, CGRK00000000694, CGRK00000000697, CGRK00000000683, CGRK00000000677',147),(7686,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:26:11',0,'[审核]CGRK00000000707, CGRK00000000705, CGRK00000000694, CGRK00000000697, CGRK00000000683, CGRK00000000677',147),(7687,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:27:06',0,'新增XSCK00000000716[审核]',147),(7688,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:27:45',0,'新增YF00000000715',147),(7689,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:27:48',0,'[审核]6,',147),(7690,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:31:52',0,'新增XSCK00000000718',147),(7691,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:32:07',0,'新增XSCK00000000719',147),(7692,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:32:38',0,'新增XSCK00000000720[审核]',147),(7693,147,'单据','127.0.0.1/127.0.0.1','2026-03-30 00:32:42',0,'[审核]XSCK00000000719, XSCK00000000718',147),(7694,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:33:16',0,'新增YF00000000721',147),(7695,147,'用户','127.0.0.1/127.0.0.1','2026-03-30 00:49:07',0,'登录test0',147),(7696,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:50:35',0,'新增YF00000000724',147),(7697,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 00:50:38',0,'[审核]7,8,',147),(7698,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 01:18:03',0,'标记已付款:5,6,7',147),(7699,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 01:22:11',0,'标记已付款:8,3,4',147),(7700,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 01:22:33',0,'取消付款标记:5,6,7',147),(7701,147,'运费单','127.0.0.1/127.0.0.1','2026-03-30 01:22:36',0,'标记已付款:5,6,7',147);
+/*!40000 ALTER TABLE `jsh_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material`
+--
+
 DROP TABLE IF EXISTS `jsh_material`;
-CREATE TABLE `jsh_material`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `category_id` bigint(0) NULL DEFAULT NULL COMMENT '产品类型id',
-  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `mfrs` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '制造商',
-  `model` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '型号',
-  `standard` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '规格',
-  `brand` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '品牌',
-  `mnemonic` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '助记码',
-  `color` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '颜色',
-  `unit` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '单位-单个',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `img_name` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '图片名称',
-  `unit_id` bigint(0) NULL DEFAULT NULL COMMENT '单位Id',
-  `expiry_num` int(0) NULL DEFAULT NULL COMMENT '保质期天数',
-  `weight` decimal(24, 6) NULL DEFAULT NULL COMMENT '基础重量(kg)',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用 0-禁用  1-启用',
-  `other_field1` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '自定义1',
-  `other_field2` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '自定义2',
-  `other_field3` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '自定义3',
-  `enable_serial_number` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '是否开启序列号，0否，1是',
-  `enable_batch_number` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '是否开启批号，0否，1是',
-  `position` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '仓位货架',
-  `attribute` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '多属性信息',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `category_id` bigint DEFAULT NULL COMMENT '产品类型id',
+  `name` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `mfrs` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '制造商',
+  `model` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '型号',
+  `standard` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '规格',
+  `brand` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '品牌',
+  `mnemonic` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '助记码',
+  `color` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '颜色',
+  `unit` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '单位-单个',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `img_name` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '图片名称',
+  `unit_id` bigint DEFAULT NULL COMMENT '单位Id',
+  `expiry_num` int DEFAULT NULL COMMENT '保质期天数',
+  `weight` decimal(24,6) DEFAULT NULL COMMENT '基础重量(t)',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用 0-禁用  1-启用',
+  `other_field1` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '自定义1',
+  `other_field2` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '自定义2',
+  `other_field3` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '自定义3',
+  `enable_serial_number` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '是否开启序列号，0否，1是',
+  `enable_batch_number` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '是否开启批号，0否，1是',
+  `position` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '仓位货架',
+  `attribute` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '多属性信息',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK675951272AB6672C`(`category_id`) USING BTREE,
-  INDEX `UnitId`(`unit_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 620 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品表' ROW_FORMAT = Dynamic;
+  KEY `FK675951272AB6672C` (`category_id`) USING BTREE,
+  KEY `UnitId` (`unit_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=622 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='产品表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_material
--- ----------------------------
-INSERT INTO `jsh_material` VALUES (568, 17, '商品1', '制1', 'sp1', '', NULL, NULL, '', '个', '', NULL, NULL, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (569, 17, '商品2', '', 'sp2', '', NULL, NULL, '', '只', '', NULL, NULL, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (570, 17, '商品3', '', 'sp3', '', NULL, NULL, '', '个', '', NULL, NULL, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (577, NULL, '商品8', '', 'sp8', '', NULL, NULL, '', '', '', NULL, 15, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (579, 21, '商品17', '', 'sp17', '', NULL, NULL, '', '', '', NULL, 15, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (586, 17, '序列号商品测试', '', 'xlh123', '', NULL, NULL, '', '个', '', NULL, NULL, NULL, NULL, b'1', '', '', '', '1', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (587, 17, '商品test1', '南通中远', '', 'test1', NULL, NULL, '', '个', '', NULL, NULL, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (588, 21, '商品200', 'fafda', 'weqwe', '300ml', NULL, NULL, '红色', '个', 'aaaabbbbb', NULL, NULL, NULL, NULL, b'1', '', '', '', '0', '0', NULL, NULL, 63, '0');
-INSERT INTO `jsh_material` VALUES (619, NULL, '衣服', NULL, NULL, NULL, NULL, NULL, NULL, '件', NULL, '', NULL, NULL, NULL, b'1', NULL, NULL, NULL, '0', '0', NULL, NULL, 63, '0');
+--
+-- Dumping data for table `jsh_material`
+--
 
--- ----------------------------
--- Table structure for jsh_material_attribute
--- ----------------------------
+LOCK TABLES `jsh_material` WRITE;
+/*!40000 ALTER TABLE `jsh_material` DISABLE KEYS */;
+INSERT INTO `jsh_material` VALUES (568,17,'商品1','制1','sp1','',NULL,NULL,'','个','',NULL,NULL,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(569,17,'商品2','','sp2','',NULL,NULL,'','只','',NULL,NULL,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(570,17,'商品3','','sp3','',NULL,NULL,'','个','',NULL,NULL,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(577,NULL,'商品8','','sp8','',NULL,NULL,'','','',NULL,15,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(579,21,'商品17','','sp17','',NULL,NULL,'','','',NULL,15,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(586,17,'序列号商品测试','','xlh123','',NULL,NULL,'','个','',NULL,NULL,NULL,NULL,_binary '','','','','1','0',NULL,NULL,63,'0'),(587,17,'商品test1','南通中远','','test1',NULL,NULL,'','个','',NULL,NULL,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(588,21,'商品200','fafda','weqwe','300ml',NULL,NULL,'红色','个','aaaabbbbb',NULL,NULL,NULL,NULL,_binary '','','','','0','0',NULL,NULL,63,'0'),(619,NULL,'衣服',NULL,NULL,NULL,NULL,NULL,NULL,'件',NULL,'',NULL,NULL,NULL,_binary '',NULL,NULL,NULL,'0','0',NULL,NULL,63,'0'),(620,NULL,'中天*12*12',NULL,'HRB400E','12*12',NULL,'zt*12*12',NULL,'吨',NULL,'',NULL,NULL,1.998000,_binary '',NULL,NULL,NULL,'0','1',NULL,'{}',147,'0'),(621,NULL,'中天盘螺8',NULL,'HRB400E','盘螺8',NULL,'ztpl8',NULL,'吨',NULL,'',NULL,NULL,2.100000,_binary '',NULL,NULL,NULL,'0','1',NULL,'{}',147,'0');
+/*!40000 ALTER TABLE `jsh_material` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_attribute`
+--
+
 DROP TABLE IF EXISTS `jsh_material_attribute`;
-CREATE TABLE `jsh_material_attribute`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT,
-  `attribute_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '属性名',
-  `attribute_value` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '属性值',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_attribute` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `attribute_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '属性名',
+  `attribute_value` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '属性值',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品属性表' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='产品属性表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_material_attribute
--- ----------------------------
-INSERT INTO `jsh_material_attribute` VALUES (1, '多颜色', '红色|橙色|黄色|绿色|蓝色|紫色', 63, '0');
-INSERT INTO `jsh_material_attribute` VALUES (2, '多尺寸', 'S|M|L|XL|XXL|XXXL', 63, '0');
-INSERT INTO `jsh_material_attribute` VALUES (3, '自定义1', '小米|华为', 63, '0');
-INSERT INTO `jsh_material_attribute` VALUES (4, '自定义2', NULL, 63, '0');
-INSERT INTO `jsh_material_attribute` VALUES (5, '自定义3', NULL, 63, '0');
+--
+-- Dumping data for table `jsh_material_attribute`
+--
 
--- ----------------------------
--- Table structure for jsh_material_category
--- ----------------------------
+LOCK TABLES `jsh_material_attribute` WRITE;
+/*!40000 ALTER TABLE `jsh_material_attribute` DISABLE KEYS */;
+INSERT INTO `jsh_material_attribute` VALUES (1,'多颜色','红色|橙色|黄色|绿色|蓝色|紫色',63,'0'),(2,'多尺寸','S|M|L|XL|XXL|XXXL',63,'0'),(3,'自定义1','小米|华为',63,'0'),(4,'自定义2',NULL,63,'0'),(5,'自定义3',NULL,63,'0');
+/*!40000 ALTER TABLE `jsh_material_attribute` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_category`
+--
+
 DROP TABLE IF EXISTS `jsh_material_category`;
-CREATE TABLE `jsh_material_category`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `category_level` smallint(0) NULL DEFAULT NULL COMMENT '等级',
-  `parent_id` bigint(0) NULL DEFAULT NULL COMMENT '上级id',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '显示顺序',
-  `serial_no` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '编号',
-  `remark` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_category` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `category_level` smallint DEFAULT NULL COMMENT '等级',
+  `parent_id` bigint DEFAULT NULL COMMENT '上级id',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '显示顺序',
+  `serial_no` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '编号',
+  `remark` varchar(1024) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `FK3EE7F725237A77D8`(`parent_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品类型表' ROW_FORMAT = Dynamic;
+  KEY `FK3EE7F725237A77D8` (`parent_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='产品类型表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_material_category
--- ----------------------------
-INSERT INTO `jsh_material_category` VALUES (17, '目录1', NULL, NULL, '11', 'wae12', 'eee', '2019-04-10 22:18:12', '2021-02-17 15:11:35', 63, '0');
-INSERT INTO `jsh_material_category` VALUES (21, '目录2', NULL, 17, '22', 'ada112', 'ddd', '2020-07-20 23:08:44', '2020-07-20 23:08:44', 63, '0');
+--
+-- Dumping data for table `jsh_material_category`
+--
 
--- ----------------------------
--- Table structure for jsh_material_current_stock
--- ----------------------------
+LOCK TABLES `jsh_material_category` WRITE;
+/*!40000 ALTER TABLE `jsh_material_category` DISABLE KEYS */;
+INSERT INTO `jsh_material_category` VALUES (17,'目录1',NULL,NULL,'11','wae12','eee','2019-04-10 22:18:12','2021-02-17 15:11:35',63,'0'),(21,'目录2',NULL,17,'22','ada112','ddd','2020-07-20 23:08:44','2020-07-20 23:08:44',63,'0');
+/*!40000 ALTER TABLE `jsh_material_category` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_current_stock`
+--
+
 DROP TABLE IF EXISTS `jsh_material_current_stock`;
-CREATE TABLE `jsh_material_current_stock`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `material_id` bigint(0) NULL DEFAULT NULL COMMENT '产品id',
-  `depot_id` bigint(0) NULL DEFAULT NULL COMMENT '仓库id',
-  `current_number` decimal(24, 6) NULL DEFAULT NULL COMMENT '当前库存数量',
-  `current_unit_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '当前单价',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_current_stock` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `material_id` bigint DEFAULT NULL COMMENT '产品id',
+  `depot_id` bigint DEFAULT NULL COMMENT '仓库id',
+  `current_number` decimal(24,6) DEFAULT NULL COMMENT '当前库存数量',
+  `current_unit_price` decimal(24,6) DEFAULT NULL COMMENT '当前单价',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `material_id`(`material_id`) USING BTREE,
-  INDEX `depot_id`(`depot_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品当前库存' ROW_FORMAT = Compact;
+  KEY `material_id` (`material_id`) USING BTREE,
+  KEY `depot_id` (`depot_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='产品当前库存';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_material_current_stock
--- ----------------------------
-INSERT INTO `jsh_material_current_stock` VALUES (19, 588, 14, 7.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (20, 568, 14, 2.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (21, 568, 15, 1.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (22, 570, 14, 8.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (23, 619, 14, 5.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (24, 619, 15, 0.000000, NULL, 63, '0');
-INSERT INTO `jsh_material_current_stock` VALUES (25, 619, 17, 0.000000, NULL, 63, '0');
+--
+-- Dumping data for table `jsh_material_current_stock`
+--
 
--- ----------------------------
--- Table structure for jsh_material_extend
--- ----------------------------
+LOCK TABLES `jsh_material_current_stock` WRITE;
+/*!40000 ALTER TABLE `jsh_material_current_stock` DISABLE KEYS */;
+INSERT INTO `jsh_material_current_stock` VALUES (19,588,14,7.000000,NULL,63,'0'),(20,568,14,2.000000,NULL,63,'0'),(21,568,15,1.000000,NULL,63,'0'),(22,570,14,8.000000,NULL,63,'0'),(23,619,14,5.000000,NULL,63,'0'),(24,619,15,0.000000,NULL,63,'0'),(25,619,17,0.000000,NULL,63,'0'),(26,620,19,34.000000,3000.000000,147,'0'),(27,621,19,2.000000,3000.000000,147,'0');
+/*!40000 ALTER TABLE `jsh_material_current_stock` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_extend`
+--
+
 DROP TABLE IF EXISTS `jsh_material_extend`;
-CREATE TABLE `jsh_material_extend`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `material_id` bigint(0) NULL DEFAULT NULL COMMENT '商品id',
-  `bar_code` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品条码',
-  `commodity_unit` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品单位',
-  `sku` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '多属性',
-  `purchase_decimal` decimal(24, 6) NULL DEFAULT NULL COMMENT '采购价格',
-  `commodity_decimal` decimal(24, 6) NULL DEFAULT NULL COMMENT '零售价格',
-  `wholesale_decimal` decimal(24, 6) NULL DEFAULT NULL COMMENT '销售价格',
-  `low_decimal` decimal(24, 6) NULL DEFAULT NULL COMMENT '最低售价',
-  `default_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '1' COMMENT '是否为默认单位，1是，0否',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建日期',
-  `create_serial` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '创建人编码',
-  `update_serial` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '更新人编码',
-  `update_time` bigint(0) NULL DEFAULT NULL COMMENT '更新时间戳',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_Flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_extend` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `material_id` bigint DEFAULT NULL COMMENT '商品id',
+  `bar_code` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '商品条码',
+  `commodity_unit` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '商品单位',
+  `sku` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '多属性',
+  `purchase_decimal` decimal(24,6) DEFAULT NULL COMMENT '采购价格',
+  `commodity_decimal` decimal(24,6) DEFAULT NULL COMMENT '零售价格',
+  `wholesale_decimal` decimal(24,6) DEFAULT NULL COMMENT '销售价格',
+  `low_decimal` decimal(24,6) DEFAULT NULL COMMENT '最低售价',
+  `default_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '1' COMMENT '是否为默认单位，1是，0否',
+  `create_time` datetime DEFAULT NULL COMMENT '创建日期',
+  `create_serial` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '创建人编码',
+  `update_serial` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '更新人编码',
+  `update_time` bigint DEFAULT NULL COMMENT '更新时间戳',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_Flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `material_id`(`material_id`) USING BTREE,
-  INDEX `bar_code`(`bar_code`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 40 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品价格扩展' ROW_FORMAT = Compact;
+  KEY `material_id` (`material_id`) USING BTREE,
+  KEY `bar_code` (`bar_code`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='产品价格扩展';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_material_extend
--- ----------------------------
-INSERT INTO `jsh_material_extend` VALUES (1, 587, '1000', '个', NULL, 11.000000, 22.000000, 22.000000, 22.000000, '1', '2020-02-20 23:22:03', 'jsh', 'jsh', 1595263657135, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (2, 568, '1001', '个', NULL, 11.000000, 15.000000, 15.000000, 15.000000, '1', '2020-02-20 23:44:57', 'jsh', 'jsh', 1595265439418, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (3, 569, '1002', '只', NULL, 10.000000, 15.000000, 15.000000, 13.000000, '1', '2020-02-20 23:45:15', 'jsh', 'jsh', 1582213514731, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (4, 570, '1003', '个', NULL, 8.000000, 15.000000, 14.000000, 13.000000, '1', '2020-02-20 23:45:37', 'jsh', 'jsh', 1587657604430, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (5, 577, '1004', '个', NULL, 10.000000, 20.000000, 20.000000, 20.000000, '1', '2020-02-20 23:46:36', 'jsh', 'jsh', 1582213596494, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (6, 577, '1005', '箱', NULL, 120.000000, 240.000000, 240.000000, 240.000000, '0', '2020-02-20 23:46:36', 'jsh', 'jsh', 1582213596497, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (7, 579, '1006', '个', NULL, 20.000000, 30.000000, 30.000000, 30.000000, '1', '2020-02-20 23:47:04', 'jsh', 'jsh', 1595264270458, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (8, 579, '1007', '箱', NULL, 240.000000, 360.000000, 360.000000, 360.000000, '0', '2020-02-20 23:47:04', 'jsh', 'jsh', 1595264270466, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (9, 586, '1008', '个', NULL, 12.000000, 15.000000, 15.000000, 15.000000, '1', '2020-02-20 23:47:23', 'jsh', 'jsh', 1595254981896, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (10, 588, '1009', '个', NULL, 11.000000, 22.000000, 22.000000, 22.000000, '1', '2020-07-21 00:58:15', 'jsh', 'jsh', 1614699799073, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (36, 619, '1014', '件', '橙色,M', 12.000000, 15.000000, 14.000000, NULL, '1', '2021-07-28 01:00:20', 'jsh', 'jsh', 1627405220316, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (37, 619, '1015', '件', '橙色,L', 12.000000, 15.000000, 14.000000, NULL, '0', '2021-07-28 01:00:20', 'jsh', 'jsh', 1627405220327, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (38, 619, '1016', '件', '绿色,M', 12.000000, 15.000000, 14.000000, NULL, '0', '2021-07-28 01:00:20', 'jsh', 'jsh', 1627405220336, 63, '0');
-INSERT INTO `jsh_material_extend` VALUES (39, 619, '1017', '件', '绿色,L', 12.000000, 15.000000, 14.000000, NULL, '0', '2021-07-28 01:00:20', 'jsh', 'jsh', 1627405220346, 63, '0');
+--
+-- Dumping data for table `jsh_material_extend`
+--
 
--- ----------------------------
--- Table structure for jsh_material_initial_stock
--- ----------------------------
+LOCK TABLES `jsh_material_extend` WRITE;
+/*!40000 ALTER TABLE `jsh_material_extend` DISABLE KEYS */;
+INSERT INTO `jsh_material_extend` VALUES (1,587,'1000','个',NULL,11.000000,22.000000,22.000000,22.000000,'1','2020-02-20 23:22:03','jsh','jsh',1595263657135,63,'0'),(2,568,'1001','个',NULL,11.000000,15.000000,15.000000,15.000000,'1','2020-02-20 23:44:57','jsh','jsh',1595265439418,63,'0'),(3,569,'1002','只',NULL,10.000000,15.000000,15.000000,13.000000,'1','2020-02-20 23:45:15','jsh','jsh',1582213514731,63,'0'),(4,570,'1003','个',NULL,8.000000,15.000000,14.000000,13.000000,'1','2020-02-20 23:45:37','jsh','jsh',1587657604430,63,'0'),(5,577,'1004','个',NULL,10.000000,20.000000,20.000000,20.000000,'1','2020-02-20 23:46:36','jsh','jsh',1582213596494,63,'0'),(6,577,'1005','箱',NULL,120.000000,240.000000,240.000000,240.000000,'0','2020-02-20 23:46:36','jsh','jsh',1582213596497,63,'0'),(7,579,'1006','个',NULL,20.000000,30.000000,30.000000,30.000000,'1','2020-02-20 23:47:04','jsh','jsh',1595264270458,63,'0'),(8,579,'1007','箱',NULL,240.000000,360.000000,360.000000,360.000000,'0','2020-02-20 23:47:04','jsh','jsh',1595264270466,63,'0'),(9,586,'1008','个',NULL,12.000000,15.000000,15.000000,15.000000,'1','2020-02-20 23:47:23','jsh','jsh',1595254981896,63,'0'),(10,588,'1009','个',NULL,11.000000,22.000000,22.000000,22.000000,'1','2020-07-21 00:58:15','jsh','jsh',1614699799073,63,'0'),(36,619,'1014','件','橙色,M',12.000000,15.000000,14.000000,NULL,'1','2021-07-28 01:00:20','jsh','jsh',1627405220316,63,'0'),(37,619,'1015','件','橙色,L',12.000000,15.000000,14.000000,NULL,'0','2021-07-28 01:00:20','jsh','jsh',1627405220327,63,'0'),(38,619,'1016','件','绿色,M',12.000000,15.000000,14.000000,NULL,'0','2021-07-28 01:00:20','jsh','jsh',1627405220336,63,'0'),(39,619,'1017','件','绿色,L',12.000000,15.000000,14.000000,NULL,'0','2021-07-28 01:00:20','jsh','jsh',1627405220346,63,'0'),(40,620,'1001','吨','',3000.000000,NULL,4000.000000,NULL,'1','2026-03-29 11:03:46','test0','test0',1774801957551,147,'0'),(41,621,'1002','吨','',3000.000000,NULL,3300.000000,NULL,'1','2026-03-30 00:10:59','test0','test0',1774801957516,147,'0');
+/*!40000 ALTER TABLE `jsh_material_extend` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_initial_stock`
+--
+
 DROP TABLE IF EXISTS `jsh_material_initial_stock`;
-CREATE TABLE `jsh_material_initial_stock`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `material_id` bigint(0) NULL DEFAULT NULL COMMENT '产品id',
-  `depot_id` bigint(0) NULL DEFAULT NULL COMMENT '仓库id',
-  `number` decimal(24, 6) NULL DEFAULT NULL COMMENT '初始库存数量',
-  `low_safe_stock` decimal(24, 6) NULL DEFAULT NULL COMMENT '最低库存数量',
-  `high_safe_stock` decimal(24, 6) NULL DEFAULT NULL COMMENT '最高库存数量',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_initial_stock` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `material_id` bigint DEFAULT NULL COMMENT '产品id',
+  `depot_id` bigint DEFAULT NULL COMMENT '仓库id',
+  `number` decimal(24,6) DEFAULT NULL COMMENT '初始库存数量',
+  `low_safe_stock` decimal(24,6) DEFAULT NULL COMMENT '最低库存数量',
+  `high_safe_stock` decimal(24,6) DEFAULT NULL COMMENT '最高库存数量',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `material_id`(`material_id`) USING BTREE,
-  INDEX `depot_id`(`depot_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 205 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品初始库存' ROW_FORMAT = Compact;
+  KEY `material_id` (`material_id`) USING BTREE,
+  KEY `depot_id` (`depot_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=206 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='产品初始库存';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_material_property
--- ----------------------------
+--
+-- Dumping data for table `jsh_material_initial_stock`
+--
+
+LOCK TABLES `jsh_material_initial_stock` WRITE;
+/*!40000 ALTER TABLE `jsh_material_initial_stock` DISABLE KEYS */;
+INSERT INTO `jsh_material_initial_stock` VALUES (205,620,19,0.000000,NULL,NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_material_initial_stock` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_material_property`
+--
+
 DROP TABLE IF EXISTS `jsh_material_property`;
-CREATE TABLE `jsh_material_property`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `native_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '原始名称',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '是否启用',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `another_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '别名',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_material_property` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `native_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '原始名称',
+  `enabled` bit(1) DEFAULT NULL COMMENT '是否启用',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `another_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '别名',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '产品扩展字段表' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='产品扩展字段表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_msg
--- ----------------------------
+--
+-- Dumping data for table `jsh_material_property`
+--
+
+LOCK TABLES `jsh_material_property` WRITE;
+/*!40000 ALTER TABLE `jsh_material_property` DISABLE KEYS */;
+/*!40000 ALTER TABLE `jsh_material_property` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_msg`
+--
+
 DROP TABLE IF EXISTS `jsh_msg`;
-CREATE TABLE `jsh_msg`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `msg_title` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '消息标题',
-  `msg_content` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '消息内容',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '消息类型',
-  `user_id` bigint(0) NULL DEFAULT NULL COMMENT '接收人id',
-  `status` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '状态，1未读 2已读',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_Flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_msg` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `msg_title` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '消息标题',
+  `msg_content` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '消息内容',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '消息类型',
+  `user_id` bigint DEFAULT NULL COMMENT '接收人id',
+  `status` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '状态，1未读 2已读',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_Flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '消息表' ROW_FORMAT = Compact;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='消息表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_msg
--- ----------------------------
-INSERT INTO `jsh_msg` VALUES (2, '标题1', '内容1', '2019-09-10 00:11:39', '类型1', 63, '2', 63, '0');
+--
+-- Dumping data for table `jsh_msg`
+--
 
--- ----------------------------
--- Table structure for jsh_orga_user_rel
--- ----------------------------
+LOCK TABLES `jsh_msg` WRITE;
+/*!40000 ALTER TABLE `jsh_msg` DISABLE KEYS */;
+INSERT INTO `jsh_msg` VALUES (2,'标题1','内容1','2019-09-10 00:11:39','类型1',63,'2',63,'0');
+/*!40000 ALTER TABLE `jsh_msg` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_orga_user_rel`
+--
+
 DROP TABLE IF EXISTS `jsh_orga_user_rel`;
-CREATE TABLE `jsh_orga_user_rel`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `orga_id` bigint(0) NULL DEFAULT NULL COMMENT '机构id',
-  `user_id` bigint(0) NOT NULL COMMENT '用户id',
-  `user_blng_orga_dspl_seq` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '用户在所属机构中显示顺序',
-  `delete_flag` char(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `creator` bigint(0) NULL DEFAULT NULL COMMENT '创建人',
-  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',
-  `updater` bigint(0) NULL DEFAULT NULL COMMENT '更新人',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_orga_user_rel` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `orga_id` bigint DEFAULT NULL COMMENT '机构id',
+  `user_id` bigint NOT NULL COMMENT '用户id',
+  `user_blng_orga_dspl_seq` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '用户在所属机构中显示顺序',
+  `delete_flag` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `creator` bigint DEFAULT NULL COMMENT '创建人',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `updater` bigint DEFAULT NULL COMMENT '更新人',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `orga_id`(`orga_id`) USING BTREE,
-  INDEX `user_id`(`user_id`) USING BTREE,
-  INDEX `creator`(`creator`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '机构用户关系表' ROW_FORMAT = Dynamic;
+  KEY `orga_id` (`orga_id`) USING BTREE,
+  KEY `user_id` (`user_id`) USING BTREE,
+  KEY `creator` (`creator`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='机构用户关系表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_orga_user_rel
--- ----------------------------
-INSERT INTO `jsh_orga_user_rel` VALUES (10, 13, 131, '2', '0', '2019-12-28 12:13:15', 63, '2021-03-18 22:33:19', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (11, 12, 63, '15', '0', '2020-09-13 18:42:45', 63, '2021-03-19 00:11:40', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (12, 13, 135, '9', '0', '2021-03-18 22:24:25', 63, '2021-03-19 00:09:23', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (13, 13, 134, '1', '0', '2021-03-18 22:31:39', 63, '2021-03-18 23:59:55', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (14, 22, 133, '22', '0', '2021-03-18 22:31:44', 63, '2021-03-18 22:32:04', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (15, 12, 144, NULL, '0', '2021-03-19 00:00:40', 63, '2021-03-19 00:08:07', 63, 63);
-INSERT INTO `jsh_orga_user_rel` VALUES (16, 12, 145, NULL, '0', '2021-03-19 00:03:44', 63, '2021-03-19 00:03:44', 63, 63);
+--
+-- Dumping data for table `jsh_orga_user_rel`
+--
 
--- ----------------------------
--- Table structure for jsh_organization
--- ----------------------------
+LOCK TABLES `jsh_orga_user_rel` WRITE;
+/*!40000 ALTER TABLE `jsh_orga_user_rel` DISABLE KEYS */;
+INSERT INTO `jsh_orga_user_rel` VALUES (10,13,131,'2','0','2019-12-28 12:13:15',63,'2021-03-18 22:33:19',63,63),(11,12,63,'15','0','2020-09-13 18:42:45',63,'2026-03-29 10:58:06',63,63),(12,13,135,'9','0','2021-03-18 22:24:25',63,'2021-03-19 00:09:23',63,63),(13,13,134,'1','0','2021-03-18 22:31:39',63,'2021-03-18 23:59:55',63,63),(14,22,133,'22','0','2021-03-18 22:31:44',63,'2021-03-18 22:32:04',63,63),(15,12,144,NULL,'0','2021-03-19 00:00:40',63,'2021-03-19 00:08:07',63,63),(16,12,145,NULL,'0','2021-03-19 00:03:44',63,'2021-03-19 00:03:44',63,63),(17,12,146,NULL,'0','2026-03-29 10:59:54',63,'2026-03-29 10:59:54',63,63);
+/*!40000 ALTER TABLE `jsh_orga_user_rel` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_organization`
+--
+
 DROP TABLE IF EXISTS `jsh_organization`;
-CREATE TABLE `jsh_organization`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `org_no` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '机构编号',
-  `org_abr` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '机构简称',
-  `parent_id` bigint(0) NULL DEFAULT NULL COMMENT '父机构id',
-  `sort` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '机构显示顺序',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_organization` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `org_no` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '机构编号',
+  `org_abr` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '机构简称',
+  `parent_id` bigint DEFAULT NULL COMMENT '父机构id',
+  `sort` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '机构显示顺序',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '机构表' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='机构表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_organization
--- ----------------------------
-INSERT INTO `jsh_organization` VALUES (12, '001', '测试机构', NULL, '2', 'aaaa2', '2019-12-28 12:13:01', '2019-12-28 12:13:01', 63, '0');
-INSERT INTO `jsh_organization` VALUES (13, 'jg1', '机构1', 12, '3', '', '2020-07-21 00:09:57', '2020-07-21 00:10:22', 63, '0');
-INSERT INTO `jsh_organization` VALUES (14, '12', '机构2', 13, '4', '', '2020-07-21 22:45:42', '2021-02-15 22:18:30', 63, '0');
+--
+-- Dumping data for table `jsh_organization`
+--
 
--- ----------------------------
--- Table structure for jsh_person
--- ----------------------------
+LOCK TABLES `jsh_organization` WRITE;
+/*!40000 ALTER TABLE `jsh_organization` DISABLE KEYS */;
+INSERT INTO `jsh_organization` VALUES (12,'001','测试机构',NULL,'2','aaaa2','2019-12-28 12:13:01','2019-12-28 12:13:01',63,'0'),(13,'jg1','机构1',12,'3','','2020-07-21 00:09:57','2020-07-21 00:10:22',63,'0'),(14,'12','机构2',13,'4','','2020-07-21 22:45:42','2021-02-15 22:18:30',63,'0');
+/*!40000 ALTER TABLE `jsh_organization` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_person`
+--
+
 DROP TABLE IF EXISTS `jsh_person`;
-CREATE TABLE `jsh_person`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '姓名',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_person` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '姓名',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '经手人表' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='经手人表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_person
--- ----------------------------
-INSERT INTO `jsh_person` VALUES (14, '销售员', '小李', b'1', NULL, 63, '0');
-INSERT INTO `jsh_person` VALUES (15, '仓管员', '小军', b'1', NULL, 63, '0');
-INSERT INTO `jsh_person` VALUES (16, '财务员', '小夏', b'1', NULL, 63, '0');
-INSERT INTO `jsh_person` VALUES (17, '财务员', '小曹', b'1', NULL, 63, '0');
+--
+-- Dumping data for table `jsh_person`
+--
 
--- ----------------------------
--- Table structure for jsh_platform_config
--- ----------------------------
+LOCK TABLES `jsh_person` WRITE;
+/*!40000 ALTER TABLE `jsh_person` DISABLE KEYS */;
+INSERT INTO `jsh_person` VALUES (14,'销售员','小李',_binary '',NULL,63,'0'),(15,'仓管员','小军',_binary '',NULL,63,'0'),(16,'财务员','小夏',_binary '',NULL,63,'0'),(17,'财务员','小曹',_binary '',NULL,63,'0');
+/*!40000 ALTER TABLE `jsh_person` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_platform_config`
+--
+
 DROP TABLE IF EXISTS `jsh_platform_config`;
-CREATE TABLE `jsh_platform_config`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT,
-  `platform_key` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '关键词',
-  `platform_key_info` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '关键词名称',
-  `platform_value` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '值',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_platform_config` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `platform_key` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '关键词',
+  `platform_key_info` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '关键词名称',
+  `platform_value` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '值',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '平台参数' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='平台参数';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_platform_config
--- ----------------------------
-INSERT INTO `jsh_platform_config` VALUES (1, 'platform_name', '平台名称', '管伊佳ERP');
-INSERT INTO `jsh_platform_config` VALUES (2, 'activation_code', '激活码', '');
-INSERT INTO `jsh_platform_config` VALUES (3, 'platform_url', '官方网站', 'http://www.gyjerp.com/');
-INSERT INTO `jsh_platform_config` VALUES (4, 'bill_print_flag', '三联打印启用标记', '0');
-INSERT INTO `jsh_platform_config` VALUES (5, 'bill_print_url', '三联打印地址', '');
-INSERT INTO `jsh_platform_config` VALUES (6, 'pay_fee_url', '租户续费地址', '');
-INSERT INTO `jsh_platform_config` VALUES (7, 'register_flag', '注册启用标记', '1');
-INSERT INTO `jsh_platform_config` VALUES (8, 'app_activation_code', '手机端激活码', '');
-INSERT INTO `jsh_platform_config` VALUES (9, 'send_workflow_url', '发起流程地址', '');
-INSERT INTO `jsh_platform_config` VALUES (10, 'weixinUrl', '微信url', '');
-INSERT INTO `jsh_platform_config` VALUES (11, 'weixinAppid', '微信appid', '');
-INSERT INTO `jsh_platform_config` VALUES (12, 'weixinSecret', '微信secret', '');
-INSERT INTO `jsh_platform_config` VALUES (13, 'aliOss_endpoint', '阿里OSS-endpoint', '');
-INSERT INTO `jsh_platform_config` VALUES (14, 'aliOss_accessKeyId', '阿里OSS-accessKeyId', '');
-INSERT INTO `jsh_platform_config` VALUES (15, 'aliOss_accessKeySecret', '阿里OSS-accessKeySecret', '');
-INSERT INTO `jsh_platform_config` VALUES (16, 'aliOss_bucketName', '阿里OSS-bucketName', '');
-INSERT INTO `jsh_platform_config` VALUES (17, 'aliOss_linkUrl', '阿里OSS-linkUrl', '');
-INSERT INTO `jsh_platform_config` VALUES (18, 'bill_excel_url', '单据Excel地址', '');
-INSERT INTO `jsh_platform_config` VALUES (19, 'email_from', '邮件发送端-发件人', '');
-INSERT INTO `jsh_platform_config` VALUES (20, 'email_auth_code', '邮件发送端-授权码', '');
-INSERT INTO `jsh_platform_config` VALUES (21, 'email_smtp_host', '邮件发送端-SMTP服务器', '');
-INSERT INTO `jsh_platform_config` VALUES (22, 'checkcode_flag', '验证码启用标记', '1');
+--
+-- Dumping data for table `jsh_platform_config`
+--
 
--- ----------------------------
--- Table structure for jsh_role
--- ----------------------------
+LOCK TABLES `jsh_platform_config` WRITE;
+/*!40000 ALTER TABLE `jsh_platform_config` DISABLE KEYS */;
+INSERT INTO `jsh_platform_config` VALUES (1,'platform_name','平台名称','管伊佳ERP'),(2,'activation_code','激活码',''),(3,'platform_url','官方网站','http://www.gyjerp.com/'),(4,'bill_print_flag','三联打印启用标记','0'),(5,'bill_print_url','三联打印地址',''),(6,'pay_fee_url','租户续费地址',''),(7,'register_flag','注册启用标记','1'),(8,'app_activation_code','手机端激活码',''),(9,'send_workflow_url','发起流程地址',''),(10,'weixinUrl','微信url',''),(11,'weixinAppid','微信appid',''),(12,'weixinSecret','微信secret',''),(13,'aliOss_endpoint','阿里OSS-endpoint',''),(14,'aliOss_accessKeyId','阿里OSS-accessKeyId',''),(15,'aliOss_accessKeySecret','阿里OSS-accessKeySecret',''),(16,'aliOss_bucketName','阿里OSS-bucketName',''),(17,'aliOss_linkUrl','阿里OSS-linkUrl',''),(18,'bill_excel_url','单据Excel地址',''),(19,'email_from','邮件发送端-发件人',''),(20,'email_auth_code','邮件发送端-授权码',''),(21,'email_smtp_host','邮件发送端-SMTP服务器',''),(22,'checkcode_flag','验证码启用标记','0');
+/*!40000 ALTER TABLE `jsh_platform_config` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_print_template`
+--
+
+DROP TABLE IF EXISTS `jsh_print_template`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_print_template` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `bill_type` varchar(50) NOT NULL COMMENT '单据类型编码',
+  `template_name` varchar(100) NOT NULL DEFAULT '默认模板',
+  `template_html` mediumtext NOT NULL COMMENT 'HTML模板含占位符',
+  `is_default` char(1) NOT NULL DEFAULT '0' COMMENT '启用:1是0否',
+  `tenant_id` bigint DEFAULT NULL,
+  `delete_flag` char(1) DEFAULT '0',
+  `create_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_bill_type_tenant` (`bill_type`,`tenant_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='打印模板';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jsh_print_template`
+--
+
+LOCK TABLES `jsh_print_template` WRITE;
+/*!40000 ALTER TABLE `jsh_print_template` DISABLE KEYS */;
+INSERT INTO `jsh_print_template` VALUES (1,'saleOut','模板v1','<div style=\"padding: 10px;\">\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\"><span data-lark-record-data=\"{&quot;isCut&quot;:false,&quot;rootId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;parentId&quot;:null,&quot;blockIds&quot;:[1,28,29,30,31,32,33,34,36,35,37,39,38,40,41,42,43,44,45,46,48,49,47,50],&quot;recordIds&quot;:[&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;OR2afwFprdMcOWcQH1bcHXFFnTh&quot;,&quot;SDIufO2rUdXnixcQbo5cQ3WXnLg&quot;,&quot;YpyzfWFahdvqsEcXO7hcmd2KnmQ&quot;,&quot;Taf9ftdDLd7XKXcfriLcnlTPnDh&quot;,&quot;NByEfhLIsdqfiScfV03caWqUnBe&quot;,&quot;ObNUfuFUNdkQeEceSX8c3vIvn5b&quot;,&quot;AbiFfzxxEdXRP1cUJWHcaPAjndc&quot;,&quot;YV06fpC2BdZrtxctiu6c5ertnSf&quot;,&quot;GOgYfopVxdGO0Wcw2Ecclqfmnse&quot;,&quot;IhOCf7JoodIEZmczCzhczLTgnxh&quot;,&quot;Xg6dfmmyudlr4NczWOwc8gVMngL&quot;,&quot;Ms6hf5bMBdbNKEcyCjPcaRJnnDd&quot;,&quot;Tv8tfEWrXdH6mtc0IZDcPygUnQc&quot;,&quot;LZvRfazzwdCQeTcn1v3cHmESnVg&quot;,&quot;FvcYfATFGd34pEcvBeCcfbg9nFe&quot;,&quot;T4Awf1jbKd3FQEcAtk1cMm77nCb&quot;,&quot;BEN6fHGL9dvVGNcMkoAc4kSwnZd&quot;,&quot;Cv1IfI9EFd6ES4cEWNsceGvynTe&quot;,&quot;OeoYforlAdegE8cVFwYcOaXjnfh&quot;,&quot;UgTIfjBVCdluytceeFqcl7wLnwc&quot;,&quot;Yc5EfoosQduyg5cLsFXcGSpvn1g&quot;,&quot;EfckfmcASdHz4jcJYwZck9JFntb&quot;,&quot;LpMvfiHEPdXHH4cP2HPcP3VRn8e&quot;],&quot;recordMap&quot;:{&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;:{&quot;id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;snapshot&quot;:{&quot;revisions&quot;:[],&quot;hidden&quot;:false,&quot;children&quot;:[],&quot;align&quot;:&quot;&quot;,&quot;status&quot;:{&quot;streaming&quot;:{&quot;enabled&quot;:false,&quot;expired_at&quot;:&quot;1774798438&quot;,&quot;is_create_command&quot;:true,&quot;operator_id&quot;:&quot;7580865387768581081&quot;,&quot;source&quot;:1}},&quot;type&quot;:&quot;page&quot;,&quot;comments&quot;:[],&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:2,&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;1&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;]}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+d&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;ERP收款/结算单打印模板&quot;}}},&quot;parent_id&quot;:&quot;&quot;,&quot;locked&quot;:false}},&quot;OR2afwFprdMcOWcQH1bcHXFFnTh&quot;:{&quot;id&quot;:&quot;OR2afwFprdMcOWcQH1bcHXFFnTh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;SDIufO2rUdXnixcQbo5cQ3WXnLg&quot;:{&quot;id&quot;:&quot;SDIufO2rUdXnixcQbo5cQ3WXnLg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;                            业务结算单&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+x&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;YpyzfWFahdvqsEcXO7hcmd2KnmQ&quot;:{&quot;id&quot;:&quot;YpyzfWFahdvqsEcXO7hcmd2KnmQ&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Taf9ftdDLd7XKXcfriLcnlTPnDh&quot;:{&quot;id&quot;:&quot;Taf9ftdDLd7XKXcfriLcnlTPnDh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;往来单位：{{organName}}                          单据编号：{{number}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1n&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NByEfhLIsdqfiScfV03caWqUnBe&quot;:{&quot;id&quot;:&quot;NByEfhLIsdqfiScfV03caWqUnBe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单据日期：{{operTimeStr}}                        关联订单：{{linkNumber}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1r&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;ObNUfuFUNdkQeEceSX8c3vIvn5b&quot;:{&quot;id&quot;:&quot;ObNUfuFUNdkQeEceSX8c3vIvn5b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;销售人员：{{salesMan}}                          付款类型：{{payType}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1n&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;AbiFfzxxEdXRP1cUJWHcaPAjndc&quot;:{&quot;id&quot;:&quot;AbiFfzxxEdXRP1cUJWHcaPAjndc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;GOgYfopVxdGO0Wcw2Ecclqfmnse&quot;:{&quot;id&quot;:&quot;GOgYfopVxdGO0Wcw2Ecclqfmnse&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;行序号    仓库名称    条码    商品名称    规格    型号    颜色    单位    多属性    数量    单价    金额    税率    税额    价税合计    重量    备注&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2y&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;YV06fpC2BdZrtxctiu6c5ertnSf&quot;:{&quot;id&quot;:&quot;YV06fpC2BdZrtxctiu6c5ertnSf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;IhOCf7JoodIEZmczCzhczLTgnxh&quot;:{&quot;id&quot;:&quot;IhOCf7JoodIEZmczCzhczLTgnxh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Ms6hf5bMBdbNKEcyCjPcaRJnnDd&quot;:{&quot;id&quot;:&quot;Ms6hf5bMBdbNKEcyCjPcaRJnnDd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{_index}}    {{detail.depotName}}    {{detail.barCode}}    {{detail.name}}    {{detail.standard}}    {{detail.model}}    {{detail.color}}    {{detail.unit}}    {{detail.sku}}    {{detail.operNumber}}    {{detail.unitPrice}}    {{detail.allPrice}}    {{detail.taxRate}}%    {{detail.taxMoney}}    {{detail.taxLastMoney}}    {{detail.weight}}    {{detail.remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+a2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Xg6dfmmyudlr4NczWOwc8gVMngL&quot;:{&quot;id&quot;:&quot;Xg6dfmmyudlr4NczWOwc8gVMngL&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{#detail}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+b&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Tv8tfEWrXdH6mtc0IZDcPygUnQc&quot;:{&quot;id&quot;:&quot;Tv8tfEWrXdH6mtc0IZDcPygUnQc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{/detail}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+b&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;LZvRfazzwdCQeTcn1v3cHmESnVg&quot;:{&quot;id&quot;:&quot;LZvRfazzwdCQeTcn1v3cHmESnVg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;FvcYfATFGd34pEcvBeCcfbg9nFe&quot;:{&quot;id&quot;:&quot;FvcYfATFGd34pEcvBeCcfbg9nFe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;T4Awf1jbKd3FQEcAtk1cMm77nCb&quot;:{&quot;id&quot;:&quot;T4Awf1jbKd3FQEcAtk1cMm77nCb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;优惠率：{{discount}}                收款优惠：{{discountMoney}}                其他费用：{{otherMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2h&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;BEN6fHGL9dvVGNcMkoAc4kSwnZd&quot;:{&quot;id&quot;:&quot;BEN6fHGL9dvVGNcMkoAc4kSwnZd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;优惠后金额：{{discountLastMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+r&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Cv1IfI9EFd6ES4cEWNsceGvynTe&quot;:{&quot;id&quot;:&quot;Cv1IfI9EFd6ES4cEWNsceGvynTe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;结算账户：{{accountName}}          本次付/收款：{{changeAmount}}          本次欠款：{{debt}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+24&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;OeoYforlAdegE8cVFwYcOaXjnfh&quot;:{&quot;id&quot;:&quot;OeoYforlAdegE8cVFwYcOaXjnfh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;备注：{{remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+d&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;EfckfmcASdHz4jcJYwZck9JFntb&quot;:{&quot;id&quot;:&quot;EfckfmcASdHz4jcJYwZck9JFntb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;打印日期：{{_printDate}}                    打印时间：{{_printTime}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1m&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;UgTIfjBVCdluytceeFqcl7wLnwc&quot;:{&quot;id&quot;:&quot;UgTIfjBVCdluytceeFqcl7wLnwc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;Yc5EfoosQduyg5cLsFXcGSpvn1g&quot;:{&quot;id&quot;:&quot;Yc5EfoosQduyg5cLsFXcGSpvn1g&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;LpMvfiHEPdXHH4cP2HPcP3VRn8e&quot;:{&quot;id&quot;:&quot;LpMvfiHEPdXHH4cP2HPcP3VRn8e&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;1&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;author,7580865387768581081&quot;:0,&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}}},&quot;payloadMap&quot;:{&quot;OR2afwFprdMcOWcQH1bcHXFFnTh&quot;:{&quot;level&quot;:1},&quot;SDIufO2rUdXnixcQbo5cQ3WXnLg&quot;:{&quot;level&quot;:1},&quot;YpyzfWFahdvqsEcXO7hcmd2KnmQ&quot;:{&quot;level&quot;:1},&quot;Taf9ftdDLd7XKXcfriLcnlTPnDh&quot;:{&quot;level&quot;:1},&quot;NByEfhLIsdqfiScfV03caWqUnBe&quot;:{&quot;level&quot;:1},&quot;ObNUfuFUNdkQeEceSX8c3vIvn5b&quot;:{&quot;level&quot;:1},&quot;AbiFfzxxEdXRP1cUJWHcaPAjndc&quot;:{&quot;level&quot;:1},&quot;YV06fpC2BdZrtxctiu6c5ertnSf&quot;:{&quot;level&quot;:1},&quot;GOgYfopVxdGO0Wcw2Ecclqfmnse&quot;:{&quot;level&quot;:1},&quot;IhOCf7JoodIEZmczCzhczLTgnxh&quot;:{&quot;level&quot;:1},&quot;Xg6dfmmyudlr4NczWOwc8gVMngL&quot;:{&quot;level&quot;:1},&quot;Ms6hf5bMBdbNKEcyCjPcaRJnnDd&quot;:{&quot;level&quot;:1},&quot;Tv8tfEWrXdH6mtc0IZDcPygUnQc&quot;:{&quot;level&quot;:1},&quot;LZvRfazzwdCQeTcn1v3cHmESnVg&quot;:{&quot;level&quot;:1},&quot;FvcYfATFGd34pEcvBeCcfbg9nFe&quot;:{&quot;level&quot;:1},&quot;T4Awf1jbKd3FQEcAtk1cMm77nCb&quot;:{&quot;level&quot;:1},&quot;BEN6fHGL9dvVGNcMkoAc4kSwnZd&quot;:{&quot;level&quot;:1},&quot;Cv1IfI9EFd6ES4cEWNsceGvynTe&quot;:{&quot;level&quot;:1},&quot;OeoYforlAdegE8cVFwYcOaXjnfh&quot;:{&quot;level&quot;:1},&quot;UgTIfjBVCdluytceeFqcl7wLnwc&quot;:{&quot;level&quot;:1},&quot;Yc5EfoosQduyg5cLsFXcGSpvn1g&quot;:{&quot;level&quot;:1},&quot;EfckfmcASdHz4jcJYwZck9JFntb&quot;:{&quot;level&quot;:1},&quot;LpMvfiHEPdXHH4cP2HPcP3VRn8e&quot;:{&quot;level&quot;:1}},&quot;extra&quot;:{&quot;channel&quot;:&quot;saas&quot;,&quot;pasteRandomId&quot;:&quot;bc345a5a-e9b2-4613-932a-facbf86a9ec4&quot;,&quot;mention_page_title&quot;:{},&quot;external_mention_url&quot;:{},&quot;isEqualBlockSelection&quot;:true},&quot;isKeepQuoteContainer&quot;:false,&quot;selection&quot;:[{&quot;id&quot;:1,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;},{&quot;id&quot;:28,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;OR2afwFprdMcOWcQH1bcHXFFnTh&quot;},{&quot;id&quot;:29,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;SDIufO2rUdXnixcQbo5cQ3WXnLg&quot;},{&quot;id&quot;:30,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;YpyzfWFahdvqsEcXO7hcmd2KnmQ&quot;},{&quot;id&quot;:31,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Taf9ftdDLd7XKXcfriLcnlTPnDh&quot;},{&quot;id&quot;:32,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;NByEfhLIsdqfiScfV03caWqUnBe&quot;},{&quot;id&quot;:33,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;ObNUfuFUNdkQeEceSX8c3vIvn5b&quot;},{&quot;id&quot;:34,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;AbiFfzxxEdXRP1cUJWHcaPAjndc&quot;},{&quot;id&quot;:36,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;YV06fpC2BdZrtxctiu6c5ertnSf&quot;},{&quot;id&quot;:35,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;GOgYfopVxdGO0Wcw2Ecclqfmnse&quot;},{&quot;id&quot;:37,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;IhOCf7JoodIEZmczCzhczLTgnxh&quot;},{&quot;id&quot;:39,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Xg6dfmmyudlr4NczWOwc8gVMngL&quot;},{&quot;id&quot;:38,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Ms6hf5bMBdbNKEcyCjPcaRJnnDd&quot;},{&quot;id&quot;:40,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Tv8tfEWrXdH6mtc0IZDcPygUnQc&quot;},{&quot;id&quot;:41,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;LZvRfazzwdCQeTcn1v3cHmESnVg&quot;},{&quot;id&quot;:42,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;FvcYfATFGd34pEcvBeCcfbg9nFe&quot;},{&quot;id&quot;:43,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;T4Awf1jbKd3FQEcAtk1cMm77nCb&quot;},{&quot;id&quot;:44,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;BEN6fHGL9dvVGNcMkoAc4kSwnZd&quot;},{&quot;id&quot;:45,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Cv1IfI9EFd6ES4cEWNsceGvynTe&quot;},{&quot;id&quot;:46,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;OeoYforlAdegE8cVFwYcOaXjnfh&quot;},{&quot;id&quot;:48,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;UgTIfjBVCdluytceeFqcl7wLnwc&quot;},{&quot;id&quot;:49,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Yc5EfoosQduyg5cLsFXcGSpvn1g&quot;},{&quot;id&quot;:47,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;EfckfmcASdHz4jcJYwZck9JFntb&quot;},{&quot;id&quot;:50,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;LpMvfiHEPdXHH4cP2HPcP3VRn8e&quot;}],&quot;pasteFlag&quot;:&quot;b3e250fe-8c1f-46f0-910b-c3acf8e29925&quot;}\" data-lark-record-format=\"docx/record\" class=\"lark-record-clipboard\"></span></p>\n<div data-page-id=\"S1Mwd13YpobiGdxx0K7cSkRKnVO\" data-lark-html-role=\"root\" data-docx-has-block-data=\"false\">\n<div class=\"ace-line ace-line old-record-id-S1Mwd13YpobiGdxx0K7cSkRKnVO\">\n<div data-page-id=\"S1Mwd13YpobiGdxx0K7cSkRKnVO\" data-lark-html-role=\"root\" data-docx-has-block-data=\"false\">\n<div class=\"ace-line ace-line old-record-id-S1Mwd13YpobiGdxx0K7cSkRKnVO\">\n<div data-page-id=\"S1Mwd13YpobiGdxx0K7cSkRKnVO\" data-lark-html-role=\"root\" data-docx-has-block-data=\"true\">\n<div class=\"ace-line ace-line old-record-id-S1Mwd13YpobiGdxx0K7cSkRKnVO\">ERP业务结算单</div>\n<div style=\"text-align: center;\" class=\"ace-line ace-line old-record-id-EtlyfcBsIdO0ZAcD5uJcK31onvh\"><strong>业务结算单</strong></div>\n<div class=\"ace-line ace-line old-record-id-FieGf4JLEdNyXnc5vn9chNgFnvg\"></div>\n<div>\n<table class=\"ace-table\" data-ace-table-col-widths=\"200;200;200;200\" style=\"border: none; table-layout: fixed; width: 500px;\"><colgroup><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /></colgroup>\n<tbody>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-MPFnfKpjZdE5vDcc6I2c5xYIn8b\"><strong>往来单位</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-O012fFGUKdKarTc2FQxckBYRnZg\">{{organName}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-R7JXfYs7hd8xkJcwWelcAxzAnMd\"><strong>单据编号</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-W9m1fSbJPdB9VicXB8McEm27nUg\">{{number}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Vwd0fLp37dYdQacM39PcTvK7n2b\"><strong>单据日期</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-OuHufj5MGdlEQ8c2VWQcqdPFn9g\">{{operTimeStr}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-IJeMfj42ldhlvOcYGhecG8IHn5c\"><strong>关联订单</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-AroPf5pzkdUl4acaYfRc9kjqndP\">{{linkNumber}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-CrZjfDrFpdWWiGcrdV5cxcAan6d\"><strong>销售人员</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-AJLCfHL7sdKRgncwhPecKA7ZnWc\">{{salesMan}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-JQPhfaFU2duRghcEaX7camD7nMe\"><strong>付款类型</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-ZgxWfr4tZd1VIpcb1rxcWQAhnAh\">{{payType}}</div>\n</td>\n</tr>\n</tbody>\n</table>\n</div>\n<div class=\"ace-line ace-line old-record-id-FpaOfG1pZd5GU0cF2jCcsLGSnlf\"></div>\n<div>\n<table class=\"ace-table\" data-ace-table-col-widths=\"200;200;200;200;200;200;200;200;200;200;200;200;200;200;200;200;200\" style=\"border: none; table-layout: fixed; width: 500px;\"><colgroup><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /></colgroup>\n<thead>\n<tr style=\"height: 39px;\">\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-SgKefUPkddyRrNcXQ5lcpUZEnsg\">行序号</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-Gyxmf9UF1dVg9xcyFPOcxJwbnZb\">仓库名称</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-VZgwfo5PFdsM7pceSGEcy7YVnyb\">条码</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-PBWkf5GthdqUywc0C51cmBegnCf\">商品名称</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-AVr7f6IJSdIyiscKWmtcdxjJnwg\">规格</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-T4kefUdPTdLKZ7czjbAcGMgDngg\">型号</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-PnkqfWYnKdUST1cVIu9cCWyJnCh\">颜色</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-LmKqfC8K6dEyqAcfDy7cZk56nth\">单位</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-ASp2fLrWndUX4hc1iGQcOdvYn3f\">多属性</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-RpDWfBUgwddgZAcVI56cO2E8nEb\">数量</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-LkXufIZsQdh5T0cW5bZcX0ZrnUH\">单价</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-OpY3fzovudYYGbcn9IpcAI83ndd\">金额</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-EFWdfy40sdv8X7c7pEScW0Iunlh\">税率(%)</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-J9TyfbaCIdpCMTc9gpnctb01nHg\">税额</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-ZisVfyZoWdpNEScPG9Lc81qon3f\">价税合计</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-PbPlf2iaDdT7qTcBjgDcnAqanub\">重量</div>\n</th>\n<th colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top; font-weight: 500; background-color: #f2f3f5; text-align: left;\">\n<div class=\"ace-line ace-line old-record-id-PXQWfUJq7dkCzBcx4nWcnfOSnWd\">备注</div>\n</th>\n</tr>\n</thead>\n<tbody>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-JgmYf6lEWdsPNWcvOpocj4W3nrt\">{{_index}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-MNdqfYwotdLjVycBZGDcSEUqn1g\">{{detail.depotName}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-BNbRfk1bhdNxD3cWqdpcvtIynph\">{{detail.barCode}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-FbwcfFMMRdQOuKcBoOPc4Mj9ndW\">{{detail.name}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-RVGYfGZA6dx4qycMhm3cnRgXnkF\">{{detail.standard}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-MhumfpwWOdQyi9cu66yckCVAnqc\">{{detail.model}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-ATxUfY5QBdHduKcIRhDcBKxIn9N\">{{detail.color}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Yt7rf9kpYdK2xWctXWLc5pqJnXy\">{{detail.unit}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-UirDf13ued0hu8cHaVCcWqaMnP0\">{{detail.sku}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-TKUnfRZhtd63Itcje4BctQnAn4d\">{{detail.operNumber}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Jt6Lfr3jMd0oQ7c3xUHcUixQnNg\">{{detail.unitPrice}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Syx7foXLSdvvoHcij05cHypUn0e\">{{detail.allPrice}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-PyVxfdhyWdlwcJcbiw4caMJRnnd\">{{detail.taxRate}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-H21Nf65M1dqzOrc5aNYcizqDnic\">{{detail.taxMoney}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-MWdXfMs9bdd5vxc7LQ5cFo22n8i\">{{detail.taxLastMoney}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-ARyqfyAsQd3yPGclncpcy3EDnWf\">{{detail.weight}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-GBnufMOModS8mKcv7Iyc81Pqndc\">{{detail.remark}}</div>\n</td>\n</tr>\n</tbody>\n</table>\n</div>\n<div class=\"ace-line ace-line old-record-id-D1bifuQqedUaOqciwz2cOvAFnvo\"></div>\n<div>\n<table class=\"ace-table\" data-ace-table-col-widths=\"200;200;200;200\" style=\"border: none; table-layout: fixed; width: 500px;\"><colgroup><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /><col width=\"200\" /></colgroup>\n<tbody>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-MB92fWjsvdw9l9cRhi6cqeRHnoX\"><strong>优惠率</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-PI3cfcYFEdu99UcANHJcDRDbnug\">{{discount}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-GlLrfGWNxdwZVnci9CRc30donIc\"><strong>收款优惠</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Cz5af0V2Ad3zZJcvpsyci8Isn74\">{{discountMoney}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-L3H6f9XtsdS2PucBOZNcKIMonxg\"><strong>优惠后金额</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-RumcffYqGdXKVpcrpcJcW5HPnRQ\">{{discountLastMoney}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Zr7IfhqFzdq9YQcBtlScRIudnxg\"><strong>其他费用</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-SVVWfR1BSd8yv3ckkOucg2z5nMf\">{{otherMoney}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-WkUPfwoGydwhPncLI0xcnfAHnJg\"><strong>结算账户</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-QE43f9RwrdeKFfcepIFcHDdTnOc\">{{accountName}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-NbzKfs4wNdpmjsc3NiXcAGejnOh\"><strong>本次付/收款</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-Ssvff8w9ddRUDRcArggccYdvnSh\">{{changeAmount}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-JgZ2fDmxWdsAFFc9S0ycWclgnRh\"><strong>本次欠款</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-WNHVfF1TZd6o2bcobWocJwJJnjd\">{{debt}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-ZcD5fu66UdDGgCcQK3NcEqOYnbm\"><strong>备注</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-HvkgfL2SJdlhSgcTkvBckFd0nnf\">{{remark}}</div>\n</td>\n</tr>\n<tr style=\"height: 39px;\">\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-VvYsflm84dzI2xcOkDdcAwrunoc\"><strong>打印日期</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-A9Mffhr8Gd1dqkc0gqlcZItCnig\">{{_printDate}}</div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-U4pef5DgWdkoZFc4F6Fc7Aajnle\"><strong>打印时间</strong></div>\n</td>\n<td colspan=\"1\" rowspan=\"1\" style=\"border: 1px solid #dee0e3; font-size: 10pt; padding: 8px; vertical-align: top;\">\n<div class=\"ace-line ace-line old-record-id-TbagfHX8IddoBvcyPNEckobknXf\">{{_printTime}}</div>\n</td>\n</tr>\n</tbody>\n</table>\n</div>\n</div>\n<span data-lark-record-data=\"{&quot;isCut&quot;:false,&quot;rootId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;parentId&quot;:null,&quot;blockIds&quot;:[1,73,74,75,106,108,196,197],&quot;recordIds&quot;:[&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;EtlyfcBsIdO0ZAcD5uJcK31onvh&quot;,&quot;FieGf4JLEdNyXnc5vn9chNgFnvg&quot;,&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;FpaOfG1pZd5GU0cF2jCcsLGSnlf&quot;,&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;D1bifuQqedUaOqciwz2cOvAFnvo&quot;,&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;],&quot;recordMap&quot;:{&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;:{&quot;id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;snapshot&quot;:{&quot;revisions&quot;:[],&quot;hidden&quot;:false,&quot;children&quot;:[],&quot;align&quot;:&quot;&quot;,&quot;status&quot;:{&quot;streaming&quot;:{&quot;enabled&quot;:false,&quot;expired_at&quot;:&quot;1774798592&quot;,&quot;is_create_command&quot;:true,&quot;operator_id&quot;:&quot;7580865387768581081&quot;,&quot;source&quot;:1}},&quot;type&quot;:&quot;page&quot;,&quot;comments&quot;:[],&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:2,&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;1&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;]}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+8&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;ERP业务结算单&quot;}}},&quot;parent_id&quot;:&quot;&quot;,&quot;locked&quot;:false}},&quot;EtlyfcBsIdO0ZAcD5uJcK31onvh&quot;:{&quot;id&quot;:&quot;EtlyfcBsIdO0ZAcD5uJcK31onvh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;center&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;业务结算单&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+5&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;FieGf4JLEdNyXnc5vn9chNgFnvg&quot;:{&quot;id&quot;:&quot;FieGf4JLEdNyXnc5vn9chNgFnvg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;:{&quot;id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;cell_set&quot;:{&quot;row6da7d6aa-567a-4a62-8e62-177a4782b692cole52b0630-49cc-4360-90b4-64d6c49289c7&quot;:{&quot;block_id&quot;:&quot;MT27fTD8xdbsDhcaqGUcycp3n25&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row6da7d6aa-567a-4a62-8e62-177a4782b692col79192c3a-1d92-466f-a4a3-140934d43291&quot;:{&quot;block_id&quot;:&quot;H7pefQBMvdfXGRcuOLBcTKuInQd&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row6da7d6aa-567a-4a62-8e62-177a4782b692colc9f1012d-a531-43fd-b7ef-8de8a498894b&quot;:{&quot;block_id&quot;:&quot;HDZ0fCVZqd9yuUc0cxock7NMnff&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row6da7d6aa-567a-4a62-8e62-177a4782b692cold11168ed-a329-4421-a409-9308c93d2e11&quot;:{&quot;block_id&quot;:&quot;Z7befNQCtd28ZOcxVxMc8m95nWg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowb45c69d8-b1c3-46a9-8e57-0f871572a999cole52b0630-49cc-4360-90b4-64d6c49289c7&quot;:{&quot;block_id&quot;:&quot;M8dQfPmzcdWWMgcwMotcx9OEnah&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowb45c69d8-b1c3-46a9-8e57-0f871572a999col79192c3a-1d92-466f-a4a3-140934d43291&quot;:{&quot;block_id&quot;:&quot;Q1Uhfw3d7dqSJDceOUzcwEb7nNg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowb45c69d8-b1c3-46a9-8e57-0f871572a999colc9f1012d-a531-43fd-b7ef-8de8a498894b&quot;:{&quot;block_id&quot;:&quot;JrvYfn9mOdQY0acxRn4cLnPAnjc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowb45c69d8-b1c3-46a9-8e57-0f871572a999cold11168ed-a329-4421-a409-9308c93d2e11&quot;:{&quot;block_id&quot;:&quot;WIuafHmV3djbEkcnSitcbBDpndc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row03479fec-9870-43de-bff9-44a6d7da23eccole52b0630-49cc-4360-90b4-64d6c49289c7&quot;:{&quot;block_id&quot;:&quot;RcFzfPLQ8dD1N2caHEGc5S4MnY3&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row03479fec-9870-43de-bff9-44a6d7da23eccol79192c3a-1d92-466f-a4a3-140934d43291&quot;:{&quot;block_id&quot;:&quot;N7bbfkUV7dDFQOc9K54cDpeIn6b&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row03479fec-9870-43de-bff9-44a6d7da23eccolc9f1012d-a531-43fd-b7ef-8de8a498894b&quot;:{&quot;block_id&quot;:&quot;ITxvfTjtVdrroyciFJkcnSHgnac&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row03479fec-9870-43de-bff9-44a6d7da23eccold11168ed-a329-4421-a409-9308c93d2e11&quot;:{&quot;block_id&quot;:&quot;PPtXfTVnwdHWcZcsGWtcGLtnnAe&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}}},&quot;column_set&quot;:{&quot;cole52b0630-49cc-4360-90b4-64d6c49289c7&quot;:{&quot;column_width&quot;:200},&quot;col79192c3a-1d92-466f-a4a3-140934d43291&quot;:{&quot;column_width&quot;:200},&quot;colc9f1012d-a531-43fd-b7ef-8de8a498894b&quot;:{&quot;column_width&quot;:200},&quot;cold11168ed-a329-4421-a409-9308c93d2e11&quot;:{&quot;column_width&quot;:200}},&quot;columns_id&quot;:[&quot;cole52b0630-49cc-4360-90b4-64d6c49289c7&quot;,&quot;col79192c3a-1d92-466f-a4a3-140934d43291&quot;,&quot;colc9f1012d-a531-43fd-b7ef-8de8a498894b&quot;,&quot;cold11168ed-a329-4421-a409-9308c93d2e11&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;rows_id&quot;:[&quot;row6da7d6aa-567a-4a62-8e62-177a4782b692&quot;,&quot;rowb45c69d8-b1c3-46a9-8e57-0f871572a999&quot;,&quot;row03479fec-9870-43de-bff9-44a6d7da23ec&quot;],&quot;type&quot;:&quot;table&quot;}},&quot;MT27fTD8xdbsDhcaqGUcycp3n25&quot;:{&quot;id&quot;:&quot;MT27fTD8xdbsDhcaqGUcycp3n25&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;MPFnfKpjZdE5vDcc6I2c5xYIn8b&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;MPFnfKpjZdE5vDcc6I2c5xYIn8b&quot;:{&quot;id&quot;:&quot;MPFnfKpjZdE5vDcc6I2c5xYIn8b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;MT27fTD8xdbsDhcaqGUcycp3n25&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;往来单位&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;H7pefQBMvdfXGRcuOLBcTKuInQd&quot;:{&quot;id&quot;:&quot;H7pefQBMvdfXGRcuOLBcTKuInQd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;O012fFGUKdKarTc2FQxckBYRnZg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;O012fFGUKdKarTc2FQxckBYRnZg&quot;:{&quot;id&quot;:&quot;O012fFGUKdKarTc2FQxckBYRnZg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;H7pefQBMvdfXGRcuOLBcTKuInQd&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{organName}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+d&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;HDZ0fCVZqd9yuUc0cxock7NMnff&quot;:{&quot;id&quot;:&quot;HDZ0fCVZqd9yuUc0cxock7NMnff&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;R7JXfYs7hd8xkJcwWelcAxzAnMd&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;R7JXfYs7hd8xkJcwWelcAxzAnMd&quot;:{&quot;id&quot;:&quot;R7JXfYs7hd8xkJcwWelcAxzAnMd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;HDZ0fCVZqd9yuUc0cxock7NMnff&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单据编号&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Z7befNQCtd28ZOcxVxMc8m95nWg&quot;:{&quot;id&quot;:&quot;Z7befNQCtd28ZOcxVxMc8m95nWg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;W9m1fSbJPdB9VicXB8McEm27nUg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;W9m1fSbJPdB9VicXB8McEm27nUg&quot;:{&quot;id&quot;:&quot;W9m1fSbJPdB9VicXB8McEm27nUg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Z7befNQCtd28ZOcxVxMc8m95nWg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{number}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+a&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;M8dQfPmzcdWWMgcwMotcx9OEnah&quot;:{&quot;id&quot;:&quot;M8dQfPmzcdWWMgcwMotcx9OEnah&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Vwd0fLp37dYdQacM39PcTvK7n2b&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Vwd0fLp37dYdQacM39PcTvK7n2b&quot;:{&quot;id&quot;:&quot;Vwd0fLp37dYdQacM39PcTvK7n2b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;M8dQfPmzcdWWMgcwMotcx9OEnah&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单据日期&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Q1Uhfw3d7dqSJDceOUzcwEb7nNg&quot;:{&quot;id&quot;:&quot;Q1Uhfw3d7dqSJDceOUzcwEb7nNg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;OuHufj5MGdlEQ8c2VWQcqdPFn9g&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;OuHufj5MGdlEQ8c2VWQcqdPFn9g&quot;:{&quot;id&quot;:&quot;OuHufj5MGdlEQ8c2VWQcqdPFn9g&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Q1Uhfw3d7dqSJDceOUzcwEb7nNg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{operTimeStr}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+f&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;JrvYfn9mOdQY0acxRn4cLnPAnjc&quot;:{&quot;id&quot;:&quot;JrvYfn9mOdQY0acxRn4cLnPAnjc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;IJeMfj42ldhlvOcYGhecG8IHn5c&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;IJeMfj42ldhlvOcYGhecG8IHn5c&quot;:{&quot;id&quot;:&quot;IJeMfj42ldhlvOcYGhecG8IHn5c&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;JrvYfn9mOdQY0acxRn4cLnPAnjc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;关联订单&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;WIuafHmV3djbEkcnSitcbBDpndc&quot;:{&quot;id&quot;:&quot;WIuafHmV3djbEkcnSitcbBDpndc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;AroPf5pzkdUl4acaYfRc9kjqndP&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;AroPf5pzkdUl4acaYfRc9kjqndP&quot;:{&quot;id&quot;:&quot;AroPf5pzkdUl4acaYfRc9kjqndP&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;WIuafHmV3djbEkcnSitcbBDpndc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{linkNumber}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+e&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;RcFzfPLQ8dD1N2caHEGc5S4MnY3&quot;:{&quot;id&quot;:&quot;RcFzfPLQ8dD1N2caHEGc5S4MnY3&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;CrZjfDrFpdWWiGcrdV5cxcAan6d&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;CrZjfDrFpdWWiGcrdV5cxcAan6d&quot;:{&quot;id&quot;:&quot;CrZjfDrFpdWWiGcrdV5cxcAan6d&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;RcFzfPLQ8dD1N2caHEGc5S4MnY3&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;销售人员&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;N7bbfkUV7dDFQOc9K54cDpeIn6b&quot;:{&quot;id&quot;:&quot;N7bbfkUV7dDFQOc9K54cDpeIn6b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;AJLCfHL7sdKRgncwhPecKA7ZnWc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;AJLCfHL7sdKRgncwhPecKA7ZnWc&quot;:{&quot;id&quot;:&quot;AJLCfHL7sdKRgncwhPecKA7ZnWc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;N7bbfkUV7dDFQOc9K54cDpeIn6b&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{salesMan}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;ITxvfTjtVdrroyciFJkcnSHgnac&quot;:{&quot;id&quot;:&quot;ITxvfTjtVdrroyciFJkcnSHgnac&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;JQPhfaFU2duRghcEaX7camD7nMe&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;JQPhfaFU2duRghcEaX7camD7nMe&quot;:{&quot;id&quot;:&quot;JQPhfaFU2duRghcEaX7camD7nMe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;ITxvfTjtVdrroyciFJkcnSHgnac&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;付款类型&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PPtXfTVnwdHWcZcsGWtcGLtnnAe&quot;:{&quot;id&quot;:&quot;PPtXfTVnwdHWcZcsGWtcGLtnnAe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ZgxWfr4tZd1VIpcb1rxcWQAhnAh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ZgxWfr4tZd1VIpcb1rxcWQAhnAh&quot;:{&quot;id&quot;:&quot;ZgxWfr4tZd1VIpcb1rxcWQAhnAh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PPtXfTVnwdHWcZcsGWtcGLtnnAe&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{payType}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+b&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;FpaOfG1pZd5GU0cF2jCcsLGSnlf&quot;:{&quot;id&quot;:&quot;FpaOfG1pZd5GU0cF2jCcsLGSnlf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;:{&quot;id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;cell_set&quot;:{&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col05edce08-27dd-40de-bf67-3db30d726323&quot;:{&quot;block_id&quot;:&quot;QNxxfoa3pdeoh1cZbkMc8Wi6nBz&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39colfd9861af-ae97-484d-9612-19de41c35f31&quot;:{&quot;block_id&quot;:&quot;PSSEfQRxjdtwoKc13yXcPmjenAf&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39cole2379f95-3907-4b89-8b0e-452a414f1d67&quot;:{&quot;block_id&quot;:&quot;TODrfaKJMdyC6ycMsVTcaYwTnNc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col6d2aae5d-235c-4fff-bdbc-32228329cf49&quot;:{&quot;block_id&quot;:&quot;Ml8nflRrPdKWQfcspPqcH7tEnNe&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39colb8a2d6da-3954-41c8-99c8-bc06e43fcabc&quot;:{&quot;block_id&quot;:&quot;CxxOfCeCFdGlAZcDLFrcpiS7nFg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39colb3934646-cf98-49cd-a4d1-280711570993&quot;:{&quot;block_id&quot;:&quot;NlJufOUV5d2OmTclUmWcSNWenAb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col57a33882-a846-4092-abdc-ee2e67486165&quot;:{&quot;block_id&quot;:&quot;NsEufeQeed1gXycTPBScQhIfnFh&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39colbfeb9d0a-ed20-4a27-bbf5-515b0aa3ef50&quot;:{&quot;block_id&quot;:&quot;W3oBfVhaMdnNAxcyJ47cDd8xn1f&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col4cb79d61-749d-45ab-af6f-5702f349407b&quot;:{&quot;block_id&quot;:&quot;FBqwfv2DEdYnKyc927tchEpXnFf&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col21998b40-5ea3-429c-9fc2-81f7df9ab6a4&quot;:{&quot;block_id&quot;:&quot;RX6rfyF8Ydq98AcnXd1cSKQBnQc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39colbf2d0f40-2b29-46f5-9a7f-325188078df3&quot;:{&quot;block_id&quot;:&quot;NXJTfheC8dCES5cgzekc54Ppngd&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col9ae55cea-c8ea-483a-a55b-960cc528fa48&quot;:{&quot;block_id&quot;:&quot;Yq9VfmMnIdkCU7c1tMtc0qeZnhg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col1ea575da-eea5-4ae6-aa12-aa3b1e555006&quot;:{&quot;block_id&quot;:&quot;PXQZfHaDld5BzOczUSzcpuHunze&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col59fd0b20-f218-4fa2-8aa4-e1cc48641411&quot;:{&quot;block_id&quot;:&quot;GU75fhOXxdl9IYcZLLocQNcGn1f&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col749a0284-da6b-47dc-824d-e46acfd5a754&quot;:{&quot;block_id&quot;:&quot;OFrbfv4dJdArbjctvOmcIUB8nfe&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39cole36651ae-7adc-40b3-9339-eb811be852fc&quot;:{&quot;block_id&quot;:&quot;Tqg3fEXyTdu7DrcKy1fcxmxtncU&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39col12b27384-2b4e-48dc-8bc2-65a2fd672b4d&quot;:{&quot;block_id&quot;:&quot;ApJGflD9rdRZycc9hglcl9DanAc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col05edce08-27dd-40de-bf67-3db30d726323&quot;:{&quot;block_id&quot;:&quot;VFSvfozdLdMS6TcA63vc8K9sn5e&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108colfd9861af-ae97-484d-9612-19de41c35f31&quot;:{&quot;block_id&quot;:&quot;EBgifurqYdKLoYcIZMtct7gunKb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108cole2379f95-3907-4b89-8b0e-452a414f1d67&quot;:{&quot;block_id&quot;:&quot;LcGafwTpgdliZBcjBBqcaYVDnlb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col6d2aae5d-235c-4fff-bdbc-32228329cf49&quot;:{&quot;block_id&quot;:&quot;Ttnafl28RdEF6WczELLcZAPMn2g&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108colb8a2d6da-3954-41c8-99c8-bc06e43fcabc&quot;:{&quot;block_id&quot;:&quot;Js6XfUQrzdOSZicM555cBn4Rnsb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108colb3934646-cf98-49cd-a4d1-280711570993&quot;:{&quot;block_id&quot;:&quot;ADBofrP1sdiw0AcZNVDcou7nn0K&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col57a33882-a846-4092-abdc-ee2e67486165&quot;:{&quot;block_id&quot;:&quot;MWuhfewPjdkUqkctb4ac6B0Mnrf&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108colbfeb9d0a-ed20-4a27-bbf5-515b0aa3ef50&quot;:{&quot;block_id&quot;:&quot;PKBBfqBL9drVVGcRVsRcMlKGnbI&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col4cb79d61-749d-45ab-af6f-5702f349407b&quot;:{&quot;block_id&quot;:&quot;YmgIfwmAYdoHQEcNzRucobtInkd&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col21998b40-5ea3-429c-9fc2-81f7df9ab6a4&quot;:{&quot;block_id&quot;:&quot;OczIfxguYdGDa5cOUlpc1k6knLc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108colbf2d0f40-2b29-46f5-9a7f-325188078df3&quot;:{&quot;block_id&quot;:&quot;Qk57fLATldCbcPcUvcXcNIGonMr&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col9ae55cea-c8ea-483a-a55b-960cc528fa48&quot;:{&quot;block_id&quot;:&quot;JsLnfyIDed6Td1cajurcGwZInmd&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col1ea575da-eea5-4ae6-aa12-aa3b1e555006&quot;:{&quot;block_id&quot;:&quot;JXCef4YxId8FCCcFHTFcXSYxnOt&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col59fd0b20-f218-4fa2-8aa4-e1cc48641411&quot;:{&quot;block_id&quot;:&quot;YLZXftAUUdaF1ccwnlhcYG9Bn5c&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col749a0284-da6b-47dc-824d-e46acfd5a754&quot;:{&quot;block_id&quot;:&quot;RrYefHzzPdUVl1c3txSck38Qnpb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108cole36651ae-7adc-40b3-9339-eb811be852fc&quot;:{&quot;block_id&quot;:&quot;EZGRfwAxpdENmqcJaTBczgJJnPd&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row96da9086-bcf0-4031-b3cb-2f892c365108col12b27384-2b4e-48dc-8bc2-65a2fd672b4d&quot;:{&quot;block_id&quot;:&quot;HiDifZix7dyrMrcpagScIPNJnob&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}}},&quot;column_set&quot;:{&quot;col05edce08-27dd-40de-bf67-3db30d726323&quot;:{&quot;column_width&quot;:200},&quot;colfd9861af-ae97-484d-9612-19de41c35f31&quot;:{&quot;column_width&quot;:200},&quot;cole2379f95-3907-4b89-8b0e-452a414f1d67&quot;:{&quot;column_width&quot;:200},&quot;col6d2aae5d-235c-4fff-bdbc-32228329cf49&quot;:{&quot;column_width&quot;:200},&quot;colb8a2d6da-3954-41c8-99c8-bc06e43fcabc&quot;:{&quot;column_width&quot;:200},&quot;colb3934646-cf98-49cd-a4d1-280711570993&quot;:{&quot;column_width&quot;:200},&quot;col57a33882-a846-4092-abdc-ee2e67486165&quot;:{&quot;column_width&quot;:200},&quot;colbfeb9d0a-ed20-4a27-bbf5-515b0aa3ef50&quot;:{&quot;column_width&quot;:200},&quot;col4cb79d61-749d-45ab-af6f-5702f349407b&quot;:{&quot;column_width&quot;:200},&quot;col21998b40-5ea3-429c-9fc2-81f7df9ab6a4&quot;:{&quot;column_width&quot;:200},&quot;colbf2d0f40-2b29-46f5-9a7f-325188078df3&quot;:{&quot;column_width&quot;:200},&quot;col9ae55cea-c8ea-483a-a55b-960cc528fa48&quot;:{&quot;column_width&quot;:200},&quot;col1ea575da-eea5-4ae6-aa12-aa3b1e555006&quot;:{&quot;column_width&quot;:200},&quot;col59fd0b20-f218-4fa2-8aa4-e1cc48641411&quot;:{&quot;column_width&quot;:200},&quot;col749a0284-da6b-47dc-824d-e46acfd5a754&quot;:{&quot;column_width&quot;:200},&quot;cole36651ae-7adc-40b3-9339-eb811be852fc&quot;:{&quot;column_width&quot;:200},&quot;col12b27384-2b4e-48dc-8bc2-65a2fd672b4d&quot;:{&quot;column_width&quot;:200}},&quot;columns_id&quot;:[&quot;col05edce08-27dd-40de-bf67-3db30d726323&quot;,&quot;colfd9861af-ae97-484d-9612-19de41c35f31&quot;,&quot;cole2379f95-3907-4b89-8b0e-452a414f1d67&quot;,&quot;col6d2aae5d-235c-4fff-bdbc-32228329cf49&quot;,&quot;colb8a2d6da-3954-41c8-99c8-bc06e43fcabc&quot;,&quot;colb3934646-cf98-49cd-a4d1-280711570993&quot;,&quot;col57a33882-a846-4092-abdc-ee2e67486165&quot;,&quot;colbfeb9d0a-ed20-4a27-bbf5-515b0aa3ef50&quot;,&quot;col4cb79d61-749d-45ab-af6f-5702f349407b&quot;,&quot;col21998b40-5ea3-429c-9fc2-81f7df9ab6a4&quot;,&quot;colbf2d0f40-2b29-46f5-9a7f-325188078df3&quot;,&quot;col9ae55cea-c8ea-483a-a55b-960cc528fa48&quot;,&quot;col1ea575da-eea5-4ae6-aa12-aa3b1e555006&quot;,&quot;col59fd0b20-f218-4fa2-8aa4-e1cc48641411&quot;,&quot;col749a0284-da6b-47dc-824d-e46acfd5a754&quot;,&quot;cole36651ae-7adc-40b3-9339-eb811be852fc&quot;,&quot;col12b27384-2b4e-48dc-8bc2-65a2fd672b4d&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;rows_id&quot;:[&quot;rowe58c0eff-8fc4-4149-b4af-f2521c3a8c39&quot;,&quot;row96da9086-bcf0-4031-b3cb-2f892c365108&quot;],&quot;type&quot;:&quot;table&quot;,&quot;header_row&quot;:true}},&quot;QNxxfoa3pdeoh1cZbkMc8Wi6nBz&quot;:{&quot;id&quot;:&quot;QNxxfoa3pdeoh1cZbkMc8Wi6nBz&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;SgKefUPkddyRrNcXQ5lcpUZEnsg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;SgKefUPkddyRrNcXQ5lcpUZEnsg&quot;:{&quot;id&quot;:&quot;SgKefUPkddyRrNcXQ5lcpUZEnsg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;QNxxfoa3pdeoh1cZbkMc8Wi6nBz&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;行序号&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PSSEfQRxjdtwoKc13yXcPmjenAf&quot;:{&quot;id&quot;:&quot;PSSEfQRxjdtwoKc13yXcPmjenAf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Gyxmf9UF1dVg9xcyFPOcxJwbnZb&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Gyxmf9UF1dVg9xcyFPOcxJwbnZb&quot;:{&quot;id&quot;:&quot;Gyxmf9UF1dVg9xcyFPOcxJwbnZb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PSSEfQRxjdtwoKc13yXcPmjenAf&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;仓库名称&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;TODrfaKJMdyC6ycMsVTcaYwTnNc&quot;:{&quot;id&quot;:&quot;TODrfaKJMdyC6ycMsVTcaYwTnNc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;VZgwfo5PFdsM7pceSGEcy7YVnyb&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;VZgwfo5PFdsM7pceSGEcy7YVnyb&quot;:{&quot;id&quot;:&quot;VZgwfo5PFdsM7pceSGEcy7YVnyb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;TODrfaKJMdyC6ycMsVTcaYwTnNc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;条码&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Ml8nflRrPdKWQfcspPqcH7tEnNe&quot;:{&quot;id&quot;:&quot;Ml8nflRrPdKWQfcspPqcH7tEnNe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PBWkf5GthdqUywc0C51cmBegnCf&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PBWkf5GthdqUywc0C51cmBegnCf&quot;:{&quot;id&quot;:&quot;PBWkf5GthdqUywc0C51cmBegnCf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ml8nflRrPdKWQfcspPqcH7tEnNe&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;商品名称&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;CxxOfCeCFdGlAZcDLFrcpiS7nFg&quot;:{&quot;id&quot;:&quot;CxxOfCeCFdGlAZcDLFrcpiS7nFg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;AVr7f6IJSdIyiscKWmtcdxjJnwg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;AVr7f6IJSdIyiscKWmtcdxjJnwg&quot;:{&quot;id&quot;:&quot;AVr7f6IJSdIyiscKWmtcdxjJnwg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;CxxOfCeCFdGlAZcDLFrcpiS7nFg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;规格&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NlJufOUV5d2OmTclUmWcSNWenAb&quot;:{&quot;id&quot;:&quot;NlJufOUV5d2OmTclUmWcSNWenAb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;T4kefUdPTdLKZ7czjbAcGMgDngg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;T4kefUdPTdLKZ7czjbAcGMgDngg&quot;:{&quot;id&quot;:&quot;T4kefUdPTdLKZ7czjbAcGMgDngg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;NlJufOUV5d2OmTclUmWcSNWenAb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;型号&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NsEufeQeed1gXycTPBScQhIfnFh&quot;:{&quot;id&quot;:&quot;NsEufeQeed1gXycTPBScQhIfnFh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PnkqfWYnKdUST1cVIu9cCWyJnCh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PnkqfWYnKdUST1cVIu9cCWyJnCh&quot;:{&quot;id&quot;:&quot;PnkqfWYnKdUST1cVIu9cCWyJnCh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;NsEufeQeed1gXycTPBScQhIfnFh&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;颜色&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;W3oBfVhaMdnNAxcyJ47cDd8xn1f&quot;:{&quot;id&quot;:&quot;W3oBfVhaMdnNAxcyJ47cDd8xn1f&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;LmKqfC8K6dEyqAcfDy7cZk56nth&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;LmKqfC8K6dEyqAcfDy7cZk56nth&quot;:{&quot;id&quot;:&quot;LmKqfC8K6dEyqAcfDy7cZk56nth&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;W3oBfVhaMdnNAxcyJ47cDd8xn1f&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单位&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;FBqwfv2DEdYnKyc927tchEpXnFf&quot;:{&quot;id&quot;:&quot;FBqwfv2DEdYnKyc927tchEpXnFf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ASp2fLrWndUX4hc1iGQcOdvYn3f&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ASp2fLrWndUX4hc1iGQcOdvYn3f&quot;:{&quot;id&quot;:&quot;ASp2fLrWndUX4hc1iGQcOdvYn3f&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;FBqwfv2DEdYnKyc927tchEpXnFf&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;多属性&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;RX6rfyF8Ydq98AcnXd1cSKQBnQc&quot;:{&quot;id&quot;:&quot;RX6rfyF8Ydq98AcnXd1cSKQBnQc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;RpDWfBUgwddgZAcVI56cO2E8nEb&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;RpDWfBUgwddgZAcVI56cO2E8nEb&quot;:{&quot;id&quot;:&quot;RpDWfBUgwddgZAcVI56cO2E8nEb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;RX6rfyF8Ydq98AcnXd1cSKQBnQc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;数量&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NXJTfheC8dCES5cgzekc54Ppngd&quot;:{&quot;id&quot;:&quot;NXJTfheC8dCES5cgzekc54Ppngd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;LkXufIZsQdh5T0cW5bZcX0ZrnUH&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;LkXufIZsQdh5T0cW5bZcX0ZrnUH&quot;:{&quot;id&quot;:&quot;LkXufIZsQdh5T0cW5bZcX0ZrnUH&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;NXJTfheC8dCES5cgzekc54Ppngd&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单价&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Yq9VfmMnIdkCU7c1tMtc0qeZnhg&quot;:{&quot;id&quot;:&quot;Yq9VfmMnIdkCU7c1tMtc0qeZnhg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;OpY3fzovudYYGbcn9IpcAI83ndd&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;OpY3fzovudYYGbcn9IpcAI83ndd&quot;:{&quot;id&quot;:&quot;OpY3fzovudYYGbcn9IpcAI83ndd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Yq9VfmMnIdkCU7c1tMtc0qeZnhg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;金额&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PXQZfHaDld5BzOczUSzcpuHunze&quot;:{&quot;id&quot;:&quot;PXQZfHaDld5BzOczUSzcpuHunze&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;EFWdfy40sdv8X7c7pEScW0Iunlh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;EFWdfy40sdv8X7c7pEScW0Iunlh&quot;:{&quot;id&quot;:&quot;EFWdfy40sdv8X7c7pEScW0Iunlh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PXQZfHaDld5BzOczUSzcpuHunze&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;税率(%)&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+5&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;GU75fhOXxdl9IYcZLLocQNcGn1f&quot;:{&quot;id&quot;:&quot;GU75fhOXxdl9IYcZLLocQNcGn1f&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;J9TyfbaCIdpCMTc9gpnctb01nHg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;J9TyfbaCIdpCMTc9gpnctb01nHg&quot;:{&quot;id&quot;:&quot;J9TyfbaCIdpCMTc9gpnctb01nHg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;GU75fhOXxdl9IYcZLLocQNcGn1f&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;税额&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;OFrbfv4dJdArbjctvOmcIUB8nfe&quot;:{&quot;id&quot;:&quot;OFrbfv4dJdArbjctvOmcIUB8nfe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ZisVfyZoWdpNEScPG9Lc81qon3f&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ZisVfyZoWdpNEScPG9Lc81qon3f&quot;:{&quot;id&quot;:&quot;ZisVfyZoWdpNEScPG9Lc81qon3f&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;OFrbfv4dJdArbjctvOmcIUB8nfe&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;价税合计&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Tqg3fEXyTdu7DrcKy1fcxmxtncU&quot;:{&quot;id&quot;:&quot;Tqg3fEXyTdu7DrcKy1fcxmxtncU&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PbPlf2iaDdT7qTcBjgDcnAqanub&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PbPlf2iaDdT7qTcBjgDcnAqanub&quot;:{&quot;id&quot;:&quot;PbPlf2iaDdT7qTcBjgDcnAqanub&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Tqg3fEXyTdu7DrcKy1fcxmxtncU&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;重量&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;ApJGflD9rdRZycc9hglcl9DanAc&quot;:{&quot;id&quot;:&quot;ApJGflD9rdRZycc9hglcl9DanAc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PXQWfUJq7dkCzBcx4nWcnfOSnWd&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PXQWfUJq7dkCzBcx4nWcnfOSnWd&quot;:{&quot;id&quot;:&quot;PXQWfUJq7dkCzBcx4nWcnfOSnWd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;ApJGflD9rdRZycc9hglcl9DanAc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;备注&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;VFSvfozdLdMS6TcA63vc8K9sn5e&quot;:{&quot;id&quot;:&quot;VFSvfozdLdMS6TcA63vc8K9sn5e&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;JgmYf6lEWdsPNWcvOpocj4W3nrt&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;JgmYf6lEWdsPNWcvOpocj4W3nrt&quot;:{&quot;id&quot;:&quot;JgmYf6lEWdsPNWcvOpocj4W3nrt&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;VFSvfozdLdMS6TcA63vc8K9sn5e&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{_index}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+a&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;EBgifurqYdKLoYcIZMtct7gunKb&quot;:{&quot;id&quot;:&quot;EBgifurqYdKLoYcIZMtct7gunKb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;MNdqfYwotdLjVycBZGDcSEUqn1g&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;MNdqfYwotdLjVycBZGDcSEUqn1g&quot;:{&quot;id&quot;:&quot;MNdqfYwotdLjVycBZGDcSEUqn1g&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;EBgifurqYdKLoYcIZMtct7gunKb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.depotName}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+k&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;LcGafwTpgdliZBcjBBqcaYVDnlb&quot;:{&quot;id&quot;:&quot;LcGafwTpgdliZBcjBBqcaYVDnlb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;BNbRfk1bhdNxD3cWqdpcvtIynph&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;BNbRfk1bhdNxD3cWqdpcvtIynph&quot;:{&quot;id&quot;:&quot;BNbRfk1bhdNxD3cWqdpcvtIynph&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;LcGafwTpgdliZBcjBBqcaYVDnlb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.barCode}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+i&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Ttnafl28RdEF6WczELLcZAPMn2g&quot;:{&quot;id&quot;:&quot;Ttnafl28RdEF6WczELLcZAPMn2g&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;FbwcfFMMRdQOuKcBoOPc4Mj9ndW&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;FbwcfFMMRdQOuKcBoOPc4Mj9ndW&quot;:{&quot;id&quot;:&quot;FbwcfFMMRdQOuKcBoOPc4Mj9ndW&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ttnafl28RdEF6WczELLcZAPMn2g&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.name}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+f&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Js6XfUQrzdOSZicM555cBn4Rnsb&quot;:{&quot;id&quot;:&quot;Js6XfUQrzdOSZicM555cBn4Rnsb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;RVGYfGZA6dx4qycMhm3cnRgXnkF&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;RVGYfGZA6dx4qycMhm3cnRgXnkF&quot;:{&quot;id&quot;:&quot;RVGYfGZA6dx4qycMhm3cnRgXnkF&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Js6XfUQrzdOSZicM555cBn4Rnsb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.standard}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+j&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;ADBofrP1sdiw0AcZNVDcou7nn0K&quot;:{&quot;id&quot;:&quot;ADBofrP1sdiw0AcZNVDcou7nn0K&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;MhumfpwWOdQyi9cu66yckCVAnqc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;MhumfpwWOdQyi9cu66yckCVAnqc&quot;:{&quot;id&quot;:&quot;MhumfpwWOdQyi9cu66yckCVAnqc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;ADBofrP1sdiw0AcZNVDcou7nn0K&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.model}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+g&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;MWuhfewPjdkUqkctb4ac6B0Mnrf&quot;:{&quot;id&quot;:&quot;MWuhfewPjdkUqkctb4ac6B0Mnrf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ATxUfY5QBdHduKcIRhDcBKxIn9N&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ATxUfY5QBdHduKcIRhDcBKxIn9N&quot;:{&quot;id&quot;:&quot;ATxUfY5QBdHduKcIRhDcBKxIn9N&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;MWuhfewPjdkUqkctb4ac6B0Mnrf&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.color}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+g&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PKBBfqBL9drVVGcRVsRcMlKGnbI&quot;:{&quot;id&quot;:&quot;PKBBfqBL9drVVGcRVsRcMlKGnbI&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Yt7rf9kpYdK2xWctXWLc5pqJnXy&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Yt7rf9kpYdK2xWctXWLc5pqJnXy&quot;:{&quot;id&quot;:&quot;Yt7rf9kpYdK2xWctXWLc5pqJnXy&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PKBBfqBL9drVVGcRVsRcMlKGnbI&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.unit}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+f&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;YmgIfwmAYdoHQEcNzRucobtInkd&quot;:{&quot;id&quot;:&quot;YmgIfwmAYdoHQEcNzRucobtInkd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;UirDf13ued0hu8cHaVCcWqaMnP0&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;UirDf13ued0hu8cHaVCcWqaMnP0&quot;:{&quot;id&quot;:&quot;UirDf13ued0hu8cHaVCcWqaMnP0&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;YmgIfwmAYdoHQEcNzRucobtInkd&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.sku}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+e&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;OczIfxguYdGDa5cOUlpc1k6knLc&quot;:{&quot;id&quot;:&quot;OczIfxguYdGDa5cOUlpc1k6knLc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;TKUnfRZhtd63Itcje4BctQnAn4d&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;TKUnfRZhtd63Itcje4BctQnAn4d&quot;:{&quot;id&quot;:&quot;TKUnfRZhtd63Itcje4BctQnAn4d&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;OczIfxguYdGDa5cOUlpc1k6knLc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.operNumber}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+l&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Qk57fLATldCbcPcUvcXcNIGonMr&quot;:{&quot;id&quot;:&quot;Qk57fLATldCbcPcUvcXcNIGonMr&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Jt6Lfr3jMd0oQ7c3xUHcUixQnNg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Jt6Lfr3jMd0oQ7c3xUHcUixQnNg&quot;:{&quot;id&quot;:&quot;Jt6Lfr3jMd0oQ7c3xUHcUixQnNg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Qk57fLATldCbcPcUvcXcNIGonMr&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.unitPrice}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+k&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;JsLnfyIDed6Td1cajurcGwZInmd&quot;:{&quot;id&quot;:&quot;JsLnfyIDed6Td1cajurcGwZInmd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Syx7foXLSdvvoHcij05cHypUn0e&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Syx7foXLSdvvoHcij05cHypUn0e&quot;:{&quot;id&quot;:&quot;Syx7foXLSdvvoHcij05cHypUn0e&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;JsLnfyIDed6Td1cajurcGwZInmd&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.allPrice}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+j&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;JXCef4YxId8FCCcFHTFcXSYxnOt&quot;:{&quot;id&quot;:&quot;JXCef4YxId8FCCcFHTFcXSYxnOt&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PyVxfdhyWdlwcJcbiw4caMJRnnd&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PyVxfdhyWdlwcJcbiw4caMJRnnd&quot;:{&quot;id&quot;:&quot;PyVxfdhyWdlwcJcbiw4caMJRnnd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;JXCef4YxId8FCCcFHTFcXSYxnOt&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.taxRate}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+i&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;YLZXftAUUdaF1ccwnlhcYG9Bn5c&quot;:{&quot;id&quot;:&quot;YLZXftAUUdaF1ccwnlhcYG9Bn5c&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;H21Nf65M1dqzOrc5aNYcizqDnic&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;H21Nf65M1dqzOrc5aNYcizqDnic&quot;:{&quot;id&quot;:&quot;H21Nf65M1dqzOrc5aNYcizqDnic&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;YLZXftAUUdaF1ccwnlhcYG9Bn5c&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.taxMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+j&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;RrYefHzzPdUVl1c3txSck38Qnpb&quot;:{&quot;id&quot;:&quot;RrYefHzzPdUVl1c3txSck38Qnpb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;MWdXfMs9bdd5vxc7LQ5cFo22n8i&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;MWdXfMs9bdd5vxc7LQ5cFo22n8i&quot;:{&quot;id&quot;:&quot;MWdXfMs9bdd5vxc7LQ5cFo22n8i&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;RrYefHzzPdUVl1c3txSck38Qnpb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.taxLastMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+n&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;EZGRfwAxpdENmqcJaTBczgJJnPd&quot;:{&quot;id&quot;:&quot;EZGRfwAxpdENmqcJaTBczgJJnPd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ARyqfyAsQd3yPGclncpcy3EDnWf&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ARyqfyAsQd3yPGclncpcy3EDnWf&quot;:{&quot;id&quot;:&quot;ARyqfyAsQd3yPGclncpcy3EDnWf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;EZGRfwAxpdENmqcJaTBczgJJnPd&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.weight}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+h&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;HiDifZix7dyrMrcpagScIPNJnob&quot;:{&quot;id&quot;:&quot;HiDifZix7dyrMrcpagScIPNJnob&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;GBnufMOModS8mKcv7Iyc81Pqndc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;GBnufMOModS8mKcv7Iyc81Pqndc&quot;:{&quot;id&quot;:&quot;GBnufMOModS8mKcv7Iyc81Pqndc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;HiDifZix7dyrMrcpagScIPNJnob&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{detail.remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+h&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;D1bifuQqedUaOqciwz2cOvAFnvo&quot;:{&quot;id&quot;:&quot;D1bifuQqedUaOqciwz2cOvAFnvo&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{},&quot;nextNum&quot;:0},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;:{&quot;id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;cell_set&quot;:{&quot;row407f4dc6-9d64-4e33-a605-b7bbe11d4b23cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;block_id&quot;:&quot;TWm8f0fTZdkkcqcSIutcoQMTnod&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row407f4dc6-9d64-4e33-a605-b7bbe11d4b23colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;block_id&quot;:&quot;NEKdfPEe2d0Gw4cSWstcSPBjnId&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row407f4dc6-9d64-4e33-a605-b7bbe11d4b23col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;block_id&quot;:&quot;IZSvfAzOddBdSUcJUCpcExiSnHb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row407f4dc6-9d64-4e33-a605-b7bbe11d4b23col7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;block_id&quot;:&quot;XlgsfkgDtd1Cx9cd5IgcXktznqc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowfde3388f-af42-49ba-81aa-7253a98f8b3dcold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;block_id&quot;:&quot;TUamfMhFVdXErdc4KwUcVQfcnHg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowfde3388f-af42-49ba-81aa-7253a98f8b3dcolce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;block_id&quot;:&quot;KINdfVvF2dVhc5cAJhkc5x2In1d&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowfde3388f-af42-49ba-81aa-7253a98f8b3dcol186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;block_id&quot;:&quot;FDC4ffmHLdSn3wctwkrcDBALnde&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowfde3388f-af42-49ba-81aa-7253a98f8b3dcol7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;block_id&quot;:&quot;LbVZf0NJ1duNHhcQT4Zcz0X6nk3&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowd7b640c0-abc9-40a2-aad4-df4eb0a02476cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;block_id&quot;:&quot;Y1o2fl5OEdiT1Sct0CjcIm7Anfg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowd7b640c0-abc9-40a2-aad4-df4eb0a02476colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;block_id&quot;:&quot;WLEyfcnvAdJ1vfc2ypgcwUornyg&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowd7b640c0-abc9-40a2-aad4-df4eb0a02476col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;block_id&quot;:&quot;XhzVfwHiVdsYzAc8MF6cJ9L8nhb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowd7b640c0-abc9-40a2-aad4-df4eb0a02476col7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;block_id&quot;:&quot;UolWfqphxdhcqZc0Qy7cNYb7nce&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowea38466a-4a25-49c4-9ca2-eed198e75025cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;block_id&quot;:&quot;N5zpf6wEydTql3cBMpac8iVUnZe&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowea38466a-4a25-49c4-9ca2-eed198e75025colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;block_id&quot;:&quot;Z8p6f5SiidmCsscyrJeckUW9nUH&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowea38466a-4a25-49c4-9ca2-eed198e75025col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;block_id&quot;:&quot;PsSefzbknd9oUBcJ4rZcZm0SnXl&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;rowea38466a-4a25-49c4-9ca2-eed198e75025col7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;block_id&quot;:&quot;LTN6fTyj2ddyHQcGYIZc0XEznPb&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row69d5de88-94ad-4176-bb73-4c8d190442a4cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;block_id&quot;:&quot;PHqZfOv1UdWDbPcMjgdcRVSKnZ8&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row69d5de88-94ad-4176-bb73-4c8d190442a4colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;block_id&quot;:&quot;V9pFfIDurdAEeVcTUyGcIxiRnkc&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row69d5de88-94ad-4176-bb73-4c8d190442a4col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;block_id&quot;:&quot;C24xfMoXTdLx4yc3ENQcdKtEnGC&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}},&quot;row69d5de88-94ad-4176-bb73-4c8d190442a4col7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;block_id&quot;:&quot;MxSxf6oNKdrfbVcs4QXcMi2Fn6g&quot;,&quot;merge_info&quot;:{&quot;col_span&quot;:1,&quot;row_span&quot;:1}}},&quot;column_set&quot;:{&quot;cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;:{&quot;column_width&quot;:200},&quot;colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;:{&quot;column_width&quot;:200},&quot;col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;:{&quot;column_width&quot;:200},&quot;col7caad107-e36b-4676-b025-68767103e4eb&quot;:{&quot;column_width&quot;:200}},&quot;columns_id&quot;:[&quot;cold7ee370d-5a98-4e7f-9135-f8c6d1f69c8d&quot;,&quot;colce8587fe-eb30-4065-b8ce-a30cfc4ccec9&quot;,&quot;col186cb297-7ad0-4f78-9456-30774fd42bd4&quot;,&quot;col7caad107-e36b-4676-b025-68767103e4eb&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;rows_id&quot;:[&quot;row407f4dc6-9d64-4e33-a605-b7bbe11d4b23&quot;,&quot;rowfde3388f-af42-49ba-81aa-7253a98f8b3d&quot;,&quot;rowd7b640c0-abc9-40a2-aad4-df4eb0a02476&quot;,&quot;rowea38466a-4a25-49c4-9ca2-eed198e75025&quot;,&quot;row69d5de88-94ad-4176-bb73-4c8d190442a4&quot;],&quot;type&quot;:&quot;table&quot;}},&quot;TWm8f0fTZdkkcqcSIutcoQMTnod&quot;:{&quot;id&quot;:&quot;TWm8f0fTZdkkcqcSIutcoQMTnod&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;MB92fWjsvdw9l9cRhi6cqeRHnoX&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;MB92fWjsvdw9l9cRhi6cqeRHnoX&quot;:{&quot;id&quot;:&quot;MB92fWjsvdw9l9cRhi6cqeRHnoX&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;TWm8f0fTZdkkcqcSIutcoQMTnod&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;优惠率&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+3&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NEKdfPEe2d0Gw4cSWstcSPBjnId&quot;:{&quot;id&quot;:&quot;NEKdfPEe2d0Gw4cSWstcSPBjnId&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;PI3cfcYFEdu99UcANHJcDRDbnug&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;PI3cfcYFEdu99UcANHJcDRDbnug&quot;:{&quot;id&quot;:&quot;PI3cfcYFEdu99UcANHJcDRDbnug&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;NEKdfPEe2d0Gw4cSWstcSPBjnId&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{discount}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;IZSvfAzOddBdSUcJUCpcExiSnHb&quot;:{&quot;id&quot;:&quot;IZSvfAzOddBdSUcJUCpcExiSnHb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;GlLrfGWNxdwZVnci9CRc30donIc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;GlLrfGWNxdwZVnci9CRc30donIc&quot;:{&quot;id&quot;:&quot;GlLrfGWNxdwZVnci9CRc30donIc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;IZSvfAzOddBdSUcJUCpcExiSnHb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;收款优惠&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;XlgsfkgDtd1Cx9cd5IgcXktznqc&quot;:{&quot;id&quot;:&quot;XlgsfkgDtd1Cx9cd5IgcXktznqc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Cz5af0V2Ad3zZJcvpsyci8Isn74&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Cz5af0V2Ad3zZJcvpsyci8Isn74&quot;:{&quot;id&quot;:&quot;Cz5af0V2Ad3zZJcvpsyci8Isn74&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;XlgsfkgDtd1Cx9cd5IgcXktznqc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{discountMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+h&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;TUamfMhFVdXErdc4KwUcVQfcnHg&quot;:{&quot;id&quot;:&quot;TUamfMhFVdXErdc4KwUcVQfcnHg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;L3H6f9XtsdS2PucBOZNcKIMonxg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;L3H6f9XtsdS2PucBOZNcKIMonxg&quot;:{&quot;id&quot;:&quot;L3H6f9XtsdS2PucBOZNcKIMonxg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;TUamfMhFVdXErdc4KwUcVQfcnHg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;优惠后金额&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+5&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;KINdfVvF2dVhc5cAJhkc5x2In1d&quot;:{&quot;id&quot;:&quot;KINdfVvF2dVhc5cAJhkc5x2In1d&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;RumcffYqGdXKVpcrpcJcW5HPnRQ&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;RumcffYqGdXKVpcrpcJcW5HPnRQ&quot;:{&quot;id&quot;:&quot;RumcffYqGdXKVpcrpcJcW5HPnRQ&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;KINdfVvF2dVhc5cAJhkc5x2In1d&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{discountLastMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+l&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;FDC4ffmHLdSn3wctwkrcDBALnde&quot;:{&quot;id&quot;:&quot;FDC4ffmHLdSn3wctwkrcDBALnde&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Zr7IfhqFzdq9YQcBtlScRIudnxg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Zr7IfhqFzdq9YQcBtlScRIudnxg&quot;:{&quot;id&quot;:&quot;Zr7IfhqFzdq9YQcBtlScRIudnxg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;FDC4ffmHLdSn3wctwkrcDBALnde&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;其他费用&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;LbVZf0NJ1duNHhcQT4Zcz0X6nk3&quot;:{&quot;id&quot;:&quot;LbVZf0NJ1duNHhcQT4Zcz0X6nk3&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;SVVWfR1BSd8yv3ckkOucg2z5nMf&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;SVVWfR1BSd8yv3ckkOucg2z5nMf&quot;:{&quot;id&quot;:&quot;SVVWfR1BSd8yv3ckkOucg2z5nMf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;LbVZf0NJ1duNHhcQT4Zcz0X6nk3&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{otherMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+e&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Y1o2fl5OEdiT1Sct0CjcIm7Anfg&quot;:{&quot;id&quot;:&quot;Y1o2fl5OEdiT1Sct0CjcIm7Anfg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;WkUPfwoGydwhPncLI0xcnfAHnJg&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;WkUPfwoGydwhPncLI0xcnfAHnJg&quot;:{&quot;id&quot;:&quot;WkUPfwoGydwhPncLI0xcnfAHnJg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Y1o2fl5OEdiT1Sct0CjcIm7Anfg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;结算账户&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;WLEyfcnvAdJ1vfc2ypgcwUornyg&quot;:{&quot;id&quot;:&quot;WLEyfcnvAdJ1vfc2ypgcwUornyg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;QE43f9RwrdeKFfcepIFcHDdTnOc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;QE43f9RwrdeKFfcepIFcHDdTnOc&quot;:{&quot;id&quot;:&quot;QE43f9RwrdeKFfcepIFcHDdTnOc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;WLEyfcnvAdJ1vfc2ypgcwUornyg&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{accountName}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+f&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;XhzVfwHiVdsYzAc8MF6cJ9L8nhb&quot;:{&quot;id&quot;:&quot;XhzVfwHiVdsYzAc8MF6cJ9L8nhb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;NbzKfs4wNdpmjsc3NiXcAGejnOh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;NbzKfs4wNdpmjsc3NiXcAGejnOh&quot;:{&quot;id&quot;:&quot;NbzKfs4wNdpmjsc3NiXcAGejnOh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;XhzVfwHiVdsYzAc8MF6cJ9L8nhb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;本次付/收款&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+6&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;UolWfqphxdhcqZc0Qy7cNYb7nce&quot;:{&quot;id&quot;:&quot;UolWfqphxdhcqZc0Qy7cNYb7nce&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;Ssvff8w9ddRUDRcArggccYdvnSh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;Ssvff8w9ddRUDRcArggccYdvnSh&quot;:{&quot;id&quot;:&quot;Ssvff8w9ddRUDRcArggccYdvnSh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;UolWfqphxdhcqZc0Qy7cNYb7nce&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{changeAmount}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+g&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;N5zpf6wEydTql3cBMpac8iVUnZe&quot;:{&quot;id&quot;:&quot;N5zpf6wEydTql3cBMpac8iVUnZe&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;JgZ2fDmxWdsAFFc9S0ycWclgnRh&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;JgZ2fDmxWdsAFFc9S0ycWclgnRh&quot;:{&quot;id&quot;:&quot;JgZ2fDmxWdsAFFc9S0ycWclgnRh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;N5zpf6wEydTql3cBMpac8iVUnZe&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;本次欠款&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Z8p6f5SiidmCsscyrJeckUW9nUH&quot;:{&quot;id&quot;:&quot;Z8p6f5SiidmCsscyrJeckUW9nUH&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;WNHVfF1TZd6o2bcobWocJwJJnjd&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;WNHVfF1TZd6o2bcobWocJwJJnjd&quot;:{&quot;id&quot;:&quot;WNHVfF1TZd6o2bcobWocJwJJnjd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;Z8p6f5SiidmCsscyrJeckUW9nUH&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{debt}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+8&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PsSefzbknd9oUBcJ4rZcZm0SnXl&quot;:{&quot;id&quot;:&quot;PsSefzbknd9oUBcJ4rZcZm0SnXl&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;ZcD5fu66UdDGgCcQK3NcEqOYnbm&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;ZcD5fu66UdDGgCcQK3NcEqOYnbm&quot;:{&quot;id&quot;:&quot;ZcD5fu66UdDGgCcQK3NcEqOYnbm&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PsSefzbknd9oUBcJ4rZcZm0SnXl&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;备注&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+2&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;LTN6fTyj2ddyHQcGYIZc0XEznPb&quot;:{&quot;id&quot;:&quot;LTN6fTyj2ddyHQcGYIZc0XEznPb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;HvkgfL2SJdlhSgcTkvBckFd0nnf&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;HvkgfL2SJdlhSgcTkvBckFd0nnf&quot;:{&quot;id&quot;:&quot;HvkgfL2SJdlhSgcTkvBckFd0nnf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;LTN6fTyj2ddyHQcGYIZc0XEznPb&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+a&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;PHqZfOv1UdWDbPcMjgdcRVSKnZ8&quot;:{&quot;id&quot;:&quot;PHqZfOv1UdWDbPcMjgdcRVSKnZ8&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;VvYsflm84dzI2xcOkDdcAwrunoc&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;VvYsflm84dzI2xcOkDdcAwrunoc&quot;:{&quot;id&quot;:&quot;VvYsflm84dzI2xcOkDdcAwrunoc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;PHqZfOv1UdWDbPcMjgdcRVSKnZ8&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;打印日期&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;V9pFfIDurdAEeVcTUyGcIxiRnkc&quot;:{&quot;id&quot;:&quot;V9pFfIDurdAEeVcTUyGcIxiRnkc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;A9Mffhr8Gd1dqkc0gqlcZItCnig&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;A9Mffhr8Gd1dqkc0gqlcZItCnig&quot;:{&quot;id&quot;:&quot;A9Mffhr8Gd1dqkc0gqlcZItCnig&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;V9pFfIDurdAEeVcTUyGcIxiRnkc&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{_printDate}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+e&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;C24xfMoXTdLx4yc3ENQcdKtEnGC&quot;:{&quot;id&quot;:&quot;C24xfMoXTdLx4yc3ENQcdKtEnGC&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;U4pef5DgWdkoZFc4F6Fc7Aajnle&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;U4pef5DgWdkoZFc4F6Fc7Aajnle&quot;:{&quot;id&quot;:&quot;U4pef5DgWdkoZFc4F6Fc7Aajnle&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;C24xfMoXTdLx4yc3ENQcdKtEnGC&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:3,&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;1&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+4&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;打印时间&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;MxSxf6oNKdrfbVcs4QXcMi2Fn6g&quot;:{&quot;id&quot;:&quot;MxSxf6oNKdrfbVcs4QXcMi2Fn6g&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[&quot;TbagfHX8IddoBvcyPNEckobknXf&quot;],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;,&quot;revisions&quot;:[],&quot;type&quot;:&quot;table_cell&quot;,&quot;vertical_align&quot;:&quot;top&quot;}},&quot;TbagfHX8IddoBvcyPNEckobknXf&quot;:{&quot;id&quot;:&quot;TbagfHX8IddoBvcyPNEckobknXf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;MxSxf6oNKdrfbVcs4QXcMi2Fn6g&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:2,&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;1&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;]}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+e&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;{{_printTime}}&quot;}}},&quot;type&quot;:&quot;text&quot;}}},&quot;payloadMap&quot;:{&quot;EtlyfcBsIdO0ZAcD5uJcK31onvh&quot;:{&quot;level&quot;:1},&quot;FieGf4JLEdNyXnc5vn9chNgFnvg&quot;:{&quot;level&quot;:1},&quot;MPFnfKpjZdE5vDcc6I2c5xYIn8b&quot;:{&quot;level&quot;:1},&quot;O012fFGUKdKarTc2FQxckBYRnZg&quot;:{&quot;level&quot;:1},&quot;R7JXfYs7hd8xkJcwWelcAxzAnMd&quot;:{&quot;level&quot;:1},&quot;W9m1fSbJPdB9VicXB8McEm27nUg&quot;:{&quot;level&quot;:1},&quot;Vwd0fLp37dYdQacM39PcTvK7n2b&quot;:{&quot;level&quot;:1},&quot;OuHufj5MGdlEQ8c2VWQcqdPFn9g&quot;:{&quot;level&quot;:1},&quot;IJeMfj42ldhlvOcYGhecG8IHn5c&quot;:{&quot;level&quot;:1},&quot;AroPf5pzkdUl4acaYfRc9kjqndP&quot;:{&quot;level&quot;:1},&quot;CrZjfDrFpdWWiGcrdV5cxcAan6d&quot;:{&quot;level&quot;:1},&quot;AJLCfHL7sdKRgncwhPecKA7ZnWc&quot;:{&quot;level&quot;:1},&quot;JQPhfaFU2duRghcEaX7camD7nMe&quot;:{&quot;level&quot;:1},&quot;ZgxWfr4tZd1VIpcb1rxcWQAhnAh&quot;:{&quot;level&quot;:1},&quot;FpaOfG1pZd5GU0cF2jCcsLGSnlf&quot;:{&quot;level&quot;:1},&quot;SgKefUPkddyRrNcXQ5lcpUZEnsg&quot;:{&quot;level&quot;:1},&quot;Gyxmf9UF1dVg9xcyFPOcxJwbnZb&quot;:{&quot;level&quot;:1},&quot;VZgwfo5PFdsM7pceSGEcy7YVnyb&quot;:{&quot;level&quot;:1},&quot;PBWkf5GthdqUywc0C51cmBegnCf&quot;:{&quot;level&quot;:1},&quot;AVr7f6IJSdIyiscKWmtcdxjJnwg&quot;:{&quot;level&quot;:1},&quot;T4kefUdPTdLKZ7czjbAcGMgDngg&quot;:{&quot;level&quot;:1},&quot;PnkqfWYnKdUST1cVIu9cCWyJnCh&quot;:{&quot;level&quot;:1},&quot;LmKqfC8K6dEyqAcfDy7cZk56nth&quot;:{&quot;level&quot;:1},&quot;ASp2fLrWndUX4hc1iGQcOdvYn3f&quot;:{&quot;level&quot;:1},&quot;RpDWfBUgwddgZAcVI56cO2E8nEb&quot;:{&quot;level&quot;:1},&quot;LkXufIZsQdh5T0cW5bZcX0ZrnUH&quot;:{&quot;level&quot;:1},&quot;OpY3fzovudYYGbcn9IpcAI83ndd&quot;:{&quot;level&quot;:1},&quot;EFWdfy40sdv8X7c7pEScW0Iunlh&quot;:{&quot;level&quot;:1},&quot;J9TyfbaCIdpCMTc9gpnctb01nHg&quot;:{&quot;level&quot;:1},&quot;ZisVfyZoWdpNEScPG9Lc81qon3f&quot;:{&quot;level&quot;:1},&quot;PbPlf2iaDdT7qTcBjgDcnAqanub&quot;:{&quot;level&quot;:1},&quot;PXQWfUJq7dkCzBcx4nWcnfOSnWd&quot;:{&quot;level&quot;:1},&quot;JgmYf6lEWdsPNWcvOpocj4W3nrt&quot;:{&quot;level&quot;:1},&quot;MNdqfYwotdLjVycBZGDcSEUqn1g&quot;:{&quot;level&quot;:1},&quot;BNbRfk1bhdNxD3cWqdpcvtIynph&quot;:{&quot;level&quot;:1},&quot;FbwcfFMMRdQOuKcBoOPc4Mj9ndW&quot;:{&quot;level&quot;:1},&quot;RVGYfGZA6dx4qycMhm3cnRgXnkF&quot;:{&quot;level&quot;:1},&quot;MhumfpwWOdQyi9cu66yckCVAnqc&quot;:{&quot;level&quot;:1},&quot;ATxUfY5QBdHduKcIRhDcBKxIn9N&quot;:{&quot;level&quot;:1},&quot;Yt7rf9kpYdK2xWctXWLc5pqJnXy&quot;:{&quot;level&quot;:1},&quot;UirDf13ued0hu8cHaVCcWqaMnP0&quot;:{&quot;level&quot;:1},&quot;TKUnfRZhtd63Itcje4BctQnAn4d&quot;:{&quot;level&quot;:1},&quot;Jt6Lfr3jMd0oQ7c3xUHcUixQnNg&quot;:{&quot;level&quot;:1},&quot;Syx7foXLSdvvoHcij05cHypUn0e&quot;:{&quot;level&quot;:1},&quot;PyVxfdhyWdlwcJcbiw4caMJRnnd&quot;:{&quot;level&quot;:1},&quot;H21Nf65M1dqzOrc5aNYcizqDnic&quot;:{&quot;level&quot;:1},&quot;MWdXfMs9bdd5vxc7LQ5cFo22n8i&quot;:{&quot;level&quot;:1},&quot;ARyqfyAsQd3yPGclncpcy3EDnWf&quot;:{&quot;level&quot;:1},&quot;GBnufMOModS8mKcv7Iyc81Pqndc&quot;:{&quot;level&quot;:1},&quot;D1bifuQqedUaOqciwz2cOvAFnvo&quot;:{&quot;level&quot;:1},&quot;MB92fWjsvdw9l9cRhi6cqeRHnoX&quot;:{&quot;level&quot;:1},&quot;PI3cfcYFEdu99UcANHJcDRDbnug&quot;:{&quot;level&quot;:1},&quot;GlLrfGWNxdwZVnci9CRc30donIc&quot;:{&quot;level&quot;:1},&quot;Cz5af0V2Ad3zZJcvpsyci8Isn74&quot;:{&quot;level&quot;:1},&quot;L3H6f9XtsdS2PucBOZNcKIMonxg&quot;:{&quot;level&quot;:1},&quot;RumcffYqGdXKVpcrpcJcW5HPnRQ&quot;:{&quot;level&quot;:1},&quot;Zr7IfhqFzdq9YQcBtlScRIudnxg&quot;:{&quot;level&quot;:1},&quot;SVVWfR1BSd8yv3ckkOucg2z5nMf&quot;:{&quot;level&quot;:1},&quot;WkUPfwoGydwhPncLI0xcnfAHnJg&quot;:{&quot;level&quot;:1},&quot;QE43f9RwrdeKFfcepIFcHDdTnOc&quot;:{&quot;level&quot;:1},&quot;NbzKfs4wNdpmjsc3NiXcAGejnOh&quot;:{&quot;level&quot;:1},&quot;Ssvff8w9ddRUDRcArggccYdvnSh&quot;:{&quot;level&quot;:1},&quot;JgZ2fDmxWdsAFFc9S0ycWclgnRh&quot;:{&quot;level&quot;:1},&quot;WNHVfF1TZd6o2bcobWocJwJJnjd&quot;:{&quot;level&quot;:1},&quot;ZcD5fu66UdDGgCcQK3NcEqOYnbm&quot;:{&quot;level&quot;:1},&quot;HvkgfL2SJdlhSgcTkvBckFd0nnf&quot;:{&quot;level&quot;:1},&quot;VvYsflm84dzI2xcOkDdcAwrunoc&quot;:{&quot;level&quot;:1},&quot;A9Mffhr8Gd1dqkc0gqlcZItCnig&quot;:{&quot;level&quot;:1},&quot;U4pef5DgWdkoZFc4F6Fc7Aajnle&quot;:{&quot;level&quot;:1},&quot;TbagfHX8IddoBvcyPNEckobknXf&quot;:{&quot;level&quot;:1}},&quot;extra&quot;:{&quot;channel&quot;:&quot;saas&quot;,&quot;pasteRandomId&quot;:&quot;def22297-b209-4a17-a46d-b238fecc2084&quot;,&quot;mention_page_title&quot;:{},&quot;external_mention_url&quot;:{},&quot;isEqualBlockSelection&quot;:true},&quot;isKeepQuoteContainer&quot;:false,&quot;selection&quot;:[{&quot;id&quot;:1,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;},{&quot;id&quot;:73,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;EtlyfcBsIdO0ZAcD5uJcK31onvh&quot;},{&quot;id&quot;:74,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;FieGf4JLEdNyXnc5vn9chNgFnvg&quot;},{&quot;id&quot;:75,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;UrM0fiUZ1dX2otc0DIWcXPQynIh&quot;},{&quot;id&quot;:106,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;FpaOfG1pZd5GU0cF2jCcsLGSnlf&quot;},{&quot;id&quot;:108,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Ooj7flTbXdgcAecvLgfcvCuunae&quot;},{&quot;id&quot;:196,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;D1bifuQqedUaOqciwz2cOvAFnvo&quot;},{&quot;id&quot;:197,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;SvBofwlzFddCeXcaN9LcJ2RWn5b&quot;}],&quot;pasteFlag&quot;:&quot;b3e250fe-8c1f-46f0-910b-c3acf8e29925&quot;}\" data-lark-record-format=\"docx/record\" class=\"lark-record-clipboard\"></span></div>\n</div>\n<span data-lark-record-data=\"{&quot;isCut&quot;:false,&quot;rootId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;parentId&quot;:null,&quot;blockIds&quot;:[1,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72],&quot;recordIds&quot;:[&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;GyJff7WPddtk8XcRPNaclVwJn4b&quot;,&quot;SNi3fcXiidimfScHz5Icr9aSnXg&quot;,&quot;NMaif0FVjdxsDjcPFWBcWKBUnwb&quot;,&quot;BUcFfR9i3dtskOcL04scFkganwh&quot;,&quot;NnxHfzISGdL9SJccyq4cbxK9nXc&quot;,&quot;F242fv66Od6ZN1cr30yca2Ymnzb&quot;,&quot;VJqOfqU1ddk94mcOkUKcnmaxnIh&quot;,&quot;QyBufj5H7dRYjjcLMf8c5Ulsn3b&quot;,&quot;RjKVfyZRvduhzRcjdzucO1SWnCh&quot;,&quot;Di1bfo0XvdwwS7crSVqc6bf1nId&quot;,&quot;CfkIfP5dWdzu4acRqqUcg7A3nTc&quot;,&quot;CXcZfv9w6dKMw2cixEtcL5QmnUr&quot;,&quot;CScIf6N1od109vcTFncc0RAMnhf&quot;,&quot;C0tjfqcEQdDUfJc5uaDcLorGnrz&quot;,&quot;MyG5fhELedz3RvcXL8KcgePgnOg&quot;,&quot;AwtpfhvRhdwEaPcUgdIcIw9enne&quot;,&quot;Mlp3fCLXndeFQGcqE5UcLzJ5njb&quot;,&quot;I1hMfn4AcdBoFJcdGfIcwejanZf&quot;,&quot;MbK5f3OOsdEMjJc83KXcgH8knld&quot;,&quot;DO98fDIPRdeOhyc7ZeTcirHmnAd&quot;,&quot;Jd2Sftdm5dWizTcHvOEc5HKInlg&quot;,&quot;SC8afqYz9d8whAcoD5gcDebAnzh&quot;],&quot;recordMap&quot;:{&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;:{&quot;id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;snapshot&quot;:{&quot;revisions&quot;:[],&quot;hidden&quot;:false,&quot;children&quot;:[],&quot;align&quot;:&quot;&quot;,&quot;status&quot;:{&quot;streaming&quot;:{&quot;enabled&quot;:false,&quot;expired_at&quot;:&quot;1774798505&quot;,&quot;is_create_command&quot;:false,&quot;operator_id&quot;:&quot;7580865387768581081&quot;,&quot;source&quot;:1}},&quot;type&quot;:&quot;page&quot;,&quot;comments&quot;:[],&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:1,&quot;attribToNum&quot;:{&quot;author,7580865387768581081&quot;:0}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;ERP业务结算单&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0+8&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;parent_id&quot;:&quot;&quot;,&quot;locked&quot;:false}},&quot;GyJff7WPddtk8XcRPNaclVwJn4b&quot;:{&quot;id&quot;:&quot;GyJff7WPddtk8XcRPNaclVwJn4b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;SNi3fcXiidimfScHz5Icr9aSnXg&quot;:{&quot;id&quot;:&quot;SNi3fcXiidimfScHz5Icr9aSnXg&quot;,&quot;snapshot&quot;:{&quot;hidden&quot;:false,&quot;children&quot;:[],&quot;align&quot;:&quot;center&quot;,&quot;type&quot;:&quot;text&quot;,&quot;comments&quot;:[],&quot;revisions&quot;:[],&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;业务结算单&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+5&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;locked&quot;:false,&quot;author&quot;:&quot;7580865387768581081&quot;}},&quot;NMaif0FVjdxsDjcPFWBcWKBUnwb&quot;:{&quot;id&quot;:&quot;NMaif0FVjdxsDjcPFWBcWKBUnwb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;BUcFfR9i3dtskOcL04scFkganwh&quot;:{&quot;id&quot;:&quot;BUcFfR9i3dtskOcL04scFkganwh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;往来单位：{{organName}}                          单据编号：{{number}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1n&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;NnxHfzISGdL9SJccyq4cbxK9nXc&quot;:{&quot;id&quot;:&quot;NnxHfzISGdL9SJccyq4cbxK9nXc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;单据日期：{{operTimeStr}}                        关联订单：{{linkNumber}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1r&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;F242fv66Od6ZN1cr30yca2Ymnzb&quot;:{&quot;id&quot;:&quot;F242fv66Od6ZN1cr30yca2Ymnzb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;销售人员：{{salesMan}}                          付款类型：{{payType}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1n&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;VJqOfqU1ddk94mcOkUKcnmaxnIh&quot;:{&quot;id&quot;:&quot;VJqOfqU1ddk94mcOkUKcnmaxnIh&quot;,&quot;snapshot&quot;:{&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;align&quot;:&quot;left&quot;,&quot;type&quot;:&quot;text&quot;,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:0,&quot;numToAttrib&quot;:{}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;comments&quot;:[],&quot;locked&quot;:false,&quot;hidden&quot;:false}},&quot;QyBufj5H7dRYjjcLMf8c5Ulsn3b&quot;:{&quot;id&quot;:&quot;QyBufj5H7dRYjjcLMf8c5Ulsn3b&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;RjKVfyZRvduhzRcjdzucO1SWnCh&quot;:{&quot;id&quot;:&quot;RjKVfyZRvduhzRcjdzucO1SWnCh&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;],&quot;2&quot;:[&quot;bold&quot;,&quot;true&quot;]},&quot;nextNum&quot;:3,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1,&quot;bold,true&quot;:2}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;行序号    仓库名称    条码    商品名称    规格    型号    颜色    单位    多属性    数量    单价    金额    税率(%)    税额    价税合计    重量    备注&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1*2+31&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Di1bfo0XvdwwS7crSVqc6bf1nId&quot;:{&quot;id&quot;:&quot;Di1bfo0XvdwwS7crSVqc6bf1nId&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;CfkIfP5dWdzu4acRqqUcg7A3nTc&quot;:{&quot;id&quot;:&quot;CfkIfP5dWdzu4acRqqUcg7A3nTc&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{#detail}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+b&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;CXcZfv9w6dKMw2cixEtcL5QmnUr&quot;:{&quot;id&quot;:&quot;CXcZfv9w6dKMw2cixEtcL5QmnUr&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{_index}}    {{detail.depotName}}    {{detail.barCode}}    {{detail.name}}    {{detail.standard}}    {{detail.model}}    {{detail.color}}    {{detail.unit}}    {{detail.sku}}    {{detail.operNumber}}    {{detail.unitPrice}}    {{detail.allPrice}}    {{detail.taxRate}}    {{detail.taxMoney}}    {{detail.taxLastMoney}}    {{detail.weight}}    {{detail.remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+a1&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;CScIf6N1od109vcTFncc0RAMnhf&quot;:{&quot;id&quot;:&quot;CScIf6N1od109vcTFncc0RAMnhf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;{{/detail}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+b&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;C0tjfqcEQdDUfJc5uaDcLorGnrz&quot;:{&quot;id&quot;:&quot;C0tjfqcEQdDUfJc5uaDcLorGnrz&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;MyG5fhELedz3RvcXL8KcgePgnOg&quot;:{&quot;id&quot;:&quot;MyG5fhELedz3RvcXL8KcgePgnOg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:0,&quot;numToAttrib&quot;:{}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;AwtpfhvRhdwEaPcUgdIcIw9enne&quot;:{&quot;id&quot;:&quot;AwtpfhvRhdwEaPcUgdIcIw9enne&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;优惠率：{{discount}}        收款优惠：{{discountMoney}}        优惠后金额：{{discountLastMoney}}        其他费用：{{otherMoney}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+30&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Mlp3fCLXndeFQGcqE5UcLzJ5njb&quot;:{&quot;id&quot;:&quot;Mlp3fCLXndeFQGcqE5UcLzJ5njb&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;结算账户：{{accountName}}        本次付/收款：{{changeAmount}}        本次欠款：{{debt}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+20&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;I1hMfn4AcdBoFJcdGfIcwejanZf&quot;:{&quot;id&quot;:&quot;I1hMfn4AcdBoFJcdGfIcwejanZf&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;备注：{{remark}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+d&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;MbK5f3OOsdEMjJc83KXcgH8knld&quot;:{&quot;id&quot;:&quot;MbK5f3OOsdEMjJc83KXcgH8knld&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;nextNum&quot;:0,&quot;numToAttrib&quot;:{}},&quot;initialAttributedTexts&quot;:{&quot;attribs&quot;:{&quot;0&quot;:&quot;&quot;},&quot;text&quot;:{&quot;0&quot;:&quot;&quot;}}},&quot;type&quot;:&quot;text&quot;}},&quot;DO98fDIPRdeOhyc7ZeTcirHmnAd&quot;:{&quot;id&quot;:&quot;DO98fDIPRdeOhyc7ZeTcirHmnAd&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;------------------------------------------------------------------------------------------------------------------------&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+3c&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;Jd2Sftdm5dWizTcHvOEc5HKInlg&quot;:{&quot;id&quot;:&quot;Jd2Sftdm5dWizTcHvOEc5HKInlg&quot;,&quot;snapshot&quot;:{&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;align&quot;:&quot;left&quot;,&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;children&quot;:[],&quot;comments&quot;:[],&quot;hidden&quot;:false,&quot;locked&quot;:false,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;打印日期：{{_printDate}}                    打印时间：{{_printTime}}&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1m&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;}},&quot;SC8afqYz9d8whAcoD5gcDebAnzh&quot;:{&quot;id&quot;:&quot;SC8afqYz9d8whAcoD5gcDebAnzh&quot;,&quot;snapshot&quot;:{&quot;author&quot;:&quot;7580865387768581081&quot;,&quot;text&quot;:{&quot;apool&quot;:{&quot;numToAttrib&quot;:{&quot;0&quot;:[&quot;ai-extra&quot;,&quot;{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;],&quot;1&quot;:[&quot;author&quot;,&quot;7580865387768581081&quot;]},&quot;nextNum&quot;:2,&quot;attribToNum&quot;:{&quot;ai-extra,{\\&quot;is_ai_gen\\&quot;:true,\\&quot;rewrite_command\\&quot;:1}&quot;:0,&quot;author,7580865387768581081&quot;:1}},&quot;initialAttributedTexts&quot;:{&quot;text&quot;:{&quot;0&quot;:&quot;==============================================================&quot;},&quot;attribs&quot;:{&quot;0&quot;:&quot;*0*1+1q&quot;},&quot;rows&quot;:{},&quot;cols&quot;:{}}},&quot;type&quot;:&quot;text&quot;,&quot;comments&quot;:[],&quot;locked&quot;:false,&quot;hidden&quot;:false,&quot;align&quot;:&quot;left&quot;,&quot;parent_id&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;,&quot;revisions&quot;:[],&quot;ai_extra&quot;:{&quot;is_ai_gen&quot;:true,&quot;rewrite_command&quot;:1},&quot;children&quot;:[]}}},&quot;payloadMap&quot;:{&quot;GyJff7WPddtk8XcRPNaclVwJn4b&quot;:{&quot;level&quot;:1},&quot;SNi3fcXiidimfScHz5Icr9aSnXg&quot;:{&quot;level&quot;:1},&quot;NMaif0FVjdxsDjcPFWBcWKBUnwb&quot;:{&quot;level&quot;:1},&quot;BUcFfR9i3dtskOcL04scFkganwh&quot;:{&quot;level&quot;:1},&quot;NnxHfzISGdL9SJccyq4cbxK9nXc&quot;:{&quot;level&quot;:1},&quot;F242fv66Od6ZN1cr30yca2Ymnzb&quot;:{&quot;level&quot;:1},&quot;VJqOfqU1ddk94mcOkUKcnmaxnIh&quot;:{&quot;level&quot;:1},&quot;QyBufj5H7dRYjjcLMf8c5Ulsn3b&quot;:{&quot;level&quot;:1},&quot;RjKVfyZRvduhzRcjdzucO1SWnCh&quot;:{&quot;level&quot;:1},&quot;Di1bfo0XvdwwS7crSVqc6bf1nId&quot;:{&quot;level&quot;:1},&quot;CfkIfP5dWdzu4acRqqUcg7A3nTc&quot;:{&quot;level&quot;:1},&quot;CXcZfv9w6dKMw2cixEtcL5QmnUr&quot;:{&quot;level&quot;:1},&quot;CScIf6N1od109vcTFncc0RAMnhf&quot;:{&quot;level&quot;:1},&quot;C0tjfqcEQdDUfJc5uaDcLorGnrz&quot;:{&quot;level&quot;:1},&quot;MyG5fhELedz3RvcXL8KcgePgnOg&quot;:{&quot;level&quot;:1},&quot;AwtpfhvRhdwEaPcUgdIcIw9enne&quot;:{&quot;level&quot;:1},&quot;Mlp3fCLXndeFQGcqE5UcLzJ5njb&quot;:{&quot;level&quot;:1},&quot;I1hMfn4AcdBoFJcdGfIcwejanZf&quot;:{&quot;level&quot;:1},&quot;MbK5f3OOsdEMjJc83KXcgH8knld&quot;:{&quot;level&quot;:1},&quot;DO98fDIPRdeOhyc7ZeTcirHmnAd&quot;:{&quot;level&quot;:1},&quot;Jd2Sftdm5dWizTcHvOEc5HKInlg&quot;:{&quot;level&quot;:1},&quot;SC8afqYz9d8whAcoD5gcDebAnzh&quot;:{&quot;level&quot;:1}},&quot;extra&quot;:{&quot;channel&quot;:&quot;saas&quot;,&quot;pasteRandomId&quot;:&quot;7fb4d88c-4d32-42ef-9b4a-c5852b7c450e&quot;,&quot;mention_page_title&quot;:{},&quot;external_mention_url&quot;:{},&quot;isEqualBlockSelection&quot;:true},&quot;isKeepQuoteContainer&quot;:false,&quot;selection&quot;:[{&quot;id&quot;:1,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;S1Mwd13YpobiGdxx0K7cSkRKnVO&quot;},{&quot;id&quot;:51,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;GyJff7WPddtk8XcRPNaclVwJn4b&quot;},{&quot;id&quot;:52,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;SNi3fcXiidimfScHz5Icr9aSnXg&quot;},{&quot;id&quot;:53,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;NMaif0FVjdxsDjcPFWBcWKBUnwb&quot;},{&quot;id&quot;:54,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;BUcFfR9i3dtskOcL04scFkganwh&quot;},{&quot;id&quot;:55,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;NnxHfzISGdL9SJccyq4cbxK9nXc&quot;},{&quot;id&quot;:56,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;F242fv66Od6ZN1cr30yca2Ymnzb&quot;},{&quot;id&quot;:57,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;VJqOfqU1ddk94mcOkUKcnmaxnIh&quot;},{&quot;id&quot;:58,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;QyBufj5H7dRYjjcLMf8c5Ulsn3b&quot;},{&quot;id&quot;:59,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;RjKVfyZRvduhzRcjdzucO1SWnCh&quot;},{&quot;id&quot;:60,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Di1bfo0XvdwwS7crSVqc6bf1nId&quot;},{&quot;id&quot;:61,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;CfkIfP5dWdzu4acRqqUcg7A3nTc&quot;},{&quot;id&quot;:62,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;CXcZfv9w6dKMw2cixEtcL5QmnUr&quot;},{&quot;id&quot;:63,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;CScIf6N1od109vcTFncc0RAMnhf&quot;},{&quot;id&quot;:64,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;C0tjfqcEQdDUfJc5uaDcLorGnrz&quot;},{&quot;id&quot;:65,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;MyG5fhELedz3RvcXL8KcgePgnOg&quot;},{&quot;id&quot;:66,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;AwtpfhvRhdwEaPcUgdIcIw9enne&quot;},{&quot;id&quot;:67,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Mlp3fCLXndeFQGcqE5UcLzJ5njb&quot;},{&quot;id&quot;:68,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;I1hMfn4AcdBoFJcdGfIcwejanZf&quot;},{&quot;id&quot;:69,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;MbK5f3OOsdEMjJc83KXcgH8knld&quot;},{&quot;id&quot;:70,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;DO98fDIPRdeOhyc7ZeTcirHmnAd&quot;},{&quot;id&quot;:71,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;Jd2Sftdm5dWizTcHvOEc5HKInlg&quot;},{&quot;id&quot;:72,&quot;type&quot;:&quot;block&quot;,&quot;recordId&quot;:&quot;SC8afqYz9d8whAcoD5gcDebAnzh&quot;}],&quot;pasteFlag&quot;:&quot;b3e250fe-8c1f-46f0-910b-c3acf8e29925&quot;}\" data-lark-record-format=\"docx/record\" class=\"lark-record-clipboard\"></span></div>\n</div>\n</div>','1',147,'0','2026-03-29 23:30:05','2026-03-29 23:36:44'),(2,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:37:33','2026-03-29 23:37:33'),(3,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:52:00','2026-03-29 23:52:00'),(4,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:52:07','2026-03-29 23:52:07'),(5,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:52:16','2026-03-29 23:52:16'),(6,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:52:21','2026-03-29 23:52:21'),(7,'saleOut','默认模板','<div style=\"padding: 10px;\">\n<h2>销售出库单</h2>\n<table style=\"border: none; width: 100%; margin-bottom: 8px;\">\n<tbody>\n<tr class=\"header-row\">\n<td style=\"border: none;\">往来单位：{{organName}}</td>\n<td style=\"border: none;\">单据日期：{{operTimeStr}}</td>\n<td style=\"border: none;\">单据编号：{{number}}</td>\n<td style=\"border: none;\">关联订单：{{linkNumber}}</td>\n</tr>\n</tbody>\n</table>\n<table>\n<thead>\n<tr>\n<th>序号</th>\n<th>仓库</th>\n<th>条码</th>\n<th>名称</th>\n<th>规格</th>\n<th>单位</th>\n<th>数量</th>\n<th>单价</th>\n<th>金额</th>\n<th>税率(%)</th>\n<th>税额</th>\n<th>价税合计</th>\n<th>备注</th>\n</tr>\n</thead>\n<tbody><!--DETAIL_ROW_START-->\n<tr>\n<td>{{_index}}</td>\n<td>{{detail.depotName}}</td>\n<td>{{detail.barCode}}</td>\n<td>{{detail.name}}</td>\n<td>{{detail.standard}}</td>\n<td>{{detail.unit}}</td>\n<td>{{detail.operNumber}}</td>\n<td>{{detail.unitPrice}}</td>\n<td>{{detail.allPrice}}</td>\n<td>{{detail.taxRate}}</td>\n<td>{{detail.taxMoney}}</td>\n<td>{{detail.taxLastMoney}}</td>\n<td>{{detail.remark}}</td>\n</tr>\n<!--DETAIL_ROW_END--></tbody>\n</table>\n<div class=\"footer-info\">\n<p>优惠率：{{discount}}%　收款优惠：{{discountMoney}}　优惠后金额：{{discountLastMoney}}</p>\n<p>结算账户：{{accountName}}　本次付/收款：{{changeAmount}}　本次欠款：{{debt}}</p>\n<p>备注：{{remark}}</p>\n</div>\n<p style=\"text-align: right; font-size: 11px; margin-top: 10px;\">打印日期：{{_printDate}}</p>\n</div>','1',147,'0','2026-03-29 23:52:23','2026-03-29 23:52:23');
+/*!40000 ALTER TABLE `jsh_print_template` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_role`
+--
+
 DROP TABLE IF EXISTS `jsh_role`;
-CREATE TABLE `jsh_role`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称',
-  `type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型',
-  `price_limit` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '价格屏蔽 1-屏蔽采购价 2-屏蔽零售价 3-屏蔽销售价',
-  `value` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '值',
-  `description` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '描述',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_role` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称',
+  `type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型',
+  `price_limit` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '价格屏蔽 1-屏蔽采购价 2-屏蔽零售价 3-屏蔽销售价',
+  `value` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '值',
+  `description` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '描述',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='角色表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_role
--- ----------------------------
-INSERT INTO `jsh_role` VALUES (4, '管理员', '全部数据', NULL, NULL, NULL, b'1', NULL, NULL, '0');
-INSERT INTO `jsh_role` VALUES (10, '租户', '全部数据', NULL, NULL, '', b'1', NULL, NULL, '0');
-INSERT INTO `jsh_role` VALUES (16, '销售经理', '全部数据', NULL, NULL, 'ddd', b'1', NULL, 63, '0');
-INSERT INTO `jsh_role` VALUES (17, '销售代表', '个人数据', NULL, NULL, 'rrr', b'1', NULL, 63, '0');
+--
+-- Dumping data for table `jsh_role`
+--
 
--- ----------------------------
--- Table structure for jsh_sequence
--- ----------------------------
+LOCK TABLES `jsh_role` WRITE;
+/*!40000 ALTER TABLE `jsh_role` DISABLE KEYS */;
+INSERT INTO `jsh_role` VALUES (4,'管理员','全部数据',NULL,NULL,NULL,_binary '',NULL,NULL,'0'),(10,'租户','全部数据',NULL,NULL,'',_binary '',NULL,NULL,'0'),(16,'销售经理','全部数据',NULL,NULL,'ddd',_binary '',NULL,63,'0'),(17,'销售代表','个人数据',NULL,NULL,'rrr',_binary '',NULL,63,'0');
+/*!40000 ALTER TABLE `jsh_role` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_sequence`
+--
+
 DROP TABLE IF EXISTS `jsh_sequence`;
-CREATE TABLE `jsh_sequence`  (
-  `seq_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '序列名称',
-  `min_value` bigint(0) NOT NULL COMMENT '最小值',
-  `max_value` bigint(0) NOT NULL COMMENT '最大值',
-  `current_val` bigint(0) NOT NULL COMMENT '当前值',
-  `increment_val` int(0) NOT NULL DEFAULT 1 COMMENT '增长步数',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_sequence` (
+  `seq_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '序列名称',
+  `min_value` bigint NOT NULL COMMENT '最小值',
+  `max_value` bigint NOT NULL COMMENT '最大值',
+  `current_val` bigint NOT NULL COMMENT '当前值',
+  `increment_val` int NOT NULL DEFAULT '1' COMMENT '增长步数',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`seq_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '单据编号表' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='单据编号表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_sequence
--- ----------------------------
-INSERT INTO `jsh_sequence` VALUES ('depot_number_seq', 1, 999999999999999999, 672, 1, '单据编号sequence');
+--
+-- Dumping data for table `jsh_sequence`
+--
 
--- ----------------------------
--- Table structure for jsh_serial_number
--- ----------------------------
+LOCK TABLES `jsh_sequence` WRITE;
+/*!40000 ALTER TABLE `jsh_sequence` DISABLE KEYS */;
+INSERT INTO `jsh_sequence` VALUES ('depot_number_seq',1,999999999999999999,724,1,'单据编号sequence');
+/*!40000 ALTER TABLE `jsh_sequence` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_serial_number`
+--
+
 DROP TABLE IF EXISTS `jsh_serial_number`;
-CREATE TABLE `jsh_serial_number`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `material_id` bigint(0) NULL DEFAULT NULL COMMENT '产品表id',
-  `depot_id` bigint(0) NULL DEFAULT NULL COMMENT '仓库id',
-  `serial_number` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '序列号',
-  `is_sell` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '是否卖出，0未卖出，1卖出',
-  `in_price` decimal(24, 6) NULL DEFAULT NULL COMMENT '入库单价',
-  `remark` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `creator` bigint(0) NULL DEFAULT NULL COMMENT '创建人',
-  `update_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',
-  `updater` bigint(0) NULL DEFAULT NULL COMMENT '更新人',
-  `in_bill_no` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '入库单号',
-  `out_bill_no` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '出库单号',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_serial_number` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `material_id` bigint DEFAULT NULL COMMENT '产品表id',
+  `depot_id` bigint DEFAULT NULL COMMENT '仓库id',
+  `serial_number` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '序列号',
+  `is_sell` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '是否卖出，0未卖出，1卖出',
+  `in_price` decimal(24,6) DEFAULT NULL COMMENT '入库单价',
+  `remark` varchar(1024) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `creator` bigint DEFAULT NULL COMMENT '创建人',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `updater` bigint DEFAULT NULL COMMENT '更新人',
+  `in_bill_no` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '入库单号',
+  `out_bill_no` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '出库单号',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `material_id`(`material_id`) USING BTREE,
-  INDEX `depot_id`(`depot_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 110 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '序列号表' ROW_FORMAT = Dynamic;
+  KEY `material_id` (`material_id`) USING BTREE,
+  KEY `depot_id` (`depot_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='序列号表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Table structure for jsh_supplier
--- ----------------------------
+--
+-- Dumping data for table `jsh_serial_number`
+--
+
+LOCK TABLES `jsh_serial_number` WRITE;
+/*!40000 ALTER TABLE `jsh_serial_number` DISABLE KEYS */;
+/*!40000 ALTER TABLE `jsh_serial_number` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_supplier`
+--
+
 DROP TABLE IF EXISTS `jsh_supplier`;
-CREATE TABLE `jsh_supplier`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `supplier` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '供应商名称',
-  `contacts` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '联系人',
-  `phone_num` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '联系电话',
-  `email` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '电子邮箱',
-  `description` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `isystem` tinyint(0) NULL DEFAULT NULL COMMENT '是否系统自带 0==系统 1==非系统',
-  `type` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类型',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `advance_in` decimal(24, 6) NULL DEFAULT 0.000000 COMMENT '预收款',
-  `begin_need_get` decimal(24, 6) NULL DEFAULT NULL COMMENT '期初应收',
-  `begin_need_pay` decimal(24, 6) NULL DEFAULT NULL COMMENT '期初应付',
-  `all_need_get` decimal(24, 6) NULL DEFAULT NULL COMMENT '累计应收',
-  `all_need_pay` decimal(24, 6) NULL DEFAULT NULL COMMENT '累计应付',
-  `fax` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '传真',
-  `telephone` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '手机',
-  `address` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '地址',
-  `tax_num` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '纳税人识别号',
-  `bank_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '开户行',
-  `account_number` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '账号',
-  `tax_rate` decimal(24, 6) NULL DEFAULT NULL COMMENT '税率',
-  `sort` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '排序',
-  `creator` bigint(0) NULL DEFAULT NULL COMMENT '操作员',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_supplier` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `supplier` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '供应商名称',
+  `contacts` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '联系人',
+  `phone_num` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '联系电话',
+  `email` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '电子邮箱',
+  `description` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `isystem` tinyint DEFAULT NULL COMMENT '是否系统自带 0==系统 1==非系统',
+  `type` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类型',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `advance_in` decimal(24,6) DEFAULT '0.000000' COMMENT '预收款',
+  `begin_need_get` decimal(24,6) DEFAULT NULL COMMENT '期初应收',
+  `begin_need_pay` decimal(24,6) DEFAULT NULL COMMENT '期初应付',
+  `all_need_get` decimal(24,6) DEFAULT NULL COMMENT '累计应收',
+  `all_need_pay` decimal(24,6) DEFAULT NULL COMMENT '累计应付',
+  `fax` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '传真',
+  `telephone` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '手机',
+  `address` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '地址',
+  `tax_num` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '纳税人识别号',
+  `bank_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '开户行',
+  `account_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '账号',
+  `tax_rate` decimal(24,6) DEFAULT NULL COMMENT '税率',
+  `sort` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '排序',
+  `creator` bigint DEFAULT NULL COMMENT '操作员',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `type`(`type`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 90 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '供应商/客户信息表' ROW_FORMAT = Dynamic;
+  KEY `type` (`type`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='供应商/客户信息表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_supplier
--- ----------------------------
-INSERT INTO `jsh_supplier` VALUES (57, '供应商1', '小军', '12345678', '', '', NULL, '供应商', b'1', 0.000000, 0.000000, 0.000000, 0.000000, 4.000000, '', '15000000000', '地址1', '', '', '', 12.000000, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (58, '客户1', '小李', '12345678', '', '', NULL, '客户', b'1', 0.000000, 0.000000, 0.000000, -100.000000, NULL, '', '', '', '', '', '', 12.000000, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (59, '客户2', '小陈', '', '', '', NULL, '客户', b'1', 0.000000, 0.000000, 0.000000, 0.000000, NULL, '', '', '', '', '', '', NULL, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (60, '12312666', '小曹', '', '', '', NULL, '会员', b'1', 970.000000, 0.000000, 0.000000, NULL, NULL, '', '13000000000', '', '', '', '', NULL, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (68, '供应商3', '晓丽', '12345678', '', 'fasdfadf', NULL, '供应商', b'1', 0.000000, 0.000000, 0.000000, 0.000000, -35.000000, '', '13000000000', 'aaaa', '1341324', '', '', 13.000000, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (71, '客户3', '小周', '', '', '', NULL, '客户', b'1', 0.000000, 0.000000, 0.000000, 0.000000, NULL, '', '', '', '', '', '', NULL, NULL, 63, 63, '0');
-INSERT INTO `jsh_supplier` VALUES (74, '供应商5', '小季', '77779999', '', '', NULL, '供应商', b'1', 0.000000, 0.000000, 5.000000, 0.000000, 5.000000, '', '15806283912', '', '', '', '', 3.000000, NULL, 63, 63, '0');
+--
+-- Dumping data for table `jsh_supplier`
+--
 
--- ----------------------------
--- Table structure for jsh_system_config
--- ----------------------------
+LOCK TABLES `jsh_supplier` WRITE;
+/*!40000 ALTER TABLE `jsh_supplier` DISABLE KEYS */;
+INSERT INTO `jsh_supplier` VALUES (57,'供应商1','小军','12345678','','',NULL,'供应商',_binary '',0.000000,0.000000,0.000000,0.000000,4.000000,'','15000000000','地址1','','','',12.000000,NULL,63,63,'0'),(58,'客户1','小李','12345678','','',NULL,'客户',_binary '',0.000000,0.000000,0.000000,-100.000000,NULL,'','','','','','',12.000000,NULL,63,63,'0'),(59,'客户2','小陈','','','',NULL,'客户',_binary '',0.000000,0.000000,0.000000,0.000000,NULL,'','','','','','',NULL,NULL,63,63,'0'),(60,'12312666','小曹','','','',NULL,'会员',_binary '',970.000000,0.000000,0.000000,NULL,NULL,'','13000000000','','','','',NULL,NULL,63,63,'0'),(68,'供应商3','晓丽','12345678','','fasdfadf',NULL,'供应商',_binary '',0.000000,0.000000,0.000000,0.000000,-35.000000,'','13000000000','aaaa','1341324','','',13.000000,NULL,63,63,'0'),(71,'客户3','小周','','','',NULL,'客户',_binary '',0.000000,0.000000,0.000000,0.000000,NULL,'','','','','','',NULL,NULL,63,63,'0'),(74,'供应商5','小季','77779999','','',NULL,'供应商',_binary '',0.000000,0.000000,5.000000,0.000000,5.000000,'','15806283912','','','','',3.000000,NULL,63,63,'0'),(90,'test',NULL,NULL,NULL,NULL,NULL,'供应商',_binary '',0.000000,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,147,147,'0'),(91,'test3',NULL,NULL,NULL,NULL,NULL,'客户',_binary '',0.000000,0.000000,0.000000,0.000000,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,147,147,'0'),(92,'test1',NULL,NULL,NULL,NULL,NULL,'供应商',_binary '',0.000000,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,147,147,'0');
+/*!40000 ALTER TABLE `jsh_supplier` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_system_config`
+--
+
 DROP TABLE IF EXISTS `jsh_system_config`;
-CREATE TABLE `jsh_system_config`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `company_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司名称',
-  `company_contacts` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司联系人',
-  `company_address` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司地址',
-  `company_tel` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司电话',
-  `company_fax` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司传真',
-  `company_post_code` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '公司邮编',
-  `sale_agreement` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '销售协议',
-  `depot_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '仓库启用标记，0未启用，1启用',
-  `customer_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '客户启用标记，0未启用，1启用',
-  `minus_stock_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '负库存启用标记，0未启用，1启用',
-  `purchase_by_sale_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '以销定购启用标记，0未启用，1启用',
-  `multi_level_approval_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '多级审核启用标记，0未启用，1启用',
-  `multi_bill_type` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '流程类型，可多选',
-  `force_approval_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '强审核启用标记，0未启用，1启用',
-  `update_unit_price_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '1' COMMENT '更新单价启用标记，0未启用，1启用',
-  `over_link_bill_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '超出关联单据启用标记，0未启用，1启用',
-  `in_out_manage_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '出入库管理启用标记，0未启用，1启用',
-  `multi_account_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '多账户启用标记，0未启用，1启用',
-  `move_avg_price_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '移动平均价启用标记，0未启用，1启用',
-  `audit_print_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '先审核后打印启用标记，0未启用，1启用',
-  `zero_change_amount_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '零收付款启用标记，0未启用，1启用',
-  `customer_static_price_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '客户静态单价启用标记，0未启用，1启用',
-  `material_price_tax_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '商品价格含税启用标记，0未启用，1启用',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_system_config` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `company_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司名称',
+  `company_contacts` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司联系人',
+  `company_address` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司地址',
+  `company_tel` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司电话',
+  `company_fax` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司传真',
+  `company_post_code` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '公司邮编',
+  `sale_agreement` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '销售协议',
+  `depot_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '仓库启用标记，0未启用，1启用',
+  `customer_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '客户启用标记，0未启用，1启用',
+  `minus_stock_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '负库存启用标记，0未启用，1启用',
+  `purchase_by_sale_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '以销定购启用标记，0未启用，1启用',
+  `multi_level_approval_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '多级审核启用标记，0未启用，1启用',
+  `multi_bill_type` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '流程类型，可多选',
+  `force_approval_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '强审核启用标记，0未启用，1启用',
+  `update_unit_price_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '1' COMMENT '更新单价启用标记，0未启用，1启用',
+  `over_link_bill_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '超出关联单据启用标记，0未启用，1启用',
+  `in_out_manage_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '出入库管理启用标记，0未启用，1启用',
+  `multi_account_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '多账户启用标记，0未启用，1启用',
+  `move_avg_price_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '移动平均价启用标记，0未启用，1启用',
+  `audit_print_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '先审核后打印启用标记，0未启用，1启用',
+  `zero_change_amount_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '零收付款启用标记，0未启用，1启用',
+  `customer_static_price_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '客户静态单价启用标记，0未启用，1启用',
+  `material_price_tax_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '商品价格含税启用标记，0未启用，1启用',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+  `price_by_weight_flag` varchar(1) DEFAULT '0' COMMENT '按重量计价开关，0-关闭，1-开启',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '系统参数' ROW_FORMAT = Compact;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='系统参数';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_system_config
--- ----------------------------
-INSERT INTO `jsh_system_config` VALUES (11, '公司test', '小李', '地址1', '12345678', NULL, NULL, '注：本单为我公司与客户约定账期内结款的依据，由客户或其单位员工签字生效，并承担法律责任。', '0', '0', '1', '0', '0', '', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', 63, '0');
+--
+-- Dumping data for table `jsh_system_config`
+--
 
--- ----------------------------
--- Table structure for jsh_tenant
--- ----------------------------
+LOCK TABLES `jsh_system_config` WRITE;
+/*!40000 ALTER TABLE `jsh_system_config` DISABLE KEYS */;
+INSERT INTO `jsh_system_config` VALUES (11,'公司test','小李','地址1','12345678',NULL,NULL,'注：本单为我公司与客户约定账期内结款的依据，由客户或其单位员工签字生效，并承担法律责任。','0','0','1','0','0','','0','1','0','0','0','0','0','0','0','0',63,'0','0'),(12,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'0','0','0','0','0',NULL,'0','1','0','0','0','0','0','0','0','0',147,'0','1');
+/*!40000 ALTER TABLE `jsh_system_config` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_tenant`
+--
+
 DROP TABLE IF EXISTS `jsh_tenant`;
-CREATE TABLE `jsh_tenant`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '用户id',
-  `login_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '登录名',
-  `user_num_limit` int(0) NULL DEFAULT NULL COMMENT '用户数量限制',
-  `type` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '租户类型，0免费租户，1付费租户',
-  `enabled` bit(1) NULL DEFAULT b'1' COMMENT '启用 0-禁用  1-启用',
-  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
-  `expire_time` datetime(0) NULL DEFAULT NULL COMMENT '到期时间',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_tenant` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `tenant_id` bigint DEFAULT NULL COMMENT '用户id',
+  `login_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '登录名',
+  `user_num_limit` int DEFAULT NULL COMMENT '用户数量限制',
+  `type` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '租户类型，0免费租户，1付费租户',
+  `enabled` bit(1) DEFAULT b'1' COMMENT '启用 0-禁用  1-启用',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `expire_time` datetime DEFAULT NULL COMMENT '到期时间',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `create_time`(`create_time`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '租户' ROW_FORMAT = Dynamic;
+  KEY `create_time` (`create_time`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='租户';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_tenant
--- ----------------------------
-INSERT INTO `jsh_tenant` VALUES (13, 63, 'jsh', 2000, '1', b'1', '2021-02-17 23:19:17', '2099-02-17 23:19:17', NULL, '0');
+--
+-- Dumping data for table `jsh_tenant`
+--
 
--- ----------------------------
--- Table structure for jsh_unit
--- ----------------------------
+LOCK TABLES `jsh_tenant` WRITE;
+/*!40000 ALTER TABLE `jsh_tenant` DISABLE KEYS */;
+INSERT INTO `jsh_tenant` VALUES (13,63,'jsh',2000,'1',_binary '','2021-02-17 23:19:17','2099-02-17 23:19:17',NULL,'0'),(14,147,'test0',1000000,'1',_binary '','2026-03-29 11:00:41','2034-06-15 11:00:41',NULL,'0');
+/*!40000 ALTER TABLE `jsh_tenant` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_unit`
+--
+
 DROP TABLE IF EXISTS `jsh_unit`;
-CREATE TABLE `jsh_unit`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '名称，支持多单位',
-  `basic_unit` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '基础单位',
-  `other_unit` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '副单位',
-  `other_unit_two` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '副单位2',
-  `other_unit_three` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '副单位3',
-  `ratio` decimal(24, 3) NULL DEFAULT NULL COMMENT '比例',
-  `ratio_two` decimal(24, 3) NULL DEFAULT NULL COMMENT '比例2',
-  `ratio_three` decimal(24, 3) NULL DEFAULT NULL COMMENT '比例3',
-  `enabled` bit(1) NULL DEFAULT NULL COMMENT '启用',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_unit` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '名称，支持多单位',
+  `basic_unit` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '基础单位',
+  `other_unit` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '副单位',
+  `other_unit_two` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '副单位2',
+  `other_unit_three` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '副单位3',
+  `ratio` decimal(24,3) DEFAULT NULL COMMENT '比例',
+  `ratio_two` decimal(24,3) DEFAULT NULL COMMENT '比例2',
+  `ratio_three` decimal(24,3) DEFAULT NULL COMMENT '比例3',
+  `enabled` bit(1) DEFAULT NULL COMMENT '启用',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '多单位表' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='多单位表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_unit
--- ----------------------------
-INSERT INTO `jsh_unit` VALUES (15, '个/(箱=12个)', '个', '箱', NULL, NULL, 12.000, NULL, NULL, b'1', 63, '0');
-INSERT INTO `jsh_unit` VALUES (19, '个/(盒=15个)', '个', '盒', NULL, NULL, 15.000, NULL, NULL, b'1', 63, '0');
-INSERT INTO `jsh_unit` VALUES (20, '盒/(箱=8盒)', '盒', '箱', NULL, NULL, 8.000, NULL, NULL, b'1', 63, '0');
-INSERT INTO `jsh_unit` VALUES (21, '瓶/(箱=12瓶)', '瓶', '箱', NULL, NULL, 12.000, NULL, NULL, b'1', 63, '0');
+--
+-- Dumping data for table `jsh_unit`
+--
 
--- ----------------------------
--- Table structure for jsh_user
--- ----------------------------
+LOCK TABLES `jsh_unit` WRITE;
+/*!40000 ALTER TABLE `jsh_unit` DISABLE KEYS */;
+INSERT INTO `jsh_unit` VALUES (15,'个/(箱=12个)','个','箱',NULL,NULL,12.000,NULL,NULL,_binary '',63,'0'),(19,'个/(盒=15个)','个','盒',NULL,NULL,15.000,NULL,NULL,_binary '',63,'0'),(20,'盒/(箱=8盒)','盒','箱',NULL,NULL,8.000,NULL,NULL,_binary '',63,'0'),(21,'瓶/(箱=12瓶)','瓶','箱',NULL,NULL,12.000,NULL,NULL,_binary '',63,'0');
+/*!40000 ALTER TABLE `jsh_unit` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_user`
+--
+
 DROP TABLE IF EXISTS `jsh_user`;
-CREATE TABLE `jsh_user`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `username` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '用户姓名--例如张三',
-  `login_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '登录用户名',
-  `password` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '登陆密码',
-  `leader_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '是否经理，0否，1是',
-  `position` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '职位',
-  `department` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '所属部门',
-  `email` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '电子邮箱',
-  `phonenum` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '手机号码',
-  `ismanager` tinyint(0) NOT NULL DEFAULT 1 COMMENT '是否为管理者 0==管理者 1==员工',
-  `isystem` tinyint(0) NOT NULL DEFAULT 0 COMMENT '是否系统自带数据 ',
-  `status` tinyint(0) NULL DEFAULT 0 COMMENT '状态，0正常，2封禁',
-  `description` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '用户描述信息',
-  `remark` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `weixin_open_id` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '微信绑定',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_user` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `username` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '用户姓名--例如张三',
+  `login_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '登录用户名',
+  `password` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '登陆密码',
+  `leader_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '是否经理，0否，1是',
+  `position` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '职位',
+  `department` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '所属部门',
+  `email` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '电子邮箱',
+  `phonenum` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '手机号码',
+  `ismanager` tinyint NOT NULL DEFAULT '1' COMMENT '是否为管理者 0==管理者 1==员工',
+  `isystem` tinyint NOT NULL DEFAULT '0' COMMENT '是否系统自带数据 ',
+  `status` tinyint DEFAULT '0' COMMENT '状态，0正常，2封禁',
+  `description` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '用户描述信息',
+  `remark` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '备注',
+  `weixin_open_id` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '微信绑定',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 146 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB AUTO_INCREMENT=148 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='用户表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_user
--- ----------------------------
-INSERT INTO `jsh_user` VALUES (63, '测试用户', 'jsh', 'e10adc3949ba59abbe56e057f20f883e', '0', '主管', NULL, '666666@qq.com', '1123123123132', 1, 1, 0, '', NULL, NULL, 63, '0');
-INSERT INTO `jsh_user` VALUES (120, '管理员', 'admin', 'e10adc3949ba59abbe56e057f20f883e', '0', NULL, NULL, NULL, NULL, 1, 0, 0, NULL, NULL, NULL, 0, '0');
-INSERT INTO `jsh_user` VALUES (131, 'test123', 'test123', 'e10adc3949ba59abbe56e057f20f883e', '0', '总监', NULL, '7777777@qq.com', '', 1, 0, 0, '', NULL, NULL, 63, '0');
+--
+-- Dumping data for table `jsh_user`
+--
 
--- ----------------------------
--- Table structure for jsh_user_business
--- ----------------------------
+LOCK TABLES `jsh_user` WRITE;
+/*!40000 ALTER TABLE `jsh_user` DISABLE KEYS */;
+INSERT INTO `jsh_user` VALUES (63,'测试用户','jsh','e10adc3949ba59abbe56e057f20f883e','0','主管',NULL,'666666@qq.com','1123123123132',1,1,0,'',NULL,NULL,63,'0'),(120,'管理员','admin','e10adc3949ba59abbe56e057f20f883e','0',NULL,NULL,NULL,NULL,1,0,0,NULL,NULL,NULL,0,'0'),(131,'test123','test123','e10adc3949ba59abbe56e057f20f883e','0','总监',NULL,'7777777@qq.com','',1,0,0,'',NULL,NULL,63,'0'),(146,'test','test','47ec2dd791e31e2ef2076caf64ed9b3d','0',NULL,NULL,NULL,NULL,1,0,0,NULL,NULL,NULL,63,'0'),(147,'test0','test0','59f2443a4317918ce29ad28a14e1bdb7','0',NULL,NULL,NULL,NULL,1,0,0,NULL,NULL,NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jsh_user_business`
+--
+
 DROP TABLE IF EXISTS `jsh_user_business`;
-CREATE TABLE `jsh_user_business`  (
-  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '类别',
-  `key_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '主id',
-  `value` varchar(10000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '值',
-  `btn_str` varchar(2000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '按钮权限',
-  `tenant_id` bigint(0) NULL DEFAULT NULL COMMENT '租户id',
-  `delete_flag` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jsh_user_business` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `type` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '类别',
+  `key_id` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '主id',
+  `value` varchar(10000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '值',
+  `btn_str` varchar(2000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '按钮权限',
+  `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
+  `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `type`(`type`) USING BTREE,
-  INDEX `key_id`(`key_id`) USING BTREE,
-  INDEX `tenant_id`(`tenant_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 83 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户/角色/模块关系表' ROW_FORMAT = Dynamic;
+  KEY `type` (`type`) USING BTREE,
+  KEY `key_id` (`key_id`) USING BTREE,
+  KEY `tenant_id` (`tenant_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=DYNAMIC COMMENT='用户/角色/模块关系表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- ----------------------------
--- Records of jsh_user_business
--- ----------------------------
-INSERT INTO `jsh_user_business` VALUES (5, 'RoleFunctions', '4', '[210][225][211][241][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212][246][198][207][259][208][209][226][227][248][228][229][59][235][237][244][22][21][23][220][247][25][24][217][218][26][194][195][31][13][1][14][243][15][234][16][18][236][245][258][261][32]', '[{\"funId\":13,\"btnStr\":\"1\"},{\"funId\":14,\"btnStr\":\"1\"},{\"funId\":243,\"btnStr\":\"1\"},{\"funId\":234,\"btnStr\":\"1\"},{\"funId\":16,\"btnStr\":\"1\"},{\"funId\":18,\"btnStr\":\"1\"},{\"funId\":236,\"btnStr\":\"1\"},{\"funId\":245,\"btnStr\":\"1\"},{\"funId\":22,\"btnStr\":\"1\"},{\"funId\":23,\"btnStr\":\"1,3\"},{\"funId\":220,\"btnStr\":\"1\"},{\"funId\":247,\"btnStr\":\"1\"},{\"funId\":25,\"btnStr\":\"1,3\"},{\"funId\":217,\"btnStr\":\"1,3\"},{\"funId\":218,\"btnStr\":\"1,3\"},{\"funId\":26,\"btnStr\":\"1\"},{\"funId\":194,\"btnStr\":\"1\"},{\"funId\":195,\"btnStr\":\"1\"},{\"funId\":31,\"btnStr\":\"1\"},{\"funId\":261,\"btnStr\":\"1,2,7,3\"},{\"funId\":241,\"btnStr\":\"1,2,7,3\"},{\"funId\":33,\"btnStr\":\"1,2,7,3\"},{\"funId\":199,\"btnStr\":\"1,2,7,3\"},{\"funId\":242,\"btnStr\":\"1,2,7,3\"},{\"funId\":41,\"btnStr\":\"1,2,7,3\"},{\"funId\":200,\"btnStr\":\"1,2,7,3\"},{\"funId\":210,\"btnStr\":\"1,2,7,3\"},{\"funId\":211,\"btnStr\":\"1,2,7,3\"},{\"funId\":197,\"btnStr\":\"1,7,2,3\"},{\"funId\":203,\"btnStr\":\"1,7,2,3\"},{\"funId\":204,\"btnStr\":\"1,7,2,3\"},{\"funId\":205,\"btnStr\":\"1,7,2,3\"},{\"funId\":206,\"btnStr\":\"1,2,7,3\"},{\"funId\":212,\"btnStr\":\"1,7,2,3\"},{\"funId\":201,\"btnStr\":\"1,2,7,3\"},{\"funId\":202,\"btnStr\":\"1,2,7,3\"},{\"funId\":40,\"btnStr\":\"1,2,7,3\"},{\"funId\":232,\"btnStr\":\"1,2,7,3\"},{\"funId\":233,\"btnStr\":\"1,2,7,3\"}]', NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (6, 'RoleFunctions', '5', '[22][23][25][26][194][195][31][33][200][201][41][199][202]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (7, 'RoleFunctions', '6', '[22][23][220][240][25][217][218][26][194][195][31][59][207][208][209][226][227][228][229][235][237][210][211][241][33][199][242][41][200][201][202][40][232][233][197][203][204][205][206][212]', '[{\"funId\":\"33\",\"btnStr\":\"4\"}]', NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (9, 'RoleFunctions', '7', '[168][13][12][16][14][15][189][18][19][132]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (10, 'RoleFunctions', '8', '[168][13][12][16][14][15][189][18][19][132][22][23][25][26][27][157][158][155][156][125][31][127][126][128][33][34][35][36][37][39][40][41][42][43][46][47][48][49][50][51][52][53][54][55][56][57][192][59][60][61][62][63][65][66][68][69][70][71][73][74][76][77][79][191][81][82][83][85][89][161][86][176][165][160][28][134][91][92][29][94][95][97][104][99][100][101][102][105][107][108][110][111][113][114][116][117][118][120][121][131][135][123][122][20][130][146][147][138][148][149][153][140][145][184][152][143][170][171][169][166][167][163][164][172][173][179][178][181][182][183][186][187][247]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (11, 'RoleFunctions', '9', '[168][13][12][16][14][15][189][18][19][132][22][23][25][26][27][157][158][155][156][125][31][127][126][128][33][34][35][36][37][39][40][41][42][43][46][47][48][49][50][51][52][53][54][55][56][57][192][59][60][61][62][63][65][66][68][69][70][71][73][74][76][77][79][191][81][82][83][85][89][161][86][176][165][160][28][134][91][92][29][94][95][97][104][99][100][101][102][105][107][108][110][111][113][114][116][117][118][120][121][131][135][123][122][20][130][146][147][138][148][149][153][140][145][184][152][143][170][171][169][166][167][163][164][172][173][179][178][181][182][183][186][187][188]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (12, 'UserRole', '1', '[5]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (13, 'UserRole', '2', '[6][7]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (14, 'UserDepot', '2', '[1][2][6][7]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (15, 'UserDepot', '1', '[1][2][5][6][7][10][12][14][15][17]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (16, 'UserRole', '63', '[10]', NULL, 63, '0');
-INSERT INTO `jsh_user_business` VALUES (18, 'UserDepot', '63', '[14][15]', NULL, 63, '0');
-INSERT INTO `jsh_user_business` VALUES (19, 'UserDepot', '5', '[6][45][46][50]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (20, 'UserRole', '5', '[5]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (21, 'UserRole', '64', '[13]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (22, 'UserDepot', '64', '[1]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (23, 'UserRole', '65', '[5]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (24, 'UserDepot', '65', '[1]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (25, 'UserCustomer', '64', '[5][2]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (26, 'UserCustomer', '65', '[6]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (27, 'UserCustomer', '63', '[58]', NULL, 63, '0');
-INSERT INTO `jsh_user_business` VALUES (28, 'UserDepot', '96', '[7]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (29, 'UserRole', '96', '[6]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (30, 'UserRole', '113', '[10]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (32, 'RoleFunctions', '10', '[210][225][211][261][32][241][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212][246][198][207][259][208][209][226][227][248][228][229][59][235][237][244][22][21][23][220][247][25][24][217][218][26][194][195][31][13][14][243][15][234][236]', '[{\"funId\":13,\"btnStr\":\"1\"},{\"funId\":14,\"btnStr\":\"1\"},{\"funId\":243,\"btnStr\":\"1\"},{\"funId\":234,\"btnStr\":\"1\"},{\"funId\":236,\"btnStr\":\"1\"},{\"funId\":22,\"btnStr\":\"1\"},{\"funId\":23,\"btnStr\":\"1,3\"},{\"funId\":220,\"btnStr\":\"1\"},{\"funId\":247,\"btnStr\":\"1\"},{\"funId\":25,\"btnStr\":\"1,3\"},{\"funId\":217,\"btnStr\":\"1,3\"},{\"funId\":218,\"btnStr\":\"1,3\"},{\"funId\":26,\"btnStr\":\"1\"},{\"funId\":194,\"btnStr\":\"1\"},{\"funId\":195,\"btnStr\":\"1\"},{\"funId\":31,\"btnStr\":\"1\"},{\"funId\":261,\"btnStr\":\"1,2,7,3\"},{\"funId\":241,\"btnStr\":\"1,2,7,3\"},{\"funId\":33,\"btnStr\":\"1,2,7,3\"},{\"funId\":199,\"btnStr\":\"1,7,2,3\"},{\"funId\":242,\"btnStr\":\"1,2,7,3\"},{\"funId\":41,\"btnStr\":\"1,2,7,3\"},{\"funId\":200,\"btnStr\":\"1,2,7,3\"},{\"funId\":210,\"btnStr\":\"1,2,7,3\"},{\"funId\":211,\"btnStr\":\"1,2,7,3\"},{\"funId\":197,\"btnStr\":\"1,2,7,3\"},{\"funId\":203,\"btnStr\":\"1,7,2,3\"},{\"funId\":204,\"btnStr\":\"1,7,2,3\"},{\"funId\":205,\"btnStr\":\"1,2,7,3\"},{\"funId\":206,\"btnStr\":\"1,7,2,3\"},{\"funId\":212,\"btnStr\":\"1,2,7,3\"},{\"funId\":201,\"btnStr\":\"1,2,7,3\"},{\"funId\":202,\"btnStr\":\"1,2,7,3\"},{\"funId\":40,\"btnStr\":\"1,2,7,3\"},{\"funId\":232,\"btnStr\":\"1,2,7,3\"},{\"funId\":233,\"btnStr\":\"1,2,7,3\"}]', NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (34, 'UserRole', '115', '[10]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (35, 'UserRole', '117', '[10]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (36, 'UserDepot', '117', '[8][9]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (37, 'UserCustomer', '117', '[52]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (38, 'UserRole', '120', '[4]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (41, 'RoleFunctions', '12', '', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (48, 'RoleFunctions', '13', '[59][207][208][209][226][227][228][229][235][237][210][211][241][33][199][242][41][200]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (51, 'UserRole', '74', '[10]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (52, 'UserDepot', '121', '[13]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (54, 'UserDepot', '115', '[13]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (56, 'UserCustomer', '115', '[56]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (57, 'UserCustomer', '121', '[56]', NULL, NULL, '0');
-INSERT INTO `jsh_user_business` VALUES (67, 'UserRole', '131', '[17]', NULL, 63, '0');
-INSERT INTO `jsh_user_business` VALUES (68, 'RoleFunctions', '16', '[210]', NULL, 63, '0');
-INSERT INTO `jsh_user_business` VALUES (69, 'RoleFunctions', '17', '[210][225][211][241][32][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212]', '[{\"funId\":\"241\",\"btnStr\":\"1,2\"},{\"funId\":\"33\",\"btnStr\":\"1,2\"},{\"funId\":\"199\",\"btnStr\":\"1,2\"},{\"funId\":\"242\",\"btnStr\":\"1,2\"},{\"funId\":\"41\",\"btnStr\":\"1,2\"},{\"funId\":\"200\",\"btnStr\":\"1,2\"},{\"funId\":\"210\",\"btnStr\":\"1,2\"},{\"funId\":\"211\",\"btnStr\":\"1,2\"},{\"funId\":\"197\",\"btnStr\":\"1\"},{\"funId\":\"203\",\"btnStr\":\"1\"},{\"funId\":\"204\",\"btnStr\":\"1\"},{\"funId\":\"205\",\"btnStr\":\"1\"},{\"funId\":\"206\",\"btnStr\":\"1\"},{\"funId\":\"212\",\"btnStr\":\"1\"},{\"funId\":\"201\",\"btnStr\":\"1,2\"},{\"funId\":\"202\",\"btnStr\":\"1,2\"},{\"funId\":\"40\",\"btnStr\":\"1,2\"},{\"funId\":\"232\",\"btnStr\":\"1,2\"},{\"funId\":\"233\",\"btnStr\":\"1,2\"}]', 63, '0');
+--
+-- Dumping data for table `jsh_user_business`
+--
 
-SET FOREIGN_KEY_CHECKS = 1;
+LOCK TABLES `jsh_user_business` WRITE;
+/*!40000 ALTER TABLE `jsh_user_business` DISABLE KEYS */;
+INSERT INTO `jsh_user_business` VALUES (5,'RoleFunctions','4','[210][225][211][241][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212][246][198][207][259][208][209][226][227][248][228][229][59][235][237][244][22][21][23][220][247][25][24][217][218][26][194][195][31][13][1][14][243][15][234][16][18][236][245][258][261][32][262][263][264][266]','[{\"funId\": 13, \"btnStr\": \"1\"}, {\"funId\": 14, \"btnStr\": \"1\"}, {\"funId\": 243, \"btnStr\": \"1\"}, {\"funId\": 234, \"btnStr\": \"1\"}, {\"funId\": 16, \"btnStr\": \"1\"}, {\"funId\": 18, \"btnStr\": \"1\"}, {\"funId\": 236, \"btnStr\": \"1\"}, {\"funId\": 245, \"btnStr\": \"1\"}, {\"funId\": 22, \"btnStr\": \"1\"}, {\"funId\": 23, \"btnStr\": \"1,3\"}, {\"funId\": 220, \"btnStr\": \"1\"}, {\"funId\": 247, \"btnStr\": \"1\"}, {\"funId\": 25, \"btnStr\": \"1,3\"}, {\"funId\": 217, \"btnStr\": \"1,3\"}, {\"funId\": 218, \"btnStr\": \"1,3\"}, {\"funId\": 26, \"btnStr\": \"1\"}, {\"funId\": 194, \"btnStr\": \"1\"}, {\"funId\": 195, \"btnStr\": \"1\"}, {\"funId\": 31, \"btnStr\": \"1\"}, {\"funId\": 261, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 241, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 33, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 199, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 242, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 41, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 200, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 210, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 211, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 197, \"btnStr\": \"1,7,2,3\"}, {\"funId\": 203, \"btnStr\": \"1,7,2,3\"}, {\"funId\": 204, \"btnStr\": \"1,7,2,3\"}, {\"funId\": 205, \"btnStr\": \"1,7,2,3\"}, {\"funId\": 206, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 212, \"btnStr\": \"1,7,2,3\"}, {\"funId\": 201, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 202, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 40, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 232, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 233, \"btnStr\": \"1,2,7,3\"}, {\"funId\": 263, \"btnStr\": \"1,2,7\"}, {\"funId\": 264, \"btnStr\": \"1\"}]',NULL,'0'),(6,'RoleFunctions','5','[22][23][25][26][194][195][31][33][200][201][41][199][202]',NULL,NULL,'0'),(7,'RoleFunctions','6','[22][23][220][240][25][217][218][26][194][195][31][59][207][208][209][226][227][228][229][235][237][210][211][241][33][199][242][41][200][201][202][40][232][233][197][203][204][205][206][212]','[{\"funId\":\"33\",\"btnStr\":\"4\"}]',NULL,'0'),(9,'RoleFunctions','7','[168][13][12][16][14][15][189][18][19][132]',NULL,NULL,'0'),(10,'RoleFunctions','8','[168][13][12][16][14][15][189][18][19][132][22][23][25][26][27][157][158][155][156][125][31][127][126][128][33][34][35][36][37][39][40][41][42][43][46][47][48][49][50][51][52][53][54][55][56][57][192][59][60][61][62][63][65][66][68][69][70][71][73][74][76][77][79][191][81][82][83][85][89][161][86][176][165][160][28][134][91][92][29][94][95][97][104][99][100][101][102][105][107][108][110][111][113][114][116][117][118][120][121][131][135][123][122][20][130][146][147][138][148][149][153][140][145][184][152][143][170][171][169][166][167][163][164][172][173][179][178][181][182][183][186][187][247]',NULL,NULL,'0'),(11,'RoleFunctions','9','[168][13][12][16][14][15][189][18][19][132][22][23][25][26][27][157][158][155][156][125][31][127][126][128][33][34][35][36][37][39][40][41][42][43][46][47][48][49][50][51][52][53][54][55][56][57][192][59][60][61][62][63][65][66][68][69][70][71][73][74][76][77][79][191][81][82][83][85][89][161][86][176][165][160][28][134][91][92][29][94][95][97][104][99][100][101][102][105][107][108][110][111][113][114][116][117][118][120][121][131][135][123][122][20][130][146][147][138][148][149][153][140][145][184][152][143][170][171][169][166][167][163][164][172][173][179][178][181][182][183][186][187][188]',NULL,NULL,'0'),(12,'UserRole','1','[5]',NULL,NULL,'0'),(13,'UserRole','2','[6][7]',NULL,NULL,'0'),(14,'UserDepot','2','[1][2][6][7]',NULL,NULL,'0'),(15,'UserDepot','1','[1][2][5][6][7][10][12][14][15][17]',NULL,NULL,'0'),(16,'UserRole','63','[10]',NULL,63,'0'),(18,'UserDepot','63','[14][15]',NULL,63,'0'),(19,'UserDepot','5','[6][45][46][50]',NULL,NULL,'0'),(20,'UserRole','5','[5]',NULL,NULL,'0'),(21,'UserRole','64','[13]',NULL,NULL,'0'),(22,'UserDepot','64','[1]',NULL,NULL,'0'),(23,'UserRole','65','[5]',NULL,NULL,'0'),(24,'UserDepot','65','[1]',NULL,NULL,'0'),(25,'UserCustomer','64','[5][2]',NULL,NULL,'0'),(26,'UserCustomer','65','[6]',NULL,NULL,'0'),(27,'UserCustomer','63','[58]',NULL,63,'0'),(28,'UserDepot','96','[7]',NULL,NULL,'0'),(29,'UserRole','96','[6]',NULL,NULL,'0'),(30,'UserRole','113','[10]',NULL,NULL,'0'),(32,'RoleFunctions','10','[210][225][211][261][32][241][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212][265][264][246][198][207][259][208][209][226][227][248][228][229][59][235][237][244][22][21][23][220][247][25][24][217][218][26][194][195][31][263][13][1][14][243][15][236][234][262][266]','[{\"funId\":13,\"btnStr\":\"1\"},{\"funId\":14,\"btnStr\":\"1\"},{\"funId\":243,\"btnStr\":\"1\"},{\"funId\":236,\"btnStr\":\"1\"},{\"funId\":234,\"btnStr\":\"1\"},{\"funId\":22,\"btnStr\":\"1\"},{\"funId\":23,\"btnStr\":\"1,3\"},{\"funId\":220,\"btnStr\":\"1\"},{\"funId\":247,\"btnStr\":\"1\"},{\"funId\":25,\"btnStr\":\"1,3\"},{\"funId\":217,\"btnStr\":\"1,3\"},{\"funId\":218,\"btnStr\":\"1,3\"},{\"funId\":26,\"btnStr\":\"1\"},{\"funId\":194,\"btnStr\":\"1\"},{\"funId\":195,\"btnStr\":\"1\"},{\"funId\":31,\"btnStr\":\"1\"},{\"funId\":263,\"btnStr\":\"1\"},{\"funId\":261,\"btnStr\":\"1,2,3,7\"},{\"funId\":241,\"btnStr\":\"1,2,3,7\"},{\"funId\":33,\"btnStr\":\"1,2,3,7\"},{\"funId\":199,\"btnStr\":\"1,2,3,7\"},{\"funId\":242,\"btnStr\":\"1,2,3,7\"},{\"funId\":41,\"btnStr\":\"1,2,3,7\"},{\"funId\":200,\"btnStr\":\"1,2,3,7\"},{\"funId\":210,\"btnStr\":\"1,2,3,7\"},{\"funId\":211,\"btnStr\":\"1,2,3,7\"},{\"funId\":264,\"btnStr\":\"1,2,3,7\"},{\"funId\":197,\"btnStr\":\"1,2,3,7\"},{\"funId\":203,\"btnStr\":\"1,2,3,7\"},{\"funId\":204,\"btnStr\":\"1,2,3,7\"},{\"funId\":205,\"btnStr\":\"1,2,3,7\"},{\"funId\":206,\"btnStr\":\"1,2,3,7\"},{\"funId\":212,\"btnStr\":\"1,2,3,7\"},{\"funId\":201,\"btnStr\":\"1,2,3,7\"},{\"funId\":202,\"btnStr\":\"1,2,3,7\"},{\"funId\":40,\"btnStr\":\"1,2,3,7\"},{\"funId\":232,\"btnStr\":\"1,2,3,7\"},{\"funId\":233,\"btnStr\":\"1,2,3,7\"}]',NULL,'0'),(34,'UserRole','115','[10]',NULL,NULL,'0'),(35,'UserRole','117','[10]',NULL,NULL,'0'),(36,'UserDepot','117','[8][9]',NULL,NULL,'0'),(37,'UserCustomer','117','[52]',NULL,NULL,'0'),(38,'UserRole','120','[4]',NULL,NULL,'0'),(41,'RoleFunctions','12','',NULL,NULL,'0'),(48,'RoleFunctions','13','[59][207][208][209][226][227][228][229][235][237][210][211][241][33][199][242][41][200]',NULL,NULL,'0'),(51,'UserRole','74','[10]',NULL,NULL,'0'),(52,'UserDepot','121','[13]',NULL,NULL,'0'),(54,'UserDepot','115','[13]',NULL,NULL,'0'),(56,'UserCustomer','115','[56]',NULL,NULL,'0'),(57,'UserCustomer','121','[56]',NULL,NULL,'0'),(67,'UserRole','131','[17]',NULL,63,'0'),(68,'RoleFunctions','16','[210][225][211][32][261][241][33][199][38][242][41][200][239][201][202][40][232][233][44][197][203][204][205][206][212][198][246][207][259][208][209][226][227][248][228][229][59][235][237][244][21][22][23][220][247][24][25][217][218][26][194][195][31]','[{\"funId\":22,\"btnStr\":\"1\"},{\"funId\":23,\"btnStr\":\"1,3\"},{\"funId\":220,\"btnStr\":\"1\"},{\"funId\":247,\"btnStr\":\"1\"},{\"funId\":25,\"btnStr\":\"1,3\"},{\"funId\":217,\"btnStr\":\"1,3\"},{\"funId\":218,\"btnStr\":\"1,3\"},{\"funId\":26,\"btnStr\":\"1\"},{\"funId\":194,\"btnStr\":\"1\"},{\"funId\":195,\"btnStr\":\"1\"},{\"funId\":31,\"btnStr\":\"1\"},{\"funId\":261,\"btnStr\":\"1,2,3,7\"},{\"funId\":241,\"btnStr\":\"1,2,3,7\"},{\"funId\":33,\"btnStr\":\"1,2,3,7\"},{\"funId\":199,\"btnStr\":\"1,2,3,7\"},{\"funId\":242,\"btnStr\":\"1,2,3,7\"},{\"funId\":41,\"btnStr\":\"1,2,3,7\"},{\"funId\":200,\"btnStr\":\"1,2,3,7\"},{\"funId\":210,\"btnStr\":\"1,2,3,7\"},{\"funId\":211,\"btnStr\":\"1,2,3,7\"},{\"funId\":197,\"btnStr\":\"1,2,3,7\"},{\"funId\":203,\"btnStr\":\"1,2,3,7\"},{\"funId\":204,\"btnStr\":\"1,2,3,7\"},{\"funId\":205,\"btnStr\":\"1,2,3,7\"},{\"funId\":206,\"btnStr\":\"1,2,3,7\"},{\"funId\":212,\"btnStr\":\"1,2,3,7\"},{\"funId\":201,\"btnStr\":\"1,2,3,7\"},{\"funId\":202,\"btnStr\":\"1,2,3,7\"},{\"funId\":40,\"btnStr\":\"1,2,3,7\"},{\"funId\":232,\"btnStr\":\"1,2,3,7\"},{\"funId\":233,\"btnStr\":\"1,2,3,7\"}]',63,'0'),(69,'RoleFunctions','17','[210][225][211][241][32][33][199][242][38][41][200][201][239][202][40][232][233][197][44][203][204][205][206][212]','[{\"funId\":\"241\",\"btnStr\":\"1,2\"},{\"funId\":\"33\",\"btnStr\":\"1,2\"},{\"funId\":\"199\",\"btnStr\":\"1,2\"},{\"funId\":\"242\",\"btnStr\":\"1,2\"},{\"funId\":\"41\",\"btnStr\":\"1,2\"},{\"funId\":\"200\",\"btnStr\":\"1,2\"},{\"funId\":\"210\",\"btnStr\":\"1,2\"},{\"funId\":\"211\",\"btnStr\":\"1,2\"},{\"funId\":\"197\",\"btnStr\":\"1\"},{\"funId\":\"203\",\"btnStr\":\"1\"},{\"funId\":\"204\",\"btnStr\":\"1\"},{\"funId\":\"205\",\"btnStr\":\"1\"},{\"funId\":\"206\",\"btnStr\":\"1\"},{\"funId\":\"212\",\"btnStr\":\"1\"},{\"funId\":\"201\",\"btnStr\":\"1,2\"},{\"funId\":\"202\",\"btnStr\":\"1,2\"},{\"funId\":\"40\",\"btnStr\":\"1,2\"},{\"funId\":\"232\",\"btnStr\":\"1,2\"},{\"funId\":\"233\",\"btnStr\":\"1,2\"}]',63,'0'),(83,'UserRole','146','[16]',NULL,63,'0'),(84,'UserRole','147','[10]',NULL,147,'0'),(85,'UserDepot','147','[19]',NULL,147,'0'),(86,'UserCustomer','147','[91]',NULL,147,'0');
+/*!40000 ALTER TABLE `jsh_user_business` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'jsh_erp'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-03-30 11:22:19

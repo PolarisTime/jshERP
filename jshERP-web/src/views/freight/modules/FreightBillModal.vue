@@ -27,7 +27,7 @@
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据编号">
               <span v-if="isReadOnly">{{ model.billNo }}</span>
-              <a-input v-else placeholder="请输入单据编号（为空则自动生成）" v-decorator.trim="['billNo']" />
+              <a-input v-else placeholder="自动生成" v-decorator.trim="['billNo']" disabled />
             </a-form-item>
           </a-col>
           <a-col :span="6">
@@ -380,11 +380,11 @@
       },
       add() {
         this.edit({});
-        // 自动生成 YF 前缀单据号，与出入库编码规格一致
-        getAction('/sequence/buildNumber').then((res) => {
+        // 自动生成运费单编号，格式: yyyyW0001
+        getAction('/freightHead/buildBillNo').then((res) => {
           if (res && res.code === 200) {
             this.$nextTick(() => {
-              this.form.setFieldsValue({ billNo: 'YF' + res.data.defaultNumber })
+              this.form.setFieldsValue({ billNo: res.data.billNo })
             })
           }
         })

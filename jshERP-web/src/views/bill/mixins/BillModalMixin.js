@@ -103,8 +103,10 @@ export const BillModalMixin = {
     addInit(amountNum) {
       getAction('/sequence/buildNumber').then((res) => {
         if (res && res.code === 200) {
-          this.model.defaultNumber = amountNum + res.data.defaultNumber
-          this.form.setFieldsValue({'number':amountNum + res.data.defaultNumber})
+          const year = new Date().getFullYear()
+          const billNo = year + amountNum + res.data.defaultNumber
+          this.model.defaultNumber = billNo
+          this.form.setFieldsValue({'number': billNo})
         }
       })
       this.$nextTick(() => {
@@ -133,7 +135,8 @@ export const BillModalMixin = {
     copyAddInit(amountNum) {
       getAction('/sequence/buildNumber').then((res) => {
         if (res && res.code === 200) {
-          this.form.setFieldsValue({'number':amountNum + res.data.defaultNumber})
+          const year = new Date().getFullYear()
+          this.form.setFieldsValue({'number': year + amountNum + res.data.defaultNumber})
         }
       })
       this.$nextTick(() => {

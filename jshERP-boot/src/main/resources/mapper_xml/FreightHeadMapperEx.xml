@@ -142,4 +142,12 @@
         </foreach>
         )
     </update>
+    <!-- 查询指定年份前缀的最大单据编号 -->
+    <select id="selectMaxBillNoByPrefix" resultType="java.lang.String">
+        select max(bill_no) from jsh_freight_head
+        where bill_no like concat(#{prefix}, '%')
+        and delete_flag = '0'
+        and tenant_id = #{tenantId}
+    </select>
+
 </mapper>

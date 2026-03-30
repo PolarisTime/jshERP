@@ -72,4 +72,9 @@ public interface FreightHeadMapperEx {
      * 取消付款标记
      */
     int cancelPayment(@Param("ids") String[] ids);
+
+    /**
+     * 查询指定年份前缀的最大单据编号
+     */
+    String selectMaxBillNoByPrefix(@Param("prefix") String prefix, @Param("tenantId") Long tenantId);
 }

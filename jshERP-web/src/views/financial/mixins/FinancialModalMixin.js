@@ -72,7 +72,8 @@ export const FinancialModalMixin = {
     addInit(amountNum) {
       getAction('/sequence/buildNumber').then((res) => {
         if (res && res.code === 200) {
-          this.form.setFieldsValue({'billNo':amountNum + res.data.defaultNumber})
+          const year = new Date().getFullYear()
+          this.form.setFieldsValue({'billNo': year + amountNum + res.data.defaultNumber})
         }
       })
       this.$nextTick(() => {

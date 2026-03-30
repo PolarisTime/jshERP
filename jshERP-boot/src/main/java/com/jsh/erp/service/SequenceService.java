@@ -121,18 +121,9 @@ public class SequenceService {
     }
 
     /**
-     * 格式化数字
+     * 格式化数字（6位零填充）
      */
     private String formatNumber(Long number) {
-        if (number < BusinessConstants.SEQ_TO_STRING_MIN_LENGTH) {
-            StringBuffer sb = new StringBuffer(number.toString());
-            int len = BusinessConstants.SEQ_TO_STRING_MIN_LENGTH.toString().length() - sb.length();
-            for (int i = 0; i < len; i++) {
-                sb.insert(0, BusinessConstants.SEQ_TO_STRING_LESS_INSERT);
-            }
-            return sb.toString();
-        } else {
-            return number.toString();
-        }
+        return String.format("%06d", number);
     }
 }
