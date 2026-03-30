@@ -36,6 +36,13 @@
                 <a-button style="margin-left: 8px" v-print="'#debtAccountPrint'" icon="printer">打印</a-button>
                 <a-button style="margin-left: 8px" @click="handleExportXls('欠款详情')" icon="download">导出</a-button>
                 <a-button style="margin-left: 8px" @click="handleHistoryFinancial" icon="history">{{historyText}}</a-button>
+                <column-setting-popover
+                  style="margin-left: 8px"
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                />
               </a-col>
             </span>
           </a-row>
@@ -50,6 +57,7 @@
           rowKey="id"
           :columns="columns"
           :dataSource="dataSource"
+          :components="handleDrag(columns)"
           :pagination="false"
           :loading="loading"
           @change="handleTableChange">
@@ -69,6 +77,7 @@
 <script>
   import BillDetail from '../../bill/dialog/BillDetail'
   import HistoryFinancialList from './HistoryFinancialList'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { getMpListShort } from "@/utils/util"
   import {mixinDevice} from '@/utils/mixin'
@@ -79,7 +88,8 @@
     mixins:[JeecgListMixin, mixinDevice],
     components: {
       BillDetail,
-      HistoryFinancialList
+      HistoryFinancialList,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -108,8 +118,9 @@
           xs: { span: 24 },
           sm: { span: 16 },
         },
+        pageName: 'debtAccountList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#', dataIndex: 'rowIndex', width:40, align:"center",
             customRender:function (t,r,index) {
@@ -134,6 +145,7 @@
           { title: '已收欠款', dataIndex: 'finishDebt',width:70},
           { title: '待收欠款', dataIndex: 'debt',width:70}
         ],
+        defDataIndex: ['rowIndex', 'number', 'organName', 'materialsList', 'operTimeStr', 'userName', 'needDebt', 'finishDebt', 'debt'],
         url: {
           list: "/depotHead/debtList",
           exportXlsUrl: "/depotHead/debtExport"
@@ -146,6 +158,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(organId, type, subType, organType, status, beginTime, endTime) {
@@ -155,15 +168,15 @@
         this.queryParam.status = status
         this.queryParam.beginTime = beginTime
         this.queryParam.endTime = endTime
-        this.columns[2].title = organType
+        this.defColumns[2].title = organType
         if(type === '入库') {
-          this.columns[7].title = '已付欠款'
-          this.columns[8].title = '待付欠款'
+          this.defColumns[7].title = '已付欠款'
+          this.defColumns[8].title = '待付欠款'
           this.historyText = '历史付款'
           this.financialType = '付款'
         } else if(type === '出库') {
-          this.columns[7].title = '已收欠款'
-          this.columns[8].title = '待收欠款'
+          this.defColumns[7].title = '已收欠款'
+          this.defColumns[8].title = '待收欠款'
           this.historyText = '历史收款'
           this.financialType = '收款'
         }

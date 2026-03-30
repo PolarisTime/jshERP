@@ -110,10 +110,15 @@
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
-          <a-tooltip placement="left" title="付款单的要素和录入原则与“收款单”相同。
-          付款单中优惠金额计入支出类中的付款优惠中，为负值 （因优惠意味着实际少付款）。" slot="action">
+          <a-tooltip placement="left" title='付款单的要素和录入原则与"收款单"相同。付款单中优惠金额计入支出类中的付款优惠中，为负值（因优惠意味着实际少付款）。' slot="action">
             <a-icon v-if="btnEnableList.indexOf(1)>-1" type="question-circle" style="font-size:20px;float:right;" />
           </a-tooltip>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -156,6 +161,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import MoneyOutModal from './modules/MoneyOutModal'
   import FinancialDetail from './dialog/FinancialDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
@@ -168,6 +174,7 @@
     name: "MoneyOutList",
     mixins:[JeecgListMixin, FinancialListMixin],
     components: {
+      ColumnSettingPopover,
       MoneyOutModal,
       FinancialDetail,
       BillExcelIframe,
@@ -201,8 +208,9 @@
         },
         prefixNo: 'FK',
         urlPath: '/financial/money_out',
+        pageName: 'moneyOutList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -224,6 +232,7 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['action', 'organName', 'billNo', 'billTimeStr', 'userName', 'handsPersonName', 'accountName', 'totalPrice', 'discountMoney', 'changeAmount', 'remark', 'status'],
         url: {
           list: "/accountHead/list",
           delete: "/accountHead/delete",
@@ -235,6 +244,7 @@
     computed: {
     },
     created () {
+      this.initColumnsSetting()
       this.initSystemConfig()
       this.initSupplier()
       this.initUser()

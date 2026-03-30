@@ -98,6 +98,12 @@
           <a-tooltip placement="left" title="针对会员模块，对会员收取预付款。" slot="action">
             <a-icon v-if="btnEnableList.indexOf(1)>-1" type="question-circle" style="font-size:20px;float:right;" />
           </a-tooltip>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -140,6 +146,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import AdvanceInModal from './modules/AdvanceInModal'
   import FinancialDetail from './dialog/FinancialDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
@@ -151,6 +158,7 @@
     name: "AdvanceInList",
     mixins:[JeecgListMixin, FinancialListMixin],
     components: {
+      ColumnSettingPopover,
       AdvanceInModal,
       FinancialDetail,
       BillExcelIframe,
@@ -182,8 +190,9 @@
         },
         prefixNo: 'SYF',
         urlPath: '/financial/advance_in',
+        pageName: 'advanceInList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -203,6 +212,7 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['action', 'organName', 'billNo', 'billTimeStr', 'userName', 'handsPersonName', 'totalPrice', 'changeAmount', 'remark', 'status'],
         url: {
           list: "/accountHead/list",
           delete: "/accountHead/delete",
@@ -214,6 +224,7 @@
     computed: {
     },
     created () {
+      this.initColumnsSetting()
       this.initSystemConfig()
       this.initRetail()
       this.initUser()

@@ -51,6 +51,13 @@
                   {{ toggleSearchStatus ? '收起' : '展开' }}
                   <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
                 </a>
+                <column-setting-popover
+                  style="margin-left: 8px"
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                />
               </a-col>
             </span>
             <template v-if="toggleSearchStatus">
@@ -115,6 +122,7 @@
 </template>
 <script>
   import FinancialDetail from '../../financial/dialog/FinancialDetail'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { FinancialListMixin } from '../../financial/mixins/FinancialListMixin'
   import JDate from '@/components/jeecg/JDate'
@@ -124,7 +132,8 @@
     mixins:[JeecgListMixin, FinancialListMixin],
     components: {
       FinancialDetail,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -154,11 +163,12 @@
         },
         prefixNo: '',
         disableMixinCreated: true,
+        pageName: 'historyFinancialList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -181,6 +191,7 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['rowIndex', 'billNo', 'organName', 'billTimeStr', 'userName', 'handsPersonName', 'totalPrice', 'discountMoney', 'changeAmount', 'remark', 'status'],
         url: {
           list: "/accountHead/list"
         }
@@ -189,6 +200,7 @@
     computed: {
     },
     created () {
+      this.initColumnsSetting()
       this.initSystemConfig()
       this.initUser()
       this.initPerson()
@@ -197,14 +209,14 @@
     methods: {
       show() {
         if(this.queryParam.type === '付款') {
-          this.columns[2].title = '供应商'
-          this.columns[6].title = '合计付款'
-          this.columns[8].title = '实际付款'
+          this.defColumns[2].title = '供应商'
+          this.defColumns[6].title = '合计付款'
+          this.defColumns[8].title = '实际付款'
           this.prefixNo = 'FK'
         } else if(this.queryParam.type === '收款') {
-          this.columns[2].title = '客户'
-          this.columns[6].title = '合计收款'
-          this.columns[8].title = '实际收款'
+          this.defColumns[2].title = '客户'
+          this.defColumns[6].title = '合计收款'
+          this.defColumns[8].title = '实际收款'
           this.prefixNo = 'SK'
         }
         this.loadData(1)

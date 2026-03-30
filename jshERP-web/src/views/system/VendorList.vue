@@ -52,6 +52,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(false)" icon="close-square">禁用</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleImportXls()" icon="import">导入</a-button>
           <a-button v-if="btnEnableList.indexOf(3)>-1" @click="handleExportXls('供应商信息')" icon="download">导出</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -61,6 +67,7 @@
             bordered
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -93,6 +100,7 @@
 <script>
   import VendorModal from './modules/VendorModal'
   import ImportFileModal from '@/components/tools/ImportFileModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
@@ -102,6 +110,7 @@
     components: {
       VendorModal,
       ImportFileModal,
+      ColumnSettingPopover,
       JDate
     },
     data () {
@@ -125,11 +134,13 @@
         ipagination:{
           pageSizeOptions: ['10', '20', '30', '100', '200']
         },
+        pageName: 'vendorList',
+        defDataIndex: ['rowIndex', 'action', 'supplier', 'contacts', 'telephone', 'phoneNum', 'email', 'beginNeedPay', 'allNeedPay', 'taxRate', 'sort', 'enabled'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:60,
             align:"center",
@@ -173,6 +184,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       searchReset() {

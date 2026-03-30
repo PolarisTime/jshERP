@@ -48,6 +48,14 @@
       <a-button v-if="checkFlag && isCanBackCheck && model.status==='1'" @click="handleBackCheck()">反审核</a-button>
     </template>
     <a-form :form="form">
+      <div style="margin-bottom: 8px; text-align: right;">
+        <column-setting-popover
+          :defColumns="defColumns"
+          :settingDataIndex.sync="settingDataIndex"
+          @change="onColChange"
+          @reset="handleRestDefault"
+        />
+      </div>
       <!--零售出库-->
       <template v-if="billType === '零售出库'">
         <section ref="print" id="retailOutPrint">
@@ -85,6 +93,7 @@
                   :pagination="false"
                   :loading="loading"
                   :columns="columns"
+                  :components="handleDrag(columns)"
                   :dataSource="dataSource">
                   <template slot="customBarCode" slot-scope="text, record">
                     <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -174,6 +183,7 @@
                   :pagination="false"
                   :loading="loading"
                   :columns="columns"
+                  :components="handleDrag(columns)"
                   :dataSource="dataSource">
                   <template slot="customBarCode" slot-scope="text, record">
                     <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -247,6 +257,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -306,6 +317,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -392,6 +404,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -506,6 +519,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -601,6 +615,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -687,6 +702,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -806,6 +822,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -907,6 +924,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -964,6 +982,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -1009,6 +1028,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -1054,6 +1074,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -1099,6 +1120,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -1148,6 +1170,7 @@
               :pagination="false"
               :loading="loading"
               :columns="columns"
+              :components="handleDrag(columns)"
               :dataSource="dataSource">
               <template slot="customBarCode" slot-scope="text, record">
                 <div :style="record.imgName?'float:left;line-height:30px':'float:left;'">{{record.barCode}}</div>
@@ -1196,18 +1219,25 @@
   import CustomPrintModal from './CustomPrintModal'
   import { getBillTypeCode } from '@/utils/printBillTypeMap'
   import JUpload from '@/components/jeecg/JUpload'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import Vue from 'vue'
   export default {
     name: 'BillDetail',
+    mixins: [JeecgListMixin],
     components: {
       BillPrintIframe,
       BillPrintProIframe,
       FinancialDetail,
       CustomPrintModal,
-      JUpload
+      JUpload,
+      ColumnSettingPopover
     },
     data () {
       return {
+        disableMixinCreated: true,
+        pageName: 'billDetail',
+        defDataIndex: [],
         title: "详情",
         width: '1600px',
         visible: false,
@@ -1721,7 +1751,7 @@
             needAddkeywords.push('finishPurchaseNumber')
           }
         }
-        let currentCol = [{title:'#',dataIndex:'',align:'center',
+        let currentCol = [{title:'#',dataIndex:'rowIndex',align:'center',
           customRender:function(t,r,index){
             if(r.mType) {
               //组装和拆卸所有行都展示序号

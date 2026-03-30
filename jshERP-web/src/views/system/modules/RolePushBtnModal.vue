@@ -43,6 +43,14 @@
           </a-form>
         </div>
         <!-- table区域-begin -->
+        <div style="margin-bottom: 8px; text-align: right;">
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <div>
           <a-table
             ref="table"
@@ -51,6 +59,7 @@
             rowKey="id"
             :pagination="false"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :loading="loading">
             <span slot="action" slot-scope="text, record">
@@ -75,9 +84,13 @@
   import { updateBtnStrByRoleId } from '@/api/api'
   import { removeByVal } from "@/utils/util"
   import {mixinDevice} from '@/utils/mixin'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "RolePushBtnModal",
     mixins:[JeecgListMixin, mixinDevice],
+    components: {
+      ColumnSettingPopover
+    },
     data () {
       return {
         title:"操作",
@@ -92,13 +105,14 @@
         disableMixinCreated: true,
         confirmLoading: false,
         form: this.$form.createForm(this),
+        pageName: 'rolePushBtnModal',
         /* 数据源 */
         dataSource:[],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -118,12 +132,14 @@
             scopedSlots: { customRender: 'action' }
           }
         ],
+        defDataIndex: ['rowIndex', 'name', 'action'],
         url: {
           list: "/function/findRoleFunctionsById"
         }
       }
     },
     created () {
+      this.initColumnsSetting()
     },
     methods: {
       edit (roleId) {

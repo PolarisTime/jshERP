@@ -3,6 +3,10 @@
   <a-row :gutter="24">
     <a-col :md="24">
       <a-card :style="cardStyle" :bordered="false">
+        <!-- 操作按钮区域 -->
+        <div class="table-operator">
+          <column-setting-popover :defColumns="defColumns" :settingDataIndex.sync="settingDataIndex" @change="onColChange" @reset="handleRestDefault" />
+        </div>
         <!-- table区域-begin -->
         <div>
           <a-table
@@ -12,6 +16,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :loading="loading"
             @change="handleTableChange">
@@ -33,12 +38,14 @@
   import JDate from '@/components/jeecg/JDate'
   import { getAction } from '@/api/manage'
   import Vue from 'vue'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "MaterialPropertyList",
     mixins:[JeecgListMixin],
     components: {
       MaterialPropertyModal,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -52,11 +59,13 @@
         // 查询条件
         queryParam: {name:'',type:''},
         urlPath: '/material/material_property',
+        pageName: 'materialPropertyList',
+        defDataIndex:['rowIndex','action','nativeName','anotherName'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -80,6 +89,9 @@
           deleteBatch: "/materialProperty/deleteBatch"
         }
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     computed: {
 

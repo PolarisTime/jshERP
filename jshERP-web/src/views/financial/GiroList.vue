@@ -93,6 +93,12 @@
           <a-tooltip placement="left" title="转账：本系统的转账是指从一个银行存款账户转入到另一个银行存款账户。" slot="action">
             <a-icon v-if="btnEnableList.indexOf(1)>-1" type="question-circle" style="font-size:20px;float:right;" />
           </a-tooltip>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -135,6 +141,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import GiroModal from './modules/GiroModal'
   import FinancialDetail from './dialog/FinancialDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
@@ -146,6 +153,7 @@
     name: "GiroList",
     mixins:[JeecgListMixin, FinancialListMixin],
     components: {
+      ColumnSettingPopover,
       GiroModal,
       FinancialDetail,
       BillExcelIframe,
@@ -173,8 +181,9 @@
         },
         prefixNo: 'ZZ',
         urlPath: '/financial/giro',
+        pageName: 'giroList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -193,6 +202,7 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'userName', 'handsPersonName', 'accountName', 'changeAmount', 'remark', 'status'],
         url: {
           list: "/accountHead/list",
           delete: "/accountHead/delete",
@@ -204,6 +214,7 @@
     computed: {
     },
     created () {
+      this.initColumnsSetting()
       this.initSystemConfig()
       this.initUser()
       this.initPerson()

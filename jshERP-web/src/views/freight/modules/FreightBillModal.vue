@@ -77,8 +77,16 @@
           </a-col>
         </a-row>
         <!-- 已选出库单明细区域 -->
-        <div v-if="!isReadOnly" style="padding-bottom:8px;">
-          <a-button type="primary" icon="plus" @click="showSelectSaleOut">选择出库单</a-button>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom:8px;">
+          <div>
+            <a-button v-if="!isReadOnly" type="primary" icon="plus" @click="showSelectSaleOut">选择出库单</a-button>
+          </div>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <a-table
           size="middle"
@@ -146,9 +154,12 @@
   import { selectAllFreightCarrier, addFreightBill, editFreightBill, getAvailableSaleOut, getFreightDetail, getFreightDepotItems, freightBatchSetStatus } from '@/api/api'
   import { getAction, postAction } from '@/api/manage'
   import CustomPrintModal from '@/views/bill/dialog/CustomPrintModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   export default {
     name: "FreightBillModal",
-    components: { CustomPrintModal, VueDraggableResizable },
+    mixins: [JeecgListMixin],
+    components: { CustomPrintModal, VueDraggableResizable, ColumnSettingPopover },
     data() {
       return {
         title: "操作",
@@ -201,7 +212,9 @@
             rules: [{ required: true, message: '请输入单价!' }]
           }
         },
-        detailColumns: [
+        disableMixinCreated: true,
+        pageName: 'freightBillModal',
+        defColumns: [
           {
             title: '操作', dataIndex: 'action', width: 80, align: 'center',
             scopedSlots: { customRender: 'action' }
@@ -219,6 +232,7 @@
           { title: '仓库', dataIndex: 'depotName', width: 100 },
           { title: '业务员', dataIndex: 'salesMan', width: 80 }
         ],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'customerName', 'materialName', 'standard', 'model', 'batchNumber', 'operNumber', 'materialUnit', 'itemWeight', 'depotName', 'salesMan'],
         saleOutColumns: [
           { title: '出库单号', dataIndex: 'billNo', width: 180 },
           { title: '客户名称', dataIndex: 'customerName', width: 150 },
@@ -233,15 +247,18 @@
         form: this.$form.createForm(this)
       }
     },
+    created() {
+      this.initColumnsSetting()
+    },
     computed: {
       currentDetailColumns() {
         if (this.isReadOnly) {
-          return this.detailColumns.filter(col => col.dataIndex !== 'action')
+          return this.columns.filter(col => col.dataIndex !== 'action')
         }
-        return this.detailColumns
+        return this.columns
       },
       detailDragComponents() {
-        return this.buildDragComponents(this.detailColumns)
+        return this.buildDragComponents(this.columns)
       },
       saleOutDragComponents() {
         return this.buildDragComponents(this.saleOutColumns)

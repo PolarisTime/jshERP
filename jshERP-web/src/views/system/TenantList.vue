@@ -54,6 +54,12 @@
           <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button @click="batchSetStatus(1)" icon="check-square">启用</a-button>
           <a-button @click="batchSetStatus(0)" icon="close-square">禁用</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -64,6 +70,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -95,12 +102,14 @@
   import {JeecgListMixin} from '@/mixins/JeecgListMixin'
   import JInput from '@/components/jeecg/JInput'
   import { getTenantRoleList } from '@/api/api'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "TenantList",
     mixins: [JeecgListMixin],
     components: {
       TenantModal,
-      JInput
+      JInput,
+      ColumnSettingPopover
     },
     data() {
       return {
@@ -118,10 +127,12 @@
           enabled: '',
           remark: ''
         },
-        columns: [
+        pageName: 'tenantList',
+        defDataIndex:['rowIndex','action','loginName','userCount','userNumLimit','roleName','type','enabled','createTimeStr','expireTimeStr','remark'],
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -157,6 +168,7 @@
       }
     },
     created () {
+      this.initColumnsSetting()
     },
     methods: {
     }

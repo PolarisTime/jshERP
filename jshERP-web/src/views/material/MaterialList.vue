@@ -132,29 +132,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchEdit()" icon="edit">批量编辑</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetMaterialCurrentStock()" icon="stock">修正库存</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetMaterialCurrentUnitPrice()" icon="fund">修正成本</a-button>
-          <a-popover trigger="click" placement="right">
-            <template slot="content">
-              <a-checkbox-group @change="onColChange" v-model="settingDataIndex" :defaultValue="settingDataIndex">
-                <a-row style="width: 500px">
-                  <template v-for="(item,index) in defColumns">
-                    <template>
-                      <a-col :span="8">
-                        <a-checkbox :value="item.dataIndex">
-                          <j-ellipsis :value="item.title" :length="10"></j-ellipsis>
-                        </a-checkbox>
-                      </a-col>
-                    </template>
-                  </template>
-                </a-row>
-                <a-row style="padding-top: 10px;">
-                  <a-col>
-                    恢复默认列配置：<a-button @click="handleRestDefault" type="link" size="small">恢复默认</a-button>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button icon="setting">列设置</a-button>
-          </a-popover>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -227,7 +210,7 @@
   import { postAction, getFileAccessHttpUrl } from '@/api/manage'
   import { getMpListShort } from '@/utils/util'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
 
@@ -238,7 +221,7 @@
       MaterialModal,
       ImportFileModal,
       BatchSetInfoModal,
-      JEllipsis,
+      ColumnSettingPopover,
       JDate
     },
     data () {
@@ -280,13 +263,10 @@
           mpList: getMpListShort(Vue.ls.get('materialPropertyList'))  //扩展属性
         },
         urlPath: '/material/material',
+        pageName: 'materialList',
         ipagination:{
           pageSizeOptions: ['10', '20', '30', '50', '100', '200']
         },
-        // 实际索引
-        settingDataIndex:[],
-        // 实际列
-        columns:[],
         // 默认索引
         defDataIndex:['action','mBarCode','name','standard','model','color','categoryName','unit', 'stock',
           'purchaseDecimal','commodityDecimal','wholesaleDecimal','lowDecimal','enabled'],
@@ -366,31 +346,6 @@
       }
     },
     methods: {
-      //加载初始化列
-      initColumnsSetting(){
-        let columnsStr = Vue.ls.get('materialColumns')
-        if(columnsStr && columnsStr.indexOf(',')>-1) {
-          this.settingDataIndex = columnsStr.split(',')
-        } else {
-          this.settingDataIndex = this.defDataIndex
-        }
-        this.columns = this.defColumns.filter(item => {
-          return this.settingDataIndex.includes(item.dataIndex)
-        })
-      },
-      //列设置更改事件
-      onColChange (checkedValues) {
-        this.columns = this.defColumns.filter(item => {
-          return checkedValues.includes(item.dataIndex)
-        })
-        let columnsStr = checkedValues.join()
-        Vue.ls.set('materialColumns', columnsStr)
-      },
-      //恢复默认
-      handleRestDefault() {
-        Vue.ls.remove('materialColumns')
-        this.initColumnsSetting()
-      },
       loadTreeData(){
         let that = this;
         let params = {};

@@ -24,6 +24,12 @@
         <div class="table-operator" style="border-top: 5px">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchDel" icon="delete">删除</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域 -->
         <div>
@@ -34,6 +40,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -54,12 +61,14 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import FreightCarrierModal from './modules/FreightCarrierModal'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   export default {
     name: "FreightCarrierList",
     mixins: [JeecgListMixin],
     components: {
+      ColumnSettingPopover,
       FreightCarrierModal
     },
     data() {
@@ -73,10 +82,11 @@
         },
         queryParam: {},
         urlPath: '/systemA/freight_carrier',
-        columns: [
+        pageName: 'sysFreightCarrierList',
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key: 'rowIndex',
             width: 40,
             align: "center",
@@ -98,12 +108,16 @@
           { title: '银行账号', dataIndex: 'accountNumber', width: 160 },
           { title: '备注', dataIndex: 'remark', width: 200, ellipsis: true }
         ],
+        defDataIndex: ['rowIndex', 'action', 'name', 'contacts', 'phoneNum', 'bankName', 'accountNumber', 'remark'],
         url: {
           list: "/freightCarrier/list",
           delete: "/freightCarrier/delete",
           deleteBatch: "/freightCarrier/deleteBatch"
         }
       }
+    },
+    created() {
+      this.initColumnsSetting();
     },
     methods: {
       searchQuery() {

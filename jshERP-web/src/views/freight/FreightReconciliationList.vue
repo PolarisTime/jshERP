@@ -38,6 +38,12 @@
         <!-- 操作按钮区域 -->
         <div class="table-operator" style="margin-top: 5px">
           <a-button icon="download" @click="handleExportAll">导出汇总</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域 -->
         <div>
@@ -48,6 +54,7 @@
             rowKey="carrierId"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -86,6 +93,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import FreightReconciliationDetail from './dialog/FreightReconciliationDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { selectAllFreightCarrier } from '@/api/api'
@@ -93,6 +101,7 @@
     name: "FreightReconciliationList",
     mixins: [JeecgListMixin],
     components: {
+      ColumnSettingPopover,
       FreightReconciliationDetail
     },
     data() {
@@ -112,7 +121,8 @@
         dateRange: [],
         carrierList: [],
         urlPath: '/freight/reconciliation',
-        columns: [
+        pageName: 'freightReconciliationList',
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -139,6 +149,7 @@
             scopedSlots: { customRender: 'unpaidAmountRender' }
           }
         ],
+        defDataIndex: ['action', 'carrierName', 'billCount', 'totalWeight', 'totalFreight', 'paidAmount', 'unpaidAmount'],
         url: {
           list: "/freightHead/reconciliation"
         },
@@ -151,6 +162,7 @@
       }
     },
     created() {
+      this.initColumnsSetting();
       this.initCarrierList();
     },
     watch: {

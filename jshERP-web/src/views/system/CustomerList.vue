@@ -53,6 +53,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(false)" icon="close-square">禁用</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleImportXls()" icon="import">导入</a-button>
           <a-button v-if="btnEnableList.indexOf(3)>-1" @click="handleExportXls('客户信息')" icon="download">导出</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -62,6 +68,7 @@
             bordered
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -98,6 +105,7 @@
   import CustomerModal from './modules/CustomerModal'
   import ImportFileModal from '@/components/tools/ImportFileModal'
   import CustomerUserModal from './modules/CustomerUserModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
   import { getCurrentSystemConfig } from '@/api/api'
@@ -109,6 +117,7 @@
       CustomerModal,
       ImportFileModal,
       CustomerUserModal,
+      ColumnSettingPopover,
       JDate
     },
     data () {
@@ -136,11 +145,13 @@
         quickBtn: {
           user: ''
         },
+        pageName: 'customerList',
+        defDataIndex: ['rowIndex', 'action', 'supplier', 'contacts', 'telephone', 'phoneNum', 'email', 'beginNeedGet', 'allNeedGet', 'taxRate', 'sort', 'enabled'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:60,
             align:"center",
@@ -184,6 +195,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
       this.getSystemConfig()
       this.initQuickBtn()
     },

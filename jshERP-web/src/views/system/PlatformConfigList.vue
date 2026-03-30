@@ -2,6 +2,15 @@
   <a-row :gutter="24">
     <a-col :md="24">
       <a-card :style="cardStyle" :bordered="false">
+        <!-- 操作按钮区域 -->
+        <div class="table-operator" style="margin-top: 5px">
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <!-- table区域-begin -->
         <div>
           <a-table
@@ -11,6 +20,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -31,11 +41,13 @@
 <script>
   import PlatformConfigModal from './modules/PlatformConfigModal'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "PlatformConfigList",
     mixins:[JeecgListMixin],
     components: {
-      PlatformConfigModal
+      PlatformConfigModal,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -49,11 +61,13 @@
         },
         // 查询条件
         queryParam: {platformKey:'',},
+        pageName: 'platformConfigList',
+        defDataIndex:['rowIndex','action','platformKeyInfo','platformValue'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -85,6 +99,9 @@
           deleteBatch: "/platformConfig/deleteBatch"
         },
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     methods: {
       handleEdit: function (record) {

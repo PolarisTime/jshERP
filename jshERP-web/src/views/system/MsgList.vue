@@ -31,6 +31,14 @@
         </a-row>
       </a-form>
     </div>
+    <div class="table-operator" style="margin-top: 5px">
+      <column-setting-popover
+        :defColumns="defColumns"
+        :settingDataIndex.sync="settingDataIndex"
+        @change="onColChange"
+        @reset="handleRestDefault"
+      />
+    </div>
     <div style="margin-top: 5px">
       <a-table
         ref="table"
@@ -38,6 +46,7 @@
         bordered
         rowKey="id"
         :columns="columns"
+        :components="handleDrag(columns)"
         :dataSource="dataSource"
         :pagination="ipagination"
         :loading="loading"
@@ -61,13 +70,15 @@
   import ShowAnnouncement from '@/components/tools/ShowAnnouncement'
   import {JeecgListMixin} from '@/mixins/JeecgListMixin'
   import DynamicNotice from '../../components/tools/DynamicNotice'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 
   export default {
     name: "MsgList",
     mixins: [JeecgListMixin],
     components: {
       DynamicNotice,
-      ShowAnnouncement
+      ShowAnnouncement,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -82,7 +93,11 @@
           pageSize: 5,
           pageSizeOptions: ['5','10', '20', '30']
         },
-        columns: [{
+        pageName: 'msgList',
+        // 默认索引
+        defDataIndex:['msgTitle','type','createTimeStr','action'],
+        // 表头
+        defColumns: [{
           title: '标题',
           dataIndex: 'msgTitle',
           scopedSlots: { customRender: 'customRenderTitle' },
@@ -114,6 +129,9 @@
         openPath:'',
         formData:''
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     methods: {
       handleDetail: function(){

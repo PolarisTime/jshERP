@@ -69,6 +69,15 @@
             </template>
           </a-form>
         </div>
+        <!-- 操作按钮区域 -->
+        <div class="table-operator" style="margin-top: 5px">
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <!-- table区域-begin -->
         <a-table
           ref="table"
@@ -76,6 +85,7 @@
           size="middle"
           rowKey="id"
           :columns="columns"
+          :components="handleDrag(columns)"
           :dataSource="dataSource"
           :pagination="ipagination"
           :scroll="scroll"
@@ -95,6 +105,7 @@
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
   import {getAction } from '@/api/manage'
   import moment from 'moment'
@@ -103,7 +114,8 @@
     name: "LogList",
     mixins:[JeecgListMixin],
     components: {
-      JEllipsis
+      JEllipsis,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -121,11 +133,14 @@
         },
         tabKey: "1",
         isManage: false,
+        pageName: 'logList',
+        // 默认索引
+        defDataIndex:['rowIndex','operation','content','loginName','userName','clientIp','createTimeStr'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -159,6 +174,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
       this.initUserInfo()
     },
     methods: {

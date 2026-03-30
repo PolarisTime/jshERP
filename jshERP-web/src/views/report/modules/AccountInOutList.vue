@@ -46,6 +46,9 @@
         </a-form>
       </div>
       <!-- table区域-begin -->
+      <div style="margin-bottom: 8px; text-align: right;">
+        <column-setting-popover :defColumns="defColumns" :settingDataIndex.sync="settingDataIndex" @change="onColChange" @reset="handleRestDefault" />
+      </div>
       <a-table
         bordered
         ref="table"
@@ -60,32 +63,6 @@
         <span slot="numberCustomRender" slot-scope="text, record">
           <a @click="myHandleDetail(record)">{{record.number}}</a>
         </span>
-        <span slot="customTitle">
-          <a-popover trigger="click" placement="right">
-            <template slot="content">
-              <a-checkbox-group @change="onColChange" v-model="settingDataIndex" :defaultValue="settingDataIndex">
-                <a-row style="width: 600px">
-                  <template v-for="(item,index) in defColumns">
-                    <template>
-                      <a-col :span="6">
-                        <a-checkbox :value="item.dataIndex" v-if="item.dataIndex==='rowIndex'" disabled></a-checkbox>
-                        <a-checkbox :value="item.dataIndex" v-if="item.dataIndex!=='rowIndex'">
-                          <j-ellipsis :value="item.title" :length="10"></j-ellipsis>
-                        </a-checkbox>
-                      </a-col>
-                    </template>
-                  </template>
-                </a-row>
-                <a-row style="padding-top: 10px;">
-                  <a-col>
-                    恢复默认列配置：<a-button @click="handleRestDefault" type="link" size="small">恢复默认</a-button>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-icon type="setting" />
-          </a-popover>
-        </span>
       </a-table>
       <!-- table区域-end -->
       <!-- 表单区域 -->
@@ -99,7 +76,7 @@
   import FinancialDetail from '../../financial/dialog/FinancialDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import {mixinDevice} from '@/utils/mixin'
-  import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import {findBillDetailByNumber, findFinancialDetailByNumber} from '@/api/api'
   export default {
     name: "AccountInOutList",
@@ -107,7 +84,7 @@
     components: {
       BillDetail,
       FinancialDetail,
-      JEllipsis
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -135,7 +112,7 @@
             dataIndex: 'rowIndex',
             width:40,
             align:"center",
-            slots: { title: 'customTitle' },
+            title: '#',
             customRender:function (t,r,index) {
               return parseInt(index)+1;
             }

@@ -15,6 +15,14 @@
       <template slot="footer">
         <a-button key="back" @click="handleCancel">取消(ESC)</a-button>
       </template>
+      <div style="margin-bottom: 8px; text-align: right;">
+        <column-setting-popover
+          :defColumns="defColumns"
+          :settingDataIndex.sync="settingDataIndex"
+          @change="onColChange"
+          @reset="handleRestDefault"
+        />
+      </div>
       <!-- table区域-begin -->
       <a-table
         bordered
@@ -35,13 +43,15 @@
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { mixinDevice } from '@/utils/mixin'
 
   export default {
     name: "MaterialDepotStockListWithTime",
     mixins:[JeecgListMixin, mixinDevice],
     components: {
-      JEllipsis
+      JEllipsis,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -62,11 +72,12 @@
           pageSizeOptions: ['10', '20', '30', '100', '200']
         },
         tabKey: "1",
+        pageName: 'materialDepotStockListWithTime',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -79,6 +90,7 @@
           { title: '成本价', dataIndex: 'unitPrice', width: 100},
           { title: '库存金额', dataIndex: 'allPrice', width: 100}
         ],
+        defDataIndex: ['rowIndex', 'depotName', 'currentNumber', 'unitPrice', 'allPrice'],
         labelCol: {
           xs: { span: 1 },
           sm: { span: 2 },
@@ -93,6 +105,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       getQueryParams() {

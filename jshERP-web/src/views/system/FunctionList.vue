@@ -26,6 +26,12 @@
         <div class="table-operator"  style="margin-top: 5px">
           <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button @click="batchDel" icon="delete">删除</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -35,6 +41,7 @@
             bordered
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -66,12 +73,14 @@
   import FunctionModal from './modules/FunctionModal'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "FunctionList",
     mixins:[JeecgListMixin],
     components: {
       FunctionModal,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -84,11 +93,14 @@
         },
         // 查询条件
         queryParam: {name:'',type:''},
+        pageName: 'functionList',
+        // 默认索引
+        defDataIndex:['rowIndex','action','number','name','parentNumber','parentName','url','component','sort','enabled','icon'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -122,6 +134,9 @@
           deleteBatch: "/function/deleteBatch"
         }
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     computed: {
 

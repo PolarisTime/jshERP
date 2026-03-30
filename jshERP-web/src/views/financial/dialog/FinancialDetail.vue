@@ -23,6 +23,14 @@
       <a-button v-if="checkFlag && isCanBackCheck && model.status==='1'" @click="handleBackCheck()">反审核</a-button>
     </template>
     <a-form :form="form">
+      <div style="margin-bottom: 8px; text-align: right;">
+        <column-setting-popover
+          :defColumns="defColumns"
+          :settingDataIndex.sync="settingDataIndex"
+          @change="onColChange"
+          @reset="handleRestDefault"
+        />
+      </div>
       <!--收预付款-->
       <template v-if="financialType === '收预付款'">
         <section ref="print" id="advanceInPrint">
@@ -56,7 +64,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="advanceInColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -112,7 +121,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="giroColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -171,7 +181,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="itemInColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -230,7 +241,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="itemOutColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -289,7 +301,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="moneyInColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -356,7 +369,8 @@
             rowKey="id"
             :pagination="false"
             :loading="loading"
-            :columns="moneyOutColumns"
+            :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource">
           </a-table>
           <a-row class="form-row" :gutter="24">
@@ -409,14 +423,21 @@
   import { findFinancialDetailByNumber, getCurrentSystemConfig } from '@/api/api'
   import { getCheckFlag } from '@/utils/util'
   import JUpload from '@/components/jeecg/JUpload'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
 
   export default {
     name: 'FinancialDetail',
+    mixins: [JeecgListMixin],
     components: {
-      JUpload
+      JUpload,
+      ColumnSettingPopover
     },
     data () {
       return {
+        disableMixinCreated: true,
+        pageName: 'financialDetail',
+        defDataIndex: [],
         title: "详情",
         width: '1600px',
         visible: false,
@@ -438,36 +459,38 @@
         form: this.$form.createForm(this),
         loading: false,
         dataSource: [],
+        //列定义
+        defColumns: [],
         url: {
           detailList: '/accountItem/getDetailList',
           batchSetStatusUrl: '/accountHead/batchSetStatus'
         },
         advanceInColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '账户名称',dataIndex: 'accountName',width: '30%'},
           { title: '金额',dataIndex: 'eachAmount', width: '30%'},
           { title: '备注',dataIndex: 'remark', width: '30%'}
         ],
         giroColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '账户名称',dataIndex: 'accountName',width: '30%'},
           { title: '金额',dataIndex: 'eachAmount', width: '30%'},
           { title: '备注',dataIndex: 'remark', width: '30%'}
         ],
         itemInColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '收入项目',dataIndex: 'inOutItemName',width: '30%'},
           { title: '金额',dataIndex: 'eachAmount', width: '30%'},
           { title: '备注',dataIndex: 'remark', width: '30%'}
         ],
         itemOutColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '支出项目',dataIndex: 'inOutItemName',width: '30%'},
           { title: '金额',dataIndex: 'eachAmount', width: '30%'},
           { title: '备注',dataIndex: 'remark', width: '30%'}
         ],
         moneyInColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '销售单据编号', dataIndex: 'billNumber', width: '20%' },
           { title: '应收欠款',dataIndex: 'needDebt', width: '10%'},
           { title: '已收欠款',dataIndex: 'finishDebt', width: '10%'},
@@ -475,7 +498,7 @@
           { title: '备注',dataIndex: 'remark', width: '20%'}
         ],
         moneyOutColumns: [
-          { title: '#',dataIndex:'',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
+          { title: '#',dataIndex:'rowIndex',width:'5%',align:'center',customRender:function(t,r,index){return parseInt(index)+1;}},
           { title: '采购单据编号', dataIndex: 'billNumber', width: '20%' },
           { title: '应付欠款',dataIndex: 'needDebt', width: '10%'},
           { title: '已付欠款',dataIndex: 'finishDebt', width: '10%'},
@@ -487,8 +510,26 @@
     created () {
       let realScreenWidth = window.screen.width
       this.width = realScreenWidth<1500?'1200px':'1550px'
+      this.initColumnsSetting()
     },
     methods: {
+      initFinancialColumns(type) {
+        if (type === '收预付款') {
+          this.defColumns = this.advanceInColumns
+        } else if (type === '转账') {
+          this.defColumns = this.giroColumns
+        } else if (type === '收入') {
+          this.defColumns = this.itemInColumns
+        } else if (type === '支出') {
+          this.defColumns = this.itemOutColumns
+        } else if (type === '收款') {
+          this.defColumns = this.moneyInColumns
+        } else if (type === '付款') {
+          this.defColumns = this.moneyOutColumns
+        }
+        this.defDataIndex = this.defColumns.map(item => item.dataIndex)
+        this.initColumnsSetting()
+      },
       show(record, type, prefixNo) {
         //查询单条财务信息
         findFinancialDetailByNumber({ billNo: record.billNo }).then((res) => {
@@ -496,6 +537,7 @@
             let item = res.data
             this.financialType = type
             this.prefixNo = prefixNo
+            this.initFinancialColumns(type)
             //附件下载
             this.fileList = item.fileName
             this.visible = true

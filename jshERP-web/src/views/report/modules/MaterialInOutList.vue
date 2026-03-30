@@ -41,6 +41,13 @@
               <a-button type="primary" @click="searchQuery">查询</a-button>
               <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
               <a-button style="margin-left: 8px" @click="exportExcel" icon="download">导出</a-button>
+              <column-setting-popover
+                style="margin-left: 8px"
+                :defColumns="defColumns"
+                :settingDataIndex.sync="settingDataIndex"
+                @change="onColChange"
+                @reset="handleRestDefault"
+              />
             </a-col>
           </a-row>
         </a-form>
@@ -71,6 +78,7 @@
   import BillDetail from '../../bill/dialog/BillDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { findBillDetailByNumber } from '@/api/api'
   import { mixinDevice } from '@/utils/mixin'
 
@@ -79,7 +87,8 @@
     mixins:[JeecgListMixin, mixinDevice],
     components: {
       BillDetail,
-      JEllipsis
+      JEllipsis,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -100,11 +109,12 @@
           pageSizeOptions: ['10', '20', '30', '100', '200']
         },
         tabKey: "1",
+        pageName: 'materialInOutList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -125,6 +135,7 @@
           { title: '金额', dataIndex: 'allPrice', width: 70},
           { title: '日期', dataIndex: 'operTime', width: 110}
         ],
+        defDataIndex: ['rowIndex', 'number', 'type', 'barCode', 'materialName', 'depotName', 'basicNumber', 'unitPrice', 'allPrice', 'operTime'],
         labelCol: {
           xs: { span: 1 },
           sm: { span: 2 },
@@ -139,6 +150,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       getQueryParams() {

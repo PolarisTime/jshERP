@@ -22,12 +22,21 @@
           </a-descriptions-item>
           <a-descriptions-item label="备注">{{ detail.remark }}</a-descriptions-item>
         </a-descriptions>
-        <h4 style="margin:10px 0;">出库单明细</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+          <h4 style="margin: 0;">出库单明细</h4>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <a-table
           size="small"
           bordered
           rowKey="id"
           :columns="columns"
+          :components="handleDrag(columns)"
           :dataSource="detailList"
           :pagination="false">
         </a-table>
@@ -37,21 +46,33 @@
 </template>
 <script>
   import { getFreightDetail } from '@/api/api'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   export default {
     name: "FreightDetail",
+    mixins: [JeecgListMixin],
+    components: {
+      ColumnSettingPopover
+    },
     data() {
       return {
         visible: false,
         loading: false,
         detail: {},
         detailList: [],
-        columns: [
+        disableMixinCreated: true,
+        pageName: 'freightDetail',
+        defColumns: [
           { title: '出库单号', dataIndex: 'billNo', width: 180 },
           { title: '客户名称', dataIndex: 'customerName', width: 150 },
           { title: '出库日期', dataIndex: 'billTimeStr', width: 120 },
           { title: '重量(吨)', dataIndex: 'totalWeight', width: 100 }
-        ]
+        ],
+        defDataIndex: ['billNo', 'customerName', 'billTimeStr', 'totalWeight']
       }
+    },
+    created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(record) {

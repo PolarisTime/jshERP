@@ -31,6 +31,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchDel" icon="delete">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(0)" icon="check-square">启用</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(2)" icon="close-square">禁用</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -40,6 +46,7 @@
             size="middle"
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -81,6 +88,7 @@
   import UserDepotModal from './modules/UserDepotModal'
   import UserCustomerModal from './modules/UserCustomerModal'
   import UserResetModal from './modules/UserResetModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import {postAction} from '@/api/manage';
   import {getCurrentSystemConfig} from '@/api/api'
   import {JeecgListMixin} from '@/mixins/JeecgListMixin'
@@ -93,6 +101,7 @@
       UserDepotModal,
       UserCustomerModal,
       UserResetModal,
+      ColumnSettingPopover,
       JInput
     },
     data() {
@@ -108,10 +117,12 @@
         urlPath: '/system/user',
         depotFlag: '0',
         customerFlag: '0',
-        columns: [
+        pageName: 'userList',
+        defDataIndex: ['rowIndex', 'action', 'loginName', 'username', 'userType', 'roleName', 'orgAbr', 'leaderFlagStr', 'phonenum', 'userBlngOrgaDsplSeq', 'status'],
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -148,6 +159,7 @@
       }
     },
     created () {
+      this.initColumnsSetting()
       this.getSystemConfig()
     },
     methods: {

@@ -16,11 +16,20 @@
       okText="保存"
       style="top:5%;height: 95%;">
       <a-spin :spinning="confirmLoading">
+        <div style="margin-bottom: 8px; text-align: right;">
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <a-table
           ref="table"
           size="small"
           rowKey="id"
           :columns="columns"
+          :components="handleDrag(columns)"
           :dataSource="dataSource"
           :pagination="false"
           :customRow="null"
@@ -35,19 +44,27 @@
   import {mixinDevice} from '@/utils/mixin'
   import {addUserBusiness,editUserBusiness,checkUserBusiness} from '@/api/api'
   import {getAction} from '../../../api/manage'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   export default {
     name: "UserCustomerModal",
-    mixins: [mixinDevice],
+    mixins: [JeecgListMixin, mixinDevice],
+    components: {
+      ColumnSettingPopover
+    },
     data () {
       return {
         title:"操作",
         visible: false,
         model: {},
         roleId: 0,
+        disableMixinCreated: true,
+        pageName: 'userCustomerModal',
         // 表头
-        columns: [
+        defColumns: [
           { title: '客户名称', dataIndex: 'supplier', width: 200 }
         ],
+        defDataIndex: ['supplier'],
         dataSource:[],
         selectedRowKeys: [],
         loading:false,
@@ -60,6 +77,7 @@
       }
     },
     created () {
+      this.initColumnsSetting()
     },
     methods: {
       edit (record) {

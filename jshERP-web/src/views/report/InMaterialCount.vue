@@ -28,6 +28,7 @@
                   <a-button type="primary" @click="searchQuery">查询</a-button>
                   <a-button style="margin-left: 8px" v-print="'#reportPrint'" icon="printer">打印</a-button>
                   <a-button style="margin-left: 8px" @click="exportExcel" icon="download">导出</a-button>
+                  <column-setting-popover :defColumns="defColumns" :settingDataIndex.sync="settingDataIndex" @change="onColChange" @reset="handleRestDefault" style="margin-left: 8px" />
                   <a @click="handleToggleSearch" style="margin-left: 8px">
                     {{ toggleSearchStatus ? '收起' : '展开' }}
                     <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
@@ -102,32 +103,6 @@
             :scroll="scroll"
             :loading="loading"
             @change="handleTableChange">
-            <span slot="customTitle">
-              <a-popover trigger="click" placement="right">
-                <template slot="content">
-                  <a-checkbox-group @change="onColChange" v-model="settingDataIndex" :defaultValue="settingDataIndex">
-                    <a-row style="width: 600px">
-                      <template v-for="(item,index) in defColumns">
-                        <template>
-                          <a-col :span="6">
-                            <a-checkbox :value="item.dataIndex" v-if="item.dataIndex==='rowIndex'" disabled></a-checkbox>
-                            <a-checkbox :value="item.dataIndex" v-if="item.dataIndex!=='rowIndex'">
-                              <j-ellipsis :value="item.title" :length="10"></j-ellipsis>
-                            </a-checkbox>
-                          </a-col>
-                        </template>
-                      </template>
-                    </a-row>
-                    <a-row style="padding-top: 10px;">
-                      <a-col>
-                        恢复默认列配置：<a-button @click="handleRestDefault" type="link" size="small">恢复默认</a-button>
-                      </a-col>
-                    </a-row>
-                  </a-checkbox-group>
-                </template>
-                <a-icon type="setting" />
-              </a-popover>
-            </span>
           </a-table>
           <a-row :gutter="24" style="margin-top: 8px;text-align:right;">
             <a-col :md="24" :sm="24">
@@ -157,14 +132,14 @@
   import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
   import {getAction} from '@/api/manage'
   import {findBySelectOrgan, queryMaterialCategoryTreeList, getAllOrganizationTreeByUser} from '@/api/api'
-  import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import moment from 'moment'
   import Vue from 'vue'
   export default {
     name: "InMaterialCount",
     mixins:[JeecgListMixin],
     components: {
-      JEllipsis,
+      ColumnSettingPopover,
       VNodes: {
         functional: true,
         render: (h, ctx) => ctx.props.vnodes,
@@ -208,7 +183,7 @@
         // 默认列
         defColumns: [
           {
-            dataIndex: 'rowIndex', width:40, align:"center", slots: { title: 'customTitle' },
+            dataIndex: 'rowIndex', width:40, align:"center", title: '#',
             customRender:function (t,r,index) {
               return (t !== '合计') ? (parseInt(index) + 1) : t
             }

@@ -44,6 +44,13 @@
               <a-col :md="6" :sm="24">
                 <a-button type="primary" @click="searchQuery">查询</a-button>
                 <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
+                <column-setting-popover
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                  style="margin-left: 8px"
+                />
               </a-col>
             </span>
           </a-row>
@@ -57,6 +64,7 @@
         rowKey="id"
         :columns="columns"
         :dataSource="dataSource"
+        :components="handleDrag(columns)"
         :pagination="ipagination"
         :loading="loading"
         :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange, type: getType}"
@@ -75,6 +83,7 @@
 
 <script>
   import BillDetail from '../../bill/dialog/BillDetail'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import {mixinDevice} from '@/utils/mixin'
   import { findBillDetailByNumber } from '@/api/api'
@@ -83,7 +92,8 @@
     name: 'DebtBillList',
     mixins:[JeecgListMixin, mixinDevice],
     components: {
-      BillDetail
+      BillDetail,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -110,8 +120,10 @@
           xs: { span: 24 },
           sm: { span: 16 },
         },
+        pageName: 'debtBillList',
+        defDataIndex: ['organName', 'number', 'materialsList', 'operTimeStr', 'userName', 'needDebt', 'finishDebt', 'debt'],
         // 表头
-        columns: [
+        defColumns: [
           { title: '', dataIndex: 'organName',width:120, ellipsis:true},
           {
             title: '单据编号', dataIndex: 'number', width: 120,
@@ -141,6 +153,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(organId, type, subType, organType, status) {
@@ -148,14 +161,15 @@
         this.queryParam.type = type
         this.queryParam.subType = subType
         this.queryParam.status = status
-        this.columns[0].title = organType
+        this.defColumns[0].title = organType
         if(type === '入库') {
-          this.columns[6].title = '已付欠款'
-          this.columns[7].title = '待付欠款'
+          this.defColumns[6].title = '已付欠款'
+          this.defColumns[7].title = '待付欠款'
         } else if(type === '出库') {
-          this.columns[6].title = '已收欠款'
-          this.columns[7].title = '待收欠款'
+          this.defColumns[6].title = '已收欠款'
+          this.defColumns[7].title = '待收欠款'
         }
+        this.initColumnsSetting()
         this.model = Object.assign({}, {});
         this.visible = true;
         this.ipagination.pageSize = 100

@@ -49,6 +49,13 @@
               <a-col :md="6" :sm="24">
                 <a-button type="primary" @click="searchQuery">查询</a-button>
                 <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
+                <column-setting-popover
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                  style="margin-left: 8px"
+                />
               </a-col>
             </span>
           </a-row>
@@ -114,6 +121,7 @@
 
 <script>
   import BillDetail from './BillDetail'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import {mixinDevice} from '@/utils/mixin'
   import { findBillDetailByNumber } from '@/api/api'
@@ -123,7 +131,8 @@
     name: 'LinkBillList',
     mixins:[JeecgListMixin, mixinDevice],
     components: {
-      BillDetail
+      BillDetail,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -160,8 +169,10 @@
           xs: { span: 24 },
           sm: { span: 16 },
         },
+        pageName: 'linkBillList',
+        defDataIndex: ['organName', 'number', 'materialsList', 'operTimeStr', 'userName', 'materialCount', 'totalPrice', 'totalTaxLastMoney', 'status'],
         // 表头
-        columns: [
+        defColumns: [
           { title: '', dataIndex: 'organName',width:120, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:130,
             scopedSlots: { customRender: 'numberCustomRender' },
@@ -217,6 +228,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(type, subType, organType, status) {
@@ -245,24 +257,25 @@
         this.loadData(1)
       },
       initColumns(subType, organType) {
-        for(let i=0; i<this.columns.length; i++) {
-          if (this.columns[i].dataIndex === 'organName') {
-            this.columns[i].title = organType
+        for(let i=0; i<this.defColumns.length; i++) {
+          if (this.defColumns[i].dataIndex === 'organName') {
+            this.defColumns[i].title = organType
           }
         }
         if(subType === '请购单') {
-          for(let i=0; i<this.columns.length; i++){
-            if(this.columns[i].dataIndex === 'organName') {
-              this.columns.splice(i, 1)
+          for(let i=0; i<this.defColumns.length; i++){
+            if(this.defColumns[i].dataIndex === 'organName') {
+              this.defColumns.splice(i, 1)
             }
-            if(this.columns[i].dataIndex === 'totalPrice') {
-              this.columns.splice(i, 1)
+            if(this.defColumns[i].dataIndex === 'totalPrice') {
+              this.defColumns.splice(i, 1)
             }
-            if(this.columns[i].dataIndex === 'totalTaxLastMoney') {
-              this.columns.splice(i, 1)
+            if(this.defColumns[i].dataIndex === 'totalTaxLastMoney') {
+              this.defColumns.splice(i, 1)
             }
           }
         }
+        this.initColumnsSetting()
       },
       myHandleDetail(record) {
         findBillDetailByNumber({ number: record.number }).then((res) => {

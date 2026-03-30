@@ -39,6 +39,13 @@
               <a-col :md="12" :sm="24">
                 <a-button type="primary" @click="searchQuery">查询</a-button>
                 <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
+                <column-setting-popover
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                  style="margin-left: 8px"
+                />
               </a-col>
             </span>
           </a-row>
@@ -52,6 +59,7 @@
         rowKey="id"
         :columns="columns"
         :dataSource="dataSource"
+        :components="handleDrag(columns)"
         :pagination="ipagination"
         :loading="loading"
         @change="handleTableChange">
@@ -66,6 +74,7 @@
 </template>
 
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { findBySelectCus, findBySelectSup } from '@/api/api'
   import { getFormatDate } from '@/utils/util'
@@ -74,6 +83,7 @@
     name: 'WaitNeedList',
     mixins:[JeecgListMixin],
     components: {
+      ColumnSettingPopover,
       VNodes: {
         functional: true,
         render: (h, ctx) => ctx.props.vnodes,
@@ -104,8 +114,10 @@
           xs: { span: 24 },
           sm: { span: 16 },
         },
+        pageName: 'waitNeedList',
+        defDataIndex: ['action', 'supplier', 'allNeed'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -122,6 +134,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       getQueryParams() {
@@ -133,7 +146,8 @@
       },
       show(organType) {
         this.organType = organType
-        this.columns[1].title = organType
+        this.defColumns[1].title = organType
+        this.initColumnsSetting()
         this.model = Object.assign({}, {});
         this.visible = true
         if(organType === '客户') {

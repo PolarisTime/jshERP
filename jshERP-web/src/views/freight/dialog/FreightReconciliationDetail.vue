@@ -42,6 +42,14 @@
       <a-button icon="download" @click="handleExport">导出CSV</a-button>
     </div>
     <!-- table区域 -->
+    <div style="margin-bottom: 8px; text-align: right;">
+      <column-setting-popover
+        :defColumns="defColumns"
+        :settingDataIndex.sync="settingDataIndex"
+        @change="onColChange"
+        @reset="handleRestDefault"
+      />
+    </div>
     <div>
       <a-table
         ref="table"
@@ -49,6 +57,7 @@
         bordered
         rowKey="id"
         :columns="columns"
+        :components="handleDrag(columns)"
         :dataSource="dataSource"
         :pagination="ipagination"
         :loading="loading"
@@ -86,11 +95,15 @@
 </template>
 <script>
   import FreightBillModal from '../modules/FreightBillModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { getReconciliationDetail, batchSetPaymentStatus, cancelPayment, getFreightDetail } from '@/api/api'
   export default {
     name: "FreightReconciliationDetail",
+    mixins: [JeecgListMixin],
     components: {
-      FreightBillModal
+      FreightBillModal,
+      ColumnSettingPopover
     },
     data() {
       return {
@@ -111,7 +124,9 @@
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50']
         },
-        columns: [
+        disableMixinCreated: true,
+        pageName: 'freightReconciliationDetail',
+        defColumns: [
           {
             title: '操作', dataIndex: 'action', width: 80, align: "center",
             scopedSlots: { customRender: 'action' }
@@ -137,6 +152,7 @@
           { title: '操作人', dataIndex: 'paymentOperatorName', width: 80 },
           { title: '备注', dataIndex: 'remark', width: 120, ellipsis: true }
         ],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'paymentStatus', 'paidAmount', 'paymentTimeStr', 'paymentOperatorName', 'remark'],
         summary: {
           totalCount: 0,
           totalFreight: '0.00',
@@ -144,6 +160,9 @@
           unpaidAmount: '0.00'
         }
       }
+    },
+    created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(record, beginTime, endTime) {

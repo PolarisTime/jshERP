@@ -44,6 +44,13 @@
               <a-col :md="6" :sm="24">
                 <a-button type="primary" @click="searchQuery">查询</a-button>
                 <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
+                <column-setting-popover
+                  :defColumns="defColumns"
+                  :settingDataIndex.sync="settingDataIndex"
+                  @change="onColChange"
+                  @reset="handleRestDefault"
+                  style="margin-left: 8px"
+                />
               </a-col>
             </span>
           </a-row>
@@ -97,6 +104,7 @@
 
 <script>
   import BillDetail from './BillDetail'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import {mixinDevice} from '@/utils/mixin'
   import { findBillDetailByNumber } from '@/api/api'
@@ -105,7 +113,8 @@
     name: 'WaitBillList',
     mixins:[JeecgListMixin, mixinDevice],
     components: {
-      BillDetail
+      BillDetail,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -138,8 +147,10 @@
           xs: { span: 24 },
           sm: { span: 16 },
         },
+        pageName: 'waitBillList',
+        defDataIndex: ['organName', 'number', 'materialsList', 'operTimeStr', 'userName', 'materialCount', 'status'],
         // 表头
-        columns: [
+        defColumns: [
           { title: '', dataIndex: 'organName',width:120, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:130,
             scopedSlots: { customRender: 'numberCustomRender' },
@@ -180,6 +191,7 @@
       }
     },
     created() {
+      this.initColumnsSetting()
     },
     methods: {
       show(type, subType, status) {
@@ -188,7 +200,8 @@
         this.queryParam.type = type
         this.queryParam.subType = subType
         this.queryParam.status = status
-        this.columns[0].title = '供应商或客户'
+        this.defColumns[0].title = '供应商或客户'
+        this.initColumnsSetting()
         this.model = Object.assign({}, {});
         this.visible = true;
         this.loadData(1)

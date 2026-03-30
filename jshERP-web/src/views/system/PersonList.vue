@@ -36,6 +36,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchDel" icon="delete">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(true)" icon="check-square">启用</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetStatus(false)" icon="close-square">禁用</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -45,6 +51,7 @@
             bordered
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -75,6 +82,7 @@
 <!-- f r o m 7 5  2 7 1  8 9 2 0 -->
 <script>
   import PersonModal from './modules/PersonModal'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
   export default {
@@ -82,6 +90,7 @@
     mixins:[JeecgListMixin],
     components: {
       PersonModal,
+      ColumnSettingPopover,
       JDate
     },
     data () {
@@ -96,11 +105,13 @@
         // 查询条件
         queryParam: {name:'',type:''},
         urlPath: '/system/person',
+        pageName: 'personList',
+        defDataIndex: ['rowIndex', 'action', 'name', 'type', 'sort', 'enabled'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -132,6 +143,9 @@
     },
     computed: {
 
+    },
+    created() {
+      this.initColumnsSetting()
     },
     methods: {
       handleEdit: function (record) {

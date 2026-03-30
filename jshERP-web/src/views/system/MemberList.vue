@@ -53,6 +53,12 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleImportXls()" icon="import">导入</a-button>
           <a-button v-if="btnEnableList.indexOf(3)>-1" @click="handleExportXls('会员信息')" icon="download">导出</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchSetAdvanceIn()" icon="stock">修正预付款</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -62,6 +68,7 @@
             bordered
             rowKey="id"
             :columns="columns"
+            :components="handleDrag(columns)"
             :dataSource="dataSource"
             :pagination="ipagination"
             :scroll="scroll"
@@ -97,6 +104,7 @@
   import { postAction } from '@/api/manage'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import Vue from 'vue'
   export default {
     name: "MemberList",
@@ -104,7 +112,8 @@
     components: {
       MemberModal,
       ImportFileModal,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -126,11 +135,14 @@
         ipagination:{
           pageSizeOptions: ['10', '20', '30', '100', '200']
         },
+        pageName: 'memberList',
+        // 默认索引
+        defDataIndex:['rowIndex','action','supplier','contacts','telephone','phoneNum','email','advanceIn','sort','enabled'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:60,
             align:"center",
@@ -166,6 +178,9 @@
           batchSetAdvanceInUrl: "/supplier/batchSetAdvanceIn"
         }
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     computed: {
       importExcelUrl: function () {

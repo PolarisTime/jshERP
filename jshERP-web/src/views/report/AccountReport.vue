@@ -22,6 +22,7 @@
                   <a-button type="primary" @click="searchQuery">查询</a-button>
                   <a-button style="margin-left: 8px" v-print="'#reportPrint'" icon="printer">打印</a-button>
                   <a-button style="margin-left: 8px" @click="exportExcel" icon="download">导出</a-button>
+                  <column-setting-popover :defColumns="defColumns" :settingDataIndex.sync="settingDataIndex" @change="onColChange" @reset="handleRestDefault" style="margin-left: 8px" />
                 </span>
               </a-col>
               <a-col :md="6" :sm="24">
@@ -46,32 +47,6 @@
             :scroll="scroll"
             :loading="loading"
             @change="handleTableChange">
-            <span slot="customTitle">
-              <a-popover trigger="click" placement="right">
-                <template slot="content">
-                  <a-checkbox-group @change="onColChange" v-model="settingDataIndex" :defaultValue="settingDataIndex">
-                    <a-row style="width: 600px">
-                      <template v-for="(item,index) in defColumns">
-                        <template>
-                          <a-col :span="6">
-                            <a-checkbox :value="item.dataIndex" v-if="item.dataIndex==='rowIndex'" disabled></a-checkbox>
-                            <a-checkbox :value="item.dataIndex" v-if="item.dataIndex!=='rowIndex'">
-                              <j-ellipsis :value="item.title" :length="10"></j-ellipsis>
-                            </a-checkbox>
-                          </a-col>
-                        </template>
-                      </template>
-                    </a-row>
-                    <a-row style="padding-top: 10px;">
-                      <a-col>
-                        恢复默认列配置：<a-button @click="handleRestDefault" type="link" size="small">恢复默认</a-button>
-                      </a-col>
-                    </a-row>
-                  </a-checkbox-group>
-                </template>
-                <a-icon type="setting" />
-              </a-popover>
-            </span>
             <span slot="action" slot-scope="text, record">
               <a @click="showAccountInOutList(record)">{{record.id?'流水':''}}</a>
             </span>
@@ -103,14 +78,14 @@
 <script>
   import AccountInOutList from './modules/AccountInOutList'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import JEllipsis from '@/components/jeecg/JEllipsis'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import {getAction} from '@/api/manage'
   export default {
     name: "AccountReport",
     mixins:[JeecgListMixin],
     components: {
       AccountInOutList,
-      JEllipsis
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -139,7 +114,7 @@
         // 默认列
         defColumns: [
           {
-            dataIndex: 'rowIndex', width:60, align:"center", slots: { title: 'customTitle' },
+            dataIndex: 'rowIndex', width:60, align:"center", title: '#',
             customRender:function (t,r,index) {
               return (t !== '合计') ? (parseInt(index) + 1) : t
             }

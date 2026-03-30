@@ -114,6 +114,12 @@
           收款单的优惠金额会对利润产生影响，但不影响付款单位的应收应付。优惠金额计入收入类的收款优惠中。" slot="action">
             <a-icon v-if="btnEnableList.indexOf(1)>-1" type="question-circle" style="font-size:20px;float:right;" />
           </a-tooltip>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -156,6 +162,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import MoneyInModal from './modules/MoneyInModal'
   import FinancialDetail from './dialog/FinancialDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
@@ -169,6 +176,7 @@
     name: "MoneyInList",
     mixins:[JeecgListMixin, FinancialListMixin],
     components: {
+      ColumnSettingPopover,
       MoneyInModal,
       FinancialDetail,
       BillExcelIframe,
@@ -202,8 +210,9 @@
         },
         prefixNo: 'SK',
         urlPath: '/financial/money_in',
+        pageName: 'moneyInList',
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -225,6 +234,7 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['action', 'organName', 'billNo', 'billTimeStr', 'userName', 'handsPersonName', 'accountName', 'totalPrice', 'discountMoney', 'changeAmount', 'remark', 'status'],
         url: {
           list: "/accountHead/list",
           delete: "/accountHead/delete",
@@ -236,6 +246,7 @@
     computed: {
     },
     created () {
+      this.initColumnsSetting()
       this.initSystemConfig()
       this.initCustomer()
       this.initUser()

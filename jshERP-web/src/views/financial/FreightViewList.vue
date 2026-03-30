@@ -37,6 +37,15 @@
             </a-row>
           </a-form>
         </div>
+        <!-- 操作按钮区域 -->
+        <div class="table-operator" style="margin-top: 5px">
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
+        </div>
         <!-- table区域 -->
         <div style="margin-top:10px;">
           <a-table
@@ -46,6 +55,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -65,6 +75,7 @@
   </a-row>
 </template>
 <script>
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import FreightDetail from '../freight/dialog/FreightDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { selectAllFreightCarrier } from '@/api/api'
@@ -72,6 +83,7 @@
     name: "FreightViewList",
     mixins: [JeecgListMixin],
     components: {
+      ColumnSettingPopover,
       FreightDetail
     },
     data() {
@@ -90,7 +102,8 @@
         },
         carrierList: [],
         urlPath: '/financial/freight_view',
-        columns: [
+        pageName: 'freightViewList',
+        defColumns: [
           {
             title: '操作',
             dataIndex: 'action',
@@ -109,12 +122,14 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'status'],
         url: {
           list: "/freightHead/list"
         }
       }
     },
     created() {
+      this.initColumnsSetting();
       this.initCarrierList();
     },
     methods: {

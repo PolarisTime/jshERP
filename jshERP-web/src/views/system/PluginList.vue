@@ -33,6 +33,12 @@
               <a-button type="primary" icon="import">上传插件包</a-button>
             </a-popover>
           </a-upload>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -43,6 +49,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
@@ -87,13 +94,15 @@
   import {postAction} from '@/api/manage';
   import JDate from '@/components/jeecg/JDate'
   import { filterObj } from '@/utils/util'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "PluginList",
     mixins:[JeecgListMixin],
     components: {
       PluginModal,
       PluginAppModal,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -106,11 +115,13 @@
         },
         // 查询条件
         queryParam: {name:''},
+        pageName: 'pluginList',
+        defDataIndex:['rowIndex','action','pluginName','pluginId','pluginVersion','pluginProvider','pluginLink','pluginState'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -125,7 +136,7 @@
             align:"center",
             scopedSlots: { customRender: 'action' },
           },
-          {title: '名称', dataIndex: '', width: 120,
+          {title: '名称', dataIndex: 'pluginName', width: 120,
             customRender:function (t,r,index) {
               if (r) {
                 var desc = r.pluginDescriptor.pluginDescription;
@@ -136,28 +147,28 @@
               }
             }
           },
-          {title: '标识', dataIndex: '', width: 180,
+          {title: '标识', dataIndex: 'pluginId', width: 180,
             customRender:function (t,r,index) {
               if (r) {
                 return r.pluginDescriptor.pluginId;
               }
             }
           },
-          {title: '版本', dataIndex: '', width: 120,
+          {title: '版本', dataIndex: 'pluginVersion', width: 120,
             customRender:function (t,r,index) {
               if (r) {
                 return r.pluginDescriptor.version;
               }
             }
           },
-          {title: '作者', dataIndex: '', width: 100,
+          {title: '作者', dataIndex: 'pluginProvider', width: 100,
             customRender:function (t,r,index) {
               if (r) {
                 return r.pluginDescriptor.provider;
               }
             }
           },
-          {title: '页面链接', dataIndex: '', width: 250, ellipsis:true,
+          {title: '页面链接', dataIndex: 'pluginLink', width: 250, ellipsis:true,
             scopedSlots: { customRender: 'linkInfo' }
           },
           {title: '状态', dataIndex: 'pluginState', width: 60, align: "center",
@@ -171,6 +182,9 @@
           importJarUrl: "/plugin/uploadInstallPluginJar",
         }
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     computed: {
       importUrl: function () {

@@ -31,6 +31,12 @@
         <div class="table-operator"  style="margin-top: 5px">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="batchDel" icon="delete">删除</a-button>
+          <column-setting-popover
+            :defColumns="defColumns"
+            :settingDataIndex.sync="settingDataIndex"
+            @change="onColChange"
+            @reset="handleRestDefault"
+          />
         </div>
         <!-- table区域-begin -->
         <div>
@@ -41,6 +47,7 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
@@ -68,12 +75,14 @@
   import MaterialAttributeModal from './modules/MaterialAttributeModal'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   export default {
     name: "MaterialAttributeList",
     mixins:[JeecgListMixin],
     components: {
       MaterialAttributeModal,
-      JDate
+      JDate,
+      ColumnSettingPopover
     },
     data () {
       return {
@@ -90,11 +99,13 @@
           attributeValue:''
         },
         urlPath: '/material/material_attribute',
+        pageName: 'materialAttributeList',
+        defDataIndex:['rowIndex','action','attributeName','attributeValue'],
         // 表头
-        columns: [
+        defColumns: [
           {
             title: '#',
-            dataIndex: '',
+            dataIndex: 'rowIndex',
             key:'rowIndex',
             width:40,
             align:"center",
@@ -120,6 +131,9 @@
           deleteBatch: "/materialAttribute/deleteBatch"
         }
       }
+    },
+    created () {
+      this.initColumnsSetting()
     },
     computed: {
 
