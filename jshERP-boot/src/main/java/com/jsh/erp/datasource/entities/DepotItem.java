@@ -54,6 +54,8 @@ public class DepotItem {
 
     private String deleteFlag;
 
+    private BigDecimal weight;
+
     public Long getId() {
         return id;
     }
@@ -252,5 +254,13 @@ public class DepotItem {
 
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+
+    public BigDecimal getWeight() {
+        return weight;
+    }
+
+    public void setWeight(BigDecimal weight) {
+        this.weight = weight;
     }
 }

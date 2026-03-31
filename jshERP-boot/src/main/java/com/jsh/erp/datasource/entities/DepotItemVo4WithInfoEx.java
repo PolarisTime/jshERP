@@ -50,7 +50,7 @@ public class DepotItemVo4WithInfoEx extends DepotItem{
 
     private String barCode;
 
-    private BigDecimal weight;
+    private BigDecimal unitWeight;
 
     private String position;
 
@@ -262,12 +262,12 @@ public class DepotItemVo4WithInfoEx extends DepotItem{
         this.barCode = barCode;
     }
 
-    public BigDecimal getWeight() {
-        return weight;
+    public BigDecimal getUnitWeight() {
+        return unitWeight;
     }
 
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
+    public void setUnitWeight(BigDecimal unitWeight) {
+        this.unitWeight = unitWeight;
     }
 
     public String getPosition() {

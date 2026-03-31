@@ -1266,6 +1266,14 @@
           let row = { id: dataId }
           let value = { id: dataId }
           let disabled = false
+          // 保留数据源中非列定义的额外属性到row，供readonly函数等访问
+          let columnKeys = this.columns.map(c => c.key)
+          Object.keys(data).forEach(k => {
+            if (k !== 'id' && columnKeys.indexOf(k) === -1) {
+              row[k] = data[k]
+              value[k] = data[k]
+            }
+          })
           this.columns.forEach(column => {
             let inputId = column.key + value.id
             let sourceValue = (data[column.key] == null ? '' : data[column.key]).toString()
@@ -1846,6 +1854,19 @@
               // 在 searchSelectValues 中寻找值
               if (!edited) {
                 edited = this.setOneValue(this.searchSelectValues, modelKey, newValue)
+              }
+              // 非列定义字段（如weightEditable、categoryId），存入inputValues和rows
+              if (!edited) {
+                this.inputValues.forEach(value => {
+                  if (rowKey === this.getCleanId(value.id)) {
+                    this.$set(value, newValueKey, newValue)
+                  }
+                })
+                this.rows.forEach(row => {
+                  if (rowKey === this.getCleanId(row.id)) {
+                    this.$set(row, newValueKey, newValue)
+                  }
+                })
               }
             }
           }

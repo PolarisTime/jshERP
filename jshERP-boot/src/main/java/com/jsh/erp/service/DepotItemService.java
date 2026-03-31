@@ -8,6 +8,7 @@ import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.mappers.*;
 import com.jsh.erp.datasource.vo.DepotItemStockWarningCount;
 import com.jsh.erp.datasource.vo.DepotItemVo4Stock;
+import com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff;
 import com.jsh.erp.datasource.vo.DepotItemVoBatchNumberList;
 import com.jsh.erp.datasource.vo.InOutPriceVo;
 import com.jsh.erp.exception.BusinessRunTimeException;
@@ -629,6 +630,9 @@ public class DepotItemService {
                 }
                 if (StringUtil.isExist(rowObj.get("remark"))) {
                     depotItem.setRemark(rowObj.getString("remark"));
+                }
+                if (StringUtil.isExist(rowObj.get("weight"))) {
+                    depotItem.setWeight(rowObj.getBigDecimal("weight"));
                 }
                 //出库时判断库存是否充足
                 if(BusinessConstants.DEPOTHEAD_TYPE_OUT.equals(depotHead.getType())){
@@ -1548,5 +1552,16 @@ public class DepotItemService {
                         String.format(ExceptionConstants.BILL_MATERIAL_STOCK_NOT_ENOUGH_MSG, number, stockMsg));
             }
         }
+    }
+
+    public List<DepotItemVo4WeightDiff> getWeightDifferenceList(String beginTime, String endTime,
+            String subType, Long organId, Long depotId, List<Long> categoryIdList,
+            Integer offset, Integer rows) {
+        return depotItemMapperEx.getWeightDifferenceList(beginTime, endTime, subType, organId, depotId, categoryIdList, offset, rows);
+    }
+
+    public int getWeightDifferenceCount(String beginTime, String endTime,
+            String subType, Long organId, Long depotId, List<Long> categoryIdList) {
+        return depotItemMapperEx.getWeightDifferenceCount(beginTime, endTime, subType, organId, depotId, categoryIdList);
     }
 }

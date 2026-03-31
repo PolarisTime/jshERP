@@ -6,6 +6,7 @@ import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.constants.ExceptionConstants;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.vo.DepotItemStockWarningCount;
+import com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff;
 import com.jsh.erp.datasource.vo.DepotItemVoBatchNumberList;
 import com.jsh.erp.datasource.vo.InOutPriceVo;
 import com.jsh.erp.datasource.vo.MaterialDepotStock;
@@ -270,8 +271,14 @@ public class DepotItemController {
                         item.put("taxMoney", roleService.parseBillPriceByLimit(diEx.getTaxMoney(), billCategory, priceLimit, request));
                         item.put("taxLastMoney", roleService.parseBillPriceByLimit(diEx.getTaxLastMoney(), billCategory, priceLimit, request));
                     }
-                    BigDecimal allWeight = diEx.getBasicNumber()==null||diEx.getWeight()==null?BigDecimal.ZERO:diEx.getBasicNumber().multiply(diEx.getWeight());
-                    item.put("weight", allWeight);
+                    BigDecimal theoreticalWeight = diEx.getBasicNumber()==null||diEx.getUnitWeight()==null?BigDecimal.ZERO:diEx.getBasicNumber().multiply(diEx.getUnitWeight());
+                    // weight_editable类别且有存储的过磅重量时，显示实际值；否则显示理论值
+                    if ("1".equals(diEx.getWeightEditable()) && diEx.getWeight() != null) {
+                        item.put("weight", diEx.getWeight());
+                    } else {
+                        item.put("weight", theoreticalWeight);
+                    }
+                    item.put("theoreticalWeight", theoreticalWeight);
                     item.put("position", diEx.getPosition());
                     item.put("remark", diEx.getRemark());
                     item.put("imgName", diEx.getImgName());
@@ -297,7 +304,7 @@ public class DepotItemController {
                     totalTaxLastMoney = totalTaxLastMoney.add(diEx.getTaxLastMoney()==null?BigDecimal.ZERO:diEx.getTaxLastMoney());
                     totalFinishPurchaseNumber = totalFinishPurchaseNumber.add(finishPurchaseNumber);
                     totalFinishNumber = totalFinishNumber.add(finishNumber);
-                    totalWeight = totalWeight.add(allWeight);
+                    totalWeight = totalWeight.add(item.get("weight") != null ? (BigDecimal) item.get("weight") : BigDecimal.ZERO);
                 }
                 if(StringUtil.isNotEmpty(isReadOnly) && "1".equals(isReadOnly)) {
                     JSONObject footItem = new JSONObject();
@@ -1159,6 +1166,56 @@ public class DepotItemController {
             res.code = 500;
             data.put("message", message);
             res.data = data;
+        }
+        return res;
+    }
+
+    /**
+     * 过磅重量差异报表（长款短款）
+     */
+    @GetMapping(value = "/weightDifference")
+    @ApiOperation(value = "过磅重量差异报表")
+    public BaseResponseInfo weightDifference(@RequestParam("currentPage") Integer currentPage,
+                                             @RequestParam("pageSize") Integer pageSize,
+                                             @RequestParam(value = "beginTime", required = false) String beginTime,
+                                             @RequestParam(value = "endTime", required = false) String endTime,
+                                             @RequestParam(value = "subType", required = false) String subType,
+                                             @RequestParam(value = "organId", required = false) Long organId,
+                                             @RequestParam(value = "depotId", required = false) Long depotId,
+                                             @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                             HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        Map<String, Object> map = new HashMap<>();
+        try {
+            if (StringUtil.isNotEmpty(beginTime)) {
+                beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
+            }
+            if (StringUtil.isNotEmpty(endTime)) {
+                endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
+            }
+            List<Long> categoryIdList = new ArrayList<>();
+            if (categoryId != null) {
+                categoryIdList = materialService.getListByParentId(categoryId);
+            }
+            List<DepotItemVo4WeightDiff> dataList = depotItemService.getWeightDifferenceList(
+                    beginTime, endTime, StringUtil.toNull(subType), organId, depotId, categoryIdList,
+                    (currentPage - 1) * pageSize, pageSize);
+            int total = depotItemService.getWeightDifferenceCount(
+                    beginTime, endTime, StringUtil.toNull(subType), organId, depotId, categoryIdList);
+            // 格式化日期
+            for (DepotItemVo4WeightDiff item : dataList) {
+                if (item.getBillTime() != null) {
+                    item.setBillTimeStr(Tools.getCenternTime(item.getBillTime()));
+                }
+            }
+            map.put("total", total);
+            map.put("rows", dataList);
+            res.code = 200;
+            res.data = map;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "查询过磅差异报表失败";
         }
         return res;
     }

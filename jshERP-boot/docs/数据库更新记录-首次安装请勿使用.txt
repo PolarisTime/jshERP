@@ -1765,3 +1765,9 @@ alter table jsh_system_config add material_price_tax_flag varchar(1) DEFAULT '0'
 -- 商品类别表增加重量可编辑标记，标记为1的类别在采购入库时重量可手动修改
 -- --------------------------------------------------------
 ALTER TABLE jsh_material_category ADD COLUMN weight_editable tinyint(1) NOT NULL DEFAULT 0 COMMENT '重量可编辑 0-否 1-是';
+
+-- 设置盘螺、线材类别的重量可编辑标记
+UPDATE jsh_material_category SET weight_editable = 1 WHERE name IN ('盘螺', '线材');
+
+-- 单据子表增加实际重量列，用于存储过磅重量
+ALTER TABLE jsh_depot_item ADD COLUMN weight decimal(24,6) DEFAULT NULL COMMENT '实际重量(吨)';

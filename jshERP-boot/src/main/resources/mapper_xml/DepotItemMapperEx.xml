@@ -28,7 +28,7 @@
         <result column="MColor" jdbcType="VARCHAR" property="MColor" />
         <result column="MStandard" jdbcType="VARCHAR" property="MStandard" />
         <result column="MMfrs" jdbcType="VARCHAR" property="MMfrs" />
-        <result column="weight" jdbcType="VARCHAR" property="weight" />
+        <result column="unitWeight" jdbcType="DECIMAL" property="unitWeight" />
         <result column="position" jdbcType="VARCHAR" property="position" />
         <result column="img_name" jdbcType="VARCHAR" property="imgName" />
         <result column="MOtherField1" jdbcType="VARCHAR" property="MOtherField1" />
@@ -337,7 +337,7 @@
     </select>
 
     <select id="getDetailList" parameterType="com.jsh.erp.datasource.entities.DepotItemExample" resultMap="ResultWithInfoExMap">
-        select di.*,m.name MName,m.model MModel,m.unit MaterialUnit,m.color MColor,m.standard MStandard,m.mfrs MMfrs,m.weight, m.position, m.img_name,
+        select di.*,m.name MName,m.model MModel,m.unit MaterialUnit,m.color MColor,m.standard MStandard,m.mfrs MMfrs,m.weight as unitWeight, m.position, m.img_name,
         m.other_field1 MOtherField1,m.other_field2 MOtherField2,m.other_field3 MOtherField3,m.enable_serial_number, m.enable_batch_number,
         m.brand, m.category_id, mc.weight_editable, dp1.name DepotName,dp2.name AnotherDepotName, me.bar_code barCode, me.purchase_decimal
         from jsh_depot_item di
@@ -352,7 +352,7 @@
     </select>
 
     <select id="getBillDetailListByIds" resultType="com.jsh.erp.datasource.entities.DepotItemVo4WithInfoEx">
-        select di.*,m.name MName,m.model MModel,m.unit MaterialUnit,m.color MColor,m.standard MStandard,m.mfrs MMfrs,m.weight, m.position, m.img_name,
+        select di.*,m.name MName,m.model MModel,m.unit MaterialUnit,m.color MColor,m.standard MStandard,m.mfrs MMfrs,m.weight as unitWeight, m.position, m.img_name,
         m.other_field1 MOtherField1,m.other_field2 MOtherField2,m.other_field3 MOtherField3,m.enable_serial_number, m.enable_batch_number,
         m.brand, m.category_id, mc.weight_editable, dp1.name DepotName,dp2.name AnotherDepotName, me.bar_code barCode, me.purchase_decimal
         from jsh_depot_item di
@@ -1158,6 +1158,71 @@
         and ifnull(dh.delete_flag,'0') !='1'
         order by dh.id desc, di.id desc
         limit 0,1
+    </select>
+
+    <sql id="weightDiffCondition">
+        <if test="beginTime != null and beginTime != ''">
+            and dh.oper_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and dh.oper_time &lt;= #{endTime}
+        </if>
+        <if test="subType != null and subType != ''">
+            and dh.sub_type = #{subType}
+        </if>
+        <if test="organId != null">
+            and dh.organ_id = #{organId}
+        </if>
+        <if test="depotId != null">
+            and di.depot_id = #{depotId}
+        </if>
+        <if test="categoryIdList != null and categoryIdList.size() > 0">
+            and m.category_id in
+            <foreach collection="categoryIdList" item="cid" open="(" separator="," close=")">
+                #{cid}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="getWeightDifferenceList" resultType="com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff">
+        select dh.id as headerId, dh.number as billNo, dh.sub_type as subType,
+            dh.oper_time as billTime,
+            di.id as itemId, di.basic_number as basicNumber,
+            di.weight as actualWeight,
+            m.name as materialName, m.standard, m.model,
+            m.weight as unitWeight,
+            me.bar_code as barCode,
+            dp.name as depotName,
+            s.supplier as organName,
+            (di.basic_number * ifnull(m.weight, 0)) as theoreticalWeight,
+            (ifnull(di.weight, 0) - di.basic_number * ifnull(m.weight, 0)) as weightDiff
+        from jsh_depot_item di
+        join jsh_depot_head dh on di.header_id = dh.id and ifnull(dh.delete_flag,'0') != '1'
+        join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
+        join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
+        left join jsh_material_extend me on di.material_extend_id = me.id and ifnull(me.delete_flag,'0') != '1'
+        left join jsh_depot dp on di.depot_id = dp.id and ifnull(dp.delete_flag,'0') != '1'
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag,'0') != '1'
+        where mc.weight_editable = '1'
+        and di.weight is not null
+        and ifnull(di.delete_flag,'0') != '1'
+        <include refid="weightDiffCondition"/>
+        order by dh.oper_time desc, dh.id desc, di.id
+        <if test="offset != null and rows != null">
+            limit #{offset}, #{rows}
+        </if>
+    </select>
+
+    <select id="getWeightDifferenceCount" resultType="int">
+        select count(*)
+        from jsh_depot_item di
+        join jsh_depot_head dh on di.header_id = dh.id and ifnull(dh.delete_flag,'0') != '1'
+        join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
+        join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
+        where mc.weight_editable = '1'
+        and di.weight is not null
+        and ifnull(di.delete_flag,'0') != '1'
+        <include refid="weightDiffCondition"/>
     </select>
 
 </mapper>

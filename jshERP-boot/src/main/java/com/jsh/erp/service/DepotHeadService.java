@@ -1674,7 +1674,7 @@ public class DepotHeadService {
                     objs[22] = parseDecimalToStr(roleService.parseBillPriceByLimit(diEx.getTaxRate(), billCategory, priceLimit, request), 2);
                     objs[23] = parseDecimalToStr(roleService.parseBillPriceByLimit(diEx.getTaxMoney(), billCategory, priceLimit, request), 2);
                     objs[24] = parseDecimalToStr(roleService.parseBillPriceByLimit(diEx.getTaxLastMoney(), billCategory, priceLimit, request), 2);
-                    BigDecimal allWeight = diEx.getBasicNumber() == null || diEx.getWeight() == null ? BigDecimal.ZERO : diEx.getBasicNumber().multiply(diEx.getWeight());
+                    BigDecimal allWeight = diEx.getBasicNumber() == null || diEx.getUnitWeight() == null ? BigDecimal.ZERO : diEx.getBasicNumber().multiply(diEx.getUnitWeight());
                     objs[25] = parseDecimalToStr(allWeight, 2);
                     objs[26] = diEx.getRemark();
                     billDetail.add(objs);

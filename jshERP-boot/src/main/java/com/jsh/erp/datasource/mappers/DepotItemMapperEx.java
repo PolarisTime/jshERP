@@ -3,6 +3,7 @@ package com.jsh.erp.datasource.mappers;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.vo.DepotItemStockWarningCount;
 import com.jsh.erp.datasource.vo.DepotItemVo4Stock;
+import com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff;
 import com.jsh.erp.datasource.vo.DepotItemVoBatchNumberList;
 import com.jsh.erp.datasource.vo.InOutPriceVo;
 import org.apache.ibatis.annotations.Param;
@@ -263,4 +264,22 @@ public interface DepotItemMapperEx {
             @Param("meId") Long meId,
             @Param("type") String type,
             @Param("subType") String subType);
+
+    List<DepotItemVo4WeightDiff> getWeightDifferenceList(
+            @Param("beginTime") String beginTime,
+            @Param("endTime") String endTime,
+            @Param("subType") String subType,
+            @Param("organId") Long organId,
+            @Param("depotId") Long depotId,
+            @Param("categoryIdList") List<Long> categoryIdList,
+            @Param("offset") Integer offset,
+            @Param("rows") Integer rows);
+
+    int getWeightDifferenceCount(
+            @Param("beginTime") String beginTime,
+            @Param("endTime") String endTime,
+            @Param("subType") String subType,
+            @Param("organId") Long organId,
+            @Param("depotId") Long depotId,
+            @Param("categoryIdList") List<Long> categoryIdList);
 }
