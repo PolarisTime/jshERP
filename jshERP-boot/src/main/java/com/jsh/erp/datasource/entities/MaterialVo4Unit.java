@@ -66,6 +66,8 @@ public class MaterialVo4Unit extends Material{
 
     private BigDecimal taxLastMoney;
 
+    private String weightEditable;
+
     public String getUnitName() {
         return unitName;
     }
@@ -288,5 +290,13 @@ public class MaterialVo4Unit extends Material{
 
     public void setTaxMoney(BigDecimal taxMoney) {
         this.taxMoney = taxMoney;
+    }
+
+    public String getWeightEditable() {
+        return weightEditable;
+    }
+
+    public void setWeightEditable(String weightEditable) {
+        this.weightEditable = weightEditable;
     }
 }

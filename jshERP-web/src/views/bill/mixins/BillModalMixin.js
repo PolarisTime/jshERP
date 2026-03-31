@@ -758,7 +758,9 @@ export const BillModalMixin = {
           that.autoChangePrice(target)
           break;
         case "weight":
-          if(that.priceByWeightFlag) {
+          // weightEditable=1 或 priceByWeightFlag 时，按重量计价
+          let editableWeightCategory = row.weightEditable === '1' || row.weightEditable === 1
+          if(that.priceByWeightFlag || editableWeightCategory) {
             let weightVal = value-0
             unitPrice = row.unitPrice-0
             taxRate = row.taxRate-0
@@ -819,7 +821,9 @@ export const BillModalMixin = {
         taxRate: mInfo.taxRate,
         taxMoney: initTaxMoney,
         taxLastMoney: initTaxLastMoney,
-        weight: mInfo.weight
+        weight: mInfo.weight,
+        categoryId: mInfo.categoryId,
+        weightEditable: mInfo.weightEditable
       }
     },
     //使得型号、颜色、扩展信息、sku等为隐藏

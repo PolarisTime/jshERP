@@ -187,7 +187,7 @@
 
                         <input
                           :id="id"
-                          :readonly="col.readonly"
+                          :readonly="isCellReadonly(row, col)"
                           :visible="col.visible"
                           v-bind="buildProps(row,col)"
                           :data-input-number="col.type === formTypes.inputNumber"
@@ -2611,6 +2611,11 @@
         }
       },
       /** view辅助方法：构建 td style */
+      // 行级readonly控制：支持col.readonly为函数(row)=>boolean或布尔值
+      isCellReadonly(row, col) {
+        if (typeof col.readonly === 'function') return col.readonly(row)
+        return !!col.readonly
+      },
       buildTdStyle(col) {
         const isEmptyWidth = (column) => (column.type === FormTypes.hidden || column.width === '0px' || column.width === '0' || column.width === 0)
 

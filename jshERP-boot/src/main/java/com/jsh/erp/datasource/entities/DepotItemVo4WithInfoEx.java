@@ -58,6 +58,26 @@ public class DepotItemVo4WithInfoEx extends DepotItem{
 
     private String brand;
 
+    private Long categoryId;
+
+    private String weightEditable;
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getWeightEditable() {
+        return weightEditable;
+    }
+
+    public void setWeightEditable(String weightEditable) {
+        this.weightEditable = weightEditable;
+    }
+
     public Long getMId() {
         return MId;
     }

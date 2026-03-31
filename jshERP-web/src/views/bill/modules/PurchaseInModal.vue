@@ -298,7 +298,12 @@
             { title: '数量', key: 'operNumber', width: '4%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber,
+              readonly: (row) => {
+                // 类别标记 weight_editable=1 时可编辑重量，其他只读
+                return row.weightEditable !== '1' && row.weightEditable !== 1
+              }
+            },
             { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
             { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},

@@ -25,6 +25,8 @@ public class MaterialCategory {
 
     private String deleteFlag;
 
+    private String weightEditable;
+
     public Long getId() {
         return id;
     }
@@ -111,5 +113,13 @@ public class MaterialCategory {
 
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+
+    public String getWeightEditable() {
+        return weightEditable;
+    }
+
+    public void setWeightEditable(String weightEditable) {
+        this.weightEditable = weightEditable;
     }
 }
