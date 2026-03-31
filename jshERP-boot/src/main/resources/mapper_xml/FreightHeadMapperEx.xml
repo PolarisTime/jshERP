@@ -7,14 +7,30 @@
         <result column="carrierName" jdbcType="VARCHAR" property="carrierName" />
         <result column="creatorName" jdbcType="VARCHAR" property="creatorName" />
         <result column="billTimeStr" jdbcType="VARCHAR" property="billTimeStr" />
+        <result column="paymentOperatorName" jdbcType="VARCHAR" property="paymentOperatorName" />
+        <result column="paymentTimeStr" jdbcType="VARCHAR" property="paymentTimeStr" />
+        <result column="saleOutNumbers" jdbcType="VARCHAR" property="saleOutNumbers" />
+        <result column="customerNames" jdbcType="VARCHAR" property="customerNames" />
     </resultMap>
 
     <select id="selectByConditionFreightHead" resultMap="ResultMapEx">
         select fh.*, fc.name as carrierName, u.username as creatorName,
-               date_format(fh.bill_time, '%Y-%m-%d') as billTimeStr
+               date_format(fh.bill_time, '%Y-%m-%d') as billTimeStr,
+               u2.username as paymentOperatorName,
+               date_format(fh.payment_time, '%Y-%m-%d %H:%i') as paymentTimeStr,
+               (select GROUP_CONCAT(DISTINCT dh2.number SEPARATOR ', ')
+                from jsh_freight_item fi2
+                left join jsh_depot_head dh2 on fi2.depot_head_id = dh2.id
+                where fi2.header_id = fh.id and fi2.delete_flag = '0') as saleOutNumbers,
+               (select GROUP_CONCAT(DISTINCT s2.supplier SEPARATOR ', ')
+                from jsh_freight_item fi3
+                left join jsh_depot_head dh3 on fi3.depot_head_id = dh3.id
+                left join jsh_supplier s2 on dh3.organ_id = s2.id and ifnull(s2.delete_flag,'0') != '1'
+                where fi3.header_id = fh.id and fi3.delete_flag = '0') as customerNames
         from jsh_freight_head fh
         left join jsh_freight_carrier fc on fh.carrier_id = fc.id
         left join jsh_user u on fh.creator = u.id
+        left join jsh_user u2 on fh.payment_operator = u2.id
         where fh.delete_flag = '0' and fh.tenant_id = #{tenantId}
         <if test="billNo != null and billNo != ''">
             <bind name="bindBillNo" value="'%'+billNo+'%'"/>
@@ -25,6 +41,9 @@
         </if>
         <if test="status != null and status != ''">
             and fh.status = #{status}
+        </if>
+        <if test="paymentStatus != null and paymentStatus != ''">
+            and ifnull(fh.payment_status, '0') = #{paymentStatus}
         </if>
         <if test="beginTime != null and beginTime != ''">
             and fh.bill_time &gt;= #{beginTime}

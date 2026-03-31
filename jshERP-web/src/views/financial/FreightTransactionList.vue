@@ -7,24 +7,11 @@
           <a-form layout="inline" @keyup.enter.native="searchQuery">
             <a-row :gutter="24">
               <a-col :md="6" :sm="24">
-                <a-form-item label="单据编号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input placeholder="请输入单据编号" v-model="queryParam.billNo"></a-input>
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
                 <a-form-item label="结算方" :labelCol="labelCol" :wrapperCol="wrapperCol">
                   <a-select placeholder="请选择结算方" showSearch allow-clear optionFilterProp="children" v-model="queryParam.carrierId">
                     <a-select-option v-for="(item,index) in carrierList" :key="index" :value="item.id">
                       {{ item.name }}
                     </a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
-                <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
-                    <a-select-option value="0">未审核</a-select-option>
-                    <a-select-option value="1">已审核</a-select-option>
                   </a-select>
                 </a-form-item>
               </a-col>
@@ -59,7 +46,9 @@
         </div>
         <!-- 操作按钮区域 -->
         <div class="table-operator" style="margin-top: 5px">
-          <a-button icon="download" @click="handleExport">导出CSV</a-button>
+          <a-button type="primary" icon="check" @click="handleMarkPaid" :disabled="selectedRowKeys.length===0">标记已付款</a-button>
+          <a-button icon="undo" @click="handleCancelPayment" :disabled="selectedRowKeys.length===0">取消付款</a-button>
+          <a-button icon="export" @click="handleExportSelected" :disabled="selectedRowKeys.length===0">导出选中</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -80,14 +69,11 @@
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
+            :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
               <a @click="handleDetail(record)">查看</a>
             </span>
-            <template slot="customRenderStatus" slot-scope="status">
-              <a-tag v-if="status === '0' || status === 0" color="red">未审核</a-tag>
-              <a-tag v-if="status === '1' || status === 1" color="green">已审核</a-tag>
-            </template>
             <template slot="paymentStatusRender" slot-scope="text">
               <a-tag v-if="text === '1'" color="green">已付款</a-tag>
               <a-tag v-else-if="text === '2'" color="orange">部分付款</a-tag>
@@ -111,14 +97,13 @@
         <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
           <span>单据总数：<b>{{ summary.totalCount }}</b></span>
           <a-divider type="vertical" />
-          <span>总重量(吨)：<b>{{ summary.totalWeight }}</b></span>
-          <a-divider type="vertical" />
-          <span>总运费：<b>{{ summary.totalFreight }}</b></span>
+          <span>应付总额：<b>{{ summary.totalFreight }}</b></span>
           <a-divider type="vertical" />
           <span>已付总额：<b style="color:green;">{{ summary.paidAmount }}</b></span>
           <a-divider type="vertical" />
           <span>未付总额：<b style="color:red;">{{ summary.unpaidAmount }}</b></span>
         </div>
+        <!-- 详情弹窗 -->
         <freight-detail ref="modalDetail"></freight-detail>
       </a-card>
     </a-col>
@@ -128,9 +113,9 @@
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import FreightDetail from '../freight/dialog/FreightDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier } from '@/api/api'
+  import { selectAllFreightCarrier, batchSetPaymentStatus, cancelPayment, getFreightDetail } from '@/api/api'
   export default {
-    name: "FreightViewList",
+    name: "FreightTransactionList",
     mixins: [JeecgListMixin],
     components: {
       ColumnSettingPopover,
@@ -146,17 +131,17 @@
           offset: 1
         },
         queryParam: {
-          billNo: '',
           carrierId: undefined,
-          status: undefined,
+          status: '1',
           paymentStatus: undefined,
           beginTime: '',
           endTime: ''
         },
         dateRange: [],
         carrierList: [],
-        urlPath: '/financial/freight_view',
-        pageName: 'freightViewList',
+        selectedRowKeys: [],
+        urlPath: '/financial/freight_transaction',
+        pageName: 'freightTransactionList',
         defColumns: [
           {
             title: '操作',
@@ -178,10 +163,6 @@
             scopedSlots: { customRender: 'totalFreightRender' }
           },
           {
-            title: '审核状态', dataIndex: 'status', width: 90, align: "center",
-            scopedSlots: { customRender: 'customRenderStatus' }
-          },
-          {
             title: '付款状态', dataIndex: 'paymentStatus', width: 100, align: 'center',
             scopedSlots: { customRender: 'paymentStatusRender' }
           },
@@ -197,13 +178,12 @@
           { title: '操作人', dataIndex: 'paymentOperatorName', width: 80 },
           { title: '备注', dataIndex: 'remark', width: 120, ellipsis: true }
         ],
-        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'status', 'paymentStatus', 'paidAmount', 'unpaidAmount', 'paymentTimeStr', 'paymentOperatorName', 'remark'],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'paymentStatus', 'paidAmount', 'unpaidAmount', 'paymentTimeStr', 'paymentOperatorName', 'remark'],
         url: {
           list: "/freightHead/list"
         },
         summary: {
           totalCount: 0,
-          totalWeight: '0.00',
           totalFreight: '0.00',
           paidAmount: '0.00',
           unpaidAmount: '0.00'
@@ -237,19 +217,23 @@
         }
       },
       searchQuery() {
+        this.selectedRowKeys = [];
         this.loadData(1);
       },
       searchReset() {
         this.queryParam = {
-          billNo: '',
           carrierId: undefined,
-          status: undefined,
+          status: '1',
           paymentStatus: undefined,
           beginTime: '',
           endTime: ''
         }
         this.dateRange = [];
+        this.selectedRowKeys = [];
         this.loadData(1);
+      },
+      onSelectChange(selectedRowKeys) {
+        this.selectedRowKeys = selectedRowKeys;
       },
       handleDetail(record) {
         this.$refs.modalDetail.show(record);
@@ -260,59 +244,145 @@
         return totalFreight - paidAmount;
       },
       calcSummary() {
-        let totalWeight = 0, totalFreight = 0, paidAmount = 0;
+        let totalFreight = 0, paidAmount = 0;
         (this.dataSource || []).forEach(row => {
-          totalWeight += parseFloat(row.totalWeight || 0);
           totalFreight += parseFloat(row.totalFreight || 0);
           paidAmount += parseFloat(row.paidAmount || 0);
         });
         this.summary = {
           totalCount: this.ipagination ? this.ipagination.total : (this.dataSource || []).length,
-          totalWeight: totalWeight.toFixed(2),
           totalFreight: totalFreight.toFixed(2),
           paidAmount: paidAmount.toFixed(2),
           unpaidAmount: (totalFreight - paidAmount).toFixed(2)
         };
       },
-      handleExport() {
-        if (!this.dataSource || this.dataSource.length === 0) {
-          this.$message.warning('暂无数据可导出');
+      handleMarkPaid() {
+        let that = this;
+        let validIds = this.selectedRowKeys.filter(id => {
+          let row = this.dataSource.find(r => r.id === id);
+          return row && row.paymentStatus !== '1';
+        });
+        if (validIds.length === 0) {
+          this.$message.warning('所选单据均已付款，无需重复标记');
           return;
         }
-        let paymentStatusMap = { '0': '未付款', '1': '已付款', '2': '部分付款' };
-        let statusMap = { '0': '未审核', '1': '已审核' };
-        let headers = ['单据编号', '日期', '结算方', '总重量(吨)', '单价(元/吨)', '总运费(元)', '审核状态', '付款状态', '已付金额', '未付金额', '付款时间', '操作人', '备注'];
-        let rows = this.dataSource.map(row => {
-          let totalFreight = parseFloat(row.totalFreight || 0);
-          let paidAmount = parseFloat(row.paidAmount || 0);
-          let ps = row.paymentStatus != null ? row.paymentStatus : '0';
-          return [
-            row.billNo || '',
-            row.billTimeStr || '',
-            row.carrierName || '',
-            parseFloat(row.totalWeight || 0).toFixed(2),
-            row.unitPrice || 0,
-            totalFreight.toFixed(2),
-            statusMap[row.status] || '未审核',
-            paymentStatusMap[ps] || '未付款',
-            paidAmount.toFixed(2),
-            (totalFreight - paidAmount).toFixed(2),
-            row.paymentTimeStr || '',
-            row.paymentOperatorName || '',
-            row.remark || ''
-          ];
+        this.$confirm({
+          title: '确认标记已付款',
+          content: '即将标记 ' + validIds.length + ' 条单据为已付款，是否继续？',
+          onOk() {
+            let ids = validIds.join(',');
+            batchSetPaymentStatus({ paymentStatus: '1', paidAmount: 0, ids: ids }).then((res) => {
+              if (res.code === 200) {
+                that.$message.success('标记成功');
+                that.selectedRowKeys = [];
+                that.loadData();
+              } else {
+                that.$message.warning(res.data || '操作失败');
+              }
+            })
+          }
         });
-        this.downloadCsv(headers, rows, '运费查看列表');
       },
-      downloadCsv(headers, rows, fileName) {
-        let BOM = '\uFEFF';
-        let csvContent = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
-        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName + '.csv';
-        link.click();
-        URL.revokeObjectURL(link.href);
+      handleCancelPayment() {
+        let that = this;
+        let validIds = this.selectedRowKeys.filter(id => {
+          let row = this.dataSource.find(r => r.id === id);
+          return row && row.paymentStatus !== '0';
+        });
+        if (validIds.length === 0) {
+          this.$message.warning('所选单据均未付款，无需取消');
+          return;
+        }
+        this.$confirm({
+          title: '确认取消付款标记',
+          content: '即将取消 ' + validIds.length + ' 条单据的付款标记，是否继续？',
+          onOk() {
+            cancelPayment({ ids: validIds.join(',') }).then((res) => {
+              if (res.code === 200) {
+                that.$message.success('取消成功');
+                that.selectedRowKeys = [];
+                that.loadData();
+              } else {
+                that.$message.warning(res.data || '操作失败');
+              }
+            })
+          }
+        });
+      },
+      handleExportSelected() {
+        let keySet = new Set(this.selectedRowKeys.map(String));
+        let exportData = this.dataSource.filter(r => keySet.has(String(r.id)));
+        if (!exportData || exportData.length === 0) {
+          this.$message.warning('暂无选中数据可导出');
+          return;
+        }
+        this.loading = true;
+        let promises = exportData.map(row => getFreightDetail({ id: row.id }));
+        Promise.all(promises).then(results => {
+          let paymentStatusMap = { '0': '未付款', '1': '已付款', '2': '部分付款' };
+          let headers = [
+            '运费单号', '日期', '结算方', '总重量(吨)', '单价(元/吨)', '总运费(元)',
+            '付款状态', '已付金额', '未付金额', '付款时间', '操作人', '备注',
+            '出库单号', '出库日期', '客户名称', '商品名称', '规格', '型号', '批号',
+            '数量', '单位', '重量(吨)', '仓库'
+          ];
+          let rows = [];
+          exportData.forEach((row, idx) => {
+            let detail = (results[idx] && results[idx].code === 200) ? results[idx].data : {};
+            let items = detail.detailList || [];
+            let totalFreight = parseFloat(row.totalFreight || 0);
+            let paidAmount = parseFloat(row.paidAmount || 0);
+            let ps = row.paymentStatus != null ? row.paymentStatus : '0';
+            let headCols = [
+              row.billNo || '',
+              row.billTimeStr || '',
+              row.carrierName || '',
+              parseFloat(row.totalWeight || 0).toFixed(2),
+              row.unitPrice || 0,
+              totalFreight.toFixed(2),
+              paymentStatusMap[ps] || '未付款',
+              paidAmount.toFixed(2),
+              (totalFreight - paidAmount).toFixed(2),
+              row.paymentTimeStr || '',
+              row.paymentOperatorName || '',
+              row.remark || ''
+            ];
+            if (items.length === 0) {
+              rows.push([...headCols, '', '', '', '', '', '', '', '', '', '', '']);
+            } else {
+              items.forEach((item, i) => {
+                let prefix = i === 0 ? headCols : headCols.map(() => '');
+                rows.push([
+                  ...prefix,
+                  item.billNo || '',
+                  item.billTimeStr || '',
+                  item.customerName || '',
+                  item.materialName || '',
+                  item.standard || '',
+                  item.model || '',
+                  item.batchNumber || '',
+                  item.operNumber || '',
+                  item.materialUnit || '',
+                  item.itemWeight || '',
+                  item.depotName || ''
+                ]);
+              });
+            }
+          });
+          let BOM = '\uFEFF';
+          let csvContent = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+          let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          let link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = '运费往来_选中明细.csv';
+          link.click();
+          URL.revokeObjectURL(link.href);
+          this.$message.success('导出成功，共 ' + exportData.length + ' 张单据');
+        }).catch(() => {
+          this.$message.error('获取明细数据失败');
+        }).finally(() => {
+          this.loading = false;
+        });
       }
     }
   }

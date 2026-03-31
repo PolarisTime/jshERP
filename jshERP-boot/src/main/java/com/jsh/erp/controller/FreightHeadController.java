@@ -69,9 +69,10 @@ public class FreightHeadController extends BaseController {
         String billNo = StringUtil.getInfo(search, "billNo");
         Long carrierId = StringUtil.parseStrLong(StringUtil.getInfo(search, "carrierId"));
         String status = StringUtil.getInfo(search, "status");
+        String paymentStatus = StringUtil.getInfo(search, "paymentStatus");
         String beginTime = StringUtil.getInfo(search, "beginTime");
         String endTime = StringUtil.getInfo(search, "endTime");
-        List<FreightHeadVo> list = freightHeadService.select(billNo, carrierId, status, beginTime, endTime);
+        List<FreightHeadVo> list = freightHeadService.select(billNo, carrierId, status, paymentStatus, beginTime, endTime);
         return getDataTable(list);
     }
 
@@ -306,6 +307,53 @@ public class FreightHeadController extends BaseController {
             res.data = "操作失败";
         }
         return res;
+    }
+
+    @GetMapping(value = "/exportFreightViewList")
+    @ApiOperation(value = "导出运费查看列表Excel")
+    public void exportFreightViewList(@RequestParam(value = "billNo", required = false) String billNo,
+                                       @RequestParam(value = "carrierId", required = false) Long carrierId,
+                                       @RequestParam(value = "status", required = false) String status,
+                                       @RequestParam(value = "paymentStatus", required = false) String paymentStatus,
+                                       @RequestParam(value = "beginTime", required = false) String beginTime,
+                                       @RequestParam(value = "endTime", required = false) String endTime,
+                                       HttpServletRequest request,
+                                       javax.servlet.http.HttpServletResponse response) throws Exception {
+        try {
+            List<FreightHeadVo> dataList = freightHeadService.selectForExport(billNo, carrierId, status, paymentStatus, beginTime, endTime);
+            String[] names = {"单据编号", "日期", "结算方", "总重量(吨)", "单价(元/吨)", "总运费(元)", "审核状态", "付款状态", "已付金额", "未付金额", "付款时间", "操作人", "备注"};
+            String title = "运费查看列表";
+            List<Object[]> objects = new ArrayList<>();
+            for (FreightHeadVo row : dataList) {
+                String statusName = "1".equals(row.getStatus()) ? "已审核" : "未审核";
+                String ps = row.getPaymentStatus() != null ? row.getPaymentStatus() : "0";
+                String psName = "0".equals(ps) ? "未付款" : "1".equals(ps) ? "已付款" : "2".equals(ps) ? "部分付款" : "未付款";
+                java.math.BigDecimal totalFreight = row.getTotalFreight() != null ? row.getTotalFreight() : java.math.BigDecimal.ZERO;
+                java.math.BigDecimal paidAmount = row.getPaidAmount() != null ? row.getPaidAmount() : java.math.BigDecimal.ZERO;
+                java.math.BigDecimal unpaidAmount = totalFreight.subtract(paidAmount);
+                objects.add(new Object[]{
+                        row.getBillNo(),
+                        row.getBillTimeStr(),
+                        row.getCarrierName(),
+                        row.getTotalWeight(),
+                        row.getUnitPrice(),
+                        totalFreight,
+                        statusName,
+                        psName,
+                        paidAmount,
+                        unpaidAmount,
+                        row.getPaymentTimeStr() != null ? row.getPaymentTimeStr() : "",
+                        row.getPaymentOperatorName() != null ? row.getPaymentOperatorName() : "",
+                        row.getRemark() != null ? row.getRemark() : ""
+                });
+            }
+            String path = System.getProperty("java.io.tmpdir");
+            String fileName = "freight_view_list_" + System.currentTimeMillis() + ".xls";
+            java.io.File file = com.jsh.erp.utils.ExcelUtils.exportObjectsOneSheet(path, fileName, title, names, title, objects);
+            com.jsh.erp.utils.ExcelUtils.downloadExcel(file, file.getName(), response);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     @GetMapping(value = "/exportReconciliation")

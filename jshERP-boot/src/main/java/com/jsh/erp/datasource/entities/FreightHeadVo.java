@@ -54,4 +54,24 @@ public class FreightHeadVo extends FreightHead {
     public void setPaymentTimeStr(String paymentTimeStr) {
         this.paymentTimeStr = paymentTimeStr;
     }
+
+    private String saleOutNumbers;
+
+    private String customerNames;
+
+    public String getSaleOutNumbers() {
+        return saleOutNumbers;
+    }
+
+    public void setSaleOutNumbers(String saleOutNumbers) {
+        this.saleOutNumbers = saleOutNumbers;
+    }
+
+    public String getCustomerNames() {
+        return customerNames;
+    }
+
+    public void setCustomerNames(String customerNames) {
+        this.customerNames = customerNames;
+    }
 }

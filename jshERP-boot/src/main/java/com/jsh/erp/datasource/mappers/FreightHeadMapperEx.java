@@ -20,6 +20,7 @@ public interface FreightHeadMapperEx {
             @Param("billNo") String billNo,
             @Param("carrierId") Long carrierId,
             @Param("status") String status,
+            @Param("paymentStatus") String paymentStatus,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
             @Param("tenantId") Long tenantId);

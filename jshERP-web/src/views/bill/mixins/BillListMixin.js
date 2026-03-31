@@ -900,6 +900,116 @@ export const BillListMixin = {
       this.$refs.billExcelIframe.show(this.model, this.billExcelUrl + '?search=' + search + '&type=1', 150)
       this.$refs.billExcelIframe.title = "确认导出"
     },
+    //获取单据类型中文名
+    getBillTypeName() {
+      let map = {
+        'LSCK': '零售出库', 'LSTH': '零售退货', 'QGD': '采购申请',
+        'CGDD': '采购订单', 'CGRK': '采购入库', 'CGTH': '采购退货',
+        'XSDD': '销售订单', 'XSCK': '销售出库', 'XSTH': '销售退货',
+        'QTRK': '其他入库', 'QTCK': '其他出库', 'DBCK': '调拨出库',
+        'ZZD': '组装单', 'CXD': '拆卸单', 'PDFP': '盘点复盘'
+      }
+      return map[this.prefixNo] || '单据'
+    },
+    //导出选中单据（含明细）
+    handleExportSelectedCsv() {
+      if (this.selectedRowKeys.length <= 0) {
+        this.$message.warning('请先勾选要导出的单据！')
+        return
+      }
+      let keySet = new Set(this.selectedRowKeys.map(String))
+      let selectedRecords = this.dataSource.filter(r => keySet.has(String(r.id)))
+      if (selectedRecords.length === 0) {
+        this.$message.warning('未找到选中的单据数据')
+        return
+      }
+      this.loading = true
+      // 并行获取每条选中记录的明细数据
+      let mpList = getMpListShort(Vue.ls.get('materialPropertyList'))
+      let promises = selectedRecords.map(record => {
+        if (record.childrens && record.childrens.length > 0) {
+          return Promise.resolve({ code: 200, data: { rows: record.childrens } })
+        }
+        let params = {
+          headerId: record.id,
+          mpList: mpList,
+          linkType: 'basic',
+          isReadOnly: '0'
+        }
+        return getAction('/depotItem/getDetailList', params)
+      })
+      Promise.all(promises).then(results => {
+        // 确定主表导出列（使用当前可见列，排除操作列和状态渲染列）
+        let mainHeaders = []
+        let mainKeys = []
+        this.columns.forEach(col => {
+          if (col.dataIndex && col.dataIndex !== 'action') {
+            mainHeaders.push(col.title)
+            mainKeys.push(col.dataIndex)
+          }
+        })
+        // 确定明细表导出列
+        let detailHeaders = []
+        let detailKeys = []
+        // 使用当前类型对应的完整明细列定义
+        let detailColDef = this.defDetailColumns || []
+        if (detailColDef.length === 0) {
+          // 尝试从第一个有数据的结果初始化
+          for (let i = 0; i < results.length; i++) {
+            if (results[i] && results[i].code === 200 && results[i].data.rows && results[i].data.rows.length > 0) {
+              this.initSetting(selectedRecords[i], results[i].data.rows)
+              detailColDef = this.defDetailColumns || []
+              break
+            }
+          }
+        }
+        detailColDef.forEach(col => {
+          detailHeaders.push(col.title)
+          detailKeys.push(col.dataIndex)
+        })
+        // 构建CSV
+        let headers = [...mainHeaders, ...detailHeaders]
+        let rows = []
+        let statusMap = { '0': '未审核', '1': '已审核', '2': '完成', '3': '部分', '9': '审核中' }
+        selectedRecords.forEach((record, idx) => {
+          let detail = (results[idx] && results[idx].code === 200) ? results[idx].data.rows : []
+          // 提取主行数据
+          let mainRow = mainKeys.map(key => {
+            let val = record[key]
+            if (key === 'status') return statusMap[val] || val || ''
+            if (val === null || val === undefined) return ''
+            return val
+          })
+          if (detail.length === 0) {
+            rows.push([...mainRow, ...detailKeys.map(() => '')])
+          } else {
+            detail.forEach((item, i) => {
+              let prefix = i === 0 ? mainRow : mainRow.map(() => '')
+              let detailRow = detailKeys.map(key => {
+                let val = item[key]
+                if (val === null || val === undefined) return ''
+                return val
+              })
+              rows.push([...prefix, ...detailRow])
+            })
+          }
+        })
+        // 下载CSV
+        let BOM = '\uFEFF'
+        let csvContent = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n')
+        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        let link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = this.getBillTypeName() + '_导出选中.csv'
+        link.click()
+        URL.revokeObjectURL(link.href)
+        this.$message.success('导出成功，共 ' + selectedRecords.length + ' 张单据')
+      }).catch(() => {
+        this.$message.error('获取明细数据失败')
+      }).finally(() => {
+        this.loading = false
+      })
+    },
     // 展开/折叠行
     onExpand(expanded, record) {
       if (expanded) {

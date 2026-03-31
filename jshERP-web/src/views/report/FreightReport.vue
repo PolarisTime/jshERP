@@ -21,8 +21,8 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
+                <a-form-item label="审核状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="请选择审核状态" allow-clear v-model="queryParam.status">
                     <a-select-option value="0">未审核</a-select-option>
                     <a-select-option value="1">已审核</a-select-option>
                   </a-select>
@@ -59,7 +59,8 @@
         </div>
         <!-- 操作按钮区域 -->
         <div class="table-operator" style="margin-top: 5px">
-          <a-button icon="download" @click="handleExport">导出CSV</a-button>
+          <a-button v-print="'#freightReportPrint'" icon="printer">打印</a-button>
+          <a-button icon="download" @click="handleExport">导出</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -68,7 +69,7 @@
           />
         </div>
         <!-- table区域 -->
-        <div style="margin-top:10px;">
+        <section ref="print" id="freightReportPrint">
           <a-table
             ref="table"
             size="middle"
@@ -106,7 +107,7 @@
               <span :style="{color: calcUnpaid(record) > 0 ? 'red' : ''}">{{ calcUnpaid(record).toFixed(2) }}</span>
             </template>
           </a-table>
-        </div>
+        </section>
         <!-- 汇总统计栏 -->
         <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
           <span>单据总数：<b>{{ summary.totalCount }}</b></span>
@@ -119,6 +120,7 @@
           <a-divider type="vertical" />
           <span>未付总额：<b style="color:red;">{{ summary.unpaidAmount }}</b></span>
         </div>
+        <!-- 详情弹窗 -->
         <freight-detail ref="modalDetail"></freight-detail>
       </a-card>
     </a-col>
@@ -130,7 +132,7 @@
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { selectAllFreightCarrier } from '@/api/api'
   export default {
-    name: "FreightViewList",
+    name: "FreightReport",
     mixins: [JeecgListMixin],
     components: {
       ColumnSettingPopover,
@@ -155,8 +157,8 @@
         },
         dateRange: [],
         carrierList: [],
-        urlPath: '/financial/freight_view',
-        pageName: 'freightViewList',
+        urlPath: '/report/freight_report',
+        pageName: 'freightReport',
         defColumns: [
           {
             title: '操作',
@@ -195,9 +197,11 @@
           },
           { title: '付款时间', dataIndex: 'paymentTimeStr', width: 140 },
           { title: '操作人', dataIndex: 'paymentOperatorName', width: 80 },
+          { title: '关联出库单', dataIndex: 'saleOutNumbers', width: 200, ellipsis: true },
+          { title: '销售客户', dataIndex: 'customerNames', width: 150, ellipsis: true },
           { title: '备注', dataIndex: 'remark', width: 120, ellipsis: true }
         ],
-        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'status', 'paymentStatus', 'paidAmount', 'unpaidAmount', 'paymentTimeStr', 'paymentOperatorName', 'remark'],
+        defDataIndex: ['action', 'billNo', 'billTimeStr', 'carrierName', 'totalWeight', 'unitPrice', 'totalFreight', 'status', 'paymentStatus', 'paidAmount', 'unpaidAmount', 'saleOutNumbers', 'customerNames', 'paymentTimeStr', 'paymentOperatorName', 'remark'],
         url: {
           list: "/freightHead/list"
         },
@@ -281,7 +285,7 @@
         }
         let paymentStatusMap = { '0': '未付款', '1': '已付款', '2': '部分付款' };
         let statusMap = { '0': '未审核', '1': '已审核' };
-        let headers = ['单据编号', '日期', '结算方', '总重量(吨)', '单价(元/吨)', '总运费(元)', '审核状态', '付款状态', '已付金额', '未付金额', '付款时间', '操作人', '备注'];
+        let headers = ['单据编号', '日期', '结算方', '总重量(吨)', '单价(元/吨)', '总运费(元)', '审核状态', '付款状态', '已付金额', '未付金额', '关联出库单', '销售客户', '付款时间', '操作人', '备注'];
         let rows = this.dataSource.map(row => {
           let totalFreight = parseFloat(row.totalFreight || 0);
           let paidAmount = parseFloat(row.paidAmount || 0);
@@ -297,20 +301,19 @@
             paymentStatusMap[ps] || '未付款',
             paidAmount.toFixed(2),
             (totalFreight - paidAmount).toFixed(2),
+            row.saleOutNumbers || '',
+            row.customerNames || '',
             row.paymentTimeStr || '',
             row.paymentOperatorName || '',
             row.remark || ''
           ];
         });
-        this.downloadCsv(headers, rows, '运费查看列表');
-      },
-      downloadCsv(headers, rows, fileName) {
         let BOM = '\uFEFF';
         let csvContent = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
         let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         let link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = fileName + '.csv';
+        link.download = '运费查询.csv';
         link.click();
         URL.revokeObjectURL(link.href);
       }

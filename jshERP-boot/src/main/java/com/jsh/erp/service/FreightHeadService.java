@@ -95,7 +95,7 @@ public class FreightHeadService {
      * 分页条件查询运费单列表
      */
     public List<FreightHeadVo> select(String billNo, Long carrierId, String status,
-                                       String beginTime, String endTime) throws Exception {
+                                       String paymentStatus, String beginTime, String endTime) throws Exception {
         List<FreightHeadVo> list = new ArrayList<>();
         try {
             User userInfo = userService.getCurrentUser();
@@ -104,7 +104,26 @@ public class FreightHeadService {
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
             list = freightHeadMapperEx.selectByConditionFreightHead(billNo, carrierId, status,
-                    beginTime, endTime, tenantId);
+                    paymentStatus, beginTime, endTime, tenantId);
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+        }
+        return list;
+    }
+
+    /**
+     * 不分页查询运费单列表（用于导出）
+     */
+    public List<FreightHeadVo> selectForExport(String billNo, Long carrierId, String status,
+                                                String paymentStatus, String beginTime, String endTime) throws Exception {
+        List<FreightHeadVo> list = new ArrayList<>();
+        try {
+            User userInfo = userService.getCurrentUser();
+            Long tenantId = userInfo.getTenantId();
+            beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
+            endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
+            list = freightHeadMapperEx.selectByConditionFreightHead(billNo, carrierId, status,
+                    paymentStatus, beginTime, endTime, tenantId);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
