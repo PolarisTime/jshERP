@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="导入EXCEL"
+    title="导入文件"
     :width="600"
     :visible="visible"
     :confirmLoading="uploading"
@@ -9,7 +9,7 @@
     <a-upload
       name="file"
       :multiple="true"
-      accept=".xls,.xlsx"
+      accept=".csv,.xls,.xlsx"
       :fileList="fileList"
       :remove="handleRemove"
       :beforeUpload="beforeUpload">

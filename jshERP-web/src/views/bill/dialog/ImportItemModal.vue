@@ -17,7 +17,7 @@
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
         <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="模板">
-          <span><a :href="tmpUrl" target="_blank"><b>明细Excel模板[下载]</b></a></span>
+          <span><a :href="tmpUrl" target="_blank"><b>明细CSV模板[下载]</b></a></span>
         </a-form-item>
         <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="文件">
           <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader"
@@ -72,13 +72,13 @@
       add (prefixNo) {
         this.prefixNo = prefixNo
         if(prefixNo === 'QGD') {
-          this.tmpUrl = '/doc/apply_item_template.xls'
+          this.tmpUrl = '/doc/apply_item_template.csv'
         } else if(prefixNo === 'CGDD' || prefixNo === 'XSDD') {
-          this.tmpUrl = '/doc/order_item_template.xls'
+          this.tmpUrl = '/doc/order_item_template.csv'
         } else if(prefixNo === 'CGRK' || prefixNo === 'XSCK') {
-          this.tmpUrl = '/doc/buy_sale_item_template.xls'
+          this.tmpUrl = '/doc/buy_sale_item_template.csv'
         } else if(prefixNo === 'QTRK' || prefixNo === 'QTCK') {
-          this.tmpUrl = '/doc/in_out_item_template.xls'
+          this.tmpUrl = '/doc/in_out_item_template.csv'
         }
         this.form.resetFields()
         this.model = Object.assign({}, {})

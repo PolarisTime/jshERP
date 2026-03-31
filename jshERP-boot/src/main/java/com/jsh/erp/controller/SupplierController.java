@@ -494,7 +494,7 @@ public class SupplierController extends BaseController {
         try {
             List<Supplier> dataList = supplierService.findByAll(supplier, type, phonenum, telephone);
             File file = supplierService.exportExcel(dataList, type);
-            ExcelUtils.downloadExcel(file, file.getName(), response);
+            CsvUtils.downloadCsv(file, file.getName(), response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

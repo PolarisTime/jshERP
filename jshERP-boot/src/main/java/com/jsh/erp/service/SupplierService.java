@@ -439,11 +439,11 @@ public class SupplierService {
      * @param file
      */
     public void checkFileExt(MultipartFile file) {
-        //文件扩展名只能为xls
+        //文件扩展名只能为csv或xls
         String fileName = file.getOriginalFilename();
         if(StringUtil.isNotEmpty(fileName)) {
-            String fileExt = fileName.substring(fileName.indexOf(".")+1);
-            if(!"xls".equals(fileExt)) {
+            String fileExt = fileName.substring(fileName.lastIndexOf(".")+1).toLowerCase();
+            if(!"csv".equals(fileExt) && !"xls".equals(fileExt)) {
                 throw new BusinessRunTimeException(ExceptionConstants.FILE_EXTENSION_ERROR_CODE,
                         ExceptionConstants.FILE_EXTENSION_ERROR_MSG);
             }
@@ -454,33 +454,64 @@ public class SupplierService {
     public void importVendor(MultipartFile file, HttpServletRequest request) throws Exception{
         String type = "供应商";
         User userInfo = userService.getCurrentUser();
-        Workbook workbook = Workbook.getWorkbook(file.getInputStream());
-        Sheet src = workbook.getSheet(0);
         //'名称', '联系人', '手机号码', '联系电话', '电子邮箱', '传真', '期初应付', '纳税人识别号', '税率(%)', '开户行', '账号', '地址', '备注', '排序', '状态'
         List<Supplier> sList = new ArrayList<>();
-        for (int i = 2; i < src.getRows(); i++) {
-            String supplierName = ExcelUtils.getContent(src, i, 0);
-            String enabled = ExcelUtils.getContent(src, i, 14);
-            if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
-                Supplier s = new Supplier();
-                s.setType(type);
-                s.setSupplier(supplierName);
-                s.setContacts(ExcelUtils.getContent(src, i, 1));
-                s.setTelephone(ExcelUtils.getContent(src, i, 2));
-                s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
-                s.setEmail(ExcelUtils.getContent(src, i, 4));
-                s.setFax(ExcelUtils.getContent(src, i, 5));
-                s.setBeginNeedPay(parseBigDecimalEx(ExcelUtils.getContent(src, i, 6)));
-                s.setTaxNum(ExcelUtils.getContent(src, i, 7));
-                s.setTaxRate(parseBigDecimalEx(ExcelUtils.getContent(src, i, 8)));
-                s.setBankName(ExcelUtils.getContent(src, i, 9));
-                s.setAccountNumber(ExcelUtils.getContent(src, i, 10));
-                s.setAddress(ExcelUtils.getContent(src, i, 11));
-                s.setDescription(ExcelUtils.getContent(src, i, 12));
-                s.setSort(ExcelUtils.getContent(src, i, 13));
-                s.setCreator(userInfo==null?null:userInfo.getId());
-                s.setEnabled("1".equals(enabled));
-                sList.add(s);
+        String fileName = file.getOriginalFilename();
+        boolean isCsv = fileName != null && fileName.toLowerCase().endsWith(".csv");
+        if (isCsv) {
+            List<String[]> rows = CsvUtils.parseCsv(file.getInputStream(), 1);
+            for (int i = 0; i < rows.size(); i++) {
+                String supplierName = CsvUtils.getContent(rows, i, 0);
+                String enabled = CsvUtils.getContent(rows, i, 14);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(CsvUtils.getContent(rows, i, 1));
+                    s.setTelephone(CsvUtils.getContent(rows, i, 2));
+                    s.setPhoneNum(CsvUtils.getContent(rows, i, 3));
+                    s.setEmail(CsvUtils.getContent(rows, i, 4));
+                    s.setFax(CsvUtils.getContent(rows, i, 5));
+                    s.setBeginNeedPay(parseBigDecimalEx(CsvUtils.getContent(rows, i, 6)));
+                    s.setTaxNum(CsvUtils.getContent(rows, i, 7));
+                    s.setTaxRate(parseBigDecimalEx(CsvUtils.getContent(rows, i, 8)));
+                    s.setBankName(CsvUtils.getContent(rows, i, 9));
+                    s.setAccountNumber(CsvUtils.getContent(rows, i, 10));
+                    s.setAddress(CsvUtils.getContent(rows, i, 11));
+                    s.setDescription(CsvUtils.getContent(rows, i, 12));
+                    s.setSort(CsvUtils.getContent(rows, i, 13));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
+            }
+        } else {
+            Workbook workbook = Workbook.getWorkbook(file.getInputStream());
+            Sheet src = workbook.getSheet(0);
+            for (int i = 2; i < src.getRows(); i++) {
+                String supplierName = ExcelUtils.getContent(src, i, 0);
+                String enabled = ExcelUtils.getContent(src, i, 14);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(ExcelUtils.getContent(src, i, 1));
+                    s.setTelephone(ExcelUtils.getContent(src, i, 2));
+                    s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
+                    s.setEmail(ExcelUtils.getContent(src, i, 4));
+                    s.setFax(ExcelUtils.getContent(src, i, 5));
+                    s.setBeginNeedPay(parseBigDecimalEx(ExcelUtils.getContent(src, i, 6)));
+                    s.setTaxNum(ExcelUtils.getContent(src, i, 7));
+                    s.setTaxRate(parseBigDecimalEx(ExcelUtils.getContent(src, i, 8)));
+                    s.setBankName(ExcelUtils.getContent(src, i, 9));
+                    s.setAccountNumber(ExcelUtils.getContent(src, i, 10));
+                    s.setAddress(ExcelUtils.getContent(src, i, 11));
+                    s.setDescription(ExcelUtils.getContent(src, i, 12));
+                    s.setSort(ExcelUtils.getContent(src, i, 13));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
             }
         }
         importExcel(sList, type, request);
@@ -490,33 +521,64 @@ public class SupplierService {
     public void importCustomer(MultipartFile file, HttpServletRequest request) throws Exception{
         String type = "客户";
         User userInfo = userService.getCurrentUser();
-        Workbook workbook = Workbook.getWorkbook(file.getInputStream());
-        Sheet src = workbook.getSheet(0);
         //'名称', '联系人', '手机号码', '联系电话', '电子邮箱', '传真', '期初应收', '纳税人识别号', '税率(%)', '开户行', '账号', '地址', '备注', '排序', '状态'
         List<Supplier> sList = new ArrayList<>();
-        for (int i = 2; i < src.getRows(); i++) {
-            String supplierName = ExcelUtils.getContent(src, i, 0);
-            String enabled = ExcelUtils.getContent(src, i, 14);
-            if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
-                Supplier s = new Supplier();
-                s.setType(type);
-                s.setSupplier(supplierName);
-                s.setContacts(ExcelUtils.getContent(src, i, 1));
-                s.setTelephone(ExcelUtils.getContent(src, i, 2));
-                s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
-                s.setEmail(ExcelUtils.getContent(src, i, 4));
-                s.setFax(ExcelUtils.getContent(src, i, 5));
-                s.setBeginNeedGet(parseBigDecimalEx(ExcelUtils.getContent(src, i, 6)));
-                s.setTaxNum(ExcelUtils.getContent(src, i, 7));
-                s.setTaxRate(parseBigDecimalEx(ExcelUtils.getContent(src, i, 8)));
-                s.setBankName(ExcelUtils.getContent(src, i, 9));
-                s.setAccountNumber(ExcelUtils.getContent(src, i, 10));
-                s.setAddress(ExcelUtils.getContent(src, i, 11));
-                s.setDescription(ExcelUtils.getContent(src, i, 12));
-                s.setSort(ExcelUtils.getContent(src, i, 13));
-                s.setCreator(userInfo==null?null:userInfo.getId());
-                s.setEnabled("1".equals(enabled));
-                sList.add(s);
+        String fileName = file.getOriginalFilename();
+        boolean isCsv = fileName != null && fileName.toLowerCase().endsWith(".csv");
+        if (isCsv) {
+            List<String[]> rows = CsvUtils.parseCsv(file.getInputStream(), 1);
+            for (int i = 0; i < rows.size(); i++) {
+                String supplierName = CsvUtils.getContent(rows, i, 0);
+                String enabled = CsvUtils.getContent(rows, i, 14);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(CsvUtils.getContent(rows, i, 1));
+                    s.setTelephone(CsvUtils.getContent(rows, i, 2));
+                    s.setPhoneNum(CsvUtils.getContent(rows, i, 3));
+                    s.setEmail(CsvUtils.getContent(rows, i, 4));
+                    s.setFax(CsvUtils.getContent(rows, i, 5));
+                    s.setBeginNeedGet(parseBigDecimalEx(CsvUtils.getContent(rows, i, 6)));
+                    s.setTaxNum(CsvUtils.getContent(rows, i, 7));
+                    s.setTaxRate(parseBigDecimalEx(CsvUtils.getContent(rows, i, 8)));
+                    s.setBankName(CsvUtils.getContent(rows, i, 9));
+                    s.setAccountNumber(CsvUtils.getContent(rows, i, 10));
+                    s.setAddress(CsvUtils.getContent(rows, i, 11));
+                    s.setDescription(CsvUtils.getContent(rows, i, 12));
+                    s.setSort(CsvUtils.getContent(rows, i, 13));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
+            }
+        } else {
+            Workbook workbook = Workbook.getWorkbook(file.getInputStream());
+            Sheet src = workbook.getSheet(0);
+            for (int i = 2; i < src.getRows(); i++) {
+                String supplierName = ExcelUtils.getContent(src, i, 0);
+                String enabled = ExcelUtils.getContent(src, i, 14);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(ExcelUtils.getContent(src, i, 1));
+                    s.setTelephone(ExcelUtils.getContent(src, i, 2));
+                    s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
+                    s.setEmail(ExcelUtils.getContent(src, i, 4));
+                    s.setFax(ExcelUtils.getContent(src, i, 5));
+                    s.setBeginNeedGet(parseBigDecimalEx(ExcelUtils.getContent(src, i, 6)));
+                    s.setTaxNum(ExcelUtils.getContent(src, i, 7));
+                    s.setTaxRate(parseBigDecimalEx(ExcelUtils.getContent(src, i, 8)));
+                    s.setBankName(ExcelUtils.getContent(src, i, 9));
+                    s.setAccountNumber(ExcelUtils.getContent(src, i, 10));
+                    s.setAddress(ExcelUtils.getContent(src, i, 11));
+                    s.setDescription(ExcelUtils.getContent(src, i, 12));
+                    s.setSort(ExcelUtils.getContent(src, i, 13));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
             }
         }
         importExcel(sList, type, request);
@@ -526,26 +588,50 @@ public class SupplierService {
     public void importMember(MultipartFile file, HttpServletRequest request) throws Exception{
         String type = "会员";
         User userInfo = userService.getCurrentUser();
-        Workbook workbook = Workbook.getWorkbook(file.getInputStream());
-        Sheet src = workbook.getSheet(0);
         //'名称', '联系人', '手机号码', '联系电话', '电子邮箱', '备注', '排序', '状态'
         List<Supplier> sList = new ArrayList<>();
-        for (int i = 2; i < src.getRows(); i++) {
-            String supplierName = ExcelUtils.getContent(src, i, 0);
-            String enabled = ExcelUtils.getContent(src, i, 7);
-            if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
-                Supplier s = new Supplier();
-                s.setType(type);
-                s.setSupplier(supplierName);
-                s.setContacts(ExcelUtils.getContent(src, i, 1));
-                s.setTelephone(ExcelUtils.getContent(src, i, 2));
-                s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
-                s.setEmail(ExcelUtils.getContent(src, i, 4));
-                s.setDescription(ExcelUtils.getContent(src, i, 5));
-                s.setSort(ExcelUtils.getContent(src, i, 6));
-                s.setCreator(userInfo==null?null:userInfo.getId());
-                s.setEnabled("1".equals(enabled));
-                sList.add(s);
+        String fileName = file.getOriginalFilename();
+        boolean isCsv = fileName != null && fileName.toLowerCase().endsWith(".csv");
+        if (isCsv) {
+            List<String[]> rows = CsvUtils.parseCsv(file.getInputStream(), 1);
+            for (int i = 0; i < rows.size(); i++) {
+                String supplierName = CsvUtils.getContent(rows, i, 0);
+                String enabled = CsvUtils.getContent(rows, i, 7);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(CsvUtils.getContent(rows, i, 1));
+                    s.setTelephone(CsvUtils.getContent(rows, i, 2));
+                    s.setPhoneNum(CsvUtils.getContent(rows, i, 3));
+                    s.setEmail(CsvUtils.getContent(rows, i, 4));
+                    s.setDescription(CsvUtils.getContent(rows, i, 5));
+                    s.setSort(CsvUtils.getContent(rows, i, 6));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
+            }
+        } else {
+            Workbook workbook = Workbook.getWorkbook(file.getInputStream());
+            Sheet src = workbook.getSheet(0);
+            for (int i = 2; i < src.getRows(); i++) {
+                String supplierName = ExcelUtils.getContent(src, i, 0);
+                String enabled = ExcelUtils.getContent(src, i, 7);
+                if(StringUtil.isNotEmpty(supplierName) && StringUtil.isNotEmpty(enabled)) {
+                    Supplier s = new Supplier();
+                    s.setType(type);
+                    s.setSupplier(supplierName);
+                    s.setContacts(ExcelUtils.getContent(src, i, 1));
+                    s.setTelephone(ExcelUtils.getContent(src, i, 2));
+                    s.setPhoneNum(ExcelUtils.getContent(src, i, 3));
+                    s.setEmail(ExcelUtils.getContent(src, i, 4));
+                    s.setDescription(ExcelUtils.getContent(src, i, 5));
+                    s.setSort(ExcelUtils.getContent(src, i, 6));
+                    s.setCreator(userInfo==null?null:userInfo.getId());
+                    s.setEnabled("1".equals(enabled));
+                    sList.add(s);
+                }
             }
         }
         importExcel(sList, type, request);
@@ -616,7 +702,7 @@ public class SupplierService {
                     objects.add(objs);
                 }
             }
-            return ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, "*导入时本行内容请勿删除，切记！", names, title, objects);
+            return CsvUtils.exportCsv(fileExportTmp, title + "_" + System.currentTimeMillis() + ".csv", "", names, objects);
         }
     }
 
@@ -656,7 +742,7 @@ public class SupplierService {
                 objects.add(objs);
             }
         }
-        return ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, "*导入时本行内容请勿删除，切记！", names, title, objects);
+        return CsvUtils.exportCsv(fileExportTmp, title + "_" + System.currentTimeMillis() + ".csv", "", names, objects);
     }
 
     /**

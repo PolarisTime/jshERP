@@ -486,8 +486,8 @@ public class MaterialService {
         List<MaterialVo4Unit> dataList = materialMapperEx.exportExcel(materialParam, color, materialOther, weight, expiryNum, enabled, enableSerialNumber,
                 enableBatchNumber, remark, idList);
         if (null != dataList && dataList.size() > EXPORT_LIMIT) {
-            File file = ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, "单次导出条数超出限制（1万条）", new String[0], title, new ArrayList<>());
-            ExcelUtils.downloadExcel(file, file.getName(), response);
+            File file = CsvUtils.exportCsv(fileExportTmp, "error.csv", "", new String[]{"单次导出条数超出限制（1万条）"}, new ArrayList<>());
+            CsvUtils.downloadCsv(file, file.getName(), response);
             return;
         }
         //查询商品副条码相关列表
@@ -561,8 +561,8 @@ public class MaterialService {
                 objects.add(objs);
             }
         }
-        File file = ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, "*导入时本行内容请勿删除，切记！", names, title, objects);
-        ExcelUtils.downloadExcel(file, file.getName(), response);
+        File file = CsvUtils.exportCsv(fileExportTmp, title + "_" + System.currentTimeMillis() + ".csv", "", names, objects);
+        CsvUtils.downloadCsv(file, file.getName(), response);
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
@@ -570,63 +570,81 @@ public class MaterialService {
         BaseResponseInfo info = new BaseResponseInfo();
         try {
             Long beginTime = System.currentTimeMillis();
-            //文件扩展名只能为xls
+            //文件扩展名只能为xls或csv
             String fileName = file.getOriginalFilename();
             if(StringUtil.isNotEmpty(fileName)) {
-                String fileExt = fileName.substring(fileName.lastIndexOf(".")+1);
-                if(!"xls".equals(fileExt)) {
+                String fileExt = fileName.substring(fileName.lastIndexOf(".")+1).toLowerCase();
+                if(!"xls".equals(fileExt) && !"csv".equals(fileExt)) {
                     throw new BusinessRunTimeException(ExceptionConstants.FILE_EXTENSION_ERROR_CODE,
                             ExceptionConstants.FILE_EXTENSION_ERROR_MSG);
                 }
             }
-            Workbook workbook = Workbook.getWorkbook(file.getInputStream());
-            Sheet src = workbook.getSheet(0);
-            //获取真实的行数，剔除掉空白行
-            int rightRows = ExcelUtils.getRightRows(src);
+            boolean isCsv = fileName != null && fileName.toLowerCase().endsWith(".csv");
+            // CSV解析相关变量
+            List<String[]> csvRows = null;
+            String[] csvHeaderRow = null;
+            // XLS解析相关变量
+            Sheet src = null;
+            int rightRows;
+            int dataStartRow;
+            if(isCsv) {
+                csvRows = CsvUtils.parseCsv(file.getInputStream(), 0); // 包含表头
+                csvHeaderRow = csvRows.size() > 0 ? csvRows.get(0) : new String[0];
+                rightRows = csvRows.size(); // 包含表头行
+                dataStartRow = 1; // 数据从索引1开始（索引0是表头）
+            } else {
+                Workbook workbook = Workbook.getWorkbook(file.getInputStream());
+                src = workbook.getSheet(0);
+                rightRows = ExcelUtils.getRightRows(src);
+                dataStartRow = 2; // XLS: 索引0=tip行, 索引1=header行, 数据从索引2开始
+            }
             List<Depot> depotList= depotService.getDepot();
             int depotCount = depotList.size();
             Map<String, Long> depotMap = parseDepotToMap(depotList);
             User user = userService.getCurrentUser();
             List<MaterialWithInitStock> mList = new ArrayList<>();
             //单次导入超出1000条
-            if(rightRows > 1002) {
+            int dataRows = rightRows - dataStartRow;
+            if(dataRows > 1000) {
                 throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_IMPORT_OVER_LIMIT_CODE,
                         String.format(ExceptionConstants.MATERIAL_IMPORT_OVER_LIMIT_MSG));
             }
-            for (int i = 2; i < rightRows; i++) {
-                String name = ExcelUtils.getContent(src, i, 0); //名称
-                String standard = ExcelUtils.getContent(src, i, 1); //规格
-                String model = ExcelUtils.getContent(src, i, 2); //型号
-                String color = ExcelUtils.getContent(src, i, 3); //颜色
-                String brand = ExcelUtils.getContent(src, i, 4); //品牌
-                String categoryName = ExcelUtils.getContent(src, i, 5); //类别
-                String weight = ExcelUtils.getContent(src, i, 6); //基础重量(kg)
-                String expiryNum = ExcelUtils.getContent(src, i, 7); //保质期(天)
-                String unit = ExcelUtils.getContent(src, i, 8); //基本单位
+            for (int i = dataStartRow; i < rightRows; i++) {
+                // 用户可见行号：对XLS是i+1（跳过tip行），对CSV是i+1（表头为第1行）
+                int displayRow = i + 1;
+                String name = isCsv ? CsvUtils.getContent(csvRows, i, 0) : ExcelUtils.getContent(src, i, 0); //名称
+                String standard = isCsv ? CsvUtils.getContent(csvRows, i, 1) : ExcelUtils.getContent(src, i, 1); //规格
+                String model = isCsv ? CsvUtils.getContent(csvRows, i, 2) : ExcelUtils.getContent(src, i, 2); //型号
+                String color = isCsv ? CsvUtils.getContent(csvRows, i, 3) : ExcelUtils.getContent(src, i, 3); //颜色
+                String brand = isCsv ? CsvUtils.getContent(csvRows, i, 4) : ExcelUtils.getContent(src, i, 4); //品牌
+                String categoryName = isCsv ? CsvUtils.getContent(csvRows, i, 5) : ExcelUtils.getContent(src, i, 5); //类别
+                String weight = isCsv ? CsvUtils.getContent(csvRows, i, 6) : ExcelUtils.getContent(src, i, 6); //基础重量(kg)
+                String expiryNum = isCsv ? CsvUtils.getContent(csvRows, i, 7) : ExcelUtils.getContent(src, i, 7); //保质期(天)
+                String unit = isCsv ? CsvUtils.getContent(csvRows, i, 8) : ExcelUtils.getContent(src, i, 8); //基本单位
                 //名称为空
                 if(StringUtil.isEmpty(name)) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_NAME_EMPTY_CODE,
-                            String.format(ExceptionConstants.MATERIAL_NAME_EMPTY_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_NAME_EMPTY_MSG, displayRow));
                 }
                 //名称长度超出
                 if(name.length()>100) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_NAME_OVER_CODE,
-                            String.format(ExceptionConstants.MATERIAL_NAME_OVER_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_NAME_OVER_MSG, displayRow));
                 }
                 //规格长度超出
                 if(StringUtil.isNotEmpty(standard) && standard.length()>100) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_STANDARD_OVER_CODE,
-                            String.format(ExceptionConstants.MATERIAL_STANDARD_OVER_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_STANDARD_OVER_MSG, displayRow));
                 }
                 //型号长度超出
                 if(StringUtil.isNotEmpty(model) && model.length()>100) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_MODEL_OVER_CODE,
-                            String.format(ExceptionConstants.MATERIAL_MODEL_OVER_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_MODEL_OVER_MSG, displayRow));
                 }
                 //基本单位为空
                 if(StringUtil.isEmpty(unit)) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_UNIT_EMPTY_CODE,
-                            String.format(ExceptionConstants.MATERIAL_UNIT_EMPTY_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_UNIT_EMPTY_MSG, displayRow));
                 }
                 MaterialWithInitStock m = new MaterialWithInitStock();
                 m.setName(name);
@@ -644,7 +662,7 @@ public class MaterialService {
                     //校验基础重量是否是数字（含小数）
                     if(!StringUtil.isPositiveBigDecimal(weight)) {
                         throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_WEIGHT_NOT_DECIMAL_CODE,
-                                String.format(ExceptionConstants.MATERIAL_WEIGHT_NOT_DECIMAL_MSG, i+1));
+                                String.format(ExceptionConstants.MATERIAL_WEIGHT_NOT_DECIMAL_MSG, displayRow));
                     }
                     m.setWeight(new BigDecimal(weight));
                 }
@@ -652,28 +670,28 @@ public class MaterialService {
                     //校验保质期是否是正整数
                     if(!StringUtil.isPositiveLong(expiryNum)) {
                         throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_EXPIRY_NUM_NOT_INTEGER_CODE,
-                                String.format(ExceptionConstants.MATERIAL_EXPIRY_NUM_NOT_INTEGER_MSG, i+1));
+                                String.format(ExceptionConstants.MATERIAL_EXPIRY_NUM_NOT_INTEGER_MSG, displayRow));
                     }
                     m.setExpiryNum(Integer.parseInt(expiryNum));
                 }
-                String manyUnit = ExcelUtils.getContent(src, i, 9); //副单位
-                String barCode = ExcelUtils.getContent(src, i, 10); //基础条码
-                String manyBarCode = ExcelUtils.getContent(src, i, 11); //副条码
-                String ratio = ExcelUtils.getContent(src, i, 12); //比例
-                String sku = ExcelUtils.getContent(src, i, 13); //多属性
-                String purchaseDecimal = ExcelUtils.getContent(src, i, 14); //采购价
-                String commodityDecimal = ExcelUtils.getContent(src, i, 15); //零售价
-                String wholesaleDecimal = ExcelUtils.getContent(src, i, 16); //销售价
-                String lowDecimal = ExcelUtils.getContent(src, i, 17); //最低售价
-                String enabled = ExcelUtils.getContent(src, i, 18); //状态
-                String enableSerialNumber = ExcelUtils.getContent(src, i, 19); //序列号
-                String enableBatchNumber = ExcelUtils.getContent(src, i, 20); //批号
-                String position = ExcelUtils.getContent(src, i, 21); //仓位货架
-                String mfrs = ExcelUtils.getContent(src, i, 22); //制造商
-                String otherField1 = ExcelUtils.getContent(src, i, 23); //自定义1
-                String otherField2 = ExcelUtils.getContent(src, i, 24); //自定义2
-                String otherField3 = ExcelUtils.getContent(src, i, 25); //自定义3
-                String remark = ExcelUtils.getContent(src, i, 26); //备注
+                String manyUnit = isCsv ? CsvUtils.getContent(csvRows, i, 9) : ExcelUtils.getContent(src, i, 9); //副单位
+                String barCode = isCsv ? CsvUtils.getContent(csvRows, i, 10) : ExcelUtils.getContent(src, i, 10); //基础条码
+                String manyBarCode = isCsv ? CsvUtils.getContent(csvRows, i, 11) : ExcelUtils.getContent(src, i, 11); //副条码
+                String ratio = isCsv ? CsvUtils.getContent(csvRows, i, 12) : ExcelUtils.getContent(src, i, 12); //比例
+                String sku = isCsv ? CsvUtils.getContent(csvRows, i, 13) : ExcelUtils.getContent(src, i, 13); //多属性
+                String purchaseDecimal = isCsv ? CsvUtils.getContent(csvRows, i, 14) : ExcelUtils.getContent(src, i, 14); //采购价
+                String commodityDecimal = isCsv ? CsvUtils.getContent(csvRows, i, 15) : ExcelUtils.getContent(src, i, 15); //零售价
+                String wholesaleDecimal = isCsv ? CsvUtils.getContent(csvRows, i, 16) : ExcelUtils.getContent(src, i, 16); //销售价
+                String lowDecimal = isCsv ? CsvUtils.getContent(csvRows, i, 17) : ExcelUtils.getContent(src, i, 17); //最低售价
+                String enabled = isCsv ? CsvUtils.getContent(csvRows, i, 18) : ExcelUtils.getContent(src, i, 18); //状态
+                String enableSerialNumber = isCsv ? CsvUtils.getContent(csvRows, i, 19) : ExcelUtils.getContent(src, i, 19); //序列号
+                String enableBatchNumber = isCsv ? CsvUtils.getContent(csvRows, i, 20) : ExcelUtils.getContent(src, i, 20); //批号
+                String position = isCsv ? CsvUtils.getContent(csvRows, i, 21) : ExcelUtils.getContent(src, i, 21); //仓位货架
+                String mfrs = isCsv ? CsvUtils.getContent(csvRows, i, 22) : ExcelUtils.getContent(src, i, 22); //制造商
+                String otherField1 = isCsv ? CsvUtils.getContent(csvRows, i, 23) : ExcelUtils.getContent(src, i, 23); //自定义1
+                String otherField2 = isCsv ? CsvUtils.getContent(csvRows, i, 24) : ExcelUtils.getContent(src, i, 24); //自定义2
+                String otherField3 = isCsv ? CsvUtils.getContent(csvRows, i, 25) : ExcelUtils.getContent(src, i, 25); //自定义3
+                String remark = isCsv ? CsvUtils.getContent(csvRows, i, 26) : ExcelUtils.getContent(src, i, 26); //备注
                 m.setPosition(StringUtil.isNotEmpty(position)?position:null);
                 m.setMfrs(StringUtil.isNotEmpty(mfrs)?mfrs:null);
                 m.setOtherField1(StringUtil.isNotEmpty(otherField1)?otherField1:null);
@@ -683,12 +701,12 @@ public class MaterialService {
                 //状态格式错误
                 if(!"1".equals(enabled) && !"0".equals(enabled)) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_ENABLED_ERROR_CODE,
-                            String.format(ExceptionConstants.MATERIAL_ENABLED_ERROR_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_ENABLED_ERROR_MSG, displayRow));
                 }
                 //基本条码为空
                 if(StringUtil.isEmpty(barCode)) {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_BARCODE_EMPTY_CODE,
-                            String.format(ExceptionConstants.MATERIAL_BARCODE_EMPTY_MSG, i+1));
+                            String.format(ExceptionConstants.MATERIAL_BARCODE_EMPTY_MSG, displayRow));
                 }
                 //校验基本条码长度为4到40位
                 if(!StringUtil.checkBarCodeLength(barCode)) {
@@ -718,7 +736,7 @@ public class MaterialService {
                     //校验比例是否是数字（含小数）
                     if(!StringUtil.isPositiveBigDecimal(ratio.trim())) {
                         throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_RATIO_NOT_INTEGER_CODE,
-                                String.format(ExceptionConstants.MATERIAL_RATIO_NOT_INTEGER_MSG, i+1));
+                                String.format(ExceptionConstants.MATERIAL_RATIO_NOT_INTEGER_MSG, displayRow));
                     }
                     Long unitId = unitService.getUnitIdByParam(unit, manyUnit, new BigDecimal(ratio.trim()));
                     if(unitId != null) {
@@ -756,7 +774,11 @@ public class MaterialService {
                     throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_ENABLE_MUST_ONE_CODE,
                             String.format(ExceptionConstants.MATERIAL_ENABLE_MUST_ONE_MSG, barCode));
                 }
-                m.setStockMap(getStockMapCache(src, depotCount, depotMap, i));
+                if(isCsv) {
+                    m.setStockMap(getStockMapCacheCsv(csvRows, csvHeaderRow, depotCount, depotMap, i));
+                } else {
+                    m.setStockMap(getStockMapCache(src, depotCount, depotMap, i));
+                }
                 mList.add(m);
             }
             List<Long> deleteInitialStockMaterialIdList = new ArrayList<>();
@@ -922,6 +944,36 @@ public class MaterialService {
                     Long depotId = depotMap.get(depotName);
                     if(depotId!=null && depotId!=0L){
                         String stockStr = ExcelUtils.getContent(src, i, col);
+                        if(StringUtil.isNotEmpty(stockStr)) {
+                            stockMap.put(depotId, parseBigDecimalEx(stockStr));
+                        }
+                    }
+                }
+            }
+        }
+        return stockMap;
+    }
+
+    /**
+     * 缓存各个仓库的库存信息（CSV版本）
+     * @param csvRows CSV全部行（含表头）
+     * @param headerRow CSV表头行
+     * @param depotCount 仓库数量
+     * @param depotMap 仓库名称->ID映射
+     * @param i 当前数据行索引
+     * @return
+     * @throws Exception
+     */
+    private Map<Long, BigDecimal> getStockMapCacheCsv(List<String[]> csvRows, String[] headerRow, int depotCount, Map<String, Long> depotMap, int i) throws Exception {
+        Map<Long, BigDecimal> stockMap = new HashMap<>();
+        for(int j = 1; j <= depotCount; j++) {
+            int col = 26 + j;
+            if(col < headerRow.length) {
+                String depotName = headerRow[col] != null ? headerRow[col].trim() : null; //获取仓库名称
+                if(StringUtil.isNotEmpty(depotName)) {
+                    Long depotId = depotMap.get(depotName);
+                    if(depotId != null && depotId != 0L) {
+                        String stockStr = CsvUtils.getContent(csvRows, i, col);
                         if(StringUtil.isNotEmpty(stockStr)) {
                             stockMap.put(depotId, parseBigDecimalEx(stockStr));
                         }

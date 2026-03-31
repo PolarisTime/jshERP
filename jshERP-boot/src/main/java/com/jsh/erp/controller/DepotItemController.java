@@ -1072,62 +1072,72 @@ public class DepotItemController {
         String message = "";
         try {
             List<String> barCodeList = new ArrayList<>();
-            //文件扩展名只能为xls
+            //文件扩展名只能为csv或xls
             String fileName = file.getOriginalFilename();
             if(StringUtil.isNotEmpty(fileName)) {
-                String fileExt = fileName.substring(fileName.indexOf(".")+1);
-                if(!"xls".equals(fileExt)) {
+                String fileExt = fileName.substring(fileName.lastIndexOf(".")+1).toLowerCase();
+                if(!"csv".equals(fileExt) && !"xls".equals(fileExt)) {
                     throw new BusinessRunTimeException(ExceptionConstants.FILE_EXTENSION_ERROR_CODE,
                             ExceptionConstants.FILE_EXTENSION_ERROR_MSG);
                 }
             }
-            Workbook workbook = Workbook.getWorkbook(file.getInputStream());
-            Sheet  src = workbook.getSheet(0);
-            if(src.getRows()>1000) {
+            boolean isCsv = fileName != null && fileName.toLowerCase().endsWith(".csv");
+            int totalRows;
+            List<String[]> csvRows = null;
+            jxl.Sheet src = null;
+            if (isCsv) {
+                csvRows = CsvUtils.parseCsv(file.getInputStream(), 1);
+                totalRows = csvRows.size();
+            } else {
+                jxl.Workbook workbook = jxl.Workbook.getWorkbook(file.getInputStream());
+                src = workbook.getSheet(0);
+                totalRows = src.getRows() - 2; // 减去tip行和header行
+            }
+            if(totalRows > 1000) {
                 message = "导入失败，明细不能超出1000条";
                 res.code = 500;
                 data.put("message", message);
                 res.data = data;
             } else {
                 List<Map<String, String>> detailList = new ArrayList<>();
-                for (int i = 2; i < src.getRows(); i++) {
+                for (int i = 0; i < totalRows; i++) {
                     String depotName = "", barCode = "", num = "", unitPrice = "", taxRate = "", remark = "";
                     if("QGD".equals(prefixNo)) {
-                        barCode = ExcelUtils.getContent(src, i, 0);
-                        num = ExcelUtils.getContent(src, i, 2);
-                        remark = ExcelUtils.getContent(src, i, 3);
+                        barCode = isCsv ? CsvUtils.getContent(csvRows, i, 0) : ExcelUtils.getContent(src, i+2, 0);
+                        num = isCsv ? CsvUtils.getContent(csvRows, i, 2) : ExcelUtils.getContent(src, i+2, 2);
+                        remark = isCsv ? CsvUtils.getContent(csvRows, i, 3) : ExcelUtils.getContent(src, i+2, 3);
                     }
                     if("CGDD".equals(prefixNo) || "XSDD".equals(prefixNo)) {
-                        barCode = ExcelUtils.getContent(src, i, 0);
-                        num = ExcelUtils.getContent(src, i, 2);
-                        unitPrice = ExcelUtils.getContentNumber(src, i, 3);
-                        taxRate = ExcelUtils.getContent(src, i, 4);
-                        remark = ExcelUtils.getContent(src, i, 5);
+                        barCode = isCsv ? CsvUtils.getContent(csvRows, i, 0) : ExcelUtils.getContent(src, i+2, 0);
+                        num = isCsv ? CsvUtils.getContent(csvRows, i, 2) : ExcelUtils.getContent(src, i+2, 2);
+                        unitPrice = isCsv ? CsvUtils.getContent(csvRows, i, 3) : ExcelUtils.getContentNumber(src, i+2, 3);
+                        taxRate = isCsv ? CsvUtils.getContent(csvRows, i, 4) : ExcelUtils.getContent(src, i+2, 4);
+                        remark = isCsv ? CsvUtils.getContent(csvRows, i, 5) : ExcelUtils.getContent(src, i+2, 5);
                     }
                     if("CGRK".equals(prefixNo) || "XSCK".equals(prefixNo)) {
-                        depotName = ExcelUtils.getContent(src, i, 0);
-                        barCode = ExcelUtils.getContent(src, i, 1);
-                        num = ExcelUtils.getContent(src, i, 3);
-                        unitPrice = ExcelUtils.getContentNumber(src, i, 4);
-                        taxRate = ExcelUtils.getContent(src, i, 5);
-                        remark = ExcelUtils.getContent(src, i, 6);
+                        depotName = isCsv ? CsvUtils.getContent(csvRows, i, 0) : ExcelUtils.getContent(src, i+2, 0);
+                        barCode = isCsv ? CsvUtils.getContent(csvRows, i, 1) : ExcelUtils.getContent(src, i+2, 1);
+                        num = isCsv ? CsvUtils.getContent(csvRows, i, 3) : ExcelUtils.getContent(src, i+2, 3);
+                        unitPrice = isCsv ? CsvUtils.getContent(csvRows, i, 4) : ExcelUtils.getContentNumber(src, i+2, 4);
+                        taxRate = isCsv ? CsvUtils.getContent(csvRows, i, 5) : ExcelUtils.getContent(src, i+2, 5);
+                        remark = isCsv ? CsvUtils.getContent(csvRows, i, 6) : ExcelUtils.getContent(src, i+2, 6);
                     }
                     if("QTRK".equals(prefixNo) || "QTCK".equals(prefixNo)) {
-                        depotName = ExcelUtils.getContent(src, i, 0);
-                        barCode = ExcelUtils.getContent(src, i, 1);
-                        num = ExcelUtils.getContent(src, i, 3);
-                        unitPrice = ExcelUtils.getContentNumber(src, i, 4);
-                        remark = ExcelUtils.getContent(src, i, 5);
+                        depotName = isCsv ? CsvUtils.getContent(csvRows, i, 0) : ExcelUtils.getContent(src, i+2, 0);
+                        barCode = isCsv ? CsvUtils.getContent(csvRows, i, 1) : ExcelUtils.getContent(src, i+2, 1);
+                        num = isCsv ? CsvUtils.getContent(csvRows, i, 3) : ExcelUtils.getContent(src, i+2, 3);
+                        unitPrice = isCsv ? CsvUtils.getContent(csvRows, i, 4) : ExcelUtils.getContentNumber(src, i+2, 4);
+                        remark = isCsv ? CsvUtils.getContent(csvRows, i, 5) : ExcelUtils.getContent(src, i+2, 5);
                     }
                     Map<String, String> materialMap = new HashMap<>();
-                    materialMap.put("depotName", depotName);
-                    materialMap.put("barCode", barCode);
-                    materialMap.put("num", num);
-                    materialMap.put("unitPrice", unitPrice);
-                    materialMap.put("taxRate", taxRate);
-                    materialMap.put("remark", remark);
+                    materialMap.put("depotName", depotName != null ? depotName : "");
+                    materialMap.put("barCode", barCode != null ? barCode : "");
+                    materialMap.put("num", num != null ? num : "");
+                    materialMap.put("unitPrice", unitPrice != null ? unitPrice : "");
+                    materialMap.put("taxRate", taxRate != null ? taxRate : "");
+                    materialMap.put("remark", remark != null ? remark : "");
                     detailList.add(materialMap);
-                    barCodeList.add(barCode);
+                    barCodeList.add(barCode != null ? barCode : "");
                 }
                 JSONObject map = depotItemService.parseMapByExcelData(barCodeList, detailList, prefixNo);
                 if (map != null) {

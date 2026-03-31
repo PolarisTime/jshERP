@@ -348,9 +348,9 @@ public class FreightHeadController extends BaseController {
                 });
             }
             String path = System.getProperty("java.io.tmpdir");
-            String fileName = "freight_view_list_" + System.currentTimeMillis() + ".xls";
-            java.io.File file = com.jsh.erp.utils.ExcelUtils.exportObjectsOneSheet(path, fileName, title, names, title, objects);
-            com.jsh.erp.utils.ExcelUtils.downloadExcel(file, file.getName(), response);
+            String fileName = "freight_view_list_" + System.currentTimeMillis() + ".csv";
+            java.io.File file = com.jsh.erp.utils.CsvUtils.exportCsv(path, fileName, title, names, objects);
+            com.jsh.erp.utils.CsvUtils.downloadCsv(file, file.getName(), response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -390,9 +390,9 @@ public class FreightHeadController extends BaseController {
                 });
             }
             String path = System.getProperty("java.io.tmpdir");
-            String fileName = "freight_reconciliation_" + System.currentTimeMillis() + ".xls";
-            java.io.File file = com.jsh.erp.utils.ExcelUtils.exportObjectsOneSheet(path, fileName, tip, names, title, objects);
-            com.jsh.erp.utils.ExcelUtils.downloadExcel(file, file.getName(), response);
+            String fileName = "freight_reconciliation_" + System.currentTimeMillis() + ".csv";
+            java.io.File file = com.jsh.erp.utils.CsvUtils.exportCsv(path, fileName, tip, names, objects);
+            com.jsh.erp.utils.CsvUtils.downloadCsv(file, file.getName(), response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

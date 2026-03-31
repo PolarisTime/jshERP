@@ -11,7 +11,9 @@ import com.jsh.erp.datasource.mappers.DepotItemMapperEx;
 import com.jsh.erp.datasource.vo.*;
 import com.jsh.erp.exception.BusinessRunTimeException;
 import com.jsh.erp.exception.JshException;
+import com.jsh.erp.utils.CsvUtils;
 import com.jsh.erp.utils.ExcelUtils;
+import com.jsh.erp.utils.FileUtils;
 import com.jsh.erp.utils.PageUtils;
 import com.jsh.erp.utils.StringUtil;
 import com.jsh.erp.utils.Tools;
@@ -29,6 +31,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
@@ -1576,10 +1580,12 @@ public class DepotHeadService {
             if (null != list) {
                 dhList = parseDebtBillList(list);
             }
-            //生成Excel文件
-            String fileName = "单据信息";
+            //生成CSV文件
+            String fileName = "单据信息_" + System.currentTimeMillis() + ".csv";
+            FileUtils.makedir(fileExportTmp);
             File file = new File(fileExportTmp + fileName);
-            WritableWorkbook wtwb = Workbook.createWorkbook(file);
+            OutputStreamWriter csvWriter = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+            csvWriter.write("\uFEFF");
             String oneTip = "";
             String sheetOneStr = "";
             if("采购".equals(subType)) {
@@ -1621,7 +1627,7 @@ public class DepotHeadService {
                 objs[10] = dh.getRemark();
                 billList.add(objs);
             }
-            ExcelUtils.exportObjectsManySheet(wtwb, oneTip, sheetOneArr, "单据列表", 0, billList);
+            CsvUtils.exportCsvManySheet(csvWriter, oneTip, sheetOneArr, billList);
             //导出明细数据
             if(idList.size()>0) {
                 List<DepotItemVo4WithInfoEx> dataList = depotItemMapperEx.getBillDetailListByIds(idList);
@@ -1673,11 +1679,12 @@ public class DepotHeadService {
                     objs[26] = diEx.getRemark();
                     billDetail.add(objs);
                 }
-                ExcelUtils.exportObjectsManySheet(wtwb, twoTip, sheetTwoArr, "单据明细", 1, billDetail);
+                csvWriter.write("\n"); // 空行分隔两个数据块
+                CsvUtils.exportCsvManySheet(csvWriter, twoTip, sheetTwoArr, billDetail);
             }
-            wtwb.write();
-            wtwb.close();
-            ExcelUtils.downloadExcel(file, file.getName(), response);
+            csvWriter.flush();
+            csvWriter.close();
+            CsvUtils.downloadCsv(file, file.getName(), response);
         } catch(Exception e){
             JshException.readFail(logger, e);
         }

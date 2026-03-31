@@ -85,6 +85,18 @@
             <span slot="action" slot-scope="text, record">
               <a @click="handleDetail(record)">查看</a>
             </span>
+            <template slot="billNoRender" slot-scope="text">
+              <a @click="handleViewFreightBill(text)">{{ text }}</a>
+            </template>
+            <template slot="saleOutNumbersRender" slot-scope="text">
+              <template v-if="text">
+                <template v-for="(num, idx) in text.split(',').map(s => s.trim()).filter(s => s)">
+                  <span v-if="idx > 0" :key="'sep'+idx">, </span>
+                  <a :key="num" @click="handleViewSaleOutBill(num)">{{ num }}</a>
+                </template>
+              </template>
+              <span v-else>-</span>
+            </template>
             <template slot="customRenderStatus" slot-scope="status">
               <a-tag v-if="status === '0' || status === 0" color="red">未审核</a-tag>
               <a-tag v-if="status === '1' || status === 1" color="green">已审核</a-tag>
@@ -122,6 +134,8 @@
         </div>
         <!-- 详情弹窗 -->
         <freight-detail ref="modalDetail"></freight-detail>
+        <freight-bill-modal ref="freightBillModal"></freight-bill-modal>
+        <bill-detail ref="billDetailModal"></bill-detail>
       </a-card>
     </a-col>
   </a-row>
@@ -129,6 +143,8 @@
 <script>
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import FreightDetail from '../freight/dialog/FreightDetail'
+  import FreightBillModal from '../freight/modules/FreightBillModal'
+  import BillDetail from '../bill/dialog/BillDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { selectAllFreightCarrier } from '@/api/api'
   export default {
@@ -136,7 +152,9 @@
     mixins: [JeecgListMixin],
     components: {
       ColumnSettingPopover,
-      FreightDetail
+      FreightDetail,
+      FreightBillModal,
+      BillDetail
     },
     data() {
       return {
@@ -167,7 +185,7 @@
             align: "center",
             scopedSlots: { customRender: 'action' }
           },
-          { title: '单据编号', dataIndex: 'billNo', width: 160 },
+          { title: '单据编号', dataIndex: 'billNo', width: 160, scopedSlots: { customRender: 'billNoRender' } },
           { title: '日期', dataIndex: 'billTimeStr', width: 100 },
           { title: '结算方', dataIndex: 'carrierName', width: 130 },
           {
@@ -197,7 +215,7 @@
           },
           { title: '付款时间', dataIndex: 'paymentTimeStr', width: 140 },
           { title: '操作人', dataIndex: 'paymentOperatorName', width: 80 },
-          { title: '关联出库单', dataIndex: 'saleOutNumbers', width: 200, ellipsis: true },
+          { title: '关联出库单', dataIndex: 'saleOutNumbers', width: 200, scopedSlots: { customRender: 'saleOutNumbersRender' } },
           { title: '销售客户', dataIndex: 'customerNames', width: 150, ellipsis: true },
           { title: '备注', dataIndex: 'remark', width: 120, ellipsis: true }
         ],
@@ -257,6 +275,16 @@
       },
       handleDetail(record) {
         this.$refs.modalDetail.show(record);
+      },
+      handleViewFreightBill(billNo) {
+        if (billNo) {
+          this.$refs.freightBillModal.detailByBillNo(billNo);
+        }
+      },
+      handleViewSaleOutBill(billNumber) {
+        if (billNumber) {
+          this.$refs.billDetailModal.myHandleDetail(billNumber.trim());
+        }
       },
       calcUnpaid(record) {
         let totalFreight = parseFloat(record.totalFreight || 0);

@@ -698,7 +698,7 @@ public class SystemConfigService {
                 objects.add(objs);
             }
         }
-        File file = ExcelUtils.exportObjectsOneSheet(fileExportTmp, title, tip, names, title, objects);
-        ExcelUtils.downloadExcel(file, file.getName(), response);
+        File file = CsvUtils.exportCsv(fileExportTmp, title + "_" + System.currentTimeMillis() + ".csv", tip, names, objects);
+        CsvUtils.downloadCsv(file, file.getName(), response);
     }
 }

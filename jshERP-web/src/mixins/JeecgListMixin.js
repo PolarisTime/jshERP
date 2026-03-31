@@ -321,7 +321,7 @@ export const JeecgListMixin = {
       let url = `${window._CONFIG['domianURL']}/${this.url.exportXlsUrl}?paramsStr=${paramsStr}`;
       window.location.href = url;
     },
-    //通过get方式导出Excel
+    //通过get方式导出CSV
     handleExportXls(fileName){
       if(!fileName || typeof fileName != "string"){
         fileName = "导出文件"
@@ -337,46 +337,45 @@ export const JeecgListMixin = {
           return
         }
         if (typeof window.navigator.msSaveBlob !== 'undefined') {
-          window.navigator.msSaveBlob(new Blob([data],{type: 'application/vnd.ms-excel'}), fileName+'.xls')
+          window.navigator.msSaveBlob(new Blob([data],{type: 'text/csv;charset=utf-8;'}), fileName+'.csv')
         }else{
-          let url = window.URL.createObjectURL(new Blob([data],{type: 'application/vnd.ms-excel'}))
+          let url = window.URL.createObjectURL(new Blob([data],{type: 'text/csv;charset=utf-8;'}))
           let link = document.createElement('a')
           link.style.display = 'none'
           link.href = url
-          link.setAttribute('download', fileName + '_' + getNowFormatStr()+'.xls')
+          link.setAttribute('download', fileName + '_' + getNowFormatStr()+'.csv')
           document.body.appendChild(link)
           link.click()
-          document.body.removeChild(link); //下载完成移除元素
-          window.URL.revokeObjectURL(url); //释放掉blob对象
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
         }
       })
     },
-    //通过post方式导出Excel
+    //通过CSV方式导出数据
     handleExportXlsPost(fileName, title, head, tip, list) {
       if(!fileName || typeof fileName != "string"){
         fileName = "导出文件"
       }
-      let paramObj = {'title': title, 'head': head, 'tip': tip, 'list': list}
-      console.log("导出参数", paramObj)
-      downFilePost(paramObj).then((data)=>{
-        if (!data) {
-          this.$message.warning("文件下载失败")
-          return
-        }
-        if (typeof window.navigator.msSaveBlob !== 'undefined') {
-          window.navigator.msSaveBlob(new Blob([data],{type: 'application/vnd.ms-excel'}), fileName+'.xls')
-        }else{
-          let url = window.URL.createObjectURL(new Blob([data],{type: 'application/vnd.ms-excel'}))
-          let link = document.createElement('a')
-          link.style.display = 'none'
-          link.href = url
-          link.setAttribute('download', fileName + '_' + getNowFormatStr()+'.xls')
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link); //下载完成移除元素
-          window.URL.revokeObjectURL(url); //释放掉blob对象
-        }
-      })
+      let BOM = '\uFEFF';
+      let headers = head.split(',');
+      let csvRows = [headers.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')];
+      if (list && list.length) {
+        list.forEach(row => {
+          if (Array.isArray(row)) {
+            csvRows.push(row.map(v => '"' + String(v != null ? v : '').replace(/"/g, '""') + '"').join(','));
+          }
+        });
+      }
+      let csvContent = BOM + csvRows.join('\n');
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', fileName + '_' + getNowFormatStr() + '.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
     },
     /* 导入 */
     handleImportExcel(info){

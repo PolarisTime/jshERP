@@ -465,8 +465,8 @@
       },
       handleImportXls() {
         let importExcelUrl = this.url.importExcelUrl
-        let templateUrl = '/doc/goods_template.xls'
-        let templateName = '商品Excel模板[下载]'
+        let templateUrl = '/doc/goods_template.csv'
+        let templateName = '商品CSV模板[下载]'
         this.$refs.modalImportForm.initModal(importExcelUrl, templateUrl, templateName);
         this.$refs.modalImportForm.title = "商品导入";
       },
