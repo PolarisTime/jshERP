@@ -25,7 +25,10 @@ public class CsvUtils {
      */
     public static File exportCsv(String path, String fileName, String tip,
                                   String[] names, List<Object[]> objects) throws Exception {
-        FileUtils.makedir(path);
+        boolean dirOk = FileUtils.makedir(path);
+        if (!dirOk || !new File(path).canWrite()) {
+            path = System.getProperty("java.io.tmpdir");
+        }
         File csvFile = new File(path + File.separator + fileName);
         try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(csvFile), "UTF-8")) {
             writer.write(BOM);
