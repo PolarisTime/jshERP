@@ -204,9 +204,16 @@
     </select>
 
     <select id="getTotalWeightListByHeaderIdList" resultType="com.jsh.erp.datasource.vo.TotalWeightVo">
-        select di.header_id, sum(di.basic_number * ifnull(m.weight, 0)) as totalWeight
+        select di.header_id,
+            sum(
+                case when mc.weight_editable = '1' and di.weight is not null
+                    then di.weight
+                    else di.basic_number * ifnull(m.weight, 0)
+                end
+            ) as totalWeight
         from jsh_depot_item di
         left join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') !='1'
+        left join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') !='1'
         where 1=1
         <if test="idList.size()>0">
             and di.header_id in

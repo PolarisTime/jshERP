@@ -170,7 +170,7 @@
         isCanBackCheck: true,
         model: {},
         carrierList: [],
-        totalWeight: '0.00',
+        totalWeight: '0.000',
         totalFreight: '0.00',
         currentUnitPrice: 0,
         selectedSaleOutList: [],
@@ -445,7 +445,7 @@
         this.selectedSaleOutList.forEach(item => {
           weight += parseFloat(item.itemWeight || item.totalWeight || 0);
         });
-        this.totalWeight = weight.toFixed(2);
+        this.totalWeight = weight.toFixed(3);
         this.totalFreight = (weight * this.currentUnitPrice).toFixed(2);
       },
       removeSaleOut(index) {
@@ -544,7 +544,7 @@
               weightMap[hid] += parseFloat(item.itemWeight || item.totalWeight || 0)
             })
             let rows = Object.keys(weightMap).map(hid => {
-              return { depotHeadId: parseInt(hid), totalWeight: weightMap[hid].toFixed(2) }
+              return { depotHeadId: parseInt(hid), totalWeight: weightMap[hid].toFixed(3) }
             });
             let formData = {
               info: JSON.stringify(billMain),

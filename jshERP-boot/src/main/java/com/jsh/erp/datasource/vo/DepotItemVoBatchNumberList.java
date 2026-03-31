@@ -17,6 +17,8 @@ public class DepotItemVoBatchNumberList {
     private Date expirationDate;
     private String expirationDateStr;
     private BigDecimal totalNum;
+    private BigDecimal inWeight;
+    private String weightEditable;
 
     public String getId() {
         return id;
@@ -104,5 +106,21 @@ public class DepotItemVoBatchNumberList {
 
     public void setTotalNum(BigDecimal totalNum) {
         this.totalNum = totalNum;
+    }
+
+    public BigDecimal getInWeight() {
+        return inWeight;
+    }
+
+    public void setInWeight(BigDecimal inWeight) {
+        this.inWeight = inWeight;
+    }
+
+    public String getWeightEditable() {
+        return weightEditable;
+    }
+
+    public void setWeightEditable(String weightEditable) {
+        this.weightEditable = weightEditable;
     }
 }

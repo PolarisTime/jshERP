@@ -37,11 +37,17 @@
         where header_id = #{headerId}
     </update>
 
-    <!-- 计算单张出库单的总重量 -->
+    <!-- 计算单张出库单的总重量：weight_editable类别优先取实际过磅重量 -->
     <select id="calcDepotHeadWeight" resultType="java.math.BigDecimal">
-        select ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0)
+        select ifnull(sum(
+            case when mc.weight_editable = '1' and di.weight is not null
+                then di.weight
+                else di.basic_number * ifnull(m.weight, 0)
+            end
+        ), 0)
         from jsh_depot_item di
         left join jsh_material m on di.material_id = m.id
+        left join jsh_material_category mc on m.category_id = mc.id
         where di.header_id = #{depotHeadId} and ifnull(di.delete_flag, '0') != '1'
     </select>
 
@@ -57,9 +63,12 @@
                 from jsh_depot_item di3
                 left join jsh_depot dp2 on di3.depot_id = dp2.id
                 where di3.header_id = dh.id and ifnull(di3.delete_flag, '0') != '1') as depotName,
-               (select GROUP_CONCAT(CONCAT(m2.name, ' ', di2.oper_number, ifnull(m2.commodity_unit,''), ' ', round(di2.basic_number * ifnull(m2.weight,0), 2), '吨') SEPARATOR '、')
+               (select GROUP_CONCAT(CONCAT(m2.name, ' ', di2.oper_number, ifnull(m2.commodity_unit,''), ' ',
+                    round(case when mc2.weight_editable = '1' and di2.weight is not null
+                        then di2.weight else di2.basic_number * ifnull(m2.weight,0) end, 3), '吨') SEPARATOR '、')
                 from jsh_depot_item di2
                 left join jsh_material m2 on di2.material_id = m2.id
+                left join jsh_material_category mc2 on m2.category_id = mc2.id
                 where di2.header_id = dh.id and ifnull(di2.delete_flag, '0') != '1') as materialNames
         from jsh_depot_head dh
         left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
@@ -88,7 +97,8 @@
                ifnull(m.model, '') as model,
                ifnull(di.batch_number, '') as batchNumber,
                di.oper_number as operNumber,
-               round(di.basic_number * ifnull(m.weight, 0), 2) as itemWeight,
+               round(case when mc.weight_editable = '1' and di.weight is not null
+                   then di.weight else di.basic_number * ifnull(m.weight, 0) end, 3) as itemWeight,
                ifnull(m.unit, '') as materialUnit,
                dp.name as depotName,
                dh.sales_man as salesMan,
@@ -96,6 +106,7 @@
         from jsh_depot_item di
         left join jsh_depot_head dh on di.header_id = dh.id
         left join jsh_material m on di.material_id = m.id
+        left join jsh_material_category mc on m.category_id = mc.id
         left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
         left join jsh_depot dp on di.depot_id = dp.id
         where di.header_id in
@@ -115,11 +126,15 @@
                dh.sales_man as salesMan,
                dh.remark as remark,
                GROUP_CONCAT(DISTINCT dp.name SEPARATOR '、') as depotName,
-               GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.unit,''), ' ', round(di.basic_number * ifnull(m.weight,0), 2), '吨') SEPARATOR '、') as materialNames,
-               ifnull(sum(di.basic_number * ifnull(m.weight, 0)), 0) as totalWeight
+               GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.unit,''), ' ',
+                   round(case when mc.weight_editable = '1' and di.weight is not null
+                       then di.weight else di.basic_number * ifnull(m.weight,0) end, 3), '吨') SEPARATOR '、') as materialNames,
+               ifnull(sum(case when mc.weight_editable = '1' and di.weight is not null
+                   then di.weight else di.basic_number * ifnull(m.weight, 0) end), 0) as totalWeight
         from jsh_depot_head dh
         left join jsh_depot_item di on dh.id = di.header_id and ifnull(di.delete_flag, '0') != '1'
         left join jsh_material m on di.material_id = m.id
+        left join jsh_material_category mc on m.category_id = mc.id
         left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
         left join jsh_depot dp on di.depot_id = dp.id
         where dh.type = '出库' and dh.sub_type = '销售'

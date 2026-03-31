@@ -105,6 +105,8 @@
         <result column="batch_number" jdbcType="VARCHAR" property="batchNumber" />
         <result column="expiration_date" jdbcType="TIMESTAMP" property="expirationDate" />
         <result column="total_num" jdbcType="VARCHAR" property="totalNum" />
+        <result column="in_weight" jdbcType="DECIMAL" property="inWeight" />
+        <result column="weight_editable" jdbcType="VARCHAR" property="weightEditable" />
     </resultMap>
 
     <resultMap id="materialSumMap" type="com.jsh.erp.datasource.entities.DepotItemVo4MaterialAndSum">
@@ -115,7 +117,7 @@
     <insert id="batchInsert" parameterType="java.util.List">
         insert into jsh_depot_item (header_id, material_id, material_extend_id, material_unit, sku, oper_number,
         basic_number, unit_price, purchase_unit_price, tax_unit_price, all_price, remark, depot_id, another_depot_id,
-        tax_rate, tax_money, tax_last_money, material_type, sn_list, batch_number, expiration_date, link_id)
+        tax_rate, tax_money, tax_last_money, material_type, sn_list, batch_number, expiration_date, link_id, weight)
         values
         <foreach collection="list" item="item" separator=",">
             (#{item.headerId,jdbcType=BIGINT}, #{item.materialId,jdbcType=BIGINT},
@@ -125,7 +127,7 @@
             #{item.remark,jdbcType=VARCHAR}, #{item.depotId,jdbcType=BIGINT}, #{item.anotherDepotId,jdbcType=BIGINT},
             #{item.taxRate,jdbcType=DECIMAL}, #{item.taxMoney,jdbcType=DECIMAL}, #{item.taxLastMoney,jdbcType=DECIMAL},
             #{item.materialType,jdbcType=VARCHAR}, #{item.snList,jdbcType=VARCHAR}, #{item.batchNumber,jdbcType=VARCHAR},
-            #{item.expirationDate,jdbcType=TIMESTAMP}, #{item.linkId,jdbcType=BIGINT})
+            #{item.expirationDate,jdbcType=TIMESTAMP}, #{item.linkId,jdbcType=BIGINT}, #{item.weight,jdbcType=DECIMAL})
         </foreach >
     </insert>
 
@@ -1036,14 +1038,18 @@
 
     <select id="getBatchNumberList" resultMap="batchNumberListMap">
         select id, bar_code, name, standard, model, unit_id,
-        commodity_unit, batch_number, expiration_date, sum(basic_number) total_num from
+        commodity_unit, batch_number, expiration_date, sum(basic_number) total_num,
+        sum(in_weight) as in_weight, max(weight_editable) as weight_editable from
         (select di.batch_number id, me.bar_code, m.name, m.standard, m.model, m.unit_id,
          me.commodity_unit, di.batch_number,di.expiration_date,
-         di.basic_number*(case dh.type when '入库' then 1 when '出库' then -1 end) as basic_number
+         di.basic_number*(case dh.type when '入库' then 1 when '出库' then -1 end) as basic_number,
+         case dh.type when '入库' then di.weight else null end as in_weight,
+         mc.weight_editable
         from jsh_depot_head dh
         left join jsh_depot_item di on dh.id=di.header_id
         left join jsh_material m on m.id=di.material_id and ifnull(m.delete_flag, '0') != '1'
         left join jsh_material_extend me on me.material_id=m.id and ifnull(me.delete_flag,'0') !='1'
+        left join jsh_material_category mc on m.category_id=mc.id and ifnull(mc.delete_flag,'0') !='1'
         where me.bar_code= #{barCode}
         <if test="name != null">
             <bind name="bindName" value="'%'+name+'%'"/>

@@ -632,10 +632,12 @@ export const BillModalMixin = {
                   }
                   taxRate = row.taxRate-0 //税率
                   unitPrice = row.unitPrice-0 //单价
-                  //重量联动：从单位重量映射表取单位重量 × 新数量
+                  //重量联动：weight_editable类别优先使用入库时的过磅重量
                   let bnUnitWeight = that.unitWeightMap[row.barCode] || 0
-                  let bnNewWeight = parseFloat((bnUnitWeight * operNumber).toFixed(4))
-                  let bnFactor = that.priceByWeightFlag ? bnNewWeight : operNumber
+                  let bnTheoreticalWeight = parseFloat((bnUnitWeight * operNumber).toFixed(4))
+                  let bnIsEditable = info.weightEditable === '1' || info.weightEditable === 1
+                  let bnActualWeight = (bnIsEditable && info.inWeight) ? (info.inWeight-0) : bnTheoreticalWeight
+                  let bnFactor = (that.priceByWeightFlag || bnIsEditable) ? bnActualWeight : operNumber
                   allPrice = (unitPrice*bnFactor).toFixed(2)-0
                   if(this.materialPriceTaxFlag) {
                     let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0
@@ -645,8 +647,12 @@ export const BillModalMixin = {
                     taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
                     taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
                   }
-                  target.setValues([{rowKey: row.id, values: {expirationDate: info.expirationDateStr, operNumber: operNumber,
-                      allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: bnNewWeight}}])
+                  let bnSetValues = {expirationDate: info.expirationDateStr, operNumber: operNumber,
+                      allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: bnActualWeight}
+                  if (bnIsEditable) {
+                    bnSetValues.weightEditable = info.weightEditable
+                  }
+                  target.setValues([{rowKey: row.id, values: bnSetValues}])
                   target.recalcAllStatisticsColumns()
                   that.autoChangePrice(target)
                 }
@@ -661,7 +667,8 @@ export const BillModalMixin = {
           //重量联动：从单位重量映射表取单位重量 × 新数量（需先于金额计算）
           let unitWeightVal = that.unitWeightMap[row.barCode] || 0
           let newWeight = parseFloat((unitWeightVal * operNumber).toFixed(4))
-          let opFactor = that.priceByWeightFlag ? newWeight : operNumber
+          let isEditableWeight = row.weightEditable === '1' || row.weightEditable === 1
+          let opFactor = (that.priceByWeightFlag || isEditableWeight) ? (row.weight-0||newWeight) : operNumber
           allPrice = (unitPrice*opFactor).toFixed(2)-0
           if(this.materialPriceTaxFlag) {
             let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0
@@ -671,7 +678,12 @@ export const BillModalMixin = {
             taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
           }
-          target.setValues([{rowKey: row.id, values: {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}}])
+          // weight_editable类别：不覆盖用户手动输入的过磅重量，仅更新理论重量
+          let opSetValues = {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney}
+          if (!isEditableWeight) {
+            opSetValues.weight = newWeight
+          }
+          target.setValues([{rowKey: row.id, values: opSetValues}])
           target.recalcAllStatisticsColumns()
           that.autoChangePrice(target)
           break;
@@ -802,6 +814,9 @@ export const BillModalMixin = {
         initTaxMoney = ((initTaxRate*0.01)*initAllPrice).toFixed(2)-0
         initTaxLastMoney = (initAllPrice + initTaxMoney).toFixed(2)-0
       }
+      // weight_editable类别初始留空等待用户输入过磅重量，非editable类别显示理论重量
+      let isWeightEditable = mInfo.weightEditable === '1' || mInfo.weightEditable === 1
+      let displayWeight = isWeightEditable ? '' : initWeight
       return {
         barCode: mInfo.mBarCode,
         name: mInfo.name,
@@ -821,7 +836,7 @@ export const BillModalMixin = {
         taxRate: mInfo.taxRate,
         taxMoney: initTaxMoney,
         taxLastMoney: initTaxLastMoney,
-        weight: mInfo.weight,
+        weight: displayWeight,
         categoryId: mInfo.categoryId,
         weightEditable: mInfo.weightEditable
       }
