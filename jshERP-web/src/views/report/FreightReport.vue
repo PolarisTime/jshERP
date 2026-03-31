@@ -61,6 +61,7 @@
         <div class="table-operator" style="margin-top: 5px">
           <a-button v-print="'#freightReportPrint'" icon="printer">打印</a-button>
           <a-button icon="download" @click="handleExport">导出</a-button>
+          <a-button icon="export" @click="handleExportSelected" :disabled="selectedRowKeys.length===0">导出选中</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -81,6 +82,7 @@
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
+            :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
               <a @click="handleDetail(record)">查看</a>
@@ -146,7 +148,7 @@
   import FreightBillModal from '../freight/modules/FreightBillModal'
   import BillDetail from '../bill/dialog/BillDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier } from '@/api/api'
+  import { selectAllFreightCarrier, getFreightDetail } from '@/api/api'
   export default {
     name: "FreightReport",
     mixins: [JeecgListMixin],
@@ -175,6 +177,7 @@
         },
         dateRange: [],
         carrierList: [],
+        selectedRowKeys: [],
         urlPath: '/report/freight_report',
         pageName: 'freightReport',
         defColumns: [
@@ -259,6 +262,7 @@
         }
       },
       searchQuery() {
+        this.selectedRowKeys = [];
         this.loadData(1);
       },
       searchReset() {
@@ -271,7 +275,11 @@
           endTime: ''
         }
         this.dateRange = [];
+        this.selectedRowKeys = [];
         this.loadData(1);
+      },
+      onSelectChange(selectedRowKeys) {
+        this.selectedRowKeys = selectedRowKeys;
       },
       handleDetail(record) {
         this.$refs.modalDetail.show(record);
@@ -344,6 +352,83 @@
         link.download = '运费查询.csv';
         link.click();
         URL.revokeObjectURL(link.href);
+      },
+      handleExportSelected() {
+        let keySet = new Set(this.selectedRowKeys.map(String));
+        let exportData = this.dataSource.filter(r => keySet.has(String(r.id)));
+        if (!exportData || exportData.length === 0) {
+          this.$message.warning('暂无选中数据可导出');
+          return;
+        }
+        this.loading = true;
+        let promises = exportData.map(row => getFreightDetail({ id: row.id }));
+        Promise.all(promises).then(results => {
+          let paymentStatusMap = { '0': '未付款', '1': '已付款', '2': '部分付款' };
+          let statusMap = { '0': '未审核', '1': '已审核' };
+          let headers = [
+            '运费单号', '日期', '结算方', '总重量(吨)', '单价(元/吨)', '总运费(元)',
+            '审核状态', '付款状态', '已付金额', '未付金额', '付款时间', '操作人', '备注',
+            '出库单号', '出库日期', '客户名称', '商品名称', '规格', '型号', '批号',
+            '数量', '单位', '重量(吨)', '仓库'
+          ];
+          let rows = [];
+          exportData.forEach((row, idx) => {
+            let detail = (results[idx] && results[idx].code === 200) ? results[idx].data : {};
+            let items = detail.detailList || [];
+            let totalFreight = parseFloat(row.totalFreight || 0);
+            let paidAmount = parseFloat(row.paidAmount || 0);
+            let ps = row.paymentStatus != null ? row.paymentStatus : '0';
+            let headCols = [
+              row.billNo || '',
+              row.billTimeStr || '',
+              row.carrierName || '',
+              parseFloat(row.totalWeight || 0).toFixed(2),
+              row.unitPrice || 0,
+              totalFreight.toFixed(2),
+              statusMap[row.status] || '未审核',
+              paymentStatusMap[ps] || '未付款',
+              paidAmount.toFixed(2),
+              (totalFreight - paidAmount).toFixed(2),
+              row.paymentTimeStr || '',
+              row.paymentOperatorName || '',
+              row.remark || ''
+            ];
+            if (items.length === 0) {
+              rows.push([...headCols, '', '', '', '', '', '', '', '', '', '', '']);
+            } else {
+              items.forEach((item, i) => {
+                let prefix = i === 0 ? headCols : headCols.map(() => '');
+                rows.push([
+                  ...prefix,
+                  item.billNo || '',
+                  item.billTimeStr || '',
+                  item.customerName || '',
+                  item.materialName || '',
+                  item.standard || '',
+                  item.model || '',
+                  item.batchNumber || '',
+                  item.operNumber || '',
+                  item.materialUnit || '',
+                  item.itemWeight || '',
+                  item.depotName || ''
+                ]);
+              });
+            }
+          });
+          let BOM = '\uFEFF';
+          let csvContent = BOM + headers.join(',') + '\n' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+          let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          let link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = '运费查询_选中明细.csv';
+          link.click();
+          URL.revokeObjectURL(link.href);
+          this.$message.success('导出成功，共 ' + exportData.length + ' 张单据');
+        }).catch(() => {
+          this.$message.error('获取明细数据失败');
+        }).finally(() => {
+          this.loading = false;
+        });
       }
     }
   }
