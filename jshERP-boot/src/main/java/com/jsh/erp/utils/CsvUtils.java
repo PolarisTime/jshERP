@@ -54,6 +54,33 @@ public class CsvUtils {
     }
 
     /**
+     * 导出CSV（多sheet兼容，忽略sheet概念，直接追加写入数据）
+     */
+    public static void exportCsvManySheet(OutputStreamWriter writer, String tip,
+                                           String[] names, List<String[]> objects) throws Exception {
+        // 写入表头
+        StringBuilder headerLine = new StringBuilder();
+        for (int i = 0; i < names.length; i++) {
+            if (i > 0) headerLine.append(",");
+            headerLine.append(escapeCsv(names[i].replace("*", "")));
+        }
+        writer.write(headerLine.toString());
+        writer.write("\n");
+        // 写入数据行
+        if (objects != null) {
+            for (String[] row : objects) {
+                StringBuilder dataLine = new StringBuilder();
+                for (int i = 0; i < row.length; i++) {
+                    if (i > 0) dataLine.append(",");
+                    dataLine.append(escapeCsv(row[i]));
+                }
+                writer.write(dataLine.toString());
+                writer.write("\n");
+            }
+        }
+    }
+
+    /**
      * 下载CSV文件
      */
     public static void downloadCsv(File csvFile, String fileName, HttpServletResponse response) throws Exception {
