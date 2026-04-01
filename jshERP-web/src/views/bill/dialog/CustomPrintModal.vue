@@ -29,37 +29,41 @@
         @confirm="handleDelete">
         <a-button type="danger" ghost>删除模板</a-button>
       </a-popconfirm>
-      <a-button type="primary" icon="printer" @click="handlePrint" :disabled="loading" style="margin-left:auto;">打印预览</a-button>
+      <a-button type="primary" icon="printer" @click="handlePrint" :disabled="loading" style="margin-left:auto;">打印</a-button>
     </div>
     <a-row :gutter="16">
-      <!-- 编辑器 -->
+      <!-- 模板编辑区 -->
       <a-col :span="18">
-        <div v-if="editorReady">
-          <ckeditor
-            :editor="editorClass"
-            v-model="templateHtml"
-            :config="editorConfig"
-            @ready="onEditorReady"
-          />
-        </div>
+        <a-tabs v-model="activeTab" size="small">
+          <a-tab-pane key="preview" tab="打印预览">
+            <div class="preview-pane" v-html="renderedPreview"></div>
+          </a-tab-pane>
+          <a-tab-pane key="source" tab="模板源码">
+            <textarea
+              class="template-textarea"
+              v-model="templateHtml"
+              spellcheck="false"
+            ></textarea>
+          </a-tab-pane>
+        </a-tabs>
       </a-col>
       <!-- 字段面板 -->
       <a-col :span="6">
         <div style="border:1px solid #e8e8e8;border-radius:4px;padding:8px;max-height:600px;overflow-y:auto;">
-          <h4 style="margin:0 0 8px;">主表字段</h4>
+          <h4 style="margin:0 0 8px;">主表字段 <small style="color:#999;">(点击复制)</small></h4>
           <div v-for="f in headerFields" :key="'h_'+f.key" style="margin-bottom:4px;">
-            <a-tag color="blue" style="cursor:pointer;" @click="insertField(f.key, false)">{{ f.label }}</a-tag>
+            <a-tag color="blue" style="cursor:pointer;" @click="copyField(f.key, false)">{{ f.label }}</a-tag>
           </div>
           <a-divider style="margin:8px 0;" />
-          <h4 style="margin:0 0 8px;">明细字段</h4>
+          <h4 style="margin:0 0 8px;">明细字段 <small style="color:#999;">(点击复制)</small></h4>
           <div v-for="f in detailFields" :key="'d_'+f.key" style="margin-bottom:4px;">
-            <a-tag color="green" style="cursor:pointer;" @click="insertField(f.key, true)">{{ f.label }}</a-tag>
+            <a-tag color="green" style="cursor:pointer;" @click="copyField(f.key, true)">{{ f.label }}</a-tag>
           </div>
           <a-divider style="margin:8px 0;" />
           <h4 style="margin:0 0 8px;">内置变量</h4>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_index}}')">行序号</a-tag>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printDate}}')">打印日期</a-tag>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="insertRaw('{{_printTime}}')">打印时间</a-tag>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="copyRaw('{{_index}}')">行序号</a-tag>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="copyRaw('{{_printDate}}')">打印日期</a-tag>
+          <a-tag color="orange" style="cursor:pointer;margin-bottom:4px;" @click="copyRaw('{{_printTime}}')">打印时间</a-tag>
         </div>
       </a-col>
     </a-row>
@@ -69,13 +73,9 @@
   import { getPrintTemplate, savePrintTemplate, deletePrintTemplate, listPrintTemplate, getPrintFieldMeta } from '@/api/api'
   import { getDefaultTemplate } from '@/utils/printTemplateDefaults'
   import { render, doPrint } from '@/utils/printTemplateEngine'
-  import CKEditor from '@ckeditor/ckeditor5-vue2'
-  import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
-  import '@ckeditor/ckeditor5-build-classic/build/translations/zh-cn'
 
   export default {
     name: 'CustomPrintModal',
-    components: { ckeditor: CKEditor.component },
     props: {
       billType: { type: String, required: true },
       model: { type: Object, default: () => ({}) },
@@ -86,35 +86,22 @@
         visible: false,
         saving: false,
         loading: false,
-        editorReady: false,
+        activeTab: 'preview',
         selectedTemplateId: 0,
         templateName: '',
         templateHtml: '',
         templateList: [],
         headerFields: [],
-        detailFields: [],
-        editorInstance: null,
-        editorClass: ClassicEditor,
-        editorConfig: {
-          language: 'zh-cn',
-          toolbar: [
-            'undo', 'redo', '|',
-            'heading', '|',
-            'bold', 'italic', 'strikethrough', '|',
-            'alignment', '|',
-            'insertTable', '|',
-            'bulletedList', 'numberedList', '|',
-            'indent', 'outdent'
-          ],
-          table: {
-            contentToolbar: [
-              'tableColumn', 'tableRow', 'mergeTableCells',
-              'tableProperties', 'tableCellProperties'
-            ]
-          },
-          htmlSupport: {
-            allow: [{ name: /.*/, attributes: true, classes: true, styles: true }]
-          }
+        detailFields: []
+      }
+    },
+    computed: {
+      renderedPreview() {
+        if (!this.templateHtml) return '<p style="color:#999;text-align:center;padding:40px;">暂无模板内容</p>'
+        try {
+          return render(this.templateHtml, this.model, this.dataSource)
+        } catch (e) {
+          return '<p style="color:red;padding:20px;">模板渲染出错：' + e.message + '</p>'
         }
       }
     },
@@ -122,10 +109,10 @@
       show() {
         this.visible = true
         this.loading = true
+        this.activeTab = 'preview'
         this.selectedTemplateId = 0
         this.templateName = ''
         this.templateHtml = getDefaultTemplate(this.billType)
-        this.editorReady = true
         this.loadTemplateList()
         this.loadFieldMeta()
       },
@@ -140,9 +127,6 @@
               this.selectedTemplateId = defaultTpl.id
               this.templateName = defaultTpl.templateName
               this.templateHtml = defaultTpl.templateHtml
-              if (this.editorInstance) {
-                this.editorInstance.setData(this.templateHtml)
-              }
             }
           }
         }).finally(() => {
@@ -160,7 +144,6 @@
       /** 切换模板 */
       handleTemplateChange(id) {
         if (id === 0) {
-          // 系统默认模板
           this.templateName = ''
           this.templateHtml = getDefaultTemplate(this.billType)
         } else {
@@ -170,23 +153,26 @@
             this.templateHtml = tpl.templateHtml
           }
         }
-        if (this.editorInstance) {
-          this.editorInstance.setData(this.templateHtml)
-        }
       },
-      onEditorReady(editor) {
-        this.editorInstance = editor
-      },
-      insertField(key, isDetail) {
+      /** 点击字段标签复制占位符到剪贴板 */
+      copyField(key, isDetail) {
         const placeholder = isDetail ? `{{detail.${key}}}` : `{{${key}}}`
-        this.insertRaw(placeholder)
+        this.copyRaw(placeholder)
       },
-      insertRaw(text) {
-        if (this.editorInstance) {
-          this.editorInstance.editing.view.focus()
-          const viewFragment = this.editorInstance.data.processor.toView(text)
-          const modelFragment = this.editorInstance.data.toModel(viewFragment)
-          this.editorInstance.model.insertContent(modelFragment)
+      copyRaw(text) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(() => {
+            this.$message.success('已复制：' + text)
+          })
+        } else {
+          // fallback
+          const ta = document.createElement('textarea')
+          ta.value = text
+          document.body.appendChild(ta)
+          ta.select()
+          document.execCommand('copy')
+          document.body.removeChild(ta)
+          this.$message.success('已复制：' + text)
         }
       },
       /** 保存为新模板 */
@@ -195,7 +181,6 @@
           this.$message.warning('请输入模板名称')
           return
         }
-        this.syncEditorContent()
         this.saving = true
         savePrintTemplate({
           id: null,
@@ -216,7 +201,6 @@
       },
       /** 更新当前选中的模板 */
       handleUpdate() {
-        this.syncEditorContent()
         this.saving = true
         savePrintTemplate({
           id: this.selectedTemplateId,
@@ -243,39 +227,73 @@
             this.selectedTemplateId = 0
             this.templateName = ''
             this.templateHtml = getDefaultTemplate(this.billType)
-            if (this.editorInstance) {
-              this.editorInstance.setData(this.templateHtml)
-            }
             this.loadTemplateList()
           } else {
             this.$message.warning('删除失败')
           }
         })
       },
-      syncEditorContent() {
-        if (this.editorInstance) {
-          this.templateHtml = this.editorInstance.getData()
-        }
-      },
       handlePrint() {
-        this.syncEditorContent()
         const html = render(this.templateHtml, this.model, this.dataSource)
         doPrint(html)
       },
       handleCancel() {
         this.visible = false
-        this.editorReady = false
-        if (this.editorInstance) {
-          this.editorInstance.destroy()
-          this.editorInstance = null
-        }
       }
     }
   }
 </script>
 <style scoped>
-  ::v-deep .ck-editor__editable {
+  .preview-pane {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 16px;
     min-height: 460px;
     max-height: 600px;
+    overflow-y: auto;
+    background: #fff;
+  }
+  .preview-pane table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .preview-pane th,
+  .preview-pane td {
+    border: 1px solid #000;
+    padding: 4px 8px;
+    text-align: left;
+    font-size: 12px;
+  }
+  .preview-pane th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  .preview-pane h2 {
+    text-align: center;
+    margin: 10px 0;
+  }
+  .preview-pane .header-row td {
+    border: none;
+    padding: 4px 8px;
+  }
+  .template-textarea {
+    width: 100%;
+    min-height: 460px;
+    max-height: 600px;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    resize: vertical;
+    white-space: pre;
+    overflow: auto;
+    tab-size: 2;
+  }
+  .template-textarea:focus {
+    border-color: #40a9ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
   }
 </style>

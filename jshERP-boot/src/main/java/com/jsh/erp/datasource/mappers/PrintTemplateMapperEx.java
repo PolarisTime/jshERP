@@ -25,4 +25,6 @@ public interface PrintTemplateMapperEx {
                    @Param("isDefault") String isDefault);
 
     int deleteById(@Param("id") Long id);
+
+    int clearDefaultByBillType(@Param("billType") String billType, @Param("excludeId") Long excludeId);
 }

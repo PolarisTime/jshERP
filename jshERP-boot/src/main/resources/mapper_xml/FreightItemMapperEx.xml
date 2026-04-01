@@ -117,10 +117,11 @@
         order by di.header_id, di.id
     </select>
 
-    <!-- 查询可关联的销售出库单（已审核、未被其他运费单关联） -->
+    <!-- 查询可关联的销售出库单（含未审核，未被其他运费单关联） -->
     <select id="selectAvailableSaleOut" resultType="java.util.HashMap">
         select dh.id as id, dh.number as billNo,
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
+               dh.status as status,
                s.supplier as customerName,
                ifnull(sum(di.all_price), 0) as totalAmount,
                dh.sales_man as salesMan,
@@ -138,14 +139,25 @@
         left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag, '0') != '1'
         left join jsh_depot dp on di.depot_id = dp.id
         where dh.type = '出库' and dh.sub_type = '销售'
-          and dh.status = '1' and ifnull(dh.delete_flag, '0') != '1'
+          and dh.status in ('0', '1') and ifnull(dh.delete_flag, '0') != '1'
           and dh.tenant_id = #{tenantId}
           and dh.id not in (select fi.depot_head_id from jsh_freight_item fi where fi.delete_flag = '0')
         <if test="number != null and number != ''">
             <bind name="bindNumber" value="'%'+number+'%'"/>
             and dh.number like #{bindNumber}
         </if>
-        group by dh.id, dh.number, dh.oper_time, s.supplier, dh.sales_man, dh.remark
+        group by dh.id, dh.number, dh.oper_time, dh.status, s.supplier, dh.sales_man, dh.remark
         order by dh.id desc
+    </select>
+
+    <!-- 按出库单ID列表查询关联的物流单主表ID（去重） -->
+    <select id="selectFreightHeadIdsByDepotHeadIds" resultType="java.lang.Long">
+        select distinct fi.header_id
+        from jsh_freight_item fi
+        where fi.delete_flag = '0'
+        and fi.depot_head_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 </mapper>

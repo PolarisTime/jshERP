@@ -40,6 +40,10 @@ public class PrintTemplateService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void saveTemplate(Long id, String billType, String templateName, String templateHtml, String isDefault) throws Exception {
+        //设置为默认时先清除同类型其他模板的默认标记
+        if ("1".equals(isDefault)) {
+            printTemplateMapperEx.clearDefaultByBillType(billType, id);
+        }
         if (id != null && id > 0) {
             printTemplateMapperEx.updateById(id, templateName, templateHtml, isDefault);
         } else {

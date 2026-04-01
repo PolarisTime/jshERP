@@ -458,9 +458,29 @@ public class FreightHeadService {
     }
 
     /**
+     * 根据出库单ID列表，重新计算关联物流单的重量和运费
+     * （用于出库单审核后同步更新物流单）
+     */
+    public void recalcByDepotHeadIds(List<Long> depotHeadIds) throws Exception {
+        if (depotHeadIds == null || depotHeadIds.isEmpty()) {
+            return;
+        }
+        List<Long> freightHeadIds = freightItemMapperEx.selectFreightHeadIdsByDepotHeadIds(depotHeadIds);
+        if (freightHeadIds == null || freightHeadIds.isEmpty()) {
+            return;
+        }
+        for (Long headId : freightHeadIds) {
+            FreightHead fh = freightHeadMapper.selectByPrimaryKey(headId);
+            if (fh != null && "0".equals(fh.getDeleteFlag())) {
+                recalcHeadTotal(headId, fh.getUnitPrice());
+            }
+        }
+    }
+
+    /**
      * 重新计算并更新主表的总重量和总运费
      */
-    private void recalcHeadTotal(Long headId, BigDecimal unitPrice) throws Exception {
+    public void recalcHeadTotal(Long headId, BigDecimal unitPrice) throws Exception {
         List<FreightItem> items = freightItemMapperEx.selectByHeaderId(headId);
         BigDecimal totalWeight = BigDecimal.ZERO;
         if (items != null) {

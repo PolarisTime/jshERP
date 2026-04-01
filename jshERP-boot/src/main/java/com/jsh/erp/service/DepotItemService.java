@@ -540,10 +540,25 @@ public class DepotItemService {
                         String currentSubType = depotHead.getSubType();
                         //在更新模式进行状态赋值
                         String unit = rowObj.get("unit").toString();
-                        Long preHeaderId = depotHeadService.getDepotHead(linkStr).getId();
+                        //通过 linkId 直接查找源单据明细，兼容逗号分隔的多 linkNumber 场景
+                        Long preHeaderId = null;
+                        BigDecimal preNumber = null;
+                        if(depotItem.getLinkId() != null) {
+                            DepotItem preItem = depotItemMapper.selectByPrimaryKey(depotItem.getLinkId());
+                            if(preItem != null && preItem.getHeaderId() != null) {
+                                preHeaderId = preItem.getHeaderId();
+                                preNumber = preItem.getOperNumber();
+                            }
+                        }
+                        if(preHeaderId == null) {
+                            //回退：单 linkNumber 场景
+                            DepotHead preHead = depotHeadService.getDepotHead(linkStr);
+                            preHeaderId = preHead != null ? preHead.getId() : null;
+                            if(preHeaderId != null) {
+                                preNumber = getPreItemByHeaderIdAndMaterial(linkStr, depotItem.getMaterialExtendId(), depotItem.getLinkId()).getOperNumber();
+                            }
+                        }
                         if(null!=preHeaderId) {
-                            //前一个单据的数量
-                            BigDecimal preNumber = getPreItemByHeaderIdAndMaterial(linkStr, depotItem.getMaterialExtendId(), depotItem.getLinkId()).getOperNumber();
                             //除去此单据之外的已入库|已出库
                             BigDecimal realFinishNumber = getRealFinishNumber(currentSubType, depotItem.getMaterialExtendId(), depotItem.getLinkId(), preHeaderId, headerId, unitInfo, unit);
                             if(preNumber!=null) {
@@ -704,17 +719,32 @@ public class DepotItemService {
                     || BusinessConstants.SUB_TYPE_REPLAY.equals(depotHead.getSubType())
                     || BusinessConstants.SUB_TYPE_OTHER.equals(depotHead.getSubType())) {
                 if(StringUtil.isNotEmpty(depotHead.getLinkNumber())) {
-                    //单据状态:是否全部完成 2-全部完成 3-部分完成（针对订单的分批出入库）
-                    String billStatus = getBillStatusByParam(depotHead, depotHead.getLinkNumber(), "normal");
-                    changeBillStatus(depotHead.getLinkNumber(), billStatus);
+                    //支持逗号分隔的多关联单号，逐个检查并更新订单状态
+                    List<String> linkNoList = StringUtil.strToStringList(depotHead.getLinkNumber());
+                    for(String singleLinkNo : linkNoList) {
+                        singleLinkNo = singleLinkNo.trim();
+                        if(StringUtil.isEmpty(singleLinkNo)) continue;
+                        //仅当关联的是订单/请购单类型时才更新其状态，避免关联采购入库等非订单单据时误更新
+                        DepotHead linkedBill = depotHeadService.getDepotHead(singleLinkNo);
+                        if(linkedBill != null && linkedBill.getSubType() != null
+                                && (linkedBill.getSubType().contains("订单") || linkedBill.getSubType().contains("请购单"))) {
+                            String billStatus = getBillStatusByParam(depotHead, singleLinkNo, "normal");
+                            changeBillStatus(singleLinkNo, billStatus);
+                        }
+                    }
                 }
             }
             //当前单据类型为采购订单的逻辑
             if(BusinessConstants.SUB_TYPE_PURCHASE_ORDER.equals(depotHead.getSubType())) {
                 //如果关联单据号非空则更新订单的状态,此处针对销售订单转采购订单的场景
                 if(StringUtil.isNotEmpty(depotHead.getLinkNumber())) {
-                    String billStatus = getBillStatusByParam(depotHead, depotHead.getLinkNumber(), "normal");
-                    changeBillPurchaseStatus(depotHead.getLinkNumber(), billStatus);
+                    List<String> linkNoList = StringUtil.strToStringList(depotHead.getLinkNumber());
+                    for(String singleLinkNo : linkNoList) {
+                        singleLinkNo = singleLinkNo.trim();
+                        if(StringUtil.isEmpty(singleLinkNo)) continue;
+                        String billStatus = getBillStatusByParam(depotHead, singleLinkNo, "normal");
+                        changeBillPurchaseStatus(singleLinkNo, billStatus);
+                    }
                 }
                 //如果关联单据号非空则更新订单的状态,此处针对请购单转采购订单的场景
                 if(StringUtil.isNotEmpty(depotHead.getLinkApply())) {

@@ -150,7 +150,7 @@
         urlPath: '/freight/bill',
         prefixNo: 'WLBILL',
         settingDataIndex: [],
-        defDataIndex: ['action','billNo','billTimeStr','carrierName','totalWeight','unitPrice','totalFreight','remark','status'],
+        defDataIndex: ['action','billNo','billTimeStr','customerNames','carrierName','totalWeight','unitPrice','totalFreight','remark','status'],
         columns: [],
         defColumns: [
           {
@@ -162,6 +162,7 @@
           },
           { title: '单据编号', dataIndex: 'billNo', width: 180 },
           { title: '日期', dataIndex: 'billTimeStr', width: 120 },
+          { title: '出库客户', dataIndex: 'customerNames', width: 150, ellipsis: true },
           { title: '结算方', dataIndex: 'carrierName', width: 150 },
           { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110 },
           { title: '单价(元/吨)', dataIndex: 'unitPrice', width: 110 },

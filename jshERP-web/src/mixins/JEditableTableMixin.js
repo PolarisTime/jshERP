@@ -102,13 +102,15 @@ export const JEditableTableMixin = {
       httpAction(url, formData, method).then((res) => {
         if(res.code === 200){
           this.$emit('ok')
-          this.confirmLoading = false
           this.close()
         } else {
           this.$message.warning(res.data.message);
-          this.confirmLoading = false
         }
+      }).catch((err) => {
+        console.error(err)
+        this.$message.error('保存失败，请稍后重试')
       }).finally(() => {
+        this.confirmLoading = false
       })
     },
 
@@ -144,6 +146,9 @@ export const JEditableTableMixin = {
           this.activeKey = e.index == null ? this.activeKey : this.refKeys[e.index]
         } else {
           console.error(e)
+          if(e && e.message) {
+            this.$message.error(e.message)
+          }
         }
       })
     },

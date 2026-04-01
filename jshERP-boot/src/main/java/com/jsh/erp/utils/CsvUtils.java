@@ -2,6 +2,7 @@ package com.jsh.erp.utils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,6 +106,52 @@ public class CsvUtils {
     // ======================== CSV解析（导入） ========================
 
     /**
+     * 检测字节数组的编码：优先识别 UTF-8 BOM，其次校验 UTF-8 合法性，不合法则回退 GBK。
+     * 适用于 Windows 用户用 Excel 编辑 CSV 后保存为 ANSI(GBK) 编码的场景。
+     */
+    private static String detectCharset(byte[] data) {
+        // 检测 UTF-8 BOM
+        if (data.length >= 3 && (data[0] & 0xFF) == 0xEF && (data[1] & 0xFF) == 0xBB && (data[2] & 0xFF) == 0xBF) {
+            return "UTF-8";
+        }
+        // 校验是否为合法 UTF-8
+        if (isValidUtf8(data)) {
+            return "UTF-8";
+        }
+        return "GBK";
+    }
+
+    /**
+     * 判断字节数组是否为合法的 UTF-8 编码（含非 ASCII 字符时才有意义）
+     */
+    private static boolean isValidUtf8(byte[] data) {
+        boolean hasNonAscii = false;
+        int i = 0;
+        while (i < data.length) {
+            int b = data[i] & 0xFF;
+            if (b <= 0x7F) {
+                i++;
+            } else if (b >= 0xC2 && b <= 0xDF) {
+                if (i + 1 >= data.length || (data[i + 1] & 0xC0) != 0x80) return false;
+                hasNonAscii = true;
+                i += 2;
+            } else if (b >= 0xE0 && b <= 0xEF) {
+                if (i + 2 >= data.length || (data[i + 1] & 0xC0) != 0x80 || (data[i + 2] & 0xC0) != 0x80) return false;
+                hasNonAscii = true;
+                i += 3;
+            } else if (b >= 0xF0 && b <= 0xF4) {
+                if (i + 3 >= data.length || (data[i + 1] & 0xC0) != 0x80 || (data[i + 2] & 0xC0) != 0x80 || (data[i + 3] & 0xC0) != 0x80) return false;
+                hasNonAscii = true;
+                i += 4;
+            } else {
+                return false;
+            }
+        }
+        // 纯 ASCII 内容视为 UTF-8
+        return true;
+    }
+
+    /**
      * 解析CSV文件，返回所有数据行（不含表头）
      * 第一行视为表头，从第二行起为数据行
      *
@@ -116,15 +163,26 @@ public class CsvUtils {
     }
 
     /**
-     * 解析CSV文件，跳过指定行数后返回数据
+     * 解析CSV文件，跳过指定行数后返回数据。
+     * 自动检测文件编码（UTF-8 / GBK），兼容 Windows Excel 导出的 ANSI 格式。
      *
      * @param inputStream CSV文件输入流
      * @param skipRows    跳过的行数（1=跳过表头行）
      * @return 数据行列表
      */
     public static List<String[]> parseCsv(InputStream inputStream, int skipRows) throws Exception {
+        // 先读取全部字节，用于编码检测
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int len;
+        while ((len = inputStream.read(buf)) != -1) {
+            baos.write(buf, 0, len);
+        }
+        byte[] fileBytes = baos.toByteArray();
+        String charset = detectCharset(fileBytes);
+
         List<String[]> result = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fileBytes), charset))) {
             String line;
             int rowIndex = 0;
             StringBuilder currentLine = new StringBuilder();
@@ -166,10 +224,18 @@ public class CsvUtils {
     }
 
     /**
-     * 获取CSV表头行
+     * 获取CSV表头行（自动检测编码）
      */
     public static String[] parseCsvHeader(InputStream inputStream) throws Exception {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int len;
+        while ((len = inputStream.read(buf)) != -1) {
+            baos.write(buf, 0, len);
+        }
+        byte[] fileBytes = baos.toByteArray();
+        String charset = detectCharset(fileBytes);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fileBytes), charset))) {
             String line = reader.readLine();
             if (line != null) {
                 if (line.startsWith(BOM)) {

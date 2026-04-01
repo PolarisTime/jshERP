@@ -4,7 +4,6 @@
     :width="width"
     :visible="visible"
     :maskClosable="false"
-    :forceRender="true"
     :style="modalStyle"
     fullscreen
     switchFullscreen
@@ -13,7 +12,7 @@
     <template slot="footer">
       <a-button @click="handleCancel">取消(ESC)</a-button>
       <template v-if="!isReadOnly">
-        <a-button type="primary" :loading="confirmLoading" @click="handleOk">保存</a-button>
+        <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOk">保存</a-button>
       </template>
       <template v-else>
         <a-button v-print="'#freightBillPrint'">普通打印</a-button>
@@ -142,6 +141,10 @@
         :rowSelection="{selectedRowKeys: saleOutSelectedKeys, onChange: onSaleOutSelectChange}"
         :components="saleOutDragComponents"
         @change="handleSaleOutTableChange">
+        <template slot="saleOutStatus" slot-scope="text">
+          <a-tag v-if="text === '1'" color="green">已审核</a-tag>
+          <a-tag v-else color="orange">未审核</a-tag>
+        </template>
       </a-table>
     </a-modal>
   <custom-print-modal ref="customPrintModal" billType="freightBill" :model="model" :dataSource="selectedSaleOutList" />
@@ -235,6 +238,7 @@
         defDataIndex: ['action', 'billNo', 'billTimeStr', 'customerName', 'materialName', 'standard', 'model', 'batchNumber', 'operNumber', 'materialUnit', 'itemWeight', 'depotName', 'salesMan'],
         saleOutColumns: [
           { title: '出库单号', dataIndex: 'billNo', width: 180 },
+          { title: '状态', dataIndex: 'status', width: 80, scopedSlots: { customRender: 'saleOutStatus' } },
           { title: '客户名称', dataIndex: 'customerName', width: 150 },
           { title: '日期', dataIndex: 'billTimeStr', width: 110 },
           { title: '商品信息', dataIndex: 'materialNames', width: 300, ellipsis: true },
@@ -533,8 +537,9 @@
             billMain.billTime = values.billTime ? values.billTime.format('YYYY-MM-DD') : '';
             billMain.carrierId = values.carrierId;
             billMain.unitPrice = values.unitPrice;
-            billMain.totalWeight = that.totalWeight;
-            billMain.totalFreight = that.totalFreight;
+            //totalWeight 和 totalFreight 由后端 recalcHeadTotal 计算，不从前端传递
+            delete billMain.totalWeight;
+            delete billMain.totalFreight;
             billMain.remark = values.remark;
             // 从明细行提取唯一出库单，按 depotHeadId 汇总重量
             let weightMap = {}

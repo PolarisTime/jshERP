@@ -97,6 +97,9 @@
             <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
               <a-button icon="import" @click="onImport(prefixNo)">导入明细</a-button>
             </a-row>
+            <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
+              <a-button icon="select" @click="onSearchPurchaseBill">选择采购入库</a-button>
+            </a-row>
           </template>
           <template #depotBatchSet>
             <a-icon type="down" @click="handleBatchSetDepot" />
@@ -205,6 +208,7 @@
     <many-account-modal ref="manyAccountModalForm" @ok="manyAccountModalFormOk"></many-account-modal>
     <import-item-modal ref="importItemModalForm" @ok="importItemModalFormOk"></import-item-modal>
     <link-bill-list ref="linkBillList" @ok="linkBillListOk"></link-bill-list>
+    <link-bill-list ref="purchaseBillList" @ok="purchaseBillListOk"></link-bill-list>
     <customer-modal ref="customerModalForm" @ok="customerModalFormOk"></customer-modal>
     <depot-modal ref="depotModalForm" @ok="depotModalFormOk"></depot-modal>
     <account-modal ref="accountModalForm" @ok="accountModalFormOk"></account-modal>
@@ -313,7 +317,9 @@
             { title: '数量', key: 'operNumber', width: '4%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber,
+              readonly: (row) => { return row.weightEditable !== '1' && row.weightEditable !== 1 }
+            },
             { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
             { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},
@@ -477,6 +483,81 @@
       onSearchLinkNumber() {
         this.$refs.linkBillList.show('其它', '销售订单', '客户', "1,3")
         this.$refs.linkBillList.title = "请选择销售订单"
+      },
+      onSearchPurchaseBill() {
+        let organId = this.form.getFieldValue('organId')
+        if(!organId) {
+          this.$message.warning('请先选择客户')
+          return
+        }
+        this.$refs.purchaseBillList.show('入库', '采购', '供应商', "1")
+        this.$refs.purchaseBillList.title = "请选择采购入库单"
+      },
+      purchaseBillListOk(selectBillDetailRows, linkNumber, organId, discountMoney, deposit, remark, depotId, accountId, salesMan) {
+        let that = this
+        //不设置 rowCanEdit=false，保持客户等表单字段可编辑，仅锁定条码列
+        this.materialTable.columns[1].type = FormTypes.normal
+        this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
+        this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
+        if(selectBillDetailRows && selectBillDetailRows.length>0) {
+          //获取已有明细行的 linkId 集合，用于排重
+          let existLinkIds = this.materialTable.dataSource.map(row => row.linkId).filter(id => id)
+          let newRows = []
+          for(let j=0; j<selectBillDetailRows.length; j++) {
+            let info = selectBillDetailRows[j]
+            //跳过已存在的明细行（按 linkId 排重）
+            if(existLinkIds.indexOf(info.id) !== -1) continue
+            info.preNumber = info.operNumber
+            info.finishNumber = 0
+            info.linkId = info.id
+            if(info.operNumber>0) {
+              newRows.push(info)
+              this.changeColumnShow(info)
+            }
+          }
+          if(newRows.length === 0) {
+            this.$message.warning('所选单据的明细已全部添加')
+            return
+          }
+          //追加到现有明细行
+          this.materialTable.dataSource = this.materialTable.dataSource.concat(newRows)
+          //重新累计全部明细行的金额
+          let allTaxLastMoney = 0
+          this.materialTable.dataSource.forEach(row => {
+            allTaxLastMoney += (row.taxLastMoney-0) || 0
+          })
+          let discountLastMoney = (allTaxLastMoney).toFixed(2)-0
+          let changeAmount = discountLastMoney
+          //linkNumber 追加（多次选择用逗号分隔）
+          let oldLinkNumber = this.form.getFieldValue('linkNumber') || ''
+          let newLinkNumber = oldLinkNumber ? (oldLinkNumber + ',' + linkNumber) : linkNumber
+          this.$nextTick(() => {
+            this.form.setFieldsValue({
+              'linkNumber': newLinkNumber,
+              'discount': 0,
+              'discountMoney': 0,
+              'discountLastMoney': discountLastMoney,
+              'deposit': 0,
+              'changeAmount': changeAmount,
+              'remark': remark || this.form.getFieldValue('remark') || ''
+            })
+            getCurrentSystemConfig().then((res) => {
+              if (res.code === 200 && res.data) {
+                let flag = res.data.zeroChangeAmountFlag==='1'?true:false
+                if(flag) {
+                  let oldChangeAmount = this.form.getFieldValue('changeAmount')-0
+                  this.form.setFieldsValue({'changeAmount':0, 'debt':oldChangeAmount})
+                }
+              }
+            })
+          })
+          //判断后进行仓库的切换
+          if(depotId) {
+            setTimeout(function () {
+              that.batchSetDepotModalFormOk(depotId)
+            },1000)
+          }
+        }
       },
       linkBillListOk(selectBillDetailRows, linkNumber, organId, discountMoney, deposit, remark, depotId, accountId, salesMan) {
         let that = this

@@ -84,6 +84,8 @@ public class DepotHeadService {
     @Resource
     private com.jsh.erp.datasource.mappers.FreightItemMapperEx freightItemMapperEx;
     @Resource
+    private FreightHeadService freightHeadService;
+    @Resource
     private LogService logService;
 
     @Value(value="${file.exportTmp}")
@@ -761,6 +763,19 @@ public class DepotHeadService {
                     }
                 }
             }
+            //审核销售出库单时，同步更新关联物流单的重量
+            if("1".equals(status)) {
+                List<Long> saleOutIds = new ArrayList<>();
+                for(Long dhId: dhIds) {
+                    DepotHead dh = getDepotHead(dhId);
+                    if("出库".equals(dh.getType()) && "销售".equals(dh.getSubType())) {
+                        saleOutIds.add(dhId);
+                    }
+                }
+                if(!saleOutIds.isEmpty()) {
+                    freightHeadService.recalcByDepotHeadIds(saleOutIds);
+                }
+            }
             //记录日志
             if(!noList.isEmpty() && ("0".equals(status) || "1".equals(status))) {
                 String statusStr = status.equals("1")?"[审核]":"[反审核]";
@@ -1392,6 +1407,12 @@ public class DepotHeadService {
         }
         /**入库和出库处理单据子表信息*/
         depotItemService.saveDetials(rows,depotHead.getId(), "update",request);
+        //销售出库单编辑后，同步更新关联物流单的重量和运费
+        if("出库".equals(depotHead.getType()) && "销售".equals(depotHead.getSubType())) {
+            List<Long> ids = new ArrayList<>();
+            ids.add(depotHead.getId());
+            freightHeadService.recalcByDepotHeadIds(ids);
+        }
         String statusStr = depotHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("单据",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(depotHead.getNumber()).append(statusStr).toString(),
