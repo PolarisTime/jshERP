@@ -10,4 +10,16 @@
       select current_val from jsh_sequence where seq_name = 'depot_number_seq'
     </select>
 
+    <update id="incrementBySeqName">
+        update jsh_sequence set current_val = current_val + 1 where seq_name = #{seqName}
+    </update>
+
+    <select id="getValBySeqName" resultType="java.lang.Long">
+        select current_val from jsh_sequence where seq_name = #{seqName}
+    </select>
+
+    <update id="resetBySeqName">
+        update jsh_sequence set current_val = #{val} where seq_name = #{seqName}
+    </update>
+
 </mapper>

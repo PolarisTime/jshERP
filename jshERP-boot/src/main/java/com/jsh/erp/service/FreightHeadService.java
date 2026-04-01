@@ -11,13 +11,17 @@ import com.jsh.erp.datasource.mappers.FreightHeadMapper;
 import com.jsh.erp.datasource.mappers.FreightHeadMapperEx;
 import com.jsh.erp.datasource.mappers.FreightItemMapper;
 import com.jsh.erp.datasource.mappers.FreightItemMapperEx;
+import com.jsh.erp.constants.ExceptionConstants;
+import com.jsh.erp.datasource.mappers.SequenceMapperEx;
 import com.jsh.erp.exception.BusinessRunTimeException;
 import com.jsh.erp.exception.JshException;
 import com.jsh.erp.utils.PageUtils;
+import com.jsh.erp.utils.RedisLockUtil;
 import com.jsh.erp.utils.StringUtil;
 import com.jsh.erp.utils.Tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -32,6 +36,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 运费单Service
@@ -56,26 +61,51 @@ public class FreightHeadService {
     private UserService userService;
     @Resource
     private LogService logService;
+    @Resource
+    private SequenceMapperEx sequenceMapperEx;
+    @Resource
+    private RedisLockUtil redisLockUtil;
+
+    private static final String FREIGHT_SEQ_NAME = "freight_bill_no_seq";
+    private static final String FREIGHT_YEAR_SEQ_NAME = "freight_bill_no_year";
+    private static final long LOCK_EXPIRE_TIME = 3000;
+    private static final long LOCK_WAIT_TIME = 100;
 
     /**
      * 生成运费单编号，格式: yyyyW0001
-     * 按年度递增，每年从0001开始
+     * 通过 Redis 分布式锁 + jsh_sequence 表原子递增，保证并发安全
+     * 每年自动从 0001 开始
      */
     public String buildFreightBillNo() throws Exception {
-        String yearStr = String.valueOf(LocalDate.now().getYear());
-        String prefix = yearStr + "W";
-        Long tenantId = userService.getCurrentUser().getTenantId();
-        String maxBillNo = freightHeadMapperEx.selectMaxBillNoByPrefix(prefix, tenantId);
-        int nextSeq = 1;
-        if (StringUtil.isNotEmpty(maxBillNo) && maxBillNo.length() > prefix.length()) {
-            try {
-                int currentSeq = Integer.parseInt(maxBillNo.substring(prefix.length()));
-                nextSeq = currentSeq + 1;
-            } catch (NumberFormatException e) {
-                logger.warn("无法解析运费单编号序号: {}", maxBillNo);
+        String lockKey = "sequence:lock:" + FREIGHT_SEQ_NAME;
+        String requestId = UUID.randomUUID().toString();
+        boolean locked = false;
+        try {
+            locked = redisLockUtil.tryLock(lockKey, requestId, LOCK_EXPIRE_TIME, LOCK_WAIT_TIME);
+            if (!locked) {
+                throw new BusinessRunTimeException(ExceptionConstants.SEQUENCE_ONLY_FAILED_CODE,
+                        ExceptionConstants.SEQUENCE_ONLY_FAILED_MSG);
+            }
+            int currentYear = LocalDate.now().getYear();
+            // 检测年度切换，需要时重置序号
+            Long storedYear = sequenceMapperEx.getValBySeqName(FREIGHT_YEAR_SEQ_NAME);
+            if (storedYear == null || storedYear != currentYear) {
+                sequenceMapperEx.resetBySeqName(FREIGHT_SEQ_NAME, 0);
+                sequenceMapperEx.resetBySeqName(FREIGHT_YEAR_SEQ_NAME, currentYear);
+            }
+            // 原子递增并获取
+            sequenceMapperEx.incrementBySeqName(FREIGHT_SEQ_NAME);
+            Long seq = sequenceMapperEx.getValBySeqName(FREIGHT_SEQ_NAME);
+            return currentYear + "W" + String.format("%04d", seq);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BusinessRunTimeException(ExceptionConstants.SEQUENCE_ONLY_BREAK_CODE,
+                    ExceptionConstants.SEQUENCE_ONLY_BREAK_MSG);
+        } finally {
+            if (locked) {
+                redisLockUtil.unlock(lockKey, requestId);
             }
         }
-        return prefix + String.format("%04d", nextSeq);
     }
 
     /**
@@ -134,7 +164,7 @@ public class FreightHeadService {
      * 新增运费单（主表+明细）
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void addFreightBill(String beanJson, String itemsJson, HttpServletRequest request) throws Exception {
+    public String addFreightBill(String beanJson, String itemsJson, HttpServletRequest request) throws Exception {
         FreightHead freightHead = JSONObject.parseObject(beanJson, FreightHead.class);
         User userInfo = userService.getCurrentUser();
         Long tenantId = userInfo == null ? null : userInfo.getTenantId();
@@ -146,11 +176,21 @@ public class FreightHeadService {
         freightHead.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
         //防重复校验：检查明细中的depotHeadId是否已被其他运费单关联
         checkDuplicateDepotHead(itemsJson, null);
-        //保存主表
-        try {
-            freightHeadMapper.insertSelective(freightHead);
-        } catch (Exception e) {
-            JshException.writeFail(logger, e);
+        //服务端生成单号并插入，遇到唯一键冲突时自动重试
+        int maxRetry = 3;
+        for (int i = 0; i < maxRetry; i++) {
+            freightHead.setBillNo(buildFreightBillNo());
+            try {
+                freightHeadMapper.insertSelective(freightHead);
+                break;
+            } catch (DuplicateKeyException e) {
+                logger.warn("运费单编号冲突: {}，第{}次重试", freightHead.getBillNo(), i + 1);
+                if (i == maxRetry - 1) {
+                    JshException.writeFail(logger, e);
+                }
+            } catch (Exception e) {
+                JshException.writeFail(logger, e);
+            }
         }
         Long headId = freightHead.getId();
         //保存明细
@@ -159,6 +199,7 @@ public class FreightHeadService {
         recalcHeadTotal(headId, freightHead.getUnitPrice());
         logService.insertLog("运费单",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(freightHead.getBillNo()).toString(), request);
+        return freightHead.getBillNo();
     }
 
     /**

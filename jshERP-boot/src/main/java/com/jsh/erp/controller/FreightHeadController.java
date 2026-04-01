@@ -86,7 +86,8 @@ public class FreightHeadController extends BaseController {
         JSONObject result = ExceptionConstants.standardSuccess();
         String beanJson = body.getInfo();
         String rows = body.getRows();
-        freightHeadService.addFreightBill(beanJson, rows, request);
+        String billNo = freightHeadService.addFreightBill(beanJson, rows, request);
+        result.put("billNo", billNo);
         return result;
     }
 

@@ -558,6 +558,9 @@
             }
             obj.then((res) => {
               if (res.code === 200) {
+                if (res.data && res.data.billNo) {
+                  that.$message.success('运费单 ' + res.data.billNo + ' 保存成功')
+                }
                 that.$emit('ok');
                 that.close();
               } else {

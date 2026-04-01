@@ -1017,7 +1017,7 @@ CREATE TABLE `jsh_sequence` (
 
 LOCK TABLES `jsh_sequence` WRITE;
 /*!40000 ALTER TABLE `jsh_sequence` DISABLE KEYS */;
-INSERT INTO `jsh_sequence` VALUES ('depot_number_seq',1,999999999999999999,724,1,'单据编号sequence');
+INSERT INTO `jsh_sequence` VALUES ('depot_number_seq',1,999999999999999999,724,1,'单据编号sequence'),('freight_bill_no_seq',1,999999999999999999,0,1,'物流单编号sequence'),('freight_bill_no_year',0,999999999999999999,0,1,'物流单编号-当前年份');
 /*!40000 ALTER TABLE `jsh_sequence` ENABLE KEYS */;
 UNLOCK TABLES;
 
