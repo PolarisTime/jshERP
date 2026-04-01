@@ -8,20 +8,40 @@
     @cancel="handleCancel"
     style="top:20px;">
     <!-- 操作栏 -->
-    <div style="margin-bottom:10px;">
-      <a-input v-model="templateName" placeholder="模板名称" style="width:200px;margin-right:8px;" />
-      <a-button type="primary" @click="handleSave" :loading="saving">保存模板</a-button>
-      <a-button style="margin-left:8px;" @click="handleResetDefault">恢复默认</a-button>
-      <a-button style="margin-left:8px;" type="primary" icon="printer" @click="handlePrint">打印预览</a-button>
+    <div style="margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+      <!-- 模板选择 -->
+      <a-select
+        v-model="selectedTemplateId"
+        style="width:220px;"
+        placeholder="选择模板"
+        @change="handleTemplateChange">
+        <a-select-option :value="0">系统默认模板</a-select-option>
+        <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
+          {{ t.templateName }}
+        </a-select-option>
+      </a-select>
+      <a-input v-model="templateName" placeholder="模板名称" style="width:160px;" />
+      <a-button type="primary" @click="handleSave" :loading="saving">保存为新模板</a-button>
+      <a-button v-if="selectedTemplateId > 0" @click="handleUpdate" :loading="saving">更新当前模板</a-button>
+      <a-popconfirm
+        v-if="selectedTemplateId > 0"
+        title="确定删除此模板？"
+        @confirm="handleDelete">
+        <a-button type="danger" ghost>删除模板</a-button>
+      </a-popconfirm>
+      <a-button type="primary" icon="printer" @click="handlePrint" :disabled="loading" style="margin-left:auto;">打印预览</a-button>
     </div>
     <a-row :gutter="16">
       <!-- 编辑器 -->
       <a-col :span="18">
-        <editor
-          v-if="editorReady"
-          v-model="templateHtml"
-          :init="editorInit"
-        />
+        <div v-if="editorReady">
+          <ckeditor
+            :editor="editorClass"
+            v-model="templateHtml"
+            :config="editorConfig"
+            @ready="onEditorReady"
+          />
+        </div>
       </a-col>
       <!-- 字段面板 -->
       <a-col :span="6">
@@ -46,21 +66,16 @@
   </a-modal>
 </template>
 <script>
-  import { getPrintTemplate, savePrintTemplate, getPrintFieldMeta } from '@/api/api'
+  import { getPrintTemplate, savePrintTemplate, deletePrintTemplate, listPrintTemplate, getPrintFieldMeta } from '@/api/api'
   import { getDefaultTemplate } from '@/utils/printTemplateDefaults'
   import { render, doPrint } from '@/utils/printTemplateEngine'
-  import Editor from '@tinymce/tinymce-vue'
-  import 'tinymce/tinymce'
-  import 'tinymce/themes/silver'
-  import 'tinymce/icons/default'
-  import 'tinymce/plugins/table'
-  import 'tinymce/plugins/code'
-  import 'tinymce/plugins/fullscreen'
-  import 'tinymce/plugins/preview'
+  import CKEditor from '@ckeditor/ckeditor5-vue2'
+  import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
+  import '@ckeditor/ckeditor5-build-classic/build/translations/zh-cn'
 
   export default {
     name: 'CustomPrintModal',
-    components: { Editor },
+    components: { ckeditor: CKEditor.component },
     props: {
       billType: { type: String, required: true },
       model: { type: Object, default: () => ({}) },
@@ -70,27 +85,35 @@
       return {
         visible: false,
         saving: false,
+        loading: false,
         editorReady: false,
-        templateId: null,
-        templateName: '默认模板',
+        selectedTemplateId: 0,
+        templateName: '',
         templateHtml: '',
+        templateList: [],
         headerFields: [],
         detailFields: [],
         editorInstance: null,
-        editorInit: {
-          language: 'zh_CN',
-          language_url: '/tinymce/langs/zh_CN.js',
-          skin_url: '/tinymce/skins/ui/oxide',
-          content_css: '/tinymce/skins/content/default/content.min.css',
-          height: 500,
-          menubar: 'file edit view insert format table',
-          plugins: 'table code fullscreen preview',
-          toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | table | code fullscreen',
-          valid_elements: '*[*]',
-          extended_valid_elements: 'style',
-          branding: false,
-          setup: (editor) => {
-            this.editorInstance = editor
+        editorClass: ClassicEditor,
+        editorConfig: {
+          language: 'zh-cn',
+          toolbar: [
+            'undo', 'redo', '|',
+            'heading', '|',
+            'bold', 'italic', 'strikethrough', '|',
+            'alignment', '|',
+            'insertTable', '|',
+            'bulletedList', 'numberedList', '|',
+            'indent', 'outdent'
+          ],
+          table: {
+            contentToolbar: [
+              'tableColumn', 'tableRow', 'mergeTableCells',
+              'tableProperties', 'tableCellProperties'
+            ]
+          },
+          htmlSupport: {
+            allow: [{ name: /.*/, attributes: true, classes: true, styles: true }]
           }
         }
       }
@@ -98,23 +121,32 @@
     methods: {
       show() {
         this.visible = true
-        this.templateId = null
-        this.templateName = '默认模板'
+        this.loading = true
+        this.selectedTemplateId = 0
+        this.templateName = ''
         this.templateHtml = getDefaultTemplate(this.billType)
         this.editorReady = true
-        this.loadTemplate()
+        this.loadTemplateList()
         this.loadFieldMeta()
       },
-      loadTemplate() {
-        getPrintTemplate({ billType: this.billType }).then((res) => {
+      /** 加载模板列表，自动选中默认模板 */
+      loadTemplateList() {
+        listPrintTemplate({ billType: this.billType }).then((res) => {
           if (res && res.code === 200 && res.data) {
-            this.templateId = res.data.id
-            this.templateName = res.data.templateName
-            this.templateHtml = res.data.templateHtml
-            if (this.editorInstance) {
-              this.editorInstance.setContent(this.templateHtml)
+            this.templateList = res.data
+            // 自动选中 isDefault='1' 的模板
+            const defaultTpl = this.templateList.find(t => t.isDefault === '1')
+            if (defaultTpl) {
+              this.selectedTemplateId = defaultTpl.id
+              this.templateName = defaultTpl.templateName
+              this.templateHtml = defaultTpl.templateHtml
+              if (this.editorInstance) {
+                this.editorInstance.setData(this.templateHtml)
+              }
             }
           }
+        }).finally(() => {
+          this.loading = false
         })
       },
       loadFieldMeta() {
@@ -125,29 +157,56 @@
           }
         })
       },
+      /** 切换模板 */
+      handleTemplateChange(id) {
+        if (id === 0) {
+          // 系统默认模板
+          this.templateName = ''
+          this.templateHtml = getDefaultTemplate(this.billType)
+        } else {
+          const tpl = this.templateList.find(t => t.id === id)
+          if (tpl) {
+            this.templateName = tpl.templateName
+            this.templateHtml = tpl.templateHtml
+          }
+        }
+        if (this.editorInstance) {
+          this.editorInstance.setData(this.templateHtml)
+        }
+      },
+      onEditorReady(editor) {
+        this.editorInstance = editor
+      },
       insertField(key, isDetail) {
         const placeholder = isDetail ? `{{detail.${key}}}` : `{{${key}}}`
         this.insertRaw(placeholder)
       },
       insertRaw(text) {
         if (this.editorInstance) {
-          this.editorInstance.insertContent(text)
+          this.editorInstance.editing.view.focus()
+          const viewFragment = this.editorInstance.data.processor.toView(text)
+          const modelFragment = this.editorInstance.data.toModel(viewFragment)
+          this.editorInstance.model.insertContent(modelFragment)
         }
       },
+      /** 保存为新模板 */
       handleSave() {
+        if (!this.templateName || !this.templateName.trim()) {
+          this.$message.warning('请输入模板名称')
+          return
+        }
         this.syncEditorContent()
         this.saving = true
         savePrintTemplate({
-          id: this.templateId,
+          id: null,
           billType: this.billType,
           templateName: this.templateName,
           templateHtml: this.templateHtml,
-          isDefault: '1'
+          isDefault: '0'
         }).then((res) => {
           if (res && res.code === 200) {
             this.$message.success('模板保存成功')
-            // 重新加载获取id
-            this.loadTemplate()
+            this.loadTemplateList()
           } else {
             this.$message.warning('保存失败')
           }
@@ -155,18 +214,47 @@
           this.saving = false
         })
       },
-      syncEditorContent() {
-        if (this.editorInstance && this.editorInstance.getContent) {
-          this.templateHtml = this.editorInstance.getContent()
-        }
+      /** 更新当前选中的模板 */
+      handleUpdate() {
+        this.syncEditorContent()
+        this.saving = true
+        savePrintTemplate({
+          id: this.selectedTemplateId,
+          billType: this.billType,
+          templateName: this.templateName,
+          templateHtml: this.templateHtml,
+          isDefault: '1'
+        }).then((res) => {
+          if (res && res.code === 200) {
+            this.$message.success('模板更新成功')
+            this.loadTemplateList()
+          } else {
+            this.$message.warning('更新失败')
+          }
+        }).finally(() => {
+          this.saving = false
+        })
       },
-      handleResetDefault() {
-        this.templateHtml = getDefaultTemplate(this.billType)
-        this.templateId = null
-        this.templateName = '默认模板'
-        // 主动同步到编辑器实例，防止 syncEditorContent 读取旧内容覆盖
+      /** 删除当前选中的模板 */
+      handleDelete() {
+        deletePrintTemplate({ id: this.selectedTemplateId }).then((res) => {
+          if (res && res.code === 200) {
+            this.$message.success('模板已删除')
+            this.selectedTemplateId = 0
+            this.templateName = ''
+            this.templateHtml = getDefaultTemplate(this.billType)
+            if (this.editorInstance) {
+              this.editorInstance.setData(this.templateHtml)
+            }
+            this.loadTemplateList()
+          } else {
+            this.$message.warning('删除失败')
+          }
+        })
+      },
+      syncEditorContent() {
         if (this.editorInstance) {
-          this.editorInstance.setContent(this.templateHtml)
+          this.templateHtml = this.editorInstance.getData()
         }
       },
       handlePrint() {
@@ -177,10 +265,17 @@
       handleCancel() {
         this.visible = false
         this.editorReady = false
-        this.editorInstance = null
+        if (this.editorInstance) {
+          this.editorInstance.destroy()
+          this.editorInstance = null
+        }
       }
     }
   }
 </script>
 <style scoped>
+  ::v-deep .ck-editor__editable {
+    min-height: 460px;
+    max-height: 600px;
+  }
 </style>

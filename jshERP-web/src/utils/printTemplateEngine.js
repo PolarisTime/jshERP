@@ -85,12 +85,17 @@ export function doPrint(renderedHtml) {
 </html>`)
   doc.close()
 
-  // 等待渲染完成后打印
+  const cleanup = () => {
+    if (iframe.parentNode) {
+      document.body.removeChild(iframe)
+    }
+  }
+
   iframe.contentWindow.focus()
   setTimeout(() => {
+    // 监听打印完成事件，优先用 afterprint，保底 5s 延迟
+    iframe.contentWindow.addEventListener('afterprint', cleanup)
     iframe.contentWindow.print()
-    setTimeout(() => {
-      document.body.removeChild(iframe)
-    }, 1000)
+    setTimeout(cleanup, 5000)
   }, 300)
 }

@@ -142,6 +142,7 @@ const resetColumnConfig = (params)=>deleteAction('/columnConfig/reset',params);
 const getPrintTemplate = (params)=>getAction('/printTemplate/getByBillType',params);
 const savePrintTemplate = (params)=>postAction('/printTemplate/save',params);
 const deletePrintTemplate = (params)=>deleteAction('/printTemplate/delete',params);
+const listPrintTemplate = (params)=>getAction('/printTemplate/listByBillType',params);
 const getPrintFieldMeta = (params)=>getAction('/printTemplate/getFieldMeta',params);
 
 export {
@@ -261,6 +262,7 @@ export {
   getPrintTemplate,
   savePrintTemplate,
   deletePrintTemplate,
+  listPrintTemplate,
   getPrintFieldMeta
 }
 

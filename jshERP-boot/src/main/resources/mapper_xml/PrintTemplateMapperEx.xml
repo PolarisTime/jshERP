@@ -23,7 +23,7 @@
     </select>
 
     <select id="selectListByBillType" resultMap="BaseResultMap">
-        select id, bill_type, template_name, is_default, create_time, update_time
+        select id, bill_type, template_name, template_html, is_default, create_time, update_time
         from jsh_print_template
         where bill_type = #{billType}
         and ifnull(delete_flag, '0') != '1'
