@@ -92,6 +92,7 @@
         select di.id as itemId, di.header_id as depotHeadId, dh.number as billNo,
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
                s.supplier as customerName,
+               s.project_name as projectName,
                m.name as materialName,
                ifnull(m.standard, '') as standard,
                ifnull(m.model, '') as model,
@@ -123,6 +124,7 @@
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
                dh.status as status,
                s.supplier as customerName,
+               s.project_name as projectName,
                ifnull(sum(di.all_price), 0) as totalAmount,
                dh.sales_man as salesMan,
                dh.remark as remark,
@@ -146,7 +148,7 @@
             <bind name="bindNumber" value="'%'+number+'%'"/>
             and dh.number like #{bindNumber}
         </if>
-        group by dh.id, dh.number, dh.oper_time, dh.status, s.supplier, dh.sales_man, dh.remark
+        group by dh.id, dh.number, dh.oper_time, dh.status, s.supplier, s.project_name, dh.sales_man, dh.remark
         order by dh.id desc
     </select>
 

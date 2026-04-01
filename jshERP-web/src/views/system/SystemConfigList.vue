@@ -142,6 +142,16 @@
                   （启用后，单据金额按<b>重量 x 单价</b>计算，而非数量 x 单价）
                 </a-form-item>
               </a-col>
+              <a-col :lg="24" :md="24" :sm="24">
+                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="默认税率(%)">
+                  <a-input-number
+                    v-model="defaultTaxRate"
+                    :min="0" :max="100" :precision="2"
+                    style="width:120px;"
+                    @change="onDefaultTaxRateChange" />
+                  （新建单据或从请购单导入时的默认税率，设置为0表示不含税）
+                </a-form-item>
+              </a-col>
               <a-col :lg="24" :md="24" :sm="24" v-if="isShowApproval">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="多级审核">
                   <a-switch checked-children="启用" un-checked-children="关闭" v-model="multiLevelApprovalFlagSwitch" @change="onMultiLevelApprovalChange"></a-switch>
@@ -205,6 +215,7 @@
         customerStaticPriceFlagSwitch: false, //客户静态单价
         materialPriceTaxFlagSwitch: false, //商品价格含税
         priceByWeightFlagSwitch: false, //按重量计价
+        defaultTaxRate: 13, //默认税率(%)
         labelCol: {
           xs: { span: 24 },
           sm: { span: 2 },
@@ -335,6 +346,9 @@
               }
               if (record.priceByWeightFlag != null) {
                 this.priceByWeightFlagSwitch = record.priceByWeightFlag == '1' ? true : false;
+              }
+              if (record.defaultTaxRate != null) {
+                this.defaultTaxRate = record.defaultTaxRate - 0
               }
             }
           } else {
@@ -474,6 +488,10 @@
       },
       onPriceByWeightChange(checked) {
         this.model.priceByWeightFlag = checked?'1':'0'
+        this.handleChange()
+      },
+      onDefaultTaxRateChange(value) {
+        this.model.defaultTaxRate = value
         this.handleChange()
       },
       //改变内容

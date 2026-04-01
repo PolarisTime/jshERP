@@ -1,7 +1,9 @@
 /**
  * 打印模板渲染引擎
  * 将 HTML 模板中的占位符替换为实际数据
+ * 打印优先使用 CLodop 本地打印服务，不可用时降级为浏览器 iframe 打印
  */
+import { isAvailable, printHtml as clodopPrint } from './clodop'
 
 /**
  * 渲染打印模板
@@ -53,10 +55,23 @@ export function render(templateHtml, model, dataSource) {
 }
 
 /**
- * 通过隐藏iframe执行打印
+ * 执行打印：优先使用 CLodop，不可用时降级为 iframe + window.print()
  * @param {string} renderedHtml - 渲染后的HTML内容
+ * @param {object} [options] - 打印选项（CLodop 模式有效）
+ * @param {boolean} [options.preview=true] - 是否预览
+ * @param {string} [options.printer] - 指定打印机
+ * @param {string} [options.title] - 打印任务名称
+ * @param {number} [options.copies] - 打印份数
  */
-export function doPrint(renderedHtml) {
+export function doPrint(renderedHtml, options = {}) {
+  // 优先使用 CLodop 本地打印
+  if (isAvailable()) {
+    const success = clodopPrint(renderedHtml, { preview: true, ...options })
+    if (success) return
+    // CLodop 调用失败则降级
+  }
+
+  // 降级：iframe + window.print()
   const iframe = document.createElement('iframe')
   iframe.style.position = 'absolute'
   iframe.style.left = '-9999px'

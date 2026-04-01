@@ -51,6 +51,8 @@ public class SystemConfig {
 
     private String priceByWeightFlag;
 
+    private java.math.BigDecimal defaultTaxRate;
+
     private Long tenantId;
 
     private String deleteFlag;
@@ -253,6 +255,14 @@ public class SystemConfig {
 
     public void setPriceByWeightFlag(String priceByWeightFlag) {
         this.priceByWeightFlag = priceByWeightFlag == null ? null : priceByWeightFlag.trim();
+    }
+
+    public java.math.BigDecimal getDefaultTaxRate() {
+        return defaultTaxRate;
+    }
+
+    public void setDefaultTaxRate(java.math.BigDecimal defaultTaxRate) {
+        this.defaultTaxRate = defaultTaxRate;
     }
 
     public Long getTenantId() {

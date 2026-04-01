@@ -1085,6 +1085,7 @@ CREATE TABLE `jsh_supplier` (
   `fax` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '传真',
   `telephone` varchar(30) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '手机',
   `address` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '地址',
+  `project_name` varchar(100) DEFAULT NULL COMMENT '项目名称',
   `tax_num` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '纳税人识别号',
   `bank_name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '开户行',
   `account_number` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT '账号',
@@ -1144,6 +1145,7 @@ CREATE TABLE `jsh_system_config` (
   `tenant_id` bigint DEFAULT NULL COMMENT '租户id',
   `delete_flag` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT '删除标记，0未删除，1删除',
   `price_by_weight_flag` varchar(1) DEFAULT '0' COMMENT '按重量计价开关，0-关闭，1-开启',
+  `default_tax_rate` decimal(6,2) DEFAULT 13.00 COMMENT '默认税率(%)',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='系统参数';
 /*!40101 SET character_set_client = @saved_cs_client */;

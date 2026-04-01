@@ -436,10 +436,11 @@
               info.operNumber = info.preNumber - info.finishNumber
               info.unitPrice = info.purchaseDecimal
               info.allPrice = (info.operNumber * info.unitPrice).toFixed(2) - 0;
-              info.taxRate = 0
-              info.taxMoney = 0
-              info.taxLastMoney = info.allPrice
-              discountLastMoney += info.allPrice
+              let defRate = this.defaultTaxRate || 0
+              info.taxRate = defRate
+              info.taxMoney = (info.allPrice * defRate * 0.01).toFixed(2) - 0
+              info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2) - 0
+              discountLastMoney += info.taxLastMoney
             }
             info.linkId = info.id
             if(info.operNumber>0) {

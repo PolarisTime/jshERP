@@ -28,6 +28,7 @@ export const BillModalMixin = {
       billUnitPirce: '',
       scanBarCode: '',
       scanStatus: true,
+      defaultTaxRate: 0, //租户默认税率(%)
       billStatus: '0',
       minWidth: 1100,
       isCanCheck: true,
@@ -78,6 +79,12 @@ export const BillModalMixin = {
     let realScreenWidth = window.screen.width
     this.width = realScreenWidth<1500?'1200px':'1550px'
     this.minWidth = realScreenWidth<1500?1150:1500
+    // 加载租户默认税率
+    getCurrentSystemConfig().then((res) => {
+      if (res && res.code === 200 && res.data) {
+        this.defaultTaxRate = res.data.defaultTaxRate != null ? res.data.defaultTaxRate - 0 : 0
+      }
+    })
   },
   mounted() {
     document.getElementById(this.prefixNo).addEventListener('keydown', this.handleOkKey)
@@ -801,7 +808,7 @@ export const BillModalMixin = {
       let initWeight = mInfo.weight-0 || 0
       let initFactor = this.priceByWeightFlag ? initWeight : 1
       let initAllPrice = (mInfo.billPrice * initFactor).toFixed(2)-0
-      let initTaxRate = mInfo.taxRate-0 || 0
+      let initTaxRate = mInfo.taxRate-0 || (this.defaultTaxRate || 0)
       let initTaxMoney = 0
       let initTaxLastMoney = initAllPrice
       if(this.materialPriceTaxFlag) {

@@ -1,5 +1,6 @@
 package com.jsh.erp.service;
 
+import java.math.BigDecimal;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.ClientException;
@@ -671,6 +672,22 @@ public class SystemConfigService {
             }
         }
         return priceByWeightFlag;
+    }
+
+    /**
+     * 获取当前租户的默认税率，未设置时返回13
+     * @return 默认税率(%)
+     * @throws Exception
+     */
+    public BigDecimal getDefaultTaxRate() throws Exception {
+        List<SystemConfig> list = getSystemConfig();
+        if(list.size()>0) {
+            BigDecimal rate = list.get(0).getDefaultTaxRate();
+            if(rate != null) {
+                return rate;
+            }
+        }
+        return new BigDecimal("13");
     }
 
     /**

@@ -91,6 +91,11 @@
               </a-form-item>
             </a-col>
             <a-col :span="24/2">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目名称">
+                <a-input placeholder="请输入项目名称" v-decorator.trim="[ 'projectName' ]" />
+              </a-form-item>
+            </a-col>
+            <a-col :span="24/2">
               <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="排序">
                 <a-input placeholder="请输入排序" v-decorator.trim="[ 'sort' ]" />
               </a-form-item>
@@ -154,7 +159,7 @@
         this.$nextTick(() => {
           this.form.setFieldsValue(pick(this.model,'supplier', 'contacts', 'telephone', 'email',
             'phoneNum', 'fax', 'beginNeedGet', 'allNeedGet', 'taxNum', 'taxRate',
-            'bankName', 'accountNumber', 'address', 'sort', 'description'))
+            'bankName', 'accountNumber', 'address', 'projectName', 'sort', 'description'))
           autoJumpNextInput('customerModal')
         });
       },

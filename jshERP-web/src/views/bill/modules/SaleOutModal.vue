@@ -43,6 +43,11 @@
               </a-select>
             </a-form-item>
           </a-col>
+          <a-col :lg="6" :md="12" :sm="24" v-if="currentProjectName">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目名称">
+              <span>{{ currentProjectName }}</span>
+            </a-form-item>
+          </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
               <j-date v-decorator="['operTime', validatorRules.operTime]" :show-time="true"/>
@@ -367,6 +372,13 @@
       }
     },
     created () {
+    },
+    computed: {
+      currentProjectName() {
+        if (!this.model.organId || !this.cusList || !this.cusList.length) return ''
+        const cus = this.cusList.find(c => c.id === this.model.organId)
+        return cus ? cus.projectName || '' : ''
+      }
     },
     methods: {
       //调用完edit()方法之后会自动调用此方法

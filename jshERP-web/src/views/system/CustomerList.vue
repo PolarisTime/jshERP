@@ -173,6 +173,7 @@
           { title: '电子邮箱', dataIndex: 'email',width:150,align:"left"},
           { title: '期初应收',dataIndex: 'beginNeedGet',width:80,align:"left"},
           { title: '期末应收',dataIndex: 'allNeedGet',width:80,align:"left"},
+          { title: '项目名称', dataIndex: 'projectName',width:120,align:"left"},
           { title: '税率(%)', dataIndex: 'taxRate',width:80,align:"left"},
           { title: '排序', dataIndex: 'sort', width: 60,align:"left"},
           { title: '状态',dataIndex: 'enabled',width:60, align:"center",
