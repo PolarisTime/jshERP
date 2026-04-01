@@ -40,7 +40,7 @@
     <!-- 计算单张出库单的总重量：weight_editable类别优先取实际过磅重量 -->
     <select id="calcDepotHeadWeight" resultType="java.math.BigDecimal">
         select ifnull(sum(
-            case when mc.weight_editable = '1' and di.weight is not null
+            case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
                 then di.weight
                 else di.basic_number * ifnull(m.weight, 0)
             end
@@ -64,7 +64,7 @@
                 left join jsh_depot dp2 on di3.depot_id = dp2.id
                 where di3.header_id = dh.id and ifnull(di3.delete_flag, '0') != '1') as depotName,
                (select GROUP_CONCAT(CONCAT(m2.name, ' ', di2.oper_number, ifnull(m2.commodity_unit,''), ' ',
-                    round(case when mc2.weight_editable = '1' and di2.weight is not null
+                    round(case when mc2.id IN (${weightEditableCategoryIds}) and di2.weight is not null
                         then di2.weight else di2.basic_number * ifnull(m2.weight,0) end, 3), '吨') SEPARATOR '、')
                 from jsh_depot_item di2
                 left join jsh_material m2 on di2.material_id = m2.id
@@ -93,16 +93,32 @@
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
                s.supplier as customerName,
                s.project_name as projectName,
+               ifnull(s.contacts, '') as contacts,
+               ifnull(s.telephone, '') as telephone,
+               ifnull(s.address, '') as address,
                m.name as materialName,
                ifnull(m.standard, '') as standard,
                ifnull(m.model, '') as model,
+               ifnull(m.color, '') as color,
+               ifnull(m.brand, '') as brand,
+               ifnull(m.mfrs, '') as mfrs,
+               ifnull(m.position, '') as position,
+               ifnull(m.remark, '') as materialRemark,
                ifnull(di.batch_number, '') as batchNumber,
                di.oper_number as operNumber,
-               round(case when mc.weight_editable = '1' and di.weight is not null
+               di.unit_price as unitPrice,
+               di.all_price as allPrice,
+               di.tax_rate as taxRate,
+               di.tax_money as taxMoney,
+               di.tax_last_money as taxLastMoney,
+               round(ifnull(m.weight, 0), 4) as unitWeight,
+               round(case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
                    then di.weight else di.basic_number * ifnull(m.weight, 0) end, 3) as itemWeight,
                ifnull(m.unit, '') as materialUnit,
+               mc.name as categoryName,
                dp.name as depotName,
                dh.sales_man as salesMan,
+               ifnull(dh.link_number, '') as linkNumber,
                dh.remark as remark
         from jsh_depot_item di
         left join jsh_depot_head dh on di.header_id = dh.id
@@ -130,9 +146,9 @@
                dh.remark as remark,
                GROUP_CONCAT(DISTINCT dp.name SEPARATOR '、') as depotName,
                GROUP_CONCAT(CONCAT(m.name, ' ', di.oper_number, ifnull(m.unit,''), ' ',
-                   round(case when mc.weight_editable = '1' and di.weight is not null
+                   round(case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
                        then di.weight else di.basic_number * ifnull(m.weight,0) end, 3), '吨') SEPARATOR '、') as materialNames,
-               ifnull(sum(case when mc.weight_editable = '1' and di.weight is not null
+               ifnull(sum(case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
                    then di.weight else di.basic_number * ifnull(m.weight, 0) end), 0) as totalWeight
         from jsh_depot_head dh
         left join jsh_depot_item di on dh.id = di.header_id and ifnull(di.delete_flag, '0') != '1'

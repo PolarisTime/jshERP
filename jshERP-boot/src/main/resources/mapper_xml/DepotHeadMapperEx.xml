@@ -206,7 +206,7 @@
     <select id="getTotalWeightListByHeaderIdList" resultType="com.jsh.erp.datasource.vo.TotalWeightVo">
         select di.header_id,
             sum(
-                case when mc.weight_editable = '1' and di.weight is not null
+                case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
                     then di.weight
                     else di.basic_number * ifnull(m.weight, 0)
                 end

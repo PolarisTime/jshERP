@@ -580,6 +580,11 @@
         })
       },
       handleCustomPrint() {
+        // 从明细行聚合客户名称和项目名称到主表，供打印模板 {{customerName}} {{projectName}} 使用
+        let customers = [...new Set(this.selectedSaleOutList.map(i => i.customerName).filter(Boolean))]
+        let projects = [...new Set(this.selectedSaleOutList.map(i => i.projectName).filter(Boolean))]
+        this.model.customerName = customers.join('、')
+        this.model.projectName = projects.join('、')
         this.$refs.customPrintModal.show()
       },
       handleCancel() {

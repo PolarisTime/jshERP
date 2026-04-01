@@ -74,35 +74,69 @@ public class PrintTemplateService {
             headerFields.add(field("totalFreight", "总运费(元)"));
             headerFields.add(field("remark", "备注"));
             headerFields.add(field("status", "状态"));
-            // 物流单明细字段
+            headerFields.add(field("customerName", "客户名称"));
+            headerFields.add(field("projectName", "项目名称"));
+            // 物流单明细字段 —— 出库单信息
             detailFields.add(field("billNo", "出库单号"));
             detailFields.add(field("billTimeStr", "出库日期"));
+            detailFields.add(field("linkNumber", "关联订单号"));
+            detailFields.add(field("salesMan", "业务员"));
+            detailFields.add(field("remark", "出库单备注"));
+            // 客户信息
             detailFields.add(field("customerName", "客户名称"));
+            detailFields.add(field("projectName", "项目名称"));
+            detailFields.add(field("contacts", "联系人"));
+            detailFields.add(field("telephone", "联系电话"));
+            detailFields.add(field("address", "收货地址"));
+            // 商品信息
             detailFields.add(field("materialName", "名称"));
+            detailFields.add(field("categoryName", "商品类别"));
             detailFields.add(field("standard", "规格"));
-            detailFields.add(field("model", "型号"));
+            detailFields.add(field("model", "型号/材质"));
+            detailFields.add(field("color", "颜色"));
+            detailFields.add(field("brand", "品牌"));
+            detailFields.add(field("mfrs", "制造商"));
+            detailFields.add(field("position", "仓位货架"));
+            detailFields.add(field("materialRemark", "商品备注"));
             detailFields.add(field("batchNumber", "批号"));
+            // 数量与金额
             detailFields.add(field("operNumber", "数量"));
             detailFields.add(field("materialUnit", "单位"));
+            detailFields.add(field("unitWeight", "件重"));
             detailFields.add(field("itemWeight", "重量(吨)"));
+            detailFields.add(field("unitPrice", "单价"));
+            detailFields.add(field("allPrice", "金额"));
+            detailFields.add(field("taxRate", "税率(%)"));
+            detailFields.add(field("taxMoney", "税额"));
+            detailFields.add(field("taxLastMoney", "价税合计"));
             detailFields.add(field("depotName", "仓库"));
-            detailFields.add(field("salesMan", "业务员"));
         } else {
             // 出入库单据通用主表字段
             headerFields.add(field("organName", "往来单位"));
             headerFields.add(field("number", "单据编号"));
             headerFields.add(field("operTimeStr", "单据日期"));
+            headerFields.add(field("projectName", "项目名称"));
+            headerFields.add(field("contacts", "联系人"));
+            headerFields.add(field("telephone", "联系电话"));
+            headerFields.add(field("address", "地址"));
             headerFields.add(field("linkNumber", "关联订单"));
+            headerFields.add(field("freightBillNo", "物流单号"));
+            headerFields.add(field("salesMan", "销售人员"));
+            headerFields.add(field("creatorName", "制单人"));
             headerFields.add(field("discount", "优惠率"));
             headerFields.add(field("discountMoney", "收款优惠"));
             headerFields.add(field("discountLastMoney", "优惠后金额"));
             headerFields.add(field("otherMoney", "其他费用"));
+            headerFields.add(field("deposit", "订金"));
             headerFields.add(field("accountName", "结算账户"));
             headerFields.add(field("changeAmount", "本次付/收款"));
             headerFields.add(field("debt", "本次欠款"));
+            headerFields.add(field("totalWeight", "总重量(吨)"));
             headerFields.add(field("remark", "备注"));
-            headerFields.add(field("salesMan", "销售人员"));
             headerFields.add(field("payType", "付款类型"));
+            headerFields.add(field("bankName", "开户行"));
+            headerFields.add(field("accountNumber", "账号"));
+            headerFields.add(field("taxNum", "纳税人识别号"));
             // 出入库明细字段
             detailFields.add(field("depotName", "仓库名称"));
             detailFields.add(field("barCode", "条码"));
@@ -110,9 +144,14 @@ public class PrintTemplateService {
             detailFields.add(field("standard", "规格"));
             detailFields.add(field("model", "型号"));
             detailFields.add(field("color", "颜色"));
+            detailFields.add(field("brand", "品牌"));
+            detailFields.add(field("mfrs", "制造商"));
             detailFields.add(field("unit", "单位"));
             detailFields.add(field("sku", "多属性"));
+            detailFields.add(field("batchNumber", "批号"));
+            detailFields.add(field("position", "仓位货架"));
             detailFields.add(field("operNumber", "数量"));
+            detailFields.add(field("unitWeight", "件重"));
             detailFields.add(field("unitPrice", "单价"));
             detailFields.add(field("allPrice", "金额"));
             detailFields.add(field("taxRate", "税率(%)"));
@@ -120,6 +159,9 @@ public class PrintTemplateService {
             detailFields.add(field("taxLastMoney", "价税合计"));
             detailFields.add(field("weight", "重量"));
             detailFields.add(field("remark", "备注"));
+            detailFields.add(field("otherField1", "自定义1"));
+            detailFields.add(field("otherField2", "自定义2"));
+            detailFields.add(field("otherField3", "自定义3"));
         }
 
         result.put("headerFields", headerFields);
