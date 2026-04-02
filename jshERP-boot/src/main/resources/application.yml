@@ -50,7 +50,7 @@ plugin:
 
 # 重量可编辑的商品类别ID（盘螺、线材等按实际过磅重量计算的类别）
 erp:
-  weight-editable-category-ids: 210,220
+  weight-editable-category-ids: 30,31
 
 file:
   # 文件上传方式 1-本机 2-oss

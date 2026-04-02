@@ -43,4 +43,8 @@ public interface SupplierMapperEx {
     Supplier getInfoByName(
             @Param("name") String name,
             @Param("type") String type);
+
+    int checkIsProjectNameExist(
+            @Param("id") Long id,
+            @Param("projectName") String projectName);
 }

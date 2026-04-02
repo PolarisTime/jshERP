@@ -20,8 +20,29 @@ export function render(templateHtml, model, dataSource) {
   const loopRegex = /<!--DETAIL_ROW_START-->([\s\S]*?)<!--DETAIL_ROW_END-->/g
   html = html.replace(loopRegex, (match, rowTemplate) => {
     if (!dataSource || dataSource.length === 0) return ''
+    // 检测是否为 CLodop 代码模板（包含 LODOP.ADD_PRINT_ 调用）
+    const isCLodopBlock = /LODOP\.\s*ADD_PRINT_/i.test(rowTemplate)
+    // CLodop 模板：计算行高用于 Y 坐标递增
+    let baseY = 0
+    let rowHeight = 25
+    if (isCLodopBlock) {
+      // 提取第一个 ADD_PRINT_TEXT/HTM 的 Y 坐标作为基准
+      const yMatch = rowTemplate.match(/ADD_PRINT_\w+\s*\(\s*(\d+)/)
+      if (yMatch) baseY = parseInt(yMatch[1])
+      // 尝试从 SET_PRINT_STYLEA FontSize 推算行高，默认 25
+      const fsMatch = rowTemplate.match(/FontSize['"]\s*,\s*(\d+)/)
+      if (fsMatch) rowHeight = Math.max(parseInt(fsMatch[1]) * 2.5, 20)
+    }
     return dataSource.map((item, index) => {
       let row = rowTemplate
+      // CLodop 代码模板：偏移每行 Y 坐标
+      if (isCLodopBlock && index > 0) {
+        const offset = index * rowHeight
+        // 替换所有 ADD_PRINT_XXX(Y, ...) 中的 Y 值
+        row = row.replace(/(ADD_PRINT_\w+\s*\(\s*)(\d+)/g, (m, prefix, y) => {
+          return prefix + String(parseInt(y) + offset)
+        })
+      }
       // 替换 {{_index}}
       row = row.replace(/\{\{_index\}\}/g, String(index + 1))
       // 替换 {{detail.xxx}}

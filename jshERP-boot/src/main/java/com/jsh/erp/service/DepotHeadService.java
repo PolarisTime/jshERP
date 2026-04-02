@@ -82,6 +82,8 @@ public class DepotHeadService {
     @Resource
     DepotItemMapperEx depotItemMapperEx;
     @Resource
+    private com.jsh.erp.datasource.mappers.DepotItemMapper depotItemMapper;
+    @Resource
     private com.jsh.erp.datasource.mappers.FreightItemMapperEx freightItemMapperEx;
     @Resource
     private FreightHeadService freightHeadService;
@@ -785,6 +787,74 @@ public class DepotHeadService {
             }
         }
         return result;
+    }
+
+    /**
+     * 批量设置价格核准状态（纯标记，不影响业务流程）
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void batchSetPriceApproved(String priceApproved, String ids) throws Exception {
+        String[] idArr = ids.split(",");
+        for (String idStr : idArr) {
+            Long id = Long.parseLong(idStr.trim());
+            DepotHead update = new DepotHead();
+            update.setId(id);
+            update.setPriceApproved(priceApproved);
+            try {
+                depotHeadMapper.updateByPrimaryKeySelective(update);
+            } catch (Exception e) {
+                JshException.writeFail(logger, e);
+            }
+        }
+    }
+
+    /**
+     * 更新已审核单据的明细单价（价格修改模式）
+     * 仅更新明细行的 unit_price、all_price、tax_money、tax_last_money，不改主表状态
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void updateItemPrices(String beanJson, String rows, HttpServletRequest request) throws Exception {
+        DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
+        DepotHead existing = getDepotHead(depotHead.getId());
+        if (existing == null) {
+            throw new BusinessRunTimeException(0, "单据不存在");
+        }
+        //仅允许已审核+未核准的单据
+        if (!"1".equals(existing.getStatus()) || "1".equals(existing.getPriceApproved())) {
+            throw new BusinessRunTimeException(0, "仅未核准的已审核单据可以修改单价");
+        }
+        //更新明细行的价格字段
+        JSONArray itemArr = JSONArray.parseArray(rows);
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        if (itemArr != null) {
+            for (int i = 0; i < itemArr.size(); i++) {
+                JSONObject item = itemArr.getJSONObject(i);
+                if (item.getLong("id") != null) {
+                    com.jsh.erp.datasource.entities.DepotItem upd = new com.jsh.erp.datasource.entities.DepotItem();
+                    upd.setId(item.getLong("id"));
+                    upd.setUnitPrice(item.getBigDecimal("unitPrice"));
+                    upd.setAllPrice(item.getBigDecimal("allPrice"));
+                    if (item.getBigDecimal("taxMoney") != null) {
+                        upd.setTaxMoney(item.getBigDecimal("taxMoney"));
+                    }
+                    if (item.getBigDecimal("taxLastMoney") != null) {
+                        upd.setTaxLastMoney(item.getBigDecimal("taxLastMoney"));
+                    }
+                    depotItemMapper.updateByPrimaryKeySelective(upd);
+                    if (item.getBigDecimal("allPrice") != null) {
+                        totalPrice = totalPrice.add(item.getBigDecimal("allPrice"));
+                    }
+                }
+            }
+        }
+        //同步更新主表合计金额
+        DepotHead headUpd = new DepotHead();
+        headUpd.setId(depotHead.getId());
+        headUpd.setTotalPrice(totalPrice);
+        depotHeadMapper.updateByPrimaryKeySelective(headUpd);
+        logService.insertLog("单据",
+                new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append("价格修改:").append(existing.getNumber()).toString(),
+                request);
     }
 
     public Map<Long,String> findMaterialsListMapByHeaderIdList(List<Long> idList)throws Exception {

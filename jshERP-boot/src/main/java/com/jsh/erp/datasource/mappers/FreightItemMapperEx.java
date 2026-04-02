@@ -28,6 +28,11 @@ public interface FreightItemMapperEx {
     List<Long> selectLinkedByDepotHeadIds(@Param("ids") List<Long> ids);
 
     /**
+     * 物理删除指定运费单下已软删除的历史明细（防止唯一索引冲突）
+     */
+    int purgeDeletedByHeaderId(@Param("headerId") Long headerId);
+
+    /**
      * 按运费单主表id逻辑删除明细
      */
     int deleteByHeaderId(@Param("headerId") Long headerId);

@@ -136,6 +136,8 @@
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
+          <a-button icon="audit" @click="batchSetPriceApproved('1')" style="color:#52c41a">价格核准</a-button>
+          <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
           <column-setting-popover
@@ -191,12 +193,14 @@
               <a v-if="text" style="color:#1890ff" @click="handleViewFreight(text)">{{text}}</a>
               <a-tag v-else color="orange">未关联</a-tag>
             </template>
-            <template slot="customRenderStatus" slot-scope="status">
-              <a-tag v-if="status == '0'" color="red">未审核</a-tag>
-              <a-tag v-if="status == '1'" color="green">已审核</a-tag>
-              <a-tag v-if="status == '2'" color="cyan">完成出库</a-tag>
-              <a-tag v-if="status == '3'" color="blue">部分出库</a-tag>
-              <a-tag v-if="status == '9'" color="orange">审核中</a-tag>
+            <template slot="customRenderStatus" slot-scope="text, record">
+              <a-tag v-if="record.status == '0'" color="red">未审核</a-tag>
+              <a-tag v-if="record.status == '1'" color="green">已审核</a-tag>
+              <a-tag v-if="record.status == '2'" color="cyan">完成出库</a-tag>
+              <a-tag v-if="record.status == '3'" color="blue">部分出库</a-tag>
+              <a-tag v-if="record.status == '9'" color="orange">审核中</a-tag>
+              <a-tag v-if="record.priceApproved == '1'" color="green">已核准</a-tag>
+              <a-tag v-else color="">未核准</a-tag>
             </template>
             <a-table
               bordered

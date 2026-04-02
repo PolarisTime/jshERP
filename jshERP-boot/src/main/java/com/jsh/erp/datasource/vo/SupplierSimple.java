@@ -9,4 +9,6 @@ public class SupplierSimple {
 
     private String supplier;
 
+    private String projectName;
+
 }

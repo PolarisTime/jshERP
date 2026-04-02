@@ -15,10 +15,10 @@ import java.util.Properties;
 public class MyBatisVariablesConfig {
 
     /**
-     * 重量可编辑的商品类别ID列表（逗号分隔），如盘螺(210)、线材(220)。
+     * 重量可编辑的商品类别ID列表（逗号分隔），如盘螺(30)、线材(31)。
      * 这些类别在出入库时允许手动输入实际过磅重量，优先于理论重量。
      */
-    @Value("${erp.weight-editable-category-ids:210,220}")
+    @Value("${erp.weight-editable-category-ids:30,31}")
     private String weightEditableCategoryIds;
 
     @Bean

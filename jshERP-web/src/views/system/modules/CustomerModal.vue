@@ -92,7 +92,12 @@
             </a-col>
             <a-col :span="24/2">
               <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目名称">
-                <a-input placeholder="请输入项目名称" v-decorator.trim="[ 'projectName' ]" />
+                <a-input placeholder="请输入项目名称（唯一标识）" v-decorator.trim="[ 'projectName', validatorRules.projectName ]" />
+              </a-form-item>
+            </a-col>
+            <a-col :span="24/2">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目地址">
+                <a-input placeholder="请输入项目地址" v-decorator.trim="[ 'projectAddress' ]" />
               </a-form-item>
             </a-col>
             <a-col :span="24/2">
@@ -113,7 +118,7 @@
 </template>
 <script>
   import pick from 'lodash.pick'
-  import {addSupplier,editSupplier,checkSupplier } from '@/api/api'
+  import {addSupplier,editSupplier,checkSupplier,checkProjectName } from '@/api/api'
   import {autoJumpNextInput} from "@/utils/util"
   import {mixinDevice} from '@/utils/mixin'
   export default {
@@ -139,8 +144,13 @@
           supplier:{
             rules: [
               { required: true, message: '请输入名称!' },
-              { min: 2, max: 60, message: '长度在 2 到 60 个字符', trigger: 'blur' },
-              { validator: this.validateSupplierName}
+              { min: 2, max: 60, message: '长度在 2 到 60 个字符', trigger: 'blur' }
+            ]
+          },
+          projectName:{
+            rules: [
+              { required: true, message: '请输入项目名称!' },
+              { validator: this.validateProjectName}
             ]
           }
         },
@@ -159,7 +169,7 @@
         this.$nextTick(() => {
           this.form.setFieldsValue(pick(this.model,'supplier', 'contacts', 'telephone', 'email',
             'phoneNum', 'fax', 'beginNeedGet', 'allNeedGet', 'taxNum', 'taxRate',
-            'bankName', 'accountNumber', 'address', 'projectName', 'sort', 'description'))
+            'bankName', 'accountNumber', 'address', 'projectName', 'projectAddress', 'sort', 'description'))
           autoJumpNextInput('customerModal')
         });
       },
@@ -202,18 +212,21 @@
       handleCancel () {
         this.close()
       },
-      validateSupplierName(rule, value, callback){
+      validateProjectName(rule, value, callback){
+        if(!value || !value.trim()) {
+          callback('请输入项目名称');
+          return;
+        }
         let params = {
-          name: value,
-          type: '客户',
+          projectName: value,
           id: this.model.id?this.model.id:0
         };
-        checkSupplier(params).then((res)=>{
+        checkProjectName(params).then((res)=>{
           if(res && res.code===200) {
             if(!res.data.status){
               callback();
             } else {
-              callback("名称已经存在");
+              callback("项目名称已经存在");
             }
           } else {
             callback(res.data);

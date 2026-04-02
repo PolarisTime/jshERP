@@ -22,11 +22,13 @@ import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.List;
 import java.util.Properties;
+import org.springframework.context.annotation.Lazy;
 
 @Service
 public class PlatformConfigService {
     private Logger logger = LoggerFactory.getLogger(PlatformConfigService.class);
 
+    @Lazy
     @Resource
     private UserService userService;
 

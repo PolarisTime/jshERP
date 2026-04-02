@@ -237,10 +237,17 @@
       },
       applyColumnsOrdered(orderedArr) {
         let colMap = {}
+        let fixedKeys = ['rowIndex', 'action']
         this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
         let result = []
         orderedArr.forEach(di => {
-          if(colMap[di]) result.push(colMap[di])
+          if(colMap[di]) {
+            let c = Object.assign({}, colMap[di], { align: 'center' })
+            if (!fixedKeys.includes(c.dataIndex)) {
+              delete c.width
+            }
+            result.push(c)
+          }
         })
         this.columns = result
       },

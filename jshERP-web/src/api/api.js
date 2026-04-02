@@ -102,6 +102,7 @@ const checkUnit = (params)=>getAction("/unit/checkIsNameExist",params);
 const addSupplier = (params)=>postAction("/supplier/add",params);
 const editSupplier = (params)=>putAction("/supplier/update",params);
 const checkSupplier = (params)=>getAction("/supplier/checkIsNameAndTypeExist",params);
+const checkProjectName = (params)=>getAction("/supplier/checkIsProjectNameExist",params);
 const findBySelectSup = (params)=>postAction("/supplier/findBySelect_sup",params);
 const findBySelectCus = (params)=>postAction("/supplier/findBySelect_cus",params);
 const findBySelectRetail = (params)=>postAction("/supplier/findBySelect_retail",params);
@@ -228,6 +229,7 @@ export {
   addSupplier,
   editSupplier,
   checkSupplier,
+  checkProjectName,
   findBySelectSup,
   findBySelectCus,
   findBySelectRetail,

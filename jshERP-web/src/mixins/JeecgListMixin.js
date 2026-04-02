@@ -199,6 +199,32 @@ export const JeecgListMixin = {
         });
       }
     },
+    batchSetPriceApproved: function (priceApproved) {
+      if (this.selectedRowKeys.length <= 0) {
+        this.$message.warning('请选择一条记录！');
+        return;
+      }
+      var ids = this.selectedRowKeys.join(',');
+      var that = this;
+      var actionText = priceApproved === '1' ? '价格核准' : '取消核准';
+      this.$confirm({
+        title: "确认操作",
+        content: "是否对选中单据进行" + actionText + "?",
+        onOk: function () {
+          that.loading = true;
+          postAction('/depotHead/batchSetPriceApproved', {priceApproved: priceApproved, ids: ids}).then((res) => {
+            if(res.code === 200){
+              that.$message.success(actionText + '成功');
+              that.loadData()
+            } else {
+              that.$message.warning(res.data.message);
+            }
+          }).finally(() => {
+            that.loading = false;
+          });
+        }
+      });
+    },
     batchDel: function () {
       if(!this.url.deleteBatch){
         this.$message.error("请设置url.deleteBatch属性!")
@@ -298,17 +324,27 @@ export const JeecgListMixin = {
       } else {
         this.settingDataIndex = this.defDataIndex
       }
-      this.columns = this.defColumns.filter(item => {
-        return this.settingDataIndex.includes(item.dataIndex)
-      })
+      this.columns = this.buildOrderedColumns(this.settingDataIndex)
     },
     //列设置更改事件
     onColChange (checkedValues) {
-      this.columns = this.defColumns.filter(item => {
-        return checkedValues.includes(item.dataIndex)
-      })
+      this.columns = this.buildOrderedColumns(checkedValues)
       let columnsStr = checkedValues.join()
       Vue.ls.set(this.pageName, columnsStr)
+    },
+    //按指定顺序构建列数组，统一居中对齐、列宽自适应内容
+    buildOrderedColumns(orderedIndex) {
+      let colMap = {}
+      this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
+      //固定宽度的列（序号、操作）
+      let fixedKeys = ['rowIndex', 'action']
+      return orderedIndex.map(di => colMap[di]).filter(Boolean).map(col => {
+        let c = Object.assign({}, col, { align: 'center' })
+        if (!fixedKeys.includes(c.dataIndex)) {
+          delete c.width
+        }
+        return c
+      })
     },
     //恢复默认
     handleRestDefault() {

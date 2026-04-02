@@ -56,6 +56,8 @@ public class DepotHead {
 
     private String status;
 
+    private String priceApproved;
+
     private String purchaseStatus;
 
     private String source;
@@ -274,6 +276,14 @@ public class DepotHead {
 
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
+    }
+
+    public String getPriceApproved() {
+        return priceApproved;
+    }
+
+    public void setPriceApproved(String priceApproved) {
+        this.priceApproved = priceApproved == null ? null : priceApproved.trim();
     }
 
     public String getPurchaseStatus() {

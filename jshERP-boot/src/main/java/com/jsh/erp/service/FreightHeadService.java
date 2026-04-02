@@ -310,6 +310,12 @@ public class FreightHeadService {
     public Map<String, Object> getDetail(Long id) throws Exception {
         Map<String, Object> data = new HashMap<>();
         try {
+            //查看详情时自动同步重量和运费（从关联出库单实时计算）
+            FreightHead headBefore = freightHeadMapper.selectByPrimaryKey(id);
+            if (headBefore != null && "0".equals(headBefore.getDeleteFlag())) {
+                recalcItemWeights(id);
+                recalcHeadTotal(id, headBefore.getUnitPrice());
+            }
             FreightHead head = freightHeadMapper.selectByPrimaryKey(id);
             if (head != null) {
                 data.put("id", head.getId());
@@ -458,8 +464,8 @@ public class FreightHeadService {
     }
 
     /**
-     * 根据出库单ID列表，重新计算关联物流单的重量和运费
-     * （用于出库单审核后同步更新物流单）
+     * 根据出库单ID列表，重新计算关联物流单明细的重量，并更新主表汇总
+     * （用于出库单编辑/审核后同步更新物流单）
      */
     public void recalcByDepotHeadIds(List<Long> depotHeadIds) throws Exception {
         if (depotHeadIds == null || depotHeadIds.isEmpty()) {
@@ -472,7 +478,35 @@ public class FreightHeadService {
         for (Long headId : freightHeadIds) {
             FreightHead fh = freightHeadMapper.selectByPrimaryKey(headId);
             if (fh != null && "0".equals(fh.getDeleteFlag())) {
+                //先重新计算每条明细的重量（从出库单实时取值）
+                recalcItemWeights(headId);
+                //再汇总更新主表
                 recalcHeadTotal(headId, fh.getUnitPrice());
+            }
+        }
+    }
+
+    /**
+     * 重新计算运费单下每条明细的重量（根据关联出库单实时计算）
+     */
+    private void recalcItemWeights(Long headId) {
+        List<FreightItem> items = freightItemMapperEx.selectByHeaderId(headId);
+        if (items == null) {
+            return;
+        }
+        for (FreightItem item : items) {
+            if (item.getDepotHeadId() != null) {
+                BigDecimal calcWeight = freightItemMapperEx.calcDepotHeadWeight(item.getDepotHeadId());
+                if (calcWeight != null && calcWeight.compareTo(item.getWeight() != null ? item.getWeight() : BigDecimal.ZERO) != 0) {
+                    FreightItem upd = new FreightItem();
+                    upd.setId(item.getId());
+                    upd.setWeight(calcWeight);
+                    try {
+                        freightItemMapper.updateByPrimaryKeySelective(upd);
+                    } catch (Exception e) {
+                        logger.error("更新运费单明细重量失败, itemId={}", item.getId(), e);
+                    }
+                }
             }
         }
     }

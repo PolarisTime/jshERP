@@ -1,5 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
 const CompressionPlugin = require('compression-webpack-plugin')
 
 function resolve (dir) {
@@ -15,12 +14,6 @@ module.exports = {
         if (process.env.NODE_ENV === 'production') {
             config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
         }
-        // vue-plugin-hiprint 需要 jQuery 全局可用
-        config.plugins.push(new webpack.ProvidePlugin({
-            jQuery: 'jquery',
-            $: 'jquery',
-            'window.jQuery': 'jquery'
-        }))
     },
     chainWebpack: (config) => {
         config.resolve.alias

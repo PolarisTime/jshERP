@@ -31,10 +31,15 @@
         </foreach>
     </select>
 
-    <!-- 按运费单主表id逻辑删除明细 -->
+    <!-- 按运费单主表id逻辑删除明细：先物理删除已软删除的旧记录，再软删除当前记录 -->
+    <delete id="purgeDeletedByHeaderId">
+        delete from jsh_freight_item
+        where header_id = #{headerId} and delete_flag = '1'
+    </delete>
+
     <update id="deleteByHeaderId">
         update jsh_freight_item set delete_flag = '1'
-        where header_id = #{headerId}
+        where header_id = #{headerId} and delete_flag = '0'
     </update>
 
     <!-- 计算单张出库单的总重量：weight_editable类别优先取实际过磅重量 -->
@@ -93,6 +98,7 @@
                date_format(dh.oper_time, '%Y-%m-%d') as billTimeStr,
                s.supplier as customerName,
                s.project_name as projectName,
+               ifnull(s.project_address, '') as projectAddress,
                ifnull(s.contacts, '') as contacts,
                ifnull(s.telephone, '') as telephone,
                ifnull(s.address, '') as address,

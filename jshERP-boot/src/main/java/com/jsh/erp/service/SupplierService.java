@@ -273,6 +273,19 @@ public class SupplierService {
     }
 
     /**
+     * 检查项目名称是否已存在（客户唯一标识）
+     */
+    public int checkIsProjectNameExist(Long id, String projectName)throws Exception {
+        int count = 0;
+        try{
+            count = supplierMapperEx.checkIsProjectNameExist(id, projectName);
+        }catch(Exception e){
+            JshException.readFail(logger, e);
+        }
+        return count;
+    }
+
+    /**
      * 更新会员的预付款
      * @param supplierId
      */
@@ -646,17 +659,39 @@ public class SupplierService {
         Map<String, Object> data = new HashMap<>();
         try {
             for(Supplier supplier: mList) {
-                SupplierExample example = new SupplierExample();
-                example.createCriteria().andSupplierEqualTo(supplier.getSupplier()).andTypeEqualTo(type).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-                List<Supplier> list= supplierMapper.selectByExample(example);
-                if(list.size() <= 0) {
-                    supplierMapper.insertSelective(supplier);
-                    //新增客户时给当前用户和租户自动授权
-                    setUserCustomerPermission(request, supplier);
+                List<Supplier> list;
+                if("客户".equals(type) && supplier.getProjectName() != null && !supplier.getProjectName().isEmpty()) {
+                    // 客户类型按项目名称去重
+                    int count = supplierMapperEx.checkIsProjectNameExist(0L, supplier.getProjectName());
+                    if(count <= 0) {
+                        supplierMapper.insertSelective(supplier);
+                        setUserCustomerPermission(request, supplier);
+                    } else {
+                        // 按项目名称查找已有记录进行更新
+                        SupplierExample example = new SupplierExample();
+                        example.createCriteria().andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+                        list = supplierMapper.selectByExample(example);
+                        for(Supplier exist : list) {
+                            if(supplier.getProjectName().equals(exist.getProjectName())) {
+                                supplier.setId(exist.getId());
+                                supplierMapper.updateByPrimaryKeySelective(supplier);
+                                break;
+                            }
+                        }
+                    }
                 } else {
-                    Long id = list.get(0).getId();
-                    supplier.setId(id);
-                    supplierMapper.updateByPrimaryKeySelective(supplier);
+                    // 供应商/会员按名称+类型去重
+                    SupplierExample example = new SupplierExample();
+                    example.createCriteria().andSupplierEqualTo(supplier.getSupplier()).andTypeEqualTo(type).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+                    list = supplierMapper.selectByExample(example);
+                    if(list.size() <= 0) {
+                        supplierMapper.insertSelective(supplier);
+                        setUserCustomerPermission(request, supplier);
+                    } else {
+                        Long id = list.get(0).getId();
+                        supplier.setId(id);
+                        supplierMapper.updateByPrimaryKeySelective(supplier);
+                    }
                 }
             }
             info.code = 200;

@@ -484,12 +484,26 @@ export const BillListMixin = {
       this.$refs.modalForm.materialTable.columns[columnIndex].type = FormTypes.popupJsh
     },
     myHandleEdit(record) {
+      //未审核：正常编辑
       if(record.status === '0') {
         this.$refs.modalForm.action = "edit";
+        this.$refs.modalForm.priceEditOnly = false;
         if(this.btnEnableList.indexOf(2)===-1) {
           this.$refs.modalForm.isCanCheck = false
         }
-        //查询单条单据信息
+        findBillDetailByNumber({ number: record.number }).then((res) => {
+          if (res && res.code === 200) {
+            let item = res.data
+            this.handleEdit(item)
+          }
+        })
+      //已审核+未核准（销售出库）：仅允许修改单价
+      } else if(record.status === '1' && record.priceApproved !== '1' && this.prefixNo === 'XSCK') {
+        this.$refs.modalForm.action = "edit";
+        this.$refs.modalForm.priceEditOnly = true;
+        if(this.btnEnableList.indexOf(2)===-1) {
+          this.$refs.modalForm.isCanCheck = false
+        }
         findBillDetailByNumber({ number: record.number }).then((res) => {
           if (res && res.code === 200) {
             let item = res.data
@@ -723,6 +737,7 @@ export const BillListMixin = {
     //按有序数组重排列
     applyColumnsOrdered(orderedArr) {
       let colMap = {}
+      let fixedKeys = ['rowIndex', 'action']
       this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
       let result = []
       orderedArr.forEach(di => {
@@ -730,7 +745,11 @@ export const BillListMixin = {
           if(!this.purchaseBySaleFlag && this.prefixNo === 'CGDD' && di === 'linkNumber') {
             return
           }
-          result.push(colMap[di])
+          let c = Object.assign({}, colMap[di], { align: 'center' })
+          if (!fixedKeys.includes(c.dataIndex)) {
+            delete c.width
+          }
+          result.push(c)
         }
       })
       this.columns = result

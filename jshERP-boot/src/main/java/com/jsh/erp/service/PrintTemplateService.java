@@ -76,6 +76,7 @@ public class PrintTemplateService {
             headerFields.add(field("status", "状态"));
             headerFields.add(field("customerName", "客户名称"));
             headerFields.add(field("projectName", "项目名称"));
+            headerFields.add(field("projectAddress", "项目地址"));
             // 物流单明细字段 —— 出库单信息
             detailFields.add(field("billNo", "出库单号"));
             detailFields.add(field("billTimeStr", "出库日期"));
@@ -85,6 +86,7 @@ public class PrintTemplateService {
             // 客户信息
             detailFields.add(field("customerName", "客户名称"));
             detailFields.add(field("projectName", "项目名称"));
+            detailFields.add(field("projectAddress", "项目地址"));
             detailFields.add(field("contacts", "联系人"));
             detailFields.add(field("telephone", "联系电话"));
             detailFields.add(field("address", "收货地址"));
@@ -116,6 +118,7 @@ public class PrintTemplateService {
             headerFields.add(field("number", "单据编号"));
             headerFields.add(field("operTimeStr", "单据日期"));
             headerFields.add(field("projectName", "项目名称"));
+            headerFields.add(field("projectAddress", "项目地址"));
             headerFields.add(field("contacts", "联系人"));
             headerFields.add(field("telephone", "联系电话"));
             headerFields.add(field("address", "地址"));

@@ -39,6 +39,8 @@ public class Supplier {
 
     private String projectName;
 
+    private String projectAddress;
+
     private String taxNum;
 
     private String bankName;
@@ -197,6 +199,14 @@ public class Supplier {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName == null ? null : projectName.trim();
+    }
+
+    public String getProjectAddress() {
+        return projectAddress;
+    }
+
+    public void setProjectAddress(String projectAddress) {
+        this.projectAddress = projectAddress == null ? null : projectAddress.trim();
     }
 
     public String getTaxNum() {

@@ -282,6 +282,7 @@
         depositStatus: false,
         fileList:[],
         rowCanEdit: true,
+        priceEditOnly: false,
         model: {},
         labelCol: {
           xs: { span: 24 },
@@ -440,6 +441,17 @@
           }
           let url = this.readOnly ? this.url.detailList : this.url.detailList;
           this.requestSubTableData(url, params, this.materialTable);
+          //价格修改模式：锁定除单价、金额外的所有明细列和表单字段
+          if(this.priceEditOnly) {
+            this.rowCanEdit = false
+            this.materialTable.columns.forEach(col => {
+              if(col.key === 'unitPrice' || col.key === 'allPrice') {
+                col.type = FormTypes.inputNumber
+              } else if(col.type === FormTypes.inputNumber || col.type === FormTypes.input || col.type === FormTypes.popupJsh) {
+                col.type = FormTypes.normal
+              }
+            })
+          }
         }
         //复制新增单据-初始化单号和日期
         if(this.action === 'copyAdd') {
@@ -458,6 +470,12 @@
       },
       //提交单据时整理成formData
       classifyIntoFormData(allValues) {
+        //价格修改模式：切换到专用接口
+        if(this.priceEditOnly) {
+          this.url.edit = '/depotHead/updateItemPrices'
+        } else {
+          this.url.edit = '/depotHead/updateDepotHeadAndDetail'
+        }
         let totalPrice = 0
         let billMain = Object.assign(this.model, allValues.formValue)
         let detailArr = allValues.tablesValue[0].values

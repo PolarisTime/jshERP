@@ -1794,3 +1794,12 @@ INSERT INTO jsh_sequence (seq_name, min_value, max_value, current_val, increment
 VALUES ('freight_bill_no_seq', 1, 999999999999999999, 0, 1, '物流单编号sequence');
 INSERT INTO jsh_sequence (seq_name, min_value, max_value, current_val, increment_val, remark)
 VALUES ('freight_bill_no_year', 0, 999999999999999999, 0, 1, '物流单编号-当前年份');
+
+-- --------------------------------------------------------
+-- 时间 2026年4月1日
+-- 客户信息改造：项目名称作为唯一标识，增加项目地址字段
+-- --------------------------------------------------------
+ALTER TABLE jsh_supplier ADD COLUMN project_name VARCHAR(255) DEFAULT NULL COMMENT '项目名称' AFTER address;
+ALTER TABLE jsh_supplier ADD COLUMN project_address VARCHAR(500) DEFAULT NULL COMMENT '项目地址' AFTER project_name;
+-- 项目名称+租户唯一索引（MySQL允许多个NULL值，不影响供应商和会员）
+ALTER TABLE jsh_supplier ADD UNIQUE INDEX uk_project_name_tenant (project_name, tenant_id);

@@ -62,9 +62,10 @@
         pageName: 'userCustomerModal',
         // 表头
         defColumns: [
-          { title: '客户名称', dataIndex: 'supplier', width: 200 }
+          { title: '客户名称', dataIndex: 'supplier', width: 200 },
+          { title: '项目名称', dataIndex: 'projectName', width: 200 }
         ],
-        defDataIndex: ['supplier'],
+        defDataIndex: ['supplier', 'projectName'],
         dataSource:[],
         selectedRowKeys: [],
         loading:false,

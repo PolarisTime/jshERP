@@ -143,6 +143,21 @@ public class SupplierController extends BaseController {
         return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
     }
 
+    @GetMapping(value = "/checkIsProjectNameExist")
+    @ApiOperation(value = "检查项目名称是否存在")
+    public String checkIsProjectNameExist(@RequestParam Long id,
+                                          @RequestParam(value ="projectName") String projectName,
+                                          HttpServletRequest request)throws Exception {
+        Map<String, Object> objectMap = new HashMap<>();
+        int exist = supplierService.checkIsProjectNameExist(id, projectName);
+        if(exist > 0) {
+            objectMap.put("status", true);
+        } else {
+            objectMap.put("status", false);
+        }
+        return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
     /**
      * 查找客户信息-下拉框
      * @param request
@@ -170,7 +185,14 @@ public class SupplierController extends BaseController {
                     Boolean flag = ubValue.contains("[" + supplier.getId().toString() + "]");
                     if (!customerFlag || flag) {
                         item.put("id", supplier.getId());
-                        item.put("supplier", supplier.getSupplier()); //客户名称
+                        // 客户下拉显示格式：项目名称（客户名称）
+                        String projectName = supplier.getProjectName();
+                        String displayName = (projectName != null && !projectName.isEmpty())
+                                ? projectName + "（" + supplier.getSupplier() + "）"
+                                : supplier.getSupplier();
+                        item.put("supplier", displayName);
+                        item.put("projectName", supplier.getProjectName());
+                        item.put("projectAddress", supplier.getProjectAddress());
                         dataArray.add(item);
                     }
                 }
@@ -251,7 +273,11 @@ public class SupplierController extends BaseController {
                     Boolean flag = ubValue.contains("[" + supplier.getId().toString() + "]");
                     if (!customerFlag || flag) {
                         item.put("id", supplier.getId());
-                        item.put("supplier", supplier.getSupplier() + "[客户]"); //客户名称
+                        String projectName = supplier.getProjectName();
+                        String displayName = (projectName != null && !projectName.isEmpty())
+                                ? projectName + "（" + supplier.getSupplier() + "）[客户]"
+                                : supplier.getSupplier() + "[客户]";
+                        item.put("supplier", displayName);
                         dataArray.add(item);
                     }
                 }

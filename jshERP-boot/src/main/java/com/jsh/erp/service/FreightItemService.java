@@ -34,7 +34,8 @@ public class FreightItemService {
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void saveItems(Long headerId, String itemsJson, Long tenantId) throws Exception {
-        //先逻辑删除原有明细
+        //先物理删除历史软删除记录（防止唯一索引冲突），再软删除当前明细
+        freightItemMapperEx.purgeDeletedByHeaderId(headerId);
         freightItemMapperEx.deleteByHeaderId(headerId);
         //解析明细JSON并逐条插入
         JSONArray itemArr = JSONArray.parseArray(itemsJson);

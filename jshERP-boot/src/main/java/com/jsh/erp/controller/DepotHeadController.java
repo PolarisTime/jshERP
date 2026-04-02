@@ -164,6 +164,20 @@ public class DepotHeadController extends BaseController {
     }
 
     /**
+     * 批量设置价格核准状态
+     */
+    @PostMapping(value = "/batchSetPriceApproved")
+    @ApiOperation(value = "批量设置价格核准状态")
+    public String batchSetPriceApproved(@RequestBody JSONObject jsonObject,
+                                        HttpServletRequest request) throws Exception{
+        Map<String, Object> objectMap = new HashMap<>();
+        String priceApproved = jsonObject.getString("priceApproved");
+        String ids = jsonObject.getString("ids");
+        depotHeadService.batchSetPriceApproved(priceApproved, ids);
+        return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
+    /**
      * 入库出库明细接口
      * @param currentPage
      * @param pageSize
@@ -607,6 +621,19 @@ public class DepotHeadController extends BaseController {
         String beanJson = body.getInfo();
         String rows = body.getRows();
         depotHeadService.updateDepotHeadAndDetail(beanJson,rows,request);
+        return result;
+    }
+
+    /**
+     * 更新已审核单据的明细单价（价格修改模式，仅限未核准单据）
+     */
+    @PutMapping(value = "/updateItemPrices")
+    @ApiOperation(value = "更新已审核单据的明细单价")
+    public Object updateItemPrices(@RequestBody DepotHeadVo4Body body, HttpServletRequest request) throws Exception{
+        JSONObject result = ExceptionConstants.standardSuccess();
+        String beanJson = body.getInfo();
+        String rows = body.getRows();
+        depotHeadService.updateItemPrices(beanJson, rows, request);
         return result;
     }
 

@@ -120,6 +120,80 @@ function wrapHtml(body) {
  * @param {boolean} [options.preview=false] - true=预览, false=直接打印
  * @returns {boolean} 是否成功调用
  */
+/**
+ * 检测模板内容是否为 CLodop API 代码格式
+ * @param {string} template - 模板内容
+ * @returns {boolean}
+ */
+export function isCLodopCode(template) {
+  if (!template) return false
+  return template.trimStart().startsWith('LODOP.')
+}
+
+/**
+ * 打开 CLodop 内置可视化设计器
+ * @param {string} initCode - 初始 CLodop API 代码（可为空）
+ * @returns {Promise<string>} 设计后的完整代码字符串
+ */
+export function designTemplate(initCode) {
+  return new Promise((resolve, reject) => {
+    const LODOP = getCLodopInstance()
+    if (!LODOP) {
+      reject(new Error('CLodop 未连接'))
+      return
+    }
+    try {
+      LODOP.PRINT_INIT('模板设计')
+      // 执行初始代码构建打印内容作为设计起点
+      if (initCode && initCode.trim()) {
+        try {
+          new Function('LODOP', initCode)(LODOP)
+        } catch (e) {
+          console.warn('初始模板代码执行异常', e)
+        }
+      }
+      // 设置异步回调接收设计结果
+      LODOP.On_Return = function (taskID, value) {
+        resolve(value || '')
+      }
+      LODOP.PRINT_DESIGN()
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+/**
+ * 执行 CLodop 代码字符串进行打印/预览
+ * @param {string} code - CLodop API 代码字符串
+ * @param {object} options - 选项
+ * @param {boolean} [options.preview=true] - true=预览, false=直接打印
+ * @param {string} [options.printer] - 指定打印机
+ * @param {string} [options.title='打印'] - 任务名称
+ * @returns {boolean}
+ */
+export function execPrintCode(code, options = {}) {
+  const LODOP = getCLodopInstance()
+  if (!LODOP) return false
+  const { preview = true, printer, title = '打印' } = options
+  try {
+    LODOP.PRINT_INIT(title)
+    if (printer) {
+      LODOP.SET_PRINTER_INDEX(printer)
+    }
+    new Function('LODOP', code)(LODOP)
+    if (preview) {
+      LODOP.PREVIEW()
+    } else {
+      LODOP.PRINT()
+    }
+    return true
+  } catch (e) {
+    console.error('CLodop 代码执行异常', e)
+    return false
+  }
+}
+
 export function printHtml(renderedHtml, options = {}) {
   const LODOP = getCLodopInstance()
   if (!LODOP) return false
