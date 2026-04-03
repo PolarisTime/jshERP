@@ -184,6 +184,14 @@
               <a-tag v-if="status == '3'" color="blue">部分入库</a-tag>
               <a-tag v-if="status == '9'" color="orange">审核中</a-tag>
             </template>
+            <template slot="customReferencedBy" slot-scope="text, record">
+              <template v-if="record.referencedByNumbers">
+                <span v-for="(num, idx) in record.referencedByNumbers.split(',')" :key="idx">
+                  <a @click="myHandleDetailByNumber(num.trim())">{{ num.trim() }}</a>
+                  <span v-if="idx < record.referencedByNumbers.split(',').length - 1">, </span>
+                </span>
+              </template>
+            </template>
             <a-table
               bordered
               size="small"
@@ -198,6 +206,14 @@
           </a-table>
         </div>
         <!-- table区域-end -->
+        <!-- 汇总统计栏 -->
+        <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
+          <span>单据数量：<b>{{ summary.count }}</b></span>
+          <a-divider type="vertical" />
+          <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
+          <a-divider type="vertical" />
+          <span>单据金额：<b style="color:green">{{ summary.totalAmount }}</b></span>
+        </div>
         <!-- 表单区域 -->
         <purchase-in-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-in-modal>
         <purchase-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-back-modal>
@@ -212,6 +228,7 @@
   import PurchaseInModal from './modules/PurchaseInModal'
   import PurchaseBackModal from './modules/PurchaseBackModal'
   import BillDetail from './dialog/BillDetail'
+  import { findBillDetailByNumber } from '@/api/api'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
@@ -283,6 +300,9 @@
             }
           },
           { title: '关联订单', dataIndex: 'linkNumber',width:140},
+          { title: '关联出库', dataIndex: 'referencedByNumbers', width:200,
+            scopedSlots: { customRender: 'customReferencedBy' }
+          },
           { title: '商品信息', dataIndex: 'materialsList',width:220, ellipsis:true},
           { title: '单据日期', dataIndex: 'operTimeStr',width:145},
           { title: '操作员', dataIndex: 'userName',width:80, ellipsis:true},
@@ -319,6 +339,11 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        summary: {
+          count: 0,
+          totalWeight: '0.00',
+          totalAmount: '0.00'
+        },
         url: {
           list: "/depotHead/list",
           delete: "/depotHead/delete",
@@ -330,6 +355,14 @@
     },
     computed: {
     },
+    watch: {
+      dataSource() {
+        this.calcSummary()
+      },
+      selectedRowKeys() {
+        this.calcSummary()
+      }
+    },
     created () {
       this.initSystemConfig()
       this.initSupplier()
@@ -340,6 +373,32 @@
       this.getDepotByCurrentUser()
     },
     methods: {
+      calcSummary() {
+        let rows = this.dataSource || []
+        if (this.selectedRowKeys && this.selectedRowKeys.length > 0) {
+          const keySet = new Set(this.selectedRowKeys.map(String))
+          rows = rows.filter(r => keySet.has(String(r.id)))
+        }
+        let totalWeight = 0, totalAmount = 0
+        rows.forEach(row => {
+          totalWeight += parseFloat(row.totalWeight || 0)
+          totalAmount += parseFloat(row.totalPrice || 0)
+        })
+        this.summary = {
+          count: rows.length,
+          totalWeight: totalWeight.toFixed(2),
+          totalAmount: Math.abs(totalAmount).toFixed(2)
+        }
+      },
+      myHandleDetailByNumber(billNumber) {
+        findBillDetailByNumber({ number: billNumber }).then((res) => {
+          if (res && res.code === 200) {
+            let type = res.data.type === '其它' ? '' : res.data.type
+            this.$refs.modalDetail.show(res.data, res.data.subType + type, this.prefixNo)
+            this.$refs.modalDetail.title = res.data.subType + type + '-详情'
+          }
+        })
+      }
     }
   }
 </script>

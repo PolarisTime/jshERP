@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description
@@ -303,4 +304,7 @@ public interface DepotHeadMapperEx {
 
     BigDecimal getBillAllPriceByOrganId(
             @Param("organId") Long organId);
+
+    List<Map<String, String>> getReferencedByNumbersMap(
+            @Param("numberList") List<String> numberList);
 }

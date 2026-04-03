@@ -59,6 +59,8 @@ public class FreightHeadVo extends FreightHead {
 
     private String customerNames;
 
+    private String projectNames;
+
     public String getSaleOutNumbers() {
         return saleOutNumbers;
     }
@@ -73,5 +75,13 @@ public class FreightHeadVo extends FreightHead {
 
     public void setCustomerNames(String customerNames) {
         this.customerNames = customerNames;
+    }
+
+    public String getProjectNames() {
+        return projectNames;
+    }
+
+    public void setProjectNames(String projectNames) {
+        this.projectNames = projectNames;
     }
 }

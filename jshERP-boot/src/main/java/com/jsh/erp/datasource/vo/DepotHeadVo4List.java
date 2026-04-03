@@ -9,6 +9,8 @@ public class DepotHeadVo4List extends DepotHead{
 
     private String projectName;
 
+    private String projectAddress;
+
     private String organName;
 
     private String userName;
@@ -93,12 +95,25 @@ public class DepotHeadVo4List extends DepotHead{
      */
     private BigDecimal totalWeight;
 
+    /**
+     * 被引用的出库单号（逗号分隔）
+     */
+    private String referencedByNumbers;
+
     public String getProjectName() {
         return projectName;
     }
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getProjectAddress() {
+        return projectAddress;
+    }
+
+    public void setProjectAddress(String projectAddress) {
+        this.projectAddress = projectAddress;
     }
 
     public String getOrganName() {
@@ -315,5 +330,13 @@ public class DepotHeadVo4List extends DepotHead{
 
     public void setTotalWeight(BigDecimal totalWeight) {
         this.totalWeight = totalWeight;
+    }
+
+    public String getReferencedByNumbers() {
+        return referencedByNumbers;
+    }
+
+    public void setReferencedByNumbers(String referencedByNumbers) {
+        this.referencedByNumbers = referencedByNumbers;
     }
 }

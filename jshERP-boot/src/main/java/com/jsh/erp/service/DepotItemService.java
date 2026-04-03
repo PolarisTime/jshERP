@@ -724,12 +724,18 @@ public class DepotItemService {
                     for(String singleLinkNo : linkNoList) {
                         singleLinkNo = singleLinkNo.trim();
                         if(StringUtil.isEmpty(singleLinkNo)) continue;
-                        //仅当关联的是订单/请购单类型时才更新其状态，避免关联采购入库等非订单单据时误更新
+                        //根据关联单据类型更新其状态
                         DepotHead linkedBill = depotHeadService.getDepotHead(singleLinkNo);
-                        if(linkedBill != null && linkedBill.getSubType() != null
-                                && (linkedBill.getSubType().contains("订单") || linkedBill.getSubType().contains("请购单"))) {
-                            String billStatus = getBillStatusByParam(depotHead, singleLinkNo, "normal");
-                            changeBillStatus(singleLinkNo, billStatus);
+                        if(linkedBill != null && linkedBill.getSubType() != null) {
+                            if(linkedBill.getSubType().contains("订单") || linkedBill.getSubType().contains("请购单")) {
+                                //订单/请购单：按明细完成度计算状态
+                                String billStatus = getBillStatusByParam(depotHead, singleLinkNo, "normal");
+                                changeBillStatus(singleLinkNo, billStatus);
+                            } else if(BusinessConstants.SUB_TYPE_PURCHASE.equals(linkedBill.getSubType())
+                                    && BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType())) {
+                                //销售出库引用采购入库：锁定采购入库单，设为"3"使其不再出现在选择列表中
+                                changeBillStatus(singleLinkNo, BusinessConstants.BILLS_STATUS_SKIPING);
+                            }
                         }
                     }
                 }

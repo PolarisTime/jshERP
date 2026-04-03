@@ -140,6 +140,11 @@ public class PrintTemplateService {
             headerFields.add(field("bankName", "开户行"));
             headerFields.add(field("accountNumber", "账号"));
             headerFields.add(field("taxNum", "纳税人识别号"));
+            headerFields.add(field("supplierCompany", "供货单位(=客户)"));
+            headerFields.add(field("customerName", "收货单位(=客户)"));
+            headerFields.add(field("carNo", "车号(用户输入)"));
+            headerFields.add(field("sendDate", "送货日期(用户输入)"));
+            headerFields.add(field("totalPiece", "总件数(自动汇总)"));
             // 出入库明细字段
             detailFields.add(field("depotName", "仓库名称"));
             detailFields.add(field("barCode", "条码"));
@@ -165,6 +170,8 @@ public class PrintTemplateService {
             detailFields.add(field("otherField1", "自定义1"));
             detailFields.add(field("otherField2", "自定义2"));
             detailFields.add(field("otherField3", "自定义3"));
+            detailFields.add(field("categoryName", "商品类别"));
+            detailFields.add(field("length", "长度(条码派生)"));
         }
 
         result.put("headerFields", headerFields);

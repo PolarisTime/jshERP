@@ -216,6 +216,14 @@
           </a-table>
         </div>
         <!-- table区域-end -->
+        <!-- 汇总统计栏 -->
+        <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
+          <span>单据数量：<b>{{ summary.count }}</b></span>
+          <a-divider type="vertical" />
+          <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
+          <a-divider type="vertical" />
+          <span>单据金额：<b style="color:red">{{ summary.totalAmount }}</b></span>
+        </div>
         <!-- 表单区域 -->
         <sale-out-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></sale-out-modal>
         <sale-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-back-modal>
@@ -285,7 +293,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
           'changeAmount','debt','lastDebt','status'],
         // 默认列
         defColumns: [
@@ -296,6 +304,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '客户', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName',width:120, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
               text = record.linkNumber?text+"[订]":text
@@ -344,6 +353,11 @@
             scopedSlots: { customRender: 'customRenderStatus' }
           }
         ],
+        summary: {
+          count: 0,
+          totalWeight: '0.00',
+          totalAmount: '0.00'
+        },
         url: {
           list: "/depotHead/list",
           delete: "/depotHead/delete",
@@ -354,6 +368,14 @@
       }
     },
     computed: {
+    },
+    watch: {
+      dataSource() {
+        this.calcSummary()
+      },
+      selectedRowKeys() {
+        this.calcSummary()
+      }
     },
     created() {
       this.initSystemConfig()
@@ -366,6 +388,23 @@
       this.getDepotByCurrentUser()
     },
     methods: {
+      calcSummary() {
+        let rows = this.dataSource || []
+        if (this.selectedRowKeys && this.selectedRowKeys.length > 0) {
+          const keySet = new Set(this.selectedRowKeys.map(String))
+          rows = rows.filter(r => keySet.has(String(r.id)))
+        }
+        let totalWeight = 0, totalAmount = 0
+        rows.forEach(row => {
+          totalWeight += parseFloat(row.totalWeight || 0)
+          totalAmount += parseFloat(row.totalPrice || 0)
+        })
+        this.summary = {
+          count: rows.length,
+          totalWeight: totalWeight.toFixed(2),
+          totalAmount: Math.abs(totalAmount).toFixed(2)
+        }
+      },
       handleViewFreight(billNo) {
         // 物流单号可能包含多个（逗号分隔），取第一个
         let no = billNo.split(',')[0].trim()

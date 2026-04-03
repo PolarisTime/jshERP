@@ -147,7 +147,13 @@ export function designTemplate(initCode) {
       // 执行初始代码构建打印内容作为设计起点
       if (initCode && initCode.trim()) {
         try {
-          new Function('LODOP', initCode)(LODOP)
+          // 修复字符串内换行 + 移除 PRINT_INIT/PREVIEW/PRINT 避免冲突
+          let cleanInit = initCode.replace(/"([^"]*)"/g, (m) => m.replace(/\n\s*/g, ''))
+          cleanInit = cleanInit
+            .replace(/LODOP\s*\.\s*PRINT_INIT\s*\([^)]*\)\s*;?/g, '')
+            .replace(/LODOP\s*\.\s*PREVIEW\s*\([^)]*\)\s*;?/g, '')
+            .replace(/LODOP\s*\.\s*PRINT\s*\([^)]*\)\s*;?/g, '')
+          new Function('LODOP', cleanInit)(LODOP)
         } catch (e) {
           console.warn('初始模板代码执行异常', e)
         }
@@ -177,11 +183,22 @@ export function execPrintCode(code, options = {}) {
   if (!LODOP) return false
   const { preview = true, printer, title = '打印' } = options
   try {
-    LODOP.PRINT_INIT(title)
+    // 从模板代码中提取 PRINT_INIT 的标题，或使用传入的 title
+    let initTitle = title
+    const initMatch = code.match(/LODOP\s*\.\s*PRINT_INIT\s*\(\s*["']([^"']*)["']\s*\)/)
+    if (initMatch) initTitle = initMatch[1]
+    // 修复字符串内换行（用户粘贴的代码可能含多行字符串，JS 不允许）
+    let cleanCode = code.replace(/"([^"]*)"/g, (m) => m.replace(/\n\s*/g, ''))
+    // 移除模板中的 PRINT_INIT / PREVIEW / PRINT 调用，避免与外部重复
+    cleanCode = cleanCode
+      .replace(/LODOP\s*\.\s*PRINT_INIT\s*\([^)]*\)\s*;?/g, '')
+      .replace(/LODOP\s*\.\s*PREVIEW\s*\([^)]*\)\s*;?/g, '')
+      .replace(/LODOP\s*\.\s*PRINT\s*\([^)]*\)\s*;?/g, '')
+    LODOP.PRINT_INIT(initTitle)
     if (printer) {
       LODOP.SET_PRINTER_INDEX(printer)
     }
-    new Function('LODOP', code)(LODOP)
+    new Function('LODOP', cleanCode)(LODOP)
     if (preview) {
       LODOP.PREVIEW()
     } else {

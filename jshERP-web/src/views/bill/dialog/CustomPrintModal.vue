@@ -15,6 +15,9 @@
         placeholder="选择模板"
         @change="handleTemplateChange">
         <a-select-option :value="0">系统默认模板</a-select-option>
+        <a-select-option v-for="bt in builtinTemplates" :key="bt.key" :value="'builtin_'+bt.key">
+          {{ bt.name }}
+        </a-select-option>
         <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
           {{ t.templateName }}
         </a-select-option>
@@ -43,6 +46,13 @@
         <a-button v-if="clodopReady" type="primary" icon="printer" @click="handlePrint(false)">打印</a-button>
       </div>
     </div>
+    <!-- 打印附加信息 -->
+    <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px;padding:6px 10px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
+      <span style="font-size:12px;color:#666;white-space:nowrap;">附加信息：</span>
+      <a-input v-model="userInputFields.carNo" placeholder="车号" style="width:140px;" size="small" />
+      <a-input v-model="userInputFields.extraText" placeholder="自定义文本" style="width:200px;" size="small" />
+      <a-date-picker v-model="userInputFields.sendDate" placeholder="送货日期" style="width:160px;" size="small" format="YYYYMMDD" valueFormat="YYYYMMDD" />
+    </div>
     <!-- 主体：左侧编辑器 + 右侧字段面板 -->
     <a-row :gutter="12">
       <a-col :span="18">
@@ -51,7 +61,7 @@
             class="template-textarea"
             v-model="templateHtml"
             spellcheck="false"
-            placeholder="在此编辑 HTML 模板，使用 {{字段名}} 引用数据"
+            :placeholder="'在此编辑 HTML 模板，使用 {{字段名}} 引用数据'"
           ></textarea>
         </div>
       </a-col>
@@ -89,7 +99,7 @@
 </template>
 <script>
   import { savePrintTemplate, deletePrintTemplate, listPrintTemplate, getPrintFieldMeta } from '@/api/api'
-  import { getDefaultTemplate } from '@/utils/printTemplateDefaults'
+  import { getDefaultTemplate, defaultTemplates } from '@/utils/printTemplateDefaults'
   import { render } from '@/utils/printTemplateEngine'
   import { isCLodopCode, execPrintCode, printHtml, designTemplate } from '@/utils/clodop'
 
@@ -113,7 +123,9 @@
         templateHtml: '',
         templateList: [],
         headerFields: [],
-        detailFields: []
+        detailFields: [],
+        userInputFields: { carNo: '', extraText: '', sendDate: '' },
+        builtinTemplates: []
       }
     },
     methods: {
@@ -126,6 +138,17 @@
         this.loadTemplateList()
         this.loadFieldMeta()
         this.initCLodop()
+        // 初始化内置模板（根据单据类型显示可用的内置变体）
+        this.builtinTemplates = []
+        if (this.billType === 'saleOut') {
+          if (defaultTemplates.saleOutA) {
+            this.builtinTemplates.push({ key: 'saleOutA', name: '[内置] 销售出库单A版' })
+          }
+          if (defaultTemplates.saleOutTax) {
+            this.builtinTemplates.push({ key: 'saleOutTax', name: '[内置] 销售出库单B版' })
+          }
+        }
+        // 物流单：仅保留A版（CLodop）作为默认，不再提供HTML表格内置选项
       },
       async initCLodop() {
         try {
@@ -172,7 +195,7 @@
           // 渲染当前模板数据后传入设计器
           let initCode = ''
           if (isCLodopCode(this.templateHtml)) {
-            initCode = render(this.templateHtml, this.model, this.dataSource)
+            initCode = render(this.templateHtml, this.model, this.dataSource, this.userInputFields)
           }
           const resultCode = await designTemplate(initCode)
           if (resultCode && resultCode.trim()) {
@@ -211,6 +234,11 @@
         if (id === 0) {
           this.templateName = ''
           this.templateHtml = getDefaultTemplate(this.billType)
+        } else if (typeof id === 'string' && id.startsWith('builtin_')) {
+          // 内置模板
+          const key = id.replace('builtin_', '')
+          this.templateName = ''
+          this.templateHtml = defaultTemplates[key] || ''
         } else {
           const tpl = this.templateList.find(t => t.id === id)
           if (tpl) {
@@ -269,7 +297,7 @@
         // render() 替换占位符（HTML 和 CLodop 代码通用）
         let rendered
         try {
-          rendered = render(this.templateHtml, this.model, this.dataSource)
+          rendered = render(this.templateHtml, this.model, this.dataSource, this.userInputFields)
         } catch (e) {
           this.$message.error('模板渲染出错：' + e.message)
           return

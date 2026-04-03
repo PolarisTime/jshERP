@@ -230,6 +230,7 @@ public class DepotItemController {
                     item.put("color", diEx.getMColor());
                     item.put("brand", diEx.getBrand());
                     item.put("categoryId", diEx.getCategoryId());
+                    item.put("categoryName", diEx.getCategoryName());
                     item.put("weightEditable", diEx.getWeightEditable());
                     item.put("mfrs", diEx.getMMfrs());
                     item.put("otherField1", diEx.getMOtherField1());

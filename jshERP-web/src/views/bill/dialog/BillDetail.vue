@@ -693,6 +693,28 @@
               </a-form-item>
             </a-col>
           </a-row>
+          <a-row class="form-row" :gutter="24">
+            <a-col :span="6">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目名称">
+                {{model.projectName}}
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目地址">
+                {{model.projectAddress}}
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="物流单号">
+                {{model.freightBillNo}}
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="业务员">
+                {{model.salesManStr}}
+              </a-form-item>
+            </a-col>
+          </a-row>
           <div :style="tableWidth">
             <a-table
               ref="table"
@@ -1211,7 +1233,7 @@
 <script>
   import pick from 'lodash.pick'
   import { getAction, postAction, getFileAccessHttpUrl } from '@/api/manage'
-  import { findBillDetailByNumber, findFinancialDetailByNumber, getPlatformConfigByKey, getCurrentSystemConfig} from '@/api/api'
+  import { findBillDetailByNumber, findFinancialDetailByNumber, getPlatformConfigByKey, getCurrentSystemConfig, getColumnConfig, saveColumnConfig, resetColumnConfig} from '@/api/api'
   import { getMpListShort, getCheckFlag, exportXlsPost } from "@/utils/util"
   import BillPrintIframe from './BillPrintIframe'
   import BillPrintProIframe from './BillPrintProIframe'
@@ -1238,6 +1260,7 @@
         disableMixinCreated: true,
         pageName: 'billDetail',
         defDataIndex: [],
+        settingDataIndex: [],
         title: "详情",
         width: '1600px',
         visible: false,
@@ -1789,6 +1812,66 @@
           }
         }
         this.columns = currentCol
+        // 初始化列设置（settingDataIndex = 当前可见列的dataIndex）
+        this.settingDataIndex = currentCol.map(c => c.dataIndex).filter(d => d !== 'rowIndex')
+        // 异步加载服务端列配置
+        this.loadColumnsSetting()
+      },
+      // 加载列配置
+      loadColumnsSetting() {
+        let pageCode = this.prefixNo ? this.prefixNo + '_detail' : ''
+        if (!pageCode) return
+        getColumnConfig({ pageCode: pageCode }).then((res) => {
+          if (res && res.code === 200 && res.data && res.data.columnConfig) {
+            try {
+              let configArr = JSON.parse(res.data.columnConfig)
+              if (configArr && configArr.length > 0) {
+                this.settingDataIndex = configArr
+                this.applyColumnsOrdered(configArr)
+              }
+            } catch(e) { /* ignore */ }
+          }
+        }).catch(() => {})
+      },
+      // 按有序数组重排列
+      applyColumnsOrdered(orderedArr) {
+        let colMap = {}
+        this.defColumns.forEach(col => { colMap[col.dataIndex] = col })
+        let result = [{title:'#', dataIndex:'rowIndex', align:'center',
+          customRender: (t, r, index) => {
+            return r.mType ? (index === this.dataSource.length ? '' : parseInt(index)+1) : (index === this.dataSource.length-1 ? '' : parseInt(index)+1)
+          }
+        }]
+        orderedArr.forEach(di => {
+          if (colMap[di]) {
+            let c = { ...colMap[di] }
+            if (c.dataIndex === 'barCode') {
+              c.scopedSlots = { customRender: 'customBarCode' }
+            }
+            result.push(c)
+          }
+        })
+        this.columns = result
+      },
+      // 列设置更改事件
+      onColChange(orderedArr) {
+        this.settingDataIndex = orderedArr
+        this.applyColumnsOrdered(orderedArr)
+        let pageCode = this.prefixNo ? this.prefixNo + '_detail' : ''
+        if (pageCode) {
+          saveColumnConfig({ pageCode: pageCode, columnConfig: JSON.stringify(orderedArr) })
+        }
+      },
+      // 恢复默认
+      handleRestDefault() {
+        let pageCode = this.prefixNo ? this.prefixNo + '_detail' : ''
+        if (pageCode) {
+          resetColumnConfig({ pageCode: pageCode })
+        }
+        // 重新构建默认列
+        let defaultArr = this.defColumns.map(c => c.dataIndex)
+        this.settingDataIndex = defaultArr
+        this.applyColumnsOrdered(defaultArr)
       },
       //动态替换扩展字段
       handleChangeOtherField() {
@@ -1869,6 +1952,16 @@
             this.visible = true
             this.modalStyle = 'top:20px;height: 95%;'
             this.model = Object.assign({}, item)
+            // 补充列表页已有但详情接口可能缺失的字段
+            if (!this.model.projectName && record.projectName) {
+              this.model.projectName = record.projectName
+            }
+            if (!this.model.projectAddress && record.projectAddress) {
+              this.model.projectAddress = record.projectAddress
+            }
+            if (!this.model.freightBillNo && record.freightBillNo) {
+              this.model.freightBillNo = record.freightBillNo
+            }
             if (this.model.backAmount) {
               this.model.getAmount = (this.model.changeAmount + this.model.backAmount).toFixed(2)
             } else {

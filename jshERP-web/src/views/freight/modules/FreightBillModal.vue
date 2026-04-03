@@ -15,13 +15,13 @@
         <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOk">保存</a-button>
       </template>
       <template v-else>
-        <a-button v-print="'#freightBillPrint'">普通打印</a-button>
+        <a-button @click="handleBrowserPrint">普通打印</a-button>
         <a-button @click="handleCustomPrint">自定义格式打印</a-button>
         <a-button v-if="isCanBackCheck && model.status==='1'" @click="handleBackCheck">反审核</a-button>
       </template>
     </template>
     <a-form :form="form">
-        <section id="freightBillPrint">
+        <section :id="isReadOnly ? 'freightBillPrint' : undefined">
         <a-row class="form-row" :gutter="24">
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据编号">
@@ -588,6 +588,42 @@
         this.model.projectName = projects.join('、')
         this.model.projectAddress = addresses.join('、')
         this.$refs.customPrintModal.show()
+      },
+      /** 普通打印：通过 iframe 打印 #freightBillPrint 区域内容 */
+      handleBrowserPrint() {
+        let el = document.getElementById('freightBillPrint')
+        if (!el) {
+          this.$message.warning('打印区域未找到')
+          return
+        }
+        let iframe = document.createElement('iframe')
+        iframe.style.position = 'absolute'
+        iframe.style.width = '0'
+        iframe.style.height = '0'
+        iframe.style.left = '-9999px'
+        document.body.appendChild(iframe)
+        let doc = iframe.contentDocument || iframe.contentWindow.document
+        // 收集样式
+        let styles = ''
+        for (let i = 0; i < document.styleSheets.length; i++) {
+          try {
+            let rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules
+            if (rules) {
+              for (let b = 0; b < rules.length; b++) {
+                styles += rules[b].cssText
+              }
+            }
+          } catch (e) { /* 跨域样式表忽略 */ }
+        }
+        doc.open()
+        doc.write('<!DOCTYPE html><html><head><style>' + styles + '</style></head><body>' + el.outerHTML + '</body></html>')
+        doc.close()
+        iframe.contentWindow.focus()
+        iframe.contentWindow.print()
+        // 延时清理 iframe
+        setTimeout(function () {
+          document.body.removeChild(iframe)
+        }, 1000)
       },
       handleCancel() {
         this.close();

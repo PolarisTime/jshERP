@@ -530,19 +530,22 @@
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
         if(selectBillDetailRows && selectBillDetailRows.length>0) {
-          //获取已有明细行的 linkId 集合，用于排重
-          let existLinkIds = this.materialTable.dataSource.map(row => row.linkId).filter(id => id)
+          //构建已有明细行的 linkId 集合，用于排重（使用 Set + 字符串化，避免类型不一致导致排重失败）
+          let existLinkIdSet = new Set()
+          this.materialTable.dataSource.forEach(row => {
+            if(row.linkId) existLinkIdSet.add(String(row.linkId))
+          })
           let newRows = []
           for(let j=0; j<selectBillDetailRows.length; j++) {
-            let info = selectBillDetailRows[j]
+            //深拷贝避免与 LinkBillList 共享对象引用
+            let info = JSON.parse(JSON.stringify(selectBillDetailRows[j]))
             //跳过已存在的明细行（按 linkId 排重）
-            if(existLinkIds.indexOf(info.id) !== -1) continue
+            if(existLinkIdSet.has(String(info.id))) continue
             info.preNumber = info.operNumber
             info.finishNumber = 0
             info.linkId = info.id
             if(info.operNumber>0) {
               newRows.push(info)
-              this.changeColumnShow(info)
             }
           }
           if(newRows.length === 0) {
@@ -551,6 +554,11 @@
           }
           //追加到现有明细行
           this.materialTable.dataSource = this.materialTable.dataSource.concat(newRows)
+          //重置动态列，基于全部明细行重新计算列显示状态（避免多次选择后列只增不减）
+          this.changeColumnHide()
+          this.materialTable.dataSource.forEach(row => {
+            this.changeColumnShow(row)
+          })
           //重新累计全部明细行的金额
           let allTaxLastMoney = 0
           this.materialTable.dataSource.forEach(row => {
@@ -558,9 +566,13 @@
           })
           let discountLastMoney = (allTaxLastMoney).toFixed(2)-0
           let changeAmount = discountLastMoney
-          //linkNumber 追加（多次选择用逗号分隔）
+          //linkNumber 追加（多次选择用逗号分隔，排重避免同一单据号重复追加）
           let oldLinkNumber = this.form.getFieldValue('linkNumber') || ''
-          let newLinkNumber = oldLinkNumber ? (oldLinkNumber + ',' + linkNumber) : linkNumber
+          let existNumbers = oldLinkNumber ? oldLinkNumber.split(',').map(s => s.trim()).filter(s => s) : []
+          let newLinkNumber = oldLinkNumber
+          if(linkNumber && existNumbers.indexOf(linkNumber) === -1) {
+            newLinkNumber = oldLinkNumber ? (oldLinkNumber + ',' + linkNumber) : linkNumber
+          }
           this.$nextTick(() => {
             this.form.setFieldsValue({
               'linkNumber': newLinkNumber,

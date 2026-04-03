@@ -38,7 +38,8 @@ export const billTypeNameMap = {
   'assemble': '组装单',
   'disassemble': '拆卸单',
   'stockCheckReplay': '盘点复盘',
-  'freightBill': '物流单'
+  'freightBill': '物流单',
+  'freightBillHtml': '物流单(HTML表格)'
 }
 
 export function getBillTypeCode(chineseName) {

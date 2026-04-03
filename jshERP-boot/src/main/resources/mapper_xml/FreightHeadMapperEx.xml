@@ -11,6 +11,7 @@
         <result column="paymentTimeStr" jdbcType="VARCHAR" property="paymentTimeStr" />
         <result column="saleOutNumbers" jdbcType="VARCHAR" property="saleOutNumbers" />
         <result column="customerNames" jdbcType="VARCHAR" property="customerNames" />
+        <result column="projectNames" jdbcType="VARCHAR" property="projectNames" />
     </resultMap>
 
     <select id="selectByConditionFreightHead" resultMap="ResultMapEx">
@@ -26,7 +27,13 @@
                 from jsh_freight_item fi3
                 left join jsh_depot_head dh3 on fi3.depot_head_id = dh3.id
                 left join jsh_supplier s2 on dh3.organ_id = s2.id and ifnull(s2.delete_flag,'0') != '1'
-                where fi3.header_id = fh.id and fi3.delete_flag = '0') as customerNames
+                where fi3.header_id = fh.id and fi3.delete_flag = '0') as customerNames,
+               (select GROUP_CONCAT(DISTINCT s4.project_name SEPARATOR ', ')
+                from jsh_freight_item fi4
+                left join jsh_depot_head dh4 on fi4.depot_head_id = dh4.id
+                left join jsh_supplier s4 on dh4.organ_id = s4.id and ifnull(s4.delete_flag,'0') != '1'
+                where fi4.header_id = fh.id and fi4.delete_flag = '0'
+                and s4.project_name is not null and s4.project_name != '') as projectNames
         from jsh_freight_head fh
         left join jsh_freight_carrier fc on fh.carrier_id = fc.id
         left join jsh_user u on fh.creator = u.id

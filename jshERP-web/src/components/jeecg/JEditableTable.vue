@@ -1855,6 +1855,32 @@
               if (!edited) {
                 edited = this.setOneValue(this.searchSelectValues, modelKey, newValue)
               }
+              // 未在已有值存储中找到，根据当前列类型创建对应条目
+              // 场景：列初始为hidden（行创建时未建条目），后续动态切为date等类型
+              if (!edited) {
+                let col = this.columns.find(c => c.key === newValueKey)
+                if (col) {
+                  if (col.type === FormTypes.date || col.type === FormTypes.datetime) {
+                    this.$set(this.jdateValues, modelKey, newValue)
+                    edited = true
+                  } else if (col.type === FormTypes.select || col.type === FormTypes.list_multi) {
+                    this.$set(this.selectValues, modelKey, newValue)
+                    edited = true
+                  } else if (col.type === FormTypes.checkbox) {
+                    this.$set(this.checkboxValues, modelKey, newValue)
+                    edited = true
+                  } else if (col.type === FormTypes.input_pop) {
+                    this.$set(this.jInputPopValues, modelKey, newValue)
+                    edited = true
+                  } else if (col.type === FormTypes.popup) {
+                    this.$set(this.popupValues, modelKey, newValue)
+                    edited = true
+                  } else if (col.type === FormTypes.popupJsh) {
+                    this.$set(this.popupJshValues, modelKey, newValue)
+                    edited = true
+                  }
+                }
+              }
               // 非列定义字段（如weightEditable、categoryId），存入inputValues和rows
               if (!edited) {
                 this.inputValues.forEach(value => {

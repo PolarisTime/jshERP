@@ -108,6 +108,10 @@ export const BillModalMixin = {
       }
     },
     addInit(amountNum) {
+      //清空上一次的明细数据，防止连续新建时残留上一张单据的内容
+      if(this.materialTable) {
+        this.materialTable.dataSource = []
+      }
       getAction('/sequence/buildNumber').then((res) => {
         if (res && res.code === 200) {
           const year = new Date().getFullYear()
@@ -675,7 +679,17 @@ export const BillModalMixin = {
           let unitWeightVal = that.unitWeightMap[row.barCode] || 0
           let newWeight = parseFloat((unitWeightVal * operNumber).toFixed(4))
           let isEditableWeight = row.weightEditable === '1' || row.weightEditable === 1
-          let opFactor = (that.priceByWeightFlag || isEditableWeight) ? (row.weight-0||newWeight) : operNumber
+          let opFactor
+          if (isEditableWeight) {
+            // 可编辑重量类别：优先使用用户手动输入的重量，未输入时按数量计算
+            opFactor = (row.weight-0) || operNumber
+          } else if (that.priceByWeightFlag) {
+            // 按重量计价：使用理论重量 = 单位重量 × 新数量
+            opFactor = newWeight || operNumber
+          } else {
+            // 默认：按数量计价
+            opFactor = operNumber
+          }
           allPrice = (unitPrice*opFactor).toFixed(2)-0
           if(this.materialPriceTaxFlag) {
             let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0

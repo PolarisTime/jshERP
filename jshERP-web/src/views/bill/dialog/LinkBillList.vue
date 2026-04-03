@@ -239,7 +239,12 @@
         this.queryParam.status = status
         this.model = Object.assign({}, {});
         this.visible = true;
+        //重置选中状态和明细数据，避免多次打开时累积上次的勾选
+        this.selectedRowKeys = []
         this.selectedDetailRowKeys = []
+        this.selectBillRows = []
+        this.selectBillDetailRows = []
+        this.dataSourceDetail = []
         this.initColumns(subType, organType)
         this.loadData(1)
       },
@@ -252,7 +257,12 @@
         this.queryParam.purchaseStatus = purchaseStatus
         this.model = Object.assign({}, {});
         this.visible = true;
+        //重置选中状态和明细数据，避免多次打开时累积上次的勾选
+        this.selectedRowKeys = []
         this.selectedDetailRowKeys = []
+        this.selectBillRows = []
+        this.selectBillDetailRows = []
+        this.dataSourceDetail = []
         this.initColumns(subType, organType)
         this.loadData(1)
       },
@@ -290,6 +300,13 @@
       close () {
         this.$emit('close');
         this.visible = false;
+        //关闭时彻底清理选中状态和明细数据，防止下次打开时残留
+        this.selectedRowKeys = []
+        this.selectedDetailRowKeys = []
+        this.selectBillRows = []
+        this.selectBillDetailRows = []
+        this.dataSourceDetail = []
+        this.selectType = 'list'
       },
       handleCancel () {
         this.close()

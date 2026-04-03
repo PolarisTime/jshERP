@@ -153,6 +153,11 @@ public class DepotHeadService {
                 Map<Long,BigDecimal> materialCountListMap = getMaterialCountListMapByHeaderIdList(idList);
                 Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
+                //被销售出库引用的单号（仅采购入库场景）
+                Map<String,String> referencedByMap = null;
+                if("采购".equals(subType)) {
+                    referencedByMap = getReferencedByNumbersMapByList(numberList);
+                }
                 for (DepotHeadVo4List dh : list) {
                     if(accountMap!=null && StringUtil.isNotEmpty(dh.getAccountIdList()) && StringUtil.isNotEmpty(dh.getAccountMoneyList())) {
                         String accountStr = accountService.getAccountStrByIdAndMoney(accountMap, dh.getAccountIdList(), dh.getAccountMoneyList());
@@ -228,6 +233,10 @@ public class DepotHeadService {
                     //总重量(吨)
                     if(totalWeightMap!=null) {
                         dh.setTotalWeight(totalWeightMap.get(dh.getId()));
+                    }
+                    //被引用的出库单号
+                    if(referencedByMap!=null && referencedByMap.containsKey(dh.getNumber())) {
+                        dh.setReferencedByNumbers(referencedByMap.get(dh.getNumber()));
                     }
                     //以销定购的情况（不能显示销售单据的金额和客户名称）
                     if(StringUtil.isNotEmpty(purchaseStatus)) {
@@ -894,6 +903,30 @@ public class DepotHeadService {
         return freightBillNoMap;
     }
 
+    /**
+     * 批量查询被销售出库引用的单号
+     */
+    public Map<String,String> getReferencedByNumbersMapByList(List<String> numberList) {
+        Map<String,String> map = new HashMap<>();
+        if(numberList!=null && numberList.size()>0) {
+            try {
+                List<Map<String, String>> list = depotHeadMapperEx.getReferencedByNumbersMap(numberList);
+                if(list!=null) {
+                    for(Map<String, String> item : list) {
+                        String billNumber = item.get("billNumber") != null ? item.get("billNumber").toString() : "";
+                        String refNumbers = item.get("refNumbers") != null ? item.get("refNumbers").toString() : "";
+                        if(StringUtil.isNotEmpty(billNumber)) {
+                            map.put(billNumber, refNumbers);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("查询被引用单号异常", e);
+            }
+        }
+        return map;
+    }
+
     public Map<Long,BigDecimal> getMaterialCountListMapByHeaderIdList(List<Long> idList)throws Exception {
         Map<Long,BigDecimal> materialCountListMap = new HashMap<>();
         if(idList.size()>0) {
@@ -1208,6 +1241,16 @@ public class DepotHeadService {
                 User creatorUser = userService.getUser(dh.getCreator());
                 if(creatorUser!=null) {
                     dh.setCreatorName(creatorUser.getUsername());
+                }
+                //物流单号
+                Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
+                if(freightBillNoMap!=null && freightBillNoMap.containsKey(dh.getId())) {
+                    dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
+                }
+                //总重量
+                Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
+                if(totalWeightMap!=null && totalWeightMap.containsKey(dh.getId())) {
+                    dh.setTotalWeight(totalWeightMap.get(dh.getId()));
                 }
                 resList.add(dh);
             }
