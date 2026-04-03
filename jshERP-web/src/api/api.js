@@ -121,6 +121,9 @@ const selectAllFreightCarrier = (params)=>getAction('/freightCarrier/selectAll',
 const addFreightCarrier = (params)=>postAction('/freightCarrier/add',params);
 const editFreightCarrier = (params)=>putAction('/freightCarrier/update',params);
 const deleteFreightCarrier = (params)=>deleteAction('/freightCarrier/delete',params);
+//合同管理
+const addContract = (params)=>postAction('/contract/add',params);
+const editContract = (params)=>putAction('/contract/update',params);
 //运费单
 const getFreightHeadList = (params)=>getAction('/freightHead/list',params);
 const addFreightBill = (params)=>postAction('/freightHead/addFreightBill',params);
@@ -246,6 +249,8 @@ export {
   addFreightCarrier,
   editFreightCarrier,
   deleteFreightCarrier,
+  addContract,
+  editContract,
   getFreightHeadList,
   addFreightBill,
   editFreightBill,

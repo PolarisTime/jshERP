@@ -311,6 +311,75 @@
         //如有需要新增 删除逻辑
         console.log(file)
       },
+      /** 剪贴板粘贴图片上传 */
+      handlePaste(e) {
+        if (this.disabled) return
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items
+        if (!items) return
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') === -1) continue
+          e.preventDefault()
+          const blob = items[i].getAsFile()
+          if (!blob) continue
+          // 校验大小
+          if (this.sizeLimit && blob.size > this.sizeLimit) {
+            this.$message.warning('粘贴图片超过大小限制')
+            return
+          }
+          // 构造文件名（白名单校验扩展名）
+          const allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
+          const ext = blob.type.split('/')[1] || 'png'
+          if (!allowedExts.includes(ext.toLowerCase())) {
+            this.$message.warning('不支持的图片格式')
+            return
+          }
+          const fileName = 'paste_' + Date.now() + '.' + ext
+          const file = new File([blob], fileName, { type: blob.type })
+          // 通过 FormData 上传
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('biz', this.bizPath)
+          const xhr = new XMLHttpRequest()
+          xhr.open('POST', this.uploadAction)
+          // 复用 token header
+          const token = this.headers['X-Access-Token']
+          if (token) xhr.setRequestHeader('X-Access-Token', token)
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              try {
+                const res = JSON.parse(xhr.responseText)
+                if (res.code === 200) {
+                  const filePath = res.data
+                  const url = getFileAccessHttpUrl(filePath)
+                  this.fileList = this.fileList.concat({
+                    uid: uidGenerator(),
+                    name: fileName,
+                    status: 'done',
+                    url: url,
+                    response: { code: 200, data: filePath }
+                  })
+                  if (this.number > 0) {
+                    this.fileList = this.fileList.slice(-this.number)
+                  }
+                  if (this.returnUrl) {
+                    this.handlePathChange()
+                  }
+                  this.$message.success('粘贴图片上传成功')
+                } else {
+                  this.$message.error('粘贴上传失败：' + (res.msg || ''))
+                }
+              } catch (err) {
+                this.$message.error('粘贴上传响应解析失败')
+              }
+            } else {
+              this.$message.error('粘贴上传请求失败')
+            }
+          }
+          xhr.onerror = () => this.$message.error('粘贴上传网络错误')
+          xhr.send(formData)
+          return // 只处理第一张图片
+        }
+      },
       handlePreview(file){
         let postfix = file.name.substring(file.name.lastIndexOf('.'))
         if(postfix === '.gif' || postfix === '.jpg' || postfix === '.jpeg' || postfix === '.png' ||
@@ -380,6 +449,17 @@
       }
     },
     mounted(){
+      // 监听粘贴事件（支持 Ctrl+V 粘贴图片上传）
+      this._pasteHandler = this.handlePaste.bind(this)
+      const container = document.getElementById(this.containerId)
+      if (container) {
+        container.addEventListener('paste', this._pasteHandler)
+        // 使容器可聚焦以接收 paste 事件
+        if (!container.getAttribute('tabindex')) {
+          container.setAttribute('tabindex', '-1')
+          container.style.outline = 'none'
+        }
+      }
       const moverObj = document.getElementById(this.containerId+'-mover');
       moverObj.addEventListener('mouseover',()=>{
         this.moverHold = true
@@ -421,6 +501,12 @@
           }
         })
         //---------------------------- end 图片左右换位置 -------------------------------------
+      }
+    },
+    beforeDestroy() {
+      if (this._pasteHandler) {
+        const container = document.getElementById(this.containerId)
+        if (container) container.removeEventListener('paste', this._pasteHandler)
       }
     },
     model: {

@@ -274,57 +274,63 @@ LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
 
 LODOP.PREVIEW();`
 
-// ─── 销售出库单A版（CLodop 格式, 800×600 画布, 无边框表头） ───
+// ─── 销售出库单A版（CLodop 套打, A4 纵向, 对齐预印供货单） ───
+// 预印表单布局：标题→需方公司/单据号→工程名称/日期→
+//   表格(品牌|品名|材质|规格|件数|件重/吨|总重/吨|单价|金额|备注)×12行→合计→需方签收人
+// 套打仅输出数据，不打印标签、边框、表头、条款文字
 
-const saleOutATemplate = `LODOP.PRINT_INIT("销售出库单A版");
-LODOP.SET_PRINT_PAGESIZE(1,2120,1590,"");
-LODOP.SET_PRINT_STYLE("FontName","微软雅黑");
-LODOP.SET_PRINT_STYLE("FontSize",9);
+const saleOutATemplate = `// A4 纵向套打，坐标相对于打印区域(180mm×257mm)
+LODOP.PRINT_INITA(0,0,"210mm","297mm","建材供货单");
+LODOP.SET_PRINT_PAGESIZE(1,0,0,"A4");
+LODOP.SET_PRINT_STYLE("FontName","宋体");
+LODOP.SET_PRINT_STYLE("FontSize",11);
 
-// ═══ 附加信息（左上角空白处，第二框文本） ═══
-LODOP.ADD_PRINT_TEXT(2,10,300,14,"{{extraText}}");
-LODOP.SET_PRINT_STYLEA(0,"FontSize",8);
+// ═══ 自定义文本（左上角） ═══
+LODOP.ADD_PRINT_TEXT(0,0,400,18,"{{extraText}}");
+LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
 
 // ═══ 主表数据（填入预印标签右侧空白处） ═══
 // 需方公司值
-LODOP.ADD_PRINT_TEXT(48,80,380,16,"{{organName}}");
-LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
-// 单据号值（物流单编号）
-LODOP.ADD_PRINT_TEXT(48,540,240,16,"{{freightBillNo}}");
+LODOP.ADD_PRINT_TEXT(68,72,300,20,"{{organName}}");
+LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
+// 单据号值
+LODOP.ADD_PRINT_TEXT(68,470,190,20,"{{freightBillNo}}");
 LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
 
-// 工程名称值（取项目名称）
-LODOP.ADD_PRINT_TEXT(70,80,380,16,"{{projectName}}");
-LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
-// 日期值（拆分年/月/日数字，不打印"年月日"文字）
+// 工程名称值
+LODOP.ADD_PRINT_TEXT(102,72,300,20,"{{projectName}}");
+LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
+// 日期（拆分年/月/日，填入预印空位）
 var sd="{{sendDate}}";
 var sdY="",sdM="",sdD="";
 var sdMatch=sd.match(/(\\d{4})\\D*(\\d{1,2})\\D*(\\d{1,2})/);
 if(sdMatch){sdY=sdMatch[1];sdM=sdMatch[2];sdD=sdMatch[3];}
-LODOP.ADD_PRINT_TEXT(70,520,40,16,sdY);
-LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
+LODOP.ADD_PRINT_TEXT(102,425,38,20,sdY);
+LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
 LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
-LODOP.ADD_PRINT_TEXT(70,580,25,16,sdM);
-LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
+LODOP.ADD_PRINT_TEXT(102,500,35,20,sdM);
+LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
 LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
-LODOP.ADD_PRINT_TEXT(70,620,25,16,sdD);
-LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
+LODOP.ADD_PRINT_TEXT(102,560,35,20,sdD);
+LODOP.SET_PRINT_STYLEA(0,"FontSize",12);
 LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
 
 // ═══ 明细数据（填入预印表格单元格内） ═══
 var DetailList = [
 {{#each details}}
-  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",piece:"{{operNumber}}",weight:"{{weight}}",uprice:"{{unitPrice}}"},
+  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",piece:"{{operNumber}}",weight:"{{weight}}"},
 {{/each}}
 ];
 
-// 列左边距与宽度（对齐预印格线，不含金额列）
-var col=[60,65,60,60,45,55,55,65];
-var rowH=24;
-var dataTop=124;
+// 列左边距与宽度（对齐预印格线，7个数据列，单价/金额/备注列不打印）
+// 品牌 | 品名 | 材质 | 规格 | 件数 | 件重/吨 | 总重/吨
+var colL=[0,  68, 136, 200, 268, 316, 370];
+var colW=[68, 68,  64,  68,  48,  54,  54];
+var rowH=40;
+var dataTop=166;
 var maxRows=12;
 
-// 填入明细行数据（不打印金额列）
+// 填入明细行数据（文字顶部对齐，不垂直居中）
 var totalPiece=0,totalWeight=0;
 for(var k=0;k<DetailList.length&&k<maxRows;k++){
   var d=DetailList[k];
@@ -333,28 +339,30 @@ for(var k=0;k<DetailList.length&&k<maxRows;k++){
   if(!isNaN(w)&&!isNaN(n)&&n>0) pw=(w/n).toFixed(3);
   if(!isNaN(n)) totalPiece+=n;
   if(!isNaN(w)) totalWeight+=w;
-  var arr=[d.brand,d.pname,d.material,d.spec,d.piece,pw,d.weight,d.uprice];
-  var l=10;
+  var arr=[d.brand,d.pname,d.material,d.spec,
+    isNaN(n)?"":String(n),
+    pw,
+    isNaN(w)?"":w.toFixed(3)];
   for(var i=0;i<arr.length;i++){
-    LODOP.ADD_PRINT_TEXT(dataTop+k*rowH+5,l+2,col[i]-4,16,arr[i]||"");
+    LODOP.ADD_PRINT_TEXT(dataTop+k*rowH+3,colL[i]+3,colW[i]-6,18,arr[i]||"");
     LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
-    LODOP.SET_PRINT_STYLEA(0,"FontSize",8);
-    l+=col[i];
+    LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
   }
 }
 
-// ═══ 合计行数据（不打印金额） ═══
+// ═══ 合计行（填入预印合计行对应列） ═══
 var sumTop=dataTop+maxRows*rowH;
-var sumArr=["","","","",totalPiece||"","",totalWeight?totalWeight.toFixed(3):"",""];
-var l=10;
-for(var i=0;i<col.length;i++){
-  if(sumArr[i]){
-    LODOP.ADD_PRINT_TEXT(sumTop+5,l+2,col[i]-4,16,sumArr[i]);
-    LODOP.SET_PRINT_STYLEA(0,"Bold",1);
-    LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
-    LODOP.SET_PRINT_STYLEA(0,"FontSize",8);
-  }
-  l+=col[i];
+if(totalPiece){
+  LODOP.ADD_PRINT_TEXT(sumTop+3,colL[4]+3,colW[4]-6,18,String(totalPiece));
+  LODOP.SET_PRINT_STYLEA(0,"Bold",1);
+  LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
+  LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
+}
+if(totalWeight){
+  LODOP.ADD_PRINT_TEXT(sumTop+3,colL[6]+3,colW[6]-6,18,totalWeight.toFixed(3));
+  LODOP.SET_PRINT_STYLEA(0,"Bold",1);
+  LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
+  LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
 }
 
 LODOP.PREVIEW();`
@@ -467,4 +475,70 @@ export const defaultTemplates = {
 
 export function getDefaultTemplate(billType) {
   return defaultTemplates[billType] || defaultTemplates['saleOut']
+}
+
+/**
+ * CLodop 模板使用的变量名映射
+ * 按模板分组，每组包含主表字段(header)和明细字段(detail)
+ */
+export const clodopTemplateVars = {
+  // 建材供货单
+  saleOutJiancai: {
+    header: [
+      { key: 'organName', label: '需方公司' },
+      { key: 'freightBillNo', label: '单据号' },
+      { key: 'projectName', label: '工程名称' },
+      { key: 'sendDate', label: '日期' },
+      { key: 'projectAddress', label: '地址' },
+      { key: 'carNo', label: '车号' }
+    ],
+    detail: [
+      { key: 'name', label: '品牌' },
+      { key: 'categoryName', label: '品名' },
+      { key: 'model', label: '材质' },
+      { key: 'standard', label: '规格' },
+      { key: 'operNumber', label: '件数' },
+      { key: 'weight', label: '总重/吨' }
+    ]
+  },
+  // 销售出库单A版（套打预印供货单）
+  saleOutA: {
+    header: [
+      { key: 'extraText', label: '自定义文本' },
+      { key: 'organName', label: '需方公司' },
+      { key: 'freightBillNo', label: '单据号' },
+      { key: 'projectName', label: '工程名称' },
+      { key: 'sendDate', label: '日期' }
+    ],
+    detail: [
+      { key: 'name', label: '品牌' },
+      { key: 'categoryName', label: '品名' },
+      { key: 'model', label: '材质' },
+      { key: 'standard', label: '规格' },
+      { key: 'operNumber', label: '件数' },
+      { key: 'weight', label: '总重/吨' }
+    ]
+  },
+  // 物流运费单
+  freightBill: {
+    header: [
+      { key: 'billNo', label: '单据编号' },
+      { key: 'billTimeStr', label: '单据日期' },
+      { key: 'customerName', label: '客户名称' },
+      { key: 'projectName', label: '项目名称' },
+      { key: 'carrierName', label: '结算方' },
+      { key: 'unitPrice', label: '单价(元/吨)' },
+      { key: 'totalWeight', label: '总重量(吨)' },
+      { key: 'totalFreight', label: '总运费(元)' },
+      { key: 'remark', label: '备注' }
+    ],
+    detail: [
+      { key: 'billNo', label: '出库单号' },
+      { key: 'materialName', label: '材料名称' },
+      { key: 'model', label: '材质' },
+      { key: 'standard', label: '规格' },
+      { key: 'operNumber', label: '数量' },
+      { key: 'itemWeight', label: '重量(吨)' }
+    ]
+  }
 }

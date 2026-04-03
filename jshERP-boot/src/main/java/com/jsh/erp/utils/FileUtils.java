@@ -313,8 +313,14 @@ public class FileUtils {
 			// Any sort of path separator found...
 			fileName = fileName.substring(pos + 1);
 		}
-		//替换上传文件名字的特殊字符
-		fileName = fileName.replace("=","").replace(",","").replace("&","");
+		//替换上传文件名字的特殊字符（防止XSS、路径注入）
+		fileName = fileName.replace("=","").replace(",","").replace("&","")
+				.replace("<","").replace(">","").replace("\"","")
+				.replace("'","").replace(";","").replace("`","")
+				.replace("|","").replace("$","").replace("{","")
+				.replace("}","").replace("(","").replace(")","");
+		// 移除控制字符（ASCII 0-31）
+		fileName = fileName.replaceAll("[\\x00-\\x1f]", "");
 		return fileName;
 	}
 }

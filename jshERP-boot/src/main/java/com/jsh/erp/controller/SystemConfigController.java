@@ -26,6 +26,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +193,7 @@ public class SystemConfigController extends BaseController {
         try {
             String savePath = "";
             String bizPath = request.getParameter("biz");
-            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath)) {
+            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath) || "contract".equals(bizPath)) {
                 MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
                 MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
                 if(fileUploadType == 1) {
@@ -230,20 +232,31 @@ public class SystemConfigController extends BaseController {
     public void view(HttpServletRequest request, HttpServletResponse response) {
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
-        if(StringUtil.isEmpty(imgPath) || imgPath=="null"){
+        if(StringUtil.isEmpty(imgPath) || "null".equals(imgPath)){
             return;
         }
-        // 其余处理略
         InputStream inputStream = null;
         OutputStream outputStream = null;
         try {
-            imgPath = imgPath.replace("..", "");
-            if (imgPath.endsWith(",")) {
-                imgPath = imgPath.substring(0, imgPath.length() - 1);
+            // 安全校验：规范化路径，防止路径遍历攻击
+            imgPath = sanitizeFilePath(imgPath);
+            if (imgPath == null) {
+                response.setStatus(400);
+                return;
             }
+            // 安全响应头
+            response.setHeader("X-Content-Type-Options", "nosniff");
+            response.setHeader("Content-Disposition", "inline");
             String fileUrl = "";
             if(fileUploadType == 1) {
                 fileUrl = systemConfigService.getFileUrlLocal(imgPath);
+                // 二次校验：确保最终路径在允许的目录内
+                Path resolved = Paths.get(fileUrl).toAbsolutePath().normalize();
+                Path baseDir = Paths.get(filePath).toAbsolutePath().normalize();
+                if (!resolved.startsWith(baseDir)) {
+                    response.setStatus(403);
+                    return;
+                }
                 inputStream = new BufferedInputStream(new FileInputStream(fileUrl));
             } else if(fileUploadType == 2) {
                 fileUrl = systemConfigService.getFileUrlAliOss(imgPath);
@@ -295,19 +308,30 @@ public class SystemConfigController extends BaseController {
     public void viewMini(HttpServletRequest request, HttpServletResponse response) {
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
-        if(StringUtil.isEmpty(imgPath) || imgPath=="null"){
+        if(StringUtil.isEmpty(imgPath) || "null".equals(imgPath)){
             return;
         }
         InputStream inputStream = null;
         OutputStream outputStream = null;
         try {
-            imgPath = imgPath.replace("..", "");
-            if (imgPath.endsWith(",")) {
-                imgPath = imgPath.substring(0, imgPath.length() - 1);
+            // 安全校验：规范化路径，防止路径遍历攻击
+            imgPath = sanitizeFilePath(imgPath);
+            if (imgPath == null) {
+                response.setStatus(400);
+                return;
             }
+            // 安全响应头
+            response.setHeader("X-Content-Type-Options", "nosniff");
+            response.setHeader("Content-Disposition", "inline");
             String fileUrl = "";
             if(fileUploadType == 1) {
                 fileUrl = systemConfigService.getFileUrlLocal(imgPath);
+                Path resolved = Paths.get(fileUrl).toAbsolutePath().normalize();
+                Path baseDir = Paths.get(filePath).toAbsolutePath().normalize();
+                if (!resolved.startsWith(baseDir)) {
+                    response.setStatus(403);
+                    return;
+                }
                 inputStream = new BufferedInputStream(new FileInputStream(fileUrl));
             } else if(fileUploadType == 2) {
                 fileUrl = systemConfigService.getFileUrlAliOss(imgPath);
@@ -362,6 +386,27 @@ public class SystemConfigController extends BaseController {
      * @param request
      * @return
      */
+    /**
+     * 清洗文件路径：移除尾逗号、拒绝路径遍历字符
+     * @return 安全路径，非法时返回 null
+     */
+    private static String sanitizeFilePath(String path) {
+        if (path == null) return null;
+        if (path.endsWith(",")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        // 规范化后检查是否包含路径遍历
+        String normalized = Paths.get(path).normalize().toString();
+        if (normalized.contains("..") || normalized.startsWith("/") || normalized.startsWith("\\")) {
+            return null;
+        }
+        // 拒绝反斜杠（Windows 路径分隔符）
+        if (normalized.contains("\\")) {
+            return null;
+        }
+        return normalized;
+    }
+
     private static String extractPathFromPattern(final HttpServletRequest request) {
         String path = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         String bestMatchPattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);

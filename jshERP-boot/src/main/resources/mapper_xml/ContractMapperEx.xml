@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.ContractMapperEx">
+  <resultMap id="ContractExResultMap" type="com.jsh.erp.datasource.entities.ContractEx">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="contract_no" jdbcType="VARCHAR" property="contractNo" />
+    <result column="contract_name" jdbcType="VARCHAR" property="contractName" />
+    <result column="organ_id" jdbcType="BIGINT" property="organId" />
+    <result column="sign_date" jdbcType="TIMESTAMP" property="signDate" />
+    <result column="effect_date" jdbcType="TIMESTAMP" property="effectDate" />
+    <result column="expire_date" jdbcType="TIMESTAMP" property="expireDate" />
+    <result column="amount" jdbcType="DECIMAL" property="amount" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="attachments" jdbcType="VARCHAR" property="attachments" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
+    <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="organ_name" jdbcType="VARCHAR" property="organName" />
+    <result column="project_name" jdbcType="VARCHAR" property="projectName" />
+  </resultMap>
+
+  <select id="selectByCondition" resultMap="ContractExResultMap">
+    select c.*, s.supplier as organ_name, s.project_name
+    from jsh_contract c
+    left join jsh_supplier s on c.organ_id = s.id
+    where ifnull(c.delete_flag,'0') != '1'
+    <if test="tenantId != null">
+      and c.tenant_id = #{tenantId}
+    </if>
+    <if test="contractNo != null and contractNo != ''">
+      and c.contract_no like concat('%', #{contractNo}, '%')
+    </if>
+    <if test="contractName != null and contractName != ''">
+      and c.contract_name like concat('%', #{contractName}, '%')
+    </if>
+    <if test="organId != null">
+      and c.organ_id = #{organId}
+    </if>
+    <if test="status != null and status != ''">
+      and c.status = #{status}
+    </if>
+    order by c.create_time desc
+  </select>
+</mapper>

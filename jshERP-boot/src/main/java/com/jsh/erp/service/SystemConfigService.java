@@ -180,7 +180,7 @@ public class SystemConfigService {
                 bizPath = "";
             }
             // Validate bizPath to prevent directory traversal
-            if (bizPath.contains("..") || bizPath.contains("/")) {
+            if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
             String token = request.getHeader("X-Access-Token");
@@ -195,12 +195,18 @@ public class SystemConfigService {
             String orgName = mf.getOriginalFilename();// 获取文件名
             orgName = FileUtils.getFileName(orgName);
 
-            // Validate file extension to allow only specific types
+            // 验证文件扩展名白名单
             String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
                     ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
+            // 取最后一个点之后的扩展名，防止双扩展名攻击（如 malicious.jsp.jpg）
+            String fileExt = "";
+            int lastDot = orgName.lastIndexOf(".");
+            if (lastDot >= 0) {
+                fileExt = orgName.substring(lastDot).toLowerCase();
+            }
             boolean isValidExtension = false;
             for (String ext : allowedExtensions) {
-                if (orgName.toLowerCase().endsWith(ext)) {
+                if (ext.equals(fileExt)) {
                     isValidExtension = true;
                     break;
                 }
@@ -208,9 +214,19 @@ public class SystemConfigService {
             if (!isValidExtension) {
                 throw new IllegalArgumentException("Invalid file type");
             }
+            // 校验图片类文件的 magic bytes，防止 MIME 伪装
+            if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
+                byte[] header = new byte[8];
+                try (InputStream is = mf.getInputStream()) {
+                    int read = is.read(header);
+                    if (read < 4 || !isValidImageMagic(header)) {
+                        throw new IllegalArgumentException("File content does not match image type");
+                    }
+                }
+            }
 
             if(orgName.contains(".")){
-                fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
+                fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
             }else{
                 fileName = orgName+ "_" + System.currentTimeMillis();
             }
@@ -246,7 +262,7 @@ public class SystemConfigService {
             bizPath = "";
         }
         // Validate bizPath to prevent directory traversal
-        if (bizPath.contains("..") || bizPath.contains("/")) {
+        if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
             throw new IllegalArgumentException("Invalid bizPath");
         }
         String token = request.getHeader("X-Access-Token");
@@ -261,12 +277,17 @@ public class SystemConfigService {
         String orgName = mf.getOriginalFilename();// 获取文件名
         orgName = FileUtils.getFileName(orgName);
 
-        // Validate file extension to allow only specific types
+        // 验证文件扩展名白名单
         String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
                 ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
+        String fileExt = "";
+        int lastDot = orgName.lastIndexOf(".");
+        if (lastDot >= 0) {
+            fileExt = orgName.substring(lastDot).toLowerCase();
+        }
         boolean isValidExtension = false;
         for (String ext : allowedExtensions) {
-            if (orgName.toLowerCase().endsWith(ext)) {
+            if (ext.equals(fileExt)) {
                 isValidExtension = true;
                 break;
             }
@@ -274,9 +295,19 @@ public class SystemConfigService {
         if (!isValidExtension) {
             throw new IllegalArgumentException("Invalid file type");
         }
+        // 校验图片类文件的 magic bytes
+        if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
+            byte[] header = new byte[8];
+            try (InputStream is = mf.getInputStream()) {
+                int read = is.read(header);
+                if (read < 4 || !isValidImageMagic(header)) {
+                    throw new IllegalArgumentException("File content does not match image type");
+                }
+            }
+        }
 
         if(orgName.contains(".")){
-            fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
+            fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
         }else{
             fileName = orgName+ "_" + System.currentTimeMillis();
         }
@@ -333,6 +364,21 @@ public class SystemConfigService {
             }
         }
         return "";
+    }
+
+    /**
+     * 校验文件头魔数是否为合法图片格式
+     * JPEG: FF D8 FF | PNG: 89 50 4E 47 | GIF: 47 49 46 38
+     */
+    private boolean isValidImageMagic(byte[] header) {
+        if (header == null || header.length < 4) return false;
+        // JPEG
+        if ((header[0] & 0xFF) == 0xFF && (header[1] & 0xFF) == 0xD8 && (header[2] & 0xFF) == 0xFF) return true;
+        // PNG
+        if ((header[0] & 0xFF) == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return true;
+        // GIF
+        if (header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x38) return true;
+        return false;
     }
 
     public String getFileUrlLocal(String imgPath) {
