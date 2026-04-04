@@ -168,13 +168,71 @@ public class SystemConfigService {
         return list==null?0:list.size();
     }
 
+    @Resource
+    private DepotHeadService depotHeadService;
+
+    @Resource
+    private SupplierService supplierService;
+
+    /**
+     * 根据单据ID构建文件名前缀：单据日期_物流单号_项目名称_客户_单据编号
+     */
+    private String buildBillFilePrefix(String billId) {
+        if(StringUtil.isEmpty(billId)) return null;
+        try {
+            Long id = Long.parseLong(billId);
+            com.jsh.erp.datasource.entities.DepotHead dh = depotHeadService.getDepotHead(id);
+            if(dh == null) return null;
+            StringBuilder sb = new StringBuilder();
+            // 单据日期
+            if(dh.getOperTime() != null) {
+                sb.append(Tools.getCenternTime(dh.getOperTime()).replace("-",""));
+            }
+            // 物流单号（通过DepotHeadService的批量查询方法）
+            try {
+                java.util.List<Long> idList = new java.util.ArrayList<>();
+                idList.add(id);
+                java.util.Map<Long,String> freightMap = depotHeadService.getFreightBillNoMapByDepotHeadIdList(idList);
+                if(freightMap != null && freightMap.containsKey(id)) {
+                    sb.append("_").append(freightMap.get(id));
+                }
+            } catch (Exception ignore) {}
+            // 项目名称和客户名称（从supplier获取）
+            if(dh.getOrganId() != null) {
+                try {
+                    com.jsh.erp.datasource.entities.Supplier supplier = supplierService.getSupplier(dh.getOrganId());
+                    if(supplier != null) {
+                        if(StringUtil.isNotEmpty(supplier.getProjectName())) {
+                            sb.append("_").append(supplier.getProjectName());
+                        }
+                        if(StringUtil.isNotEmpty(supplier.getSupplier())) {
+                            sb.append("_").append(supplier.getSupplier());
+                        }
+                    }
+                } catch (Exception ignore) {}
+            }
+            // 单据编号
+            if(StringUtil.isNotEmpty(dh.getNumber())) {
+                sb.append("_").append(dh.getNumber());
+            }
+            String prefix = sb.toString();
+            // 清除文件名中的非法字符
+            prefix = prefix.replaceAll("[\\\\/:*?\"<>|]", "");
+            return prefix.length() > 0 ? prefix : null;
+        } catch (Exception e) {
+            logger.error("构建文件名前缀异常", e);
+            return null;
+        }
+    }
+
     /**
      * 本地文件上传
      * @param mf 文件
      * @param bizPath  自定义路径
+     * @param billId   单据ID（可选，用于按规则重命名）
      * @return
      */
-    public String uploadLocal(MultipartFile mf, String bizPath, HttpServletRequest request) throws Exception {
+    public String uploadLocal(MultipartFile mf, String bizPath, String billId, HttpServletRequest request) throws Exception {
         try {
             if(StringUtil.isEmpty(bizPath)){
                 bizPath = "";
@@ -225,10 +283,14 @@ public class SystemConfigService {
                 }
             }
 
-            if(orgName.contains(".")){
+            // 根据单据ID构建文件名前缀
+            String billPrefix = buildBillFilePrefix(billId);
+            if(billPrefix != null) {
+                fileName = billPrefix + fileExt;
+            } else if(orgName.contains(".")){
                 fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
-            }else{
-                fileName = orgName+ "_" + System.currentTimeMillis();
+            } else {
+                fileName = orgName + "_" + System.currentTimeMillis();
             }
             String savePath = file.getPath() + File.separator + fileName;
             File savefile = new File(savePath);

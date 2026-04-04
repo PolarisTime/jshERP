@@ -109,6 +109,14 @@
                   </a-form-item>
                 </a-col>
                 <a-col :md="6" :sm="24">
+                  <a-form-item label="核准状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                    <a-select placeholder="全部" allow-clear v-model="queryParam.priceApproved">
+                      <a-select-option value="0">未核准</a-select-option>
+                      <a-select-option value="1">已核准</a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+                <a-col :md="6" :sm="24">
                   <a-form-item label="销售人员" :labelCol="labelCol" :wrapperCol="wrapperCol">
                     <a-select placeholder="请选择销售人员" showSearch allow-clear optionFilterProp="children" v-model="queryParam.salesMan">
                       <a-select-option v-for="(item,index) in salesManList" :key="index" :value="item.value">
@@ -279,7 +287,8 @@
           hasDebt: undefined,
           status: undefined,
           salesMan: undefined,
-          remark: ""
+          remark: "",
+          priceApproved: '0'
         },
         prefixNo: 'XSCK',
         urlPath: '/bill/sale_out',

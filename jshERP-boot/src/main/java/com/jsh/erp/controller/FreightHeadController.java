@@ -70,9 +70,10 @@ public class FreightHeadController extends BaseController {
         Long carrierId = StringUtil.parseStrLong(StringUtil.getInfo(search, "carrierId"));
         String status = StringUtil.getInfo(search, "status");
         String paymentStatus = StringUtil.getInfo(search, "paymentStatus");
+        String deliveryStatus = StringUtil.getInfo(search, "deliveryStatus");
         String beginTime = StringUtil.getInfo(search, "beginTime");
         String endTime = StringUtil.getInfo(search, "endTime");
-        List<FreightHeadVo> list = freightHeadService.select(billNo, carrierId, status, paymentStatus, beginTime, endTime);
+        List<FreightHeadVo> list = freightHeadService.select(billNo, carrierId, status, paymentStatus, deliveryStatus, beginTime, endTime);
         return getDataTable(list);
     }
 
@@ -140,6 +141,24 @@ public class FreightHeadController extends BaseController {
         String status = jsonObject.getString("status");
         String ids = jsonObject.getString("ids");
         int res = freightHeadService.batchSetStatus(status, ids);
+        if (res > 0) {
+            return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+        } else {
+            return returnJson(objectMap, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
+        }
+    }
+
+    /**
+     * 批量设置送达状态
+     */
+    @PostMapping(value = "/batchSetDeliveryStatus")
+    @ApiOperation(value = "批量设置送达状态")
+    public String batchSetDeliveryStatus(@RequestBody JSONObject jsonObject,
+                                         HttpServletRequest request) throws Exception {
+        Map<String, Object> objectMap = new HashMap<>();
+        String deliveryStatus = jsonObject.getString("deliveryStatus");
+        String ids = jsonObject.getString("ids");
+        int res = freightHeadService.batchSetDeliveryStatus(deliveryStatus, ids);
         if (res > 0) {
             return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
         } else {
@@ -321,7 +340,7 @@ public class FreightHeadController extends BaseController {
                                        HttpServletRequest request,
                                        javax.servlet.http.HttpServletResponse response) throws Exception {
         try {
-            List<FreightHeadVo> dataList = freightHeadService.selectForExport(billNo, carrierId, status, paymentStatus, beginTime, endTime);
+            List<FreightHeadVo> dataList = freightHeadService.selectForExport(billNo, carrierId, status, paymentStatus, null, beginTime, endTime);
             String[] names = {"单据编号", "日期", "结算方", "总重量(吨)", "单价(元/吨)", "总运费(元)", "审核状态", "付款状态", "已付金额", "未付金额", "付款时间", "操作人", "备注"};
             String title = "运费查看列表";
             List<Object[]> objects = new ArrayList<>();

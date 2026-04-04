@@ -598,7 +598,8 @@ export const BillModalMixin = {
             //重量联动：从单位重量映射表取单位重量 × 新数量
             let snUnitWeight = that.unitWeightMap[row.barCode] || 0
             let snNewWeight = parseFloat((snUnitWeight * operNumber).toFixed(4))
-            let snFactor = that.priceByWeightFlag ? snNewWeight : operNumber
+            let snIsEditable = row.weightEditable === '1' || row.weightEditable === 1
+            let snFactor = (that.priceByWeightFlag || snIsEditable) ? (snNewWeight || operNumber) : operNumber
             allPrice = (unitPrice*snFactor).toFixed(2)-0
             if(this.materialPriceTaxFlag) {
               let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0
@@ -675,16 +676,13 @@ export const BillModalMixin = {
           operNumber = value-0
           taxRate = row.taxRate-0 //税率
           unitPrice = row.unitPrice-0 //单价
-          //重量联动：从单位重量映射表取单位重量 × 新数量（需先于金额计算）
+          //重量联动：从单位重量映射表取单位重量 × 新数量
           let unitWeightVal = that.unitWeightMap[row.barCode] || 0
           let newWeight = parseFloat((unitWeightVal * operNumber).toFixed(4))
           let isEditableWeight = row.weightEditable === '1' || row.weightEditable === 1
           let opFactor
-          if (isEditableWeight) {
-            // 可编辑重量类别：优先使用用户手动输入的重量，未输入时按数量计算
-            opFactor = (row.weight-0) || operNumber
-          } else if (that.priceByWeightFlag) {
-            // 按重量计价：使用理论重量 = 单位重量 × 新数量
+          if (isEditableWeight || that.priceByWeightFlag) {
+            // 可编辑重量类别或按重量计价：使用新理论重量作为金额因子
             opFactor = newWeight || operNumber
           } else {
             // 默认：按数量计价
@@ -699,20 +697,29 @@ export const BillModalMixin = {
             taxMoney =((taxRate*0.01)*allPrice).toFixed(2)-0
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
           }
-          // weight_editable类别：不覆盖用户手动输入的过磅重量，仅更新理论重量
-          let opSetValues = {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney}
-          if (!isEditableWeight) {
-            opSetValues.weight = newWeight
+          // 数量变更时始终同步更新重量
+          let opSetValues = {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}
+          //采购入库：确保批号和有效期已赋值（防止barCode异步回调未完成时缺失）
+          if(that.prefixNo === 'CGRK') {
+            if(!row.batchNumber) {
+              opSetValues.batchNumber = that.buildAutoBatchNumber()
+            }
+            if(!row.expirationDate) {
+              opSetValues.expirationDate = that.buildTodayDate()
+            }
           }
           target.setValues([{rowKey: row.id, values: opSetValues}])
           target.recalcAllStatisticsColumns()
           that.autoChangePrice(target)
+          //强制刷新确保JDate组件重新渲染
+          target.$forceUpdate()
           break;
         case "unitPrice":
           operNumber = row.operNumber-0 //数量
           unitPrice = value-0 //单价
           taxRate = row.taxRate-0 //税率
-          let upFactor = that.priceByWeightFlag ? (row.weight-0||0) : operNumber
+          let upIsEditable = row.weightEditable === '1' || row.weightEditable === 1
+          let upFactor = (that.priceByWeightFlag || upIsEditable) ? (row.weight-0||operNumber) : operNumber
           allPrice = (unitPrice*upFactor).toFixed(2)-0
           if(this.materialPriceTaxFlag) {
             let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0
@@ -730,7 +737,8 @@ export const BillModalMixin = {
           operNumber = row.operNumber-0 //数量
           taxRate = row.taxRate-0 //税率
           allPrice = value-0
-          let apFactor = that.priceByWeightFlag ? (row.weight-0||0) : operNumber
+          let apIsEditable = row.weightEditable === '1' || row.weightEditable === 1
+          let apFactor = (that.priceByWeightFlag || apIsEditable) ? (row.weight-0||operNumber) : operNumber
           unitPrice = apFactor!==0 ? (allPrice/apFactor).toFixed(4)-0 : 0 //单价
           if(this.materialPriceTaxFlag) {
             let realAllPrice = (allPrice/(1+taxRate*0.01)).toFixed(2)-0
@@ -765,7 +773,8 @@ export const BillModalMixin = {
           operNumber = row.operNumber-0 //数量
           taxLastMoney = value-0
           taxRate = row.taxRate-0 //税率
-          let tlFactor = that.priceByWeightFlag ? (row.weight-0||0) : operNumber
+          let tlIsEditable = row.weightEditable === '1' || row.weightEditable === 1
+          let tlFactor = (that.priceByWeightFlag || tlIsEditable) ? (row.weight-0||operNumber) : operNumber
           if(this.materialPriceTaxFlag) {
             allPrice = taxLastMoney
             unitPrice = tlFactor!==0 ? (taxLastMoney/tlFactor).toFixed(4)-0 : 0
@@ -820,7 +829,8 @@ export const BillModalMixin = {
         this.unitWeightMap[mInfo.mBarCode] = mInfo.weight-0
       }
       let initWeight = mInfo.weight-0 || 0
-      let initFactor = this.priceByWeightFlag ? initWeight : 1
+      let initIsEditable = mInfo.weightEditable === '1' || mInfo.weightEditable === 1
+      let initFactor = (this.priceByWeightFlag || initIsEditable) ? (initWeight || 1) : 1
       let initAllPrice = (mInfo.billPrice * initFactor).toFixed(2)-0
       let initTaxRate = mInfo.taxRate-0 || (this.defaultTaxRate || 0)
       let initTaxMoney = 0
@@ -835,10 +845,8 @@ export const BillModalMixin = {
         initTaxMoney = ((initTaxRate*0.01)*initAllPrice).toFixed(2)-0
         initTaxLastMoney = (initAllPrice + initTaxMoney).toFixed(2)-0
       }
-      // weight_editable类别初始留空等待用户输入过磅重量，非editable类别显示理论重量
-      let isWeightEditable = mInfo.weightEditable === '1' || mInfo.weightEditable === 1
-      let displayWeight = isWeightEditable ? '' : initWeight
-      return {
+      // 所有单据类型均显示理论重量作为初始值
+      let result = {
         barCode: mInfo.mBarCode,
         name: mInfo.name,
         standard: mInfo.standard,
@@ -857,10 +865,16 @@ export const BillModalMixin = {
         taxRate: mInfo.taxRate,
         taxMoney: initTaxMoney,
         taxLastMoney: initTaxLastMoney,
-        weight: displayWeight,
+        weight: initWeight,
         categoryId: mInfo.categoryId,
         weightEditable: mInfo.weightEditable
       }
+      //采购入库：自动填充批号和有效期
+      if(this.prefixNo === 'CGRK') {
+        result.batchNumber = this.buildAutoBatchNumber()
+        result.expirationDate = this.buildTodayDate()
+      }
+      return result
     },
     //使得型号、颜色、扩展信息、sku等为隐藏
     changeColumnHide() {
@@ -1084,7 +1098,9 @@ export const BillModalMixin = {
                       //由于改变了商品单价，需要同时更新相关金额和价税合计
                       let taxRate = detail.taxRate-0 //税率
                       detail.unitPrice = mList[i].billPrice-0 //单价
-                      detail.allPrice = (detail.unitPrice*detail.operNumber).toFixed(2)-0
+                      let scIsEditable = detail.weightEditable === '1' || detail.weightEditable === 1
+                      let scFactor = (this.priceByWeightFlag || scIsEditable) ? (detail.weight-0||detail.operNumber-0) : detail.operNumber-0
+                      detail.allPrice = (detail.unitPrice*scFactor).toFixed(2)-0
                       if(this.materialPriceTaxFlag) {
                         let realAllPrice = (detail.allPrice/(1+taxRate*0.01)).toFixed(2)-0
                         detail.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
@@ -1167,10 +1183,14 @@ export const BillModalMixin = {
                   //如果扫码结果和条码重复，就在给原来的数量加1
                   if(detail.barCode === this.scanBarCode.trim() && !hasAdd) {
                     detail.operNumber = (detail.operNumber-0)+1
-                    //由于改变了商品数量，需要同时更新相关金额和价税合计
+                    //由于改变了商品数量，需要同时更新重量和相关金额、价税合计
+                    let scanUnitWeight = this.unitWeightMap[detail.barCode] || 0
+                    detail.weight = parseFloat((scanUnitWeight * detail.operNumber).toFixed(4))
                     let taxRate = detail.taxRate-0 //税率
                     let unitPrice = detail.unitPrice-0 //单价
-                    detail.allPrice = (unitPrice*detail.operNumber).toFixed(2)-0
+                    let scanIsEditable = detail.weightEditable === '1' || detail.weightEditable === 1
+                    let scanFactor = (this.priceByWeightFlag || scanIsEditable) ? (detail.weight||detail.operNumber) : detail.operNumber
+                    detail.allPrice = (unitPrice*scanFactor).toFixed(2)-0
                     if(this.materialPriceTaxFlag) {
                       let realAllPrice = (detail.allPrice/(1+taxRate*0.01)).toFixed(2)-0
                       detail.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
@@ -1215,10 +1235,23 @@ export const BillModalMixin = {
                   }
                   item.operNumber = 1
                   item.unitPrice = mInfo.billPrice
-                  item.allPrice = mInfo.billPrice
+                  //重量和金额联动：weightEditable类别按重量计价
+                  let newItemWeight = mInfo.weight-0 || 0
+                  let newItemIsEditable = mInfo.weightEditable === '1' || mInfo.weightEditable === 1
+                  let newItemFactor = (this.priceByWeightFlag || newItemIsEditable) ? (newItemWeight || 1) : 1
+                  item.allPrice = (mInfo.billPrice * newItemFactor).toFixed(2)-0
+                  item.weight = newItemWeight
+                  item.weightEditable = mInfo.weightEditable
+                  let newItemTaxRate = mInfo.taxRate-0 || 0
+                  if(this.materialPriceTaxFlag) {
+                    let realAllPrice = (item.allPrice/(1+newItemTaxRate*0.01)).toFixed(2)-0
+                    item.taxMoney = (realAllPrice*newItemTaxRate*0.01).toFixed(2)-0
+                    item.taxLastMoney = item.allPrice
+                  } else {
+                    item.taxMoney = ((newItemTaxRate*0.01)*item.allPrice).toFixed(2)-0
+                    item.taxLastMoney = (item.allPrice + item.taxMoney).toFixed(2)-0
+                  }
                   item.taxRate = mInfo.taxRate
-                  item.taxMoney = mInfo.taxMoney
-                  item.taxLastMoney = mInfo.taxLastMoney
                   newDetailArr.push(item)
                 } else {
                   this.$message.warning('抱歉，此条码不存在商品信息！');

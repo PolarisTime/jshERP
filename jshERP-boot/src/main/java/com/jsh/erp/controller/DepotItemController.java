@@ -1175,12 +1175,11 @@ public class DepotItemController {
      * 过磅重量差异报表（长款短款）
      */
     @GetMapping(value = "/weightDifference")
-    @ApiOperation(value = "过磅重量差异报表")
+    @ApiOperation(value = "长短款报表 — 采购入库理论重量 vs 销售出库过磅重量差异")
     public BaseResponseInfo weightDifference(@RequestParam("currentPage") Integer currentPage,
                                              @RequestParam("pageSize") Integer pageSize,
                                              @RequestParam(value = "beginTime", required = false) String beginTime,
                                              @RequestParam(value = "endTime", required = false) String endTime,
-                                             @RequestParam(value = "subType", required = false) String subType,
                                              @RequestParam(value = "organId", required = false) Long organId,
                                              @RequestParam(value = "depotId", required = false) Long depotId,
                                              @RequestParam(value = "categoryId", required = false) Long categoryId,
@@ -1199,16 +1198,10 @@ public class DepotItemController {
                 categoryIdList = materialService.getListByParentId(categoryId);
             }
             List<DepotItemVo4WeightDiff> dataList = depotItemService.getWeightDifferenceList(
-                    beginTime, endTime, StringUtil.toNull(subType), organId, depotId, categoryIdList,
+                    beginTime, endTime, organId, depotId, categoryIdList,
                     (currentPage - 1) * pageSize, pageSize);
             int total = depotItemService.getWeightDifferenceCount(
-                    beginTime, endTime, StringUtil.toNull(subType), organId, depotId, categoryIdList);
-            // 格式化日期
-            for (DepotItemVo4WeightDiff item : dataList) {
-                if (item.getBillTime() != null) {
-                    item.setBillTimeStr(Tools.getCenternTime(item.getBillTime()));
-                }
-            }
+                    beginTime, endTime, organId, depotId, categoryIdList);
             map.put("total", total);
             map.put("rows", dataList);
             res.code = 200;
@@ -1216,7 +1209,7 @@ public class DepotItemController {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
-            res.data = "查询过磅差异报表失败";
+            res.data = "查询长短款报表失败";
         }
         return res;
     }

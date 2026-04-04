@@ -28,6 +28,14 @@
                   </a-select>
                 </a-form-item>
               </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="送达状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="全部" allow-clear v-model="queryParam.deliveryStatus">
+                    <a-select-option value="0">未送达</a-select-option>
+                    <a-select-option value="1">已送达</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
                 <a-col :md="6" :sm="24">
                   <a-button type="primary" @click="searchQuery">查询</a-button>
@@ -62,6 +70,8 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
+          <a-button icon="car" style="color:#52c41a" @click="batchSetDeliveryStatus('1')">标记送达</a-button>
+          <a-button icon="undo" @click="batchSetDeliveryStatus('0')">取消送达</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -94,9 +104,11 @@
                 <a>删除</a>
               </a-popconfirm>
             </span>
-            <template slot="customRenderStatus" slot-scope="status">
-              <a-tag v-if="status === '0' || status === 0" color="red">未审核</a-tag>
-              <a-tag v-if="status === '1' || status === 1" color="green">已审核</a-tag>
+            <template slot="customRenderStatus" slot-scope="text, record">
+              <a-tag v-if="record.status === '0' || record.status === 0" color="red">未审核</a-tag>
+              <a-tag v-if="record.status === '1' || record.status === 1" color="green">已审核</a-tag>
+              <a-tag v-if="record.deliveryStatus === '1'" color="blue">已送达</a-tag>
+              <a-tag v-else color="orange">未送达</a-tag>
             </template>
             <a-table
               bordered
@@ -143,6 +155,7 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
+          deliveryStatus: '0',
           beginTime: '',
           endTime: ''
         },
@@ -310,10 +323,34 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
+          deliveryStatus: '0',
           beginTime: '',
           endTime: ''
         }
         this.loadData(1);
+      },
+      batchSetDeliveryStatus(deliveryStatus) {
+        if (this.selectedRowKeys.length <= 0) {
+          this.$message.warning('请选择一条记录！')
+          return
+        }
+        let ids = this.selectedRowKeys.join(',')
+        let that = this
+        let msg = deliveryStatus === '1' ? '标记送达' : '取消送达'
+        this.$confirm({
+          title: '确认操作',
+          content: '确定对选中的单据进行' + msg + '吗?',
+          onOk() {
+            postAction('/freightHead/batchSetDeliveryStatus', { deliveryStatus: deliveryStatus, ids: ids }).then((res) => {
+              if (res.code === 200) {
+                that.$message.success(msg + '成功')
+                that.loadData()
+              } else {
+                that.$message.warning(res.data.message)
+              }
+            })
+          }
+        })
       },
       onDateChange(dates, dateStrings) {
         if (dates && dates.length === 2) {

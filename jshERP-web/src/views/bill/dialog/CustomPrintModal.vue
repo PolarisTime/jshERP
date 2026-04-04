@@ -11,22 +11,26 @@
     <div style="margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
       <a-select
         v-model="selectedTemplateId"
-        style="width:220px;"
+        style="width:260px;"
         placeholder="选择模板"
         @change="handleTemplateChange">
         <a-select-option :value="0">系统默认模板</a-select-option>
-        <a-select-option v-for="bt in builtinTemplates" :key="bt.key" :value="'builtin_'+bt.key">
-          {{ bt.name }}
-        </a-select-option>
-        <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
-          {{ t.templateName }}{{ t.isDefault === '1' ? ' (默认)' : '' }}
-        </a-select-option>
+        <a-select-opt-group v-if="fileTemplates.length" label="文件模板">
+          <a-select-option v-for="t in fileTemplates" :key="t.id" :value="t.id">
+            {{ t.templateName }}
+          </a-select-option>
+        </a-select-opt-group>
+        <a-select-opt-group v-if="dbTemplates.length" label="自定义模板">
+          <a-select-option v-for="t in dbTemplates" :key="t.id" :value="t.id">
+            {{ t.templateName }}{{ t.isDefault === '1' ? ' (默认)' : '' }}
+          </a-select-option>
+        </a-select-opt-group>
       </a-select>
       <a-input v-model="templateName" placeholder="模板名称" style="width:140px;" />
       <a-checkbox :checked="isDefault" @change="e => isDefault = e.target.checked">设为默认</a-checkbox>
       <a-button type="primary" @click="handleSave" :loading="saving">{{ saveButtonText }}</a-button>
       <a-button @click="handleNewTemplate">新增模板</a-button>
-      <a-popconfirm v-if="isCustomTemplate" title="确定删除此模板？" @confirm="handleDelete">
+      <a-popconfirm v-if="isCustomTemplate || isFileTemplate" title="确定删除此模板？" @confirm="handleDelete">
         <a-button type="danger" ghost>删除</a-button>
       </a-popconfirm>
       <!-- CLodop 操作区 -->
@@ -99,17 +103,9 @@
 </template>
 <script>
   import { savePrintTemplate, deletePrintTemplate, listPrintTemplate, getPrintFieldMeta } from '@/api/api'
-  import { getDefaultTemplate, defaultTemplates } from '@/utils/printTemplateDefaults'
+  import { getDefaultTemplate } from '@/utils/printTemplateDefaults'
   import { render } from '@/utils/printTemplateEngine'
   import { isCLodopCode, execPrintCode, printHtml, designTemplate } from '@/utils/clodop'
-
-  // 各单据类型的内置模板变体（声明式配置，新增变体只需在此追加）
-  const BUILTIN_VARIANTS = {
-    saleOut: [
-      { key: 'saleOutA', name: '[内置] 销售出库单A版' },
-      { key: 'saleOutTax', name: '[内置] 销售出库单B版' }
-    ]
-  }
 
   export default {
     name: 'CustomPrintModal',
@@ -134,17 +130,29 @@
         detailFields: [],
         isDefault: false,
         userInputFields: { carNo: '', extraText: '', sendDate: '' },
-        builtinTemplates: []
+        currentSource: '' // 当前选中模板的来源: 'db'/'file'/''
       }
     },
     computed: {
       /** 当前是否为数据库自定义模板 */
       isCustomTemplate() {
-        return this.selectedTemplateId > 0
+        return this.currentSource === 'db' && this.selectedTemplateId > 0
+      },
+      /** 当前是否为文件模板 */
+      isFileTemplate() {
+        return this.currentSource === 'file'
       },
       /** 保存按钮文本 */
       saveButtonText() {
+        if (this.isFileTemplate) return '保存到文件'
         return this.isCustomTemplate ? '更新模板' : '保存模板'
+      },
+      /** 分离文件模板和数据库模板 */
+      fileTemplates() {
+        return this.templateList.filter(t => t.source === 'file')
+      },
+      dbTemplates() {
+        return this.templateList.filter(t => t.source === 'db')
       }
     },
     methods: {
@@ -153,7 +161,6 @@
       async show() {
         this.visible = true
         this.designing = false
-        this.builtinTemplates = BUILTIN_VARIANTS[this.billType] || []
         await this.loadTemplateList()
         this.selectDefault()
         this.loadFieldMeta()
@@ -190,13 +197,12 @@
       /** 下拉切换模板 */
       handleTemplateChange(id) {
         if (id === 0) {
+          this.currentSource = ''
           this.applyTemplate({ html: getDefaultTemplate(this.billType) })
-        } else if (typeof id === 'string' && id.startsWith('builtin_')) {
-          const key = id.replace('builtin_', '')
-          this.applyTemplate({ id, html: defaultTemplates[key] || '' })
         } else {
           const tpl = this.templateList.find(t => t.id === id)
           if (tpl) {
+            this.currentSource = tpl.source || 'db'
             this.applyTemplate({
               id: tpl.id,
               name: tpl.templateName,
@@ -253,21 +259,25 @@
         }
         this.saving = true
         try {
-          const res = await savePrintTemplate({
-            id: this.isCustomTemplate ? this.selectedTemplateId : null,
+          let params = {
             billType: this.billType,
             templateName: this.templateName,
             templateHtml: this.templateHtml,
-            isDefault: this.isDefault ? '1' : '0'
-          })
+            source: this.isFileTemplate ? 'file' : 'db'
+          }
+          if (!this.isFileTemplate) {
+            params.id = this.isCustomTemplate ? this.selectedTemplateId : null
+            params.isDefault = this.isDefault ? '1' : '0'
+          }
+          const res = await savePrintTemplate(params)
           if (res && res.code === 200) {
             this.$message.success('模板保存成功')
             const savedName = this.templateName
             await this.loadTemplateList()
-            // 定位到刚保存的模板
             const saved = this.templateList.find(t => t.templateName === savedName)
             if (saved) {
               this.selectedTemplateId = saved.id
+              this.currentSource = saved.source || 'db'
               this.isDefault = saved.isDefault === '1'
             }
           } else {
@@ -278,7 +288,17 @@
         }
       },
       async handleDelete() {
-        const res = await deletePrintTemplate({ id: this.selectedTemplateId })
+        let res
+        if (this.isFileTemplate) {
+          const tpl = this.templateList.find(t => t.id === this.selectedTemplateId)
+          res = await deletePrintTemplate({
+            source: 'file',
+            billType: this.billType,
+            fileName: tpl ? tpl.fileName : ''
+          })
+        } else {
+          res = await deletePrintTemplate({ id: this.selectedTemplateId })
+        }
         if (res && res.code === 200) {
           this.$message.success('模板已删除')
           await this.loadTemplateList()

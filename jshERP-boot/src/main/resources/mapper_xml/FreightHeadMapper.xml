@@ -15,6 +15,7 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
+    <result column="delivery_status" jdbcType="VARCHAR" property="deliveryStatus" />
     <result column="payment_status" jdbcType="VARCHAR" property="paymentStatus" />
     <result column="paid_amount" jdbcType="DECIMAL" property="paidAmount" />
     <result column="payment_time" jdbcType="TIMESTAMP" property="paymentTime" />
@@ -22,7 +23,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     id, bill_no, bill_time, carrier_id, unit_price, total_weight, total_freight,
-    remark, status, creator, create_time, tenant_id, delete_flag,
+    remark, status, creator, create_time, tenant_id, delete_flag, delivery_status,
     payment_status, paid_amount, payment_time, payment_operator
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
@@ -39,12 +40,12 @@
     insert into jsh_freight_head (id, bill_no, bill_time,
       carrier_id, unit_price, total_weight,
       total_freight, remark, status,
-      creator, create_time, tenant_id, delete_flag)
+      creator, create_time, tenant_id, delete_flag, delivery_status)
     values (#{id,jdbcType=BIGINT}, #{billNo,jdbcType=VARCHAR}, #{billTime,jdbcType=TIMESTAMP},
       #{carrierId,jdbcType=BIGINT}, #{unitPrice,jdbcType=DECIMAL}, #{totalWeight,jdbcType=DECIMAL},
       #{totalFreight,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
       #{creator,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{tenantId,jdbcType=BIGINT},
-      #{deleteFlag,jdbcType=VARCHAR})
+      #{deleteFlag,jdbcType=VARCHAR}, #{deliveryStatus,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.FreightHead"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
@@ -88,6 +89,9 @@
       </if>
       <if test="deleteFlag != null">
         delete_flag,
+      </if>
+      <if test="deliveryStatus != null">
+        delivery_status,
       </if>
       <if test="paymentStatus != null">
         payment_status,
@@ -142,6 +146,9 @@
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
       </if>
+      <if test="deliveryStatus != null">
+        #{deliveryStatus,jdbcType=VARCHAR},
+      </if>
       <if test="paymentStatus != null">
         #{paymentStatus,jdbcType=VARCHAR},
       </if>
@@ -195,6 +202,9 @@
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
+      <if test="deliveryStatus != null">
+        delivery_status = #{deliveryStatus,jdbcType=VARCHAR},
+      </if>
       <if test="paymentStatus != null">
         payment_status = #{paymentStatus,jdbcType=VARCHAR},
       </if>
@@ -223,7 +233,8 @@
       creator = #{creator,jdbcType=BIGINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       tenant_id = #{tenantId,jdbcType=BIGINT},
-      delete_flag = #{deleteFlag,jdbcType=VARCHAR}
+      delete_flag = #{deleteFlag,jdbcType=VARCHAR},
+      delivery_status = #{deliveryStatus,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

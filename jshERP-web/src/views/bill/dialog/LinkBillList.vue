@@ -327,9 +327,6 @@
           this.getDepotByCurrentUser()
           this.getSelectBillRows();
           if(this.selectBillRows && this.selectBillRows.length>0) {
-            this.selectType = 'detail'
-            this.oldTitle = this.title
-            this.title = "请选择单据明细"
             let record = this.selectBillRows[0]
             this.linkNumber = record.number
             this.organId = record.organId
@@ -339,7 +336,8 @@
             this.deposit = record.changeAmount - record.finishDeposit
             this.remark = record.remark
             this.initListColumns()
-            this.loadDetailData(1)
+            //自动加载明细并全选确认，跳过手动勾选步骤
+            this.autoSelectAllDetails(record)
           } else {
             this.$message.warning('抱歉，请选择单据！')
           }
@@ -352,6 +350,43 @@
             this.$message.warning('抱歉，请选择单据明细！')
           }
         }
+      },
+      //自动加载明细并全选后直接确认
+      autoSelectAllDetails(record) {
+        let param = {
+          headerId: record.id,
+          mpList: '',
+          linkType: this.showType
+        }
+        this.loading = true
+        getAction('/depotItem/getDetailList', param).then((res) => {
+          if (res.code === 200) {
+            let list = res.data.rows
+            let listEx = []
+            for (let j = 0; j < list.length; j++) {
+              let info = list[j]
+              if (this.queryParam.subType === '销售订单' && this.showType === 'purchase') {
+                info.finishNumber = info.finishPurchaseNumber
+              }
+              if (info.finishNumber < info.preNumber) {
+                listEx.push(info)
+              } else {
+                if (this.queryParam.subType === '采购' || this.queryParam.subType === '销售' || this.queryParam.subType === '零售') {
+                  listEx.push(info)
+                }
+              }
+            }
+            if (listEx.length > 0) {
+              //全选所有明细并直接触发确认
+              this.selectBillDetailRows = listEx
+              this.$emit('ok', this.selectBillDetailRows, this.linkNumber, this.organId, this.discountMoney, this.deposit, this.remark, this.defaultDepotId, this.accountId, this.salesMan)
+              this.close()
+            } else {
+              this.$message.warning('该单据没有可转换的明细！')
+            }
+          }
+          this.loading = false
+        })
       },
       initListColumns() {
         if(this.queryParam.subType === '请购单') {

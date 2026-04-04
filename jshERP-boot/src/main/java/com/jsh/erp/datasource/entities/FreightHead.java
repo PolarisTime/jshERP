@@ -33,6 +33,9 @@ public class FreightHead {
 
     private String deleteFlag;
 
+    /** 送达状态：0=未送达，1=已送达 */
+    private String deliveryStatus;
+
     private String paymentStatus;
 
     private BigDecimal paidAmount;
@@ -143,6 +146,14 @@ public class FreightHead {
 
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+
+    public String getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(String deliveryStatus) {
+        this.deliveryStatus = deliveryStatus == null ? null : deliveryStatus.trim();
     }
 
     public String getPaymentStatus() {

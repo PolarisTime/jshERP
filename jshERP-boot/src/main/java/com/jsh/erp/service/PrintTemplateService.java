@@ -4,10 +4,14 @@ import com.jsh.erp.datasource.entities.PrintTemplate;
 import com.jsh.erp.datasource.mappers.PrintTemplateMapperEx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.*;
 
 /**
@@ -17,8 +21,29 @@ import java.util.*;
 public class PrintTemplateService {
     private Logger logger = LoggerFactory.getLogger(PrintTemplateService.class);
 
+    @Value(value="${file.printTemplatePath:/opt/jshERP/printTemplates}")
+    private String printTemplatePath;
+
     @Resource
     private PrintTemplateMapperEx printTemplateMapperEx;
+
+    /**
+     * 应用启动时初始化打印模板目录结构
+     */
+    @javax.annotation.PostConstruct
+    public void initTemplateDirectories() {
+        try {
+            for (String dirName : new java.util.LinkedHashSet<>(BILL_TYPE_DIR_MAP.values())) {
+                Path dir = Paths.get(printTemplatePath, dirName);
+                if (!Files.exists(dir)) {
+                    Files.createDirectories(dir);
+                    logger.info("创建打印模板目录: {}", dir);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("初始化打印模板目录失败", e);
+        }
+    }
 
     public PrintTemplate getDefaultByBillType(String billType) {
         try {
@@ -54,6 +79,92 @@ public class PrintTemplateService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void deleteById(Long id) throws Exception {
         printTemplateMapperEx.deleteById(id);
+    }
+
+    // ═══ billType → 目录名映射 ═══
+
+    private static final Map<String, String> BILL_TYPE_DIR_MAP = new LinkedHashMap<>();
+    static {
+        BILL_TYPE_DIR_MAP.put("saleOut", "销售管理");
+        BILL_TYPE_DIR_MAP.put("saleOrder", "销售管理");
+        BILL_TYPE_DIR_MAP.put("saleBack", "销售管理");
+        BILL_TYPE_DIR_MAP.put("purchaseIn", "采购管理");
+        BILL_TYPE_DIR_MAP.put("purchaseOrder", "采购管理");
+        BILL_TYPE_DIR_MAP.put("purchaseBack", "采购管理");
+        BILL_TYPE_DIR_MAP.put("purchaseApply", "采购管理");
+        BILL_TYPE_DIR_MAP.put("freightBill", "物流单模版");
+        BILL_TYPE_DIR_MAP.put("otherIn", "仓库管理");
+        BILL_TYPE_DIR_MAP.put("otherOut", "仓库管理");
+        BILL_TYPE_DIR_MAP.put("allocationOut", "仓库管理");
+        BILL_TYPE_DIR_MAP.put("assemble", "仓库管理");
+        BILL_TYPE_DIR_MAP.put("disassemble", "仓库管理");
+        BILL_TYPE_DIR_MAP.put("retailOut", "零售管理");
+        BILL_TYPE_DIR_MAP.put("retailBack", "零售管理");
+    }
+
+    private String getDirForBillType(String billType) {
+        return BILL_TYPE_DIR_MAP.getOrDefault(billType, "其他");
+    }
+
+    // ═══ 文件系统模板读写 ═══
+
+    /**
+     * 获取指定billType对应目录下的所有模板文件
+     * @return 模板列表，每个包含 name(模板名), content(内容), source("file")
+     */
+    public List<Map<String, String>> listFileTemplates(String billType) {
+        List<Map<String, String>> result = new ArrayList<>();
+        String dirName = getDirForBillType(billType);
+        Path dir = Paths.get(printTemplatePath, dirName);
+        if (!Files.exists(dir) || !Files.isDirectory(dir)) {
+            return result;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.{lodop,html}")) {
+            for (Path entry : stream) {
+                String fileName = entry.getFileName().toString();
+                String name = fileName.substring(0, fileName.lastIndexOf('.'));
+                String content = new String(Files.readAllBytes(entry), StandardCharsets.UTF_8);
+                Map<String, String> item = new HashMap<>();
+                item.put("name", name);
+                item.put("content", content);
+                item.put("source", "file");
+                item.put("fileName", fileName);
+                result.add(item);
+            }
+        } catch (IOException e) {
+            logger.error("读取打印模板目录异常: {}", dir, e);
+        }
+        // 按文件名排序
+        result.sort(Comparator.comparing(m -> m.get("name")));
+        return result;
+    }
+
+    /**
+     * 保存模板到文件
+     */
+    public void saveFileTemplate(String billType, String name, String content) throws IOException {
+        String dirName = getDirForBillType(billType);
+        Path dir = Paths.get(printTemplatePath, dirName);
+        Files.createDirectories(dir);
+        // 根据内容判断扩展名：包含 LODOP. 的为 .lodop，否则 .html
+        String ext = content.contains("LODOP.") ? ".lodop" : ".html";
+        // 清除文件名非法字符
+        String safeName = name.replaceAll("[\\\\/:*?\"<>|]", "");
+        Path file = dir.resolve(safeName + ext);
+        Files.write(file, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * 删除模板文件
+     */
+    public boolean deleteFileTemplate(String billType, String fileName) throws IOException {
+        String dirName = getDirForBillType(billType);
+        Path file = Paths.get(printTemplatePath, dirName, fileName);
+        // 安全检查：确保不会跨目录
+        if (!file.normalize().startsWith(Paths.get(printTemplatePath, dirName).normalize())) {
+            throw new SecurityException("非法文件路径");
+        }
+        return Files.deleteIfExists(file);
     }
 
     /**

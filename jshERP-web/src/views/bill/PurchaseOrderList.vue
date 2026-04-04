@@ -285,6 +285,7 @@
           { title: '支付订金', dataIndex: 'changeAmount',width:80},
           { title: '备注', dataIndex: 'remark',width:200},
           { title: '总重量(吨)', dataIndex: 'totalWeight', width: 100},
+          { title: '关联采购入库', dataIndex: 'purchaseInNumbers', width: 180, ellipsis: true},
           { title: '状态', dataIndex: 'status', width: 80, align: "center",
             scopedSlots: { customRender: 'customRenderStatus' }
           }

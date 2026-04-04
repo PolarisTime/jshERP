@@ -11,8 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 打印模板Controller
@@ -43,13 +42,36 @@ public class PrintTemplateController {
     }
 
     @GetMapping(value = "/listByBillType")
-    @ApiOperation(value = "获取指定单据类型的所有模板列表")
+    @ApiOperation(value = "获取指定单据类型的所有模板列表（合并数据库+文件模板）")
     public BaseResponseInfo listByBillType(@RequestParam("billType") String billType) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
-            List<PrintTemplate> list = printTemplateService.listByBillType(billType);
+            List<Map<String, Object>> merged = new ArrayList<>();
+            // 1. 数据库模板
+            List<PrintTemplate> dbList = printTemplateService.listByBillType(billType);
+            for (PrintTemplate t : dbList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", t.getId());
+                item.put("templateName", t.getTemplateName());
+                item.put("templateHtml", t.getTemplateHtml());
+                item.put("isDefault", t.getIsDefault());
+                item.put("source", "db");
+                merged.add(item);
+            }
+            // 2. 文件模板
+            List<Map<String, String>> fileList = printTemplateService.listFileTemplates(billType);
+            for (Map<String, String> f : fileList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", "file_" + f.get("fileName"));
+                item.put("templateName", f.get("name"));
+                item.put("templateHtml", f.get("content"));
+                item.put("isDefault", "0");
+                item.put("source", "file");
+                item.put("fileName", f.get("fileName"));
+                merged.add(item);
+            }
             res.code = 200;
-            res.data = list;
+            res.data = merged;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
@@ -63,13 +85,20 @@ public class PrintTemplateController {
     public BaseResponseInfo save(@RequestBody JSONObject obj) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
-            Long id = obj.getLong("id");
+            String source = obj.getString("source");
             String billType = obj.getString("billType");
             String templateName = obj.getString("templateName");
             String templateHtml = obj.getString("templateHtml");
-            String isDefault = obj.getString("isDefault");
-            if (isDefault == null) isDefault = "1";
-            printTemplateService.saveTemplate(id, billType, templateName, templateHtml, isDefault);
+            if ("file".equals(source)) {
+                // 保存到文件
+                printTemplateService.saveFileTemplate(billType, templateName, templateHtml);
+            } else {
+                // 保存到数据库
+                Long id = obj.getLong("id");
+                String isDefault = obj.getString("isDefault");
+                if (isDefault == null) isDefault = "1";
+                printTemplateService.saveTemplate(id, billType, templateName, templateHtml, isDefault);
+            }
             res.code = 200;
             res.data = "成功";
         } catch (Exception e) {
@@ -82,10 +111,17 @@ public class PrintTemplateController {
 
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除打印模板")
-    public BaseResponseInfo delete(@RequestParam("id") Long id) {
+    public BaseResponseInfo delete(@RequestParam(value = "id", required = false) Long id,
+                                   @RequestParam(value = "source", required = false) String source,
+                                   @RequestParam(value = "billType", required = false) String billType,
+                                   @RequestParam(value = "fileName", required = false) String fileName) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
-            printTemplateService.deleteById(id);
+            if ("file".equals(source)) {
+                printTemplateService.deleteFileTemplate(billType, fileName);
+            } else {
+                printTemplateService.deleteById(id);
+            }
             res.code = 200;
             res.data = "成功";
         } catch (Exception e) {

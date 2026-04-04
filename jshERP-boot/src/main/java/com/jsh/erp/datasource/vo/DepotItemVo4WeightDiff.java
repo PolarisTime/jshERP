@@ -1,101 +1,64 @@
 package com.jsh.erp.datasource.vo;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
- * 过磅重量差异报表VO
+ * 长短款报表VO — 采购入库理论重量 vs 销售出库过磅重量差异
+ * 按供应商+商品+批号汇总
  */
 public class DepotItemVo4WeightDiff {
 
-    private Long headerId;
-
-    private String billNo;
-
-    private String subType;
-
-    private Date billTime;
-
-    private String billTimeStr;
-
-    private Long itemId;
-
-    private String barCode;
-
-    private String materialName;
-
-    private String standard;
-
-    private String model;
-
+    /** 供应商名称 */
     private String organName;
 
-    private String depotName;
+    /** 商品名称 */
+    private String materialName;
 
-    private BigDecimal basicNumber;
+    /** 规格 */
+    private String standard;
 
-    private BigDecimal unitWeight;
+    /** 型号 */
+    private String model;
 
-    private BigDecimal theoreticalWeight;
+    /** 条码 */
+    private String barCode;
 
-    private BigDecimal actualWeight;
+    /** 批号 */
+    private String batchNumber;
 
+    /** 数量（件） */
+    private BigDecimal operNumber;
+
+    /** 采购入库单号（可能多个逗号分隔） */
+    private String purchaseBillNo;
+
+    /** 入库理论重量(吨) = SUM(basic_number × m.weight) */
+    private BigDecimal inTheoreticalWeight;
+
+    /** 销售出库单号（可能多个逗号分隔） */
+    private String saleBillNo;
+
+    /** 出库过磅重量(吨) = SUM(di_sale.weight) */
+    private BigDecimal outActualWeight;
+
+    /** 差额(吨) = 入库理论重量 - 出库过磅重量 */
     private BigDecimal weightDiff;
 
-    public Long getHeaderId() {
-        return headerId;
+    /** 采购单价（加权平均） */
+    private BigDecimal purchaseUnitPrice;
+
+    /** 差额金额 = 差额 × 采购单价 */
+    private BigDecimal diffAmount;
+
+    /** 仓库名称 */
+    private String depotName;
+
+    public String getOrganName() {
+        return organName;
     }
 
-    public void setHeaderId(Long headerId) {
-        this.headerId = headerId;
-    }
-
-    public String getBillNo() {
-        return billNo;
-    }
-
-    public void setBillNo(String billNo) {
-        this.billNo = billNo;
-    }
-
-    public String getSubType() {
-        return subType;
-    }
-
-    public void setSubType(String subType) {
-        this.subType = subType;
-    }
-
-    public Date getBillTime() {
-        return billTime;
-    }
-
-    public void setBillTime(Date billTime) {
-        this.billTime = billTime;
-    }
-
-    public String getBillTimeStr() {
-        return billTimeStr;
-    }
-
-    public void setBillTimeStr(String billTimeStr) {
-        this.billTimeStr = billTimeStr;
-    }
-
-    public Long getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Long itemId) {
-        this.itemId = itemId;
-    }
-
-    public String getBarCode() {
-        return barCode;
-    }
-
-    public void setBarCode(String barCode) {
-        this.barCode = barCode;
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 
     public String getMaterialName() {
@@ -122,52 +85,60 @@ public class DepotItemVo4WeightDiff {
         this.model = model;
     }
 
-    public String getOrganName() {
-        return organName;
+    public String getBarCode() {
+        return barCode;
     }
 
-    public void setOrganName(String organName) {
-        this.organName = organName;
+    public void setBarCode(String barCode) {
+        this.barCode = barCode;
     }
 
-    public String getDepotName() {
-        return depotName;
+    public String getBatchNumber() {
+        return batchNumber;
     }
 
-    public void setDepotName(String depotName) {
-        this.depotName = depotName;
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber;
     }
 
-    public BigDecimal getBasicNumber() {
-        return basicNumber;
+    public BigDecimal getOperNumber() {
+        return operNumber;
     }
 
-    public void setBasicNumber(BigDecimal basicNumber) {
-        this.basicNumber = basicNumber;
+    public void setOperNumber(BigDecimal operNumber) {
+        this.operNumber = operNumber;
     }
 
-    public BigDecimal getUnitWeight() {
-        return unitWeight;
+    public String getPurchaseBillNo() {
+        return purchaseBillNo;
     }
 
-    public void setUnitWeight(BigDecimal unitWeight) {
-        this.unitWeight = unitWeight;
+    public void setPurchaseBillNo(String purchaseBillNo) {
+        this.purchaseBillNo = purchaseBillNo;
     }
 
-    public BigDecimal getTheoreticalWeight() {
-        return theoreticalWeight;
+    public BigDecimal getInTheoreticalWeight() {
+        return inTheoreticalWeight;
     }
 
-    public void setTheoreticalWeight(BigDecimal theoreticalWeight) {
-        this.theoreticalWeight = theoreticalWeight;
+    public void setInTheoreticalWeight(BigDecimal inTheoreticalWeight) {
+        this.inTheoreticalWeight = inTheoreticalWeight;
     }
 
-    public BigDecimal getActualWeight() {
-        return actualWeight;
+    public String getSaleBillNo() {
+        return saleBillNo;
     }
 
-    public void setActualWeight(BigDecimal actualWeight) {
-        this.actualWeight = actualWeight;
+    public void setSaleBillNo(String saleBillNo) {
+        this.saleBillNo = saleBillNo;
+    }
+
+    public BigDecimal getOutActualWeight() {
+        return outActualWeight;
+    }
+
+    public void setOutActualWeight(BigDecimal outActualWeight) {
+        this.outActualWeight = outActualWeight;
     }
 
     public BigDecimal getWeightDiff() {
@@ -176,5 +147,29 @@ public class DepotItemVo4WeightDiff {
 
     public void setWeightDiff(BigDecimal weightDiff) {
         this.weightDiff = weightDiff;
+    }
+
+    public BigDecimal getPurchaseUnitPrice() {
+        return purchaseUnitPrice;
+    }
+
+    public void setPurchaseUnitPrice(BigDecimal purchaseUnitPrice) {
+        this.purchaseUnitPrice = purchaseUnitPrice;
+    }
+
+    public BigDecimal getDiffAmount() {
+        return diffAmount;
+    }
+
+    public void setDiffAmount(BigDecimal diffAmount) {
+        this.diffAmount = diffAmount;
+    }
+
+    public String getDepotName() {
+        return depotName;
+    }
+
+    public void setDepotName(String depotName) {
+        this.depotName = depotName;
     }
 }

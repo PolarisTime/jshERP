@@ -105,7 +105,7 @@
             <a-row class="form-row" :gutter="24">
               <a-col :lg="6" :md="12" :sm="24">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="附件">
-                  <j-upload v-model="fileList" bizPath="bill"></j-upload>
+                  <j-upload v-model="fileList" bizPath="bill" :billId="model.id || ''"></j-upload>
                 </a-form-item>
               </a-col>
             </a-row>

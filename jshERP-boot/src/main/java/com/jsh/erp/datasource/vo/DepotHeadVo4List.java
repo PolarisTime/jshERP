@@ -100,6 +100,11 @@ public class DepotHeadVo4List extends DepotHead{
      */
     private String referencedByNumbers;
 
+    /**
+     * 关联的采购入库单号（逗号分隔，用于采购订单列表）
+     */
+    private String purchaseInNumbers;
+
     public String getProjectName() {
         return projectName;
     }
@@ -338,5 +343,13 @@ public class DepotHeadVo4List extends DepotHead{
 
     public void setReferencedByNumbers(String referencedByNumbers) {
         this.referencedByNumbers = referencedByNumbers;
+    }
+
+    public String getPurchaseInNumbers() {
+        return purchaseInNumbers;
+    }
+
+    public void setPurchaseInNumbers(String purchaseInNumbers) {
+        this.purchaseInNumbers = purchaseInNumbers;
     }
 }

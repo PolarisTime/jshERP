@@ -70,6 +70,9 @@ public class DepotHead {
 
     private String deleteFlag;
 
+    /** 关联标记：0=未关联，1=已被下游单据关联（如采购入库被销售出库引用） */
+    private String linkedFlag;
+
     public Long getId() {
         return id;
     }
@@ -332,5 +335,13 @@ public class DepotHead {
 
     public void setDeleteFlag(String deleteFlag) {
         this.deleteFlag = deleteFlag == null ? null : deleteFlag.trim();
+    }
+
+    public String getLinkedFlag() {
+        return linkedFlag;
+    }
+
+    public void setLinkedFlag(String linkedFlag) {
+        this.linkedFlag = linkedFlag == null ? null : linkedFlag.trim();
     }
 }

@@ -95,8 +95,10 @@ public class DepotHeadController extends BaseController {
         Long accountId = StringUtil.parseStrLong(StringUtil.getInfo(search, "accountId"));
         String salesMan = StringUtil.getInfo(search, "salesMan");
         String remark = StringUtil.getInfo(search, "remark");
+        String linkedFlag = StringUtil.getInfo(search, "linkedFlag");
+        String priceApproved = StringUtil.getInfo(search, "priceApproved");
         List<DepotHeadVo4List> list = depotHeadService.select(type, subType, hasDebt, status, purchaseStatus, number, linkApply, linkNumber,
-                beginTime, endTime, materialParam, organId, creator, depotId, accountId, salesMan, remark);
+                beginTime, endTime, materialParam, organId, creator, depotId, accountId, salesMan, remark, linkedFlag, priceApproved);
         return getDataTable(list);
     }
 
@@ -586,6 +588,31 @@ public class DepotHeadController extends BaseController {
             logger.error(e.getMessage(), e);
             res.code = 500;
             res.data = "获取数据失败";
+        }
+        return res;
+    }
+
+    /**
+     * 首页待处理单据列表
+     */
+    @GetMapping(value = "/dashboardPendingList")
+    @ApiOperation(value = "首页待处理单据列表")
+    public BaseResponseInfo dashboardPendingList(HttpServletRequest request) throws Exception {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            List<Map<String, Object>> purchaseInList = depotHeadService.getDashboardPurchaseInList();
+            List<Map<String, Object>> saleOutList = depotHeadService.getDashboardSaleOutList();
+            List<Map<String, Object>> freightList = depotHeadService.getDashboardFreightList();
+            Map<String, Object> data = new HashMap<>();
+            data.put("purchaseInList", purchaseInList);
+            data.put("saleOutList", saleOutList);
+            data.put("freightList", freightList);
+            res.code = 200;
+            res.data = data;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = "查询首页待处理数据失败";
         }
         return res;
     }

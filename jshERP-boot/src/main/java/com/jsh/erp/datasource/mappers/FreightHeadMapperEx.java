@@ -21,9 +21,15 @@ public interface FreightHeadMapperEx {
             @Param("carrierId") Long carrierId,
             @Param("status") String status,
             @Param("paymentStatus") String paymentStatus,
+            @Param("deliveryStatus") String deliveryStatus,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
             @Param("tenantId") Long tenantId);
+
+    /**
+     * 批量设置送达状态
+     */
+    int batchSetDeliveryStatus(@Param("deliveryStatus") String deliveryStatus, @Param("ids") String[] ids);
 
     /**
      * 批量逻辑删除运费单主表

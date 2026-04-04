@@ -193,11 +193,12 @@ public class SystemConfigController extends BaseController {
         try {
             String savePath = "";
             String bizPath = request.getParameter("biz");
+            String billId = request.getParameter("billId");
             if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath) || "contract".equals(bizPath)) {
                 MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
                 MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
                 if(fileUploadType == 1) {
-                    savePath = systemConfigService.uploadLocal(file, bizPath, request);
+                    savePath = systemConfigService.uploadLocal(file, bizPath, billId, request);
                 } else if(fileUploadType == 2) {
                     savePath = systemConfigService.uploadAliOss(file, bizPath, request);
                 }

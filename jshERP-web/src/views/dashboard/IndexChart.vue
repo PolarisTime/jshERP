@@ -1,145 +1,184 @@
 <template>
   <div class="page-header-index-wide">
+    <!-- 统计卡片 -->
     <a-row :gutter="24">
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <chart-card :loading="loading" title="今日销售" data-step="1" data-title="今日销售" data-intro="统计今日销售单据的总金额">
-          <a-tooltip title="统计今日销售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+        <chart-card :loading="loading" title="今日销售">
+          <a-tooltip title="统计今日销售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.todaySale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <chart-card :loading="loading" title="今日零售" data-step="2" data-title="今日零售" data-intro="统计今日零售单据的总金额">
-          <a-tooltip title="统计今日零售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+        <chart-card :loading="loading" title="今日零售">
+          <a-tooltip title="统计今日零售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.todayRetailSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <chart-card :loading="loading" title="今日采购" data-step="3" data-title="今日采购" data-intro="统计今日采购单据的总金额">
-          <a-tooltip title="统计今日采购单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+        <chart-card :loading="loading" title="今日采购">
+          <a-tooltip title="统计今日采购单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.todayBuy"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="本月累计销售">
-          <a-tooltip title="统计本月销售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计本月销售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.monthSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="本月累计零售">
-          <a-tooltip title="统计本月零售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计本月零售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.monthRetailSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="本月累计采购">
-          <a-tooltip placement="left" title="统计本月采购单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip placement="left" title="统计本月采购单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.monthBuy"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="昨日销售">
-          <a-tooltip title="统计昨日销售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计昨日销售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yesterdaySale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="昨日零售">
-          <a-tooltip title="统计昨日零售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计昨日零售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yesterdayRetailSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="昨日采购">
-          <a-tooltip title="统计昨日采购单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计昨日采购单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yesterdayBuy"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="今年累计销售">
-          <a-tooltip title="统计今年销售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计今年销售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yearSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="今年累计零售">
-          <a-tooltip title="统计今年零售单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip title="统计今年零售单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yearRetailSale"></head-info>
         </chart-card>
       </a-col>
       <a-col :sm="24" :md="12" :xl="4" :style="{ paddingRight: '0px',marginBottom: '12px' }">
         <chart-card :loading="loading" title="今年累计采购">
-          <a-tooltip placement="left" title="统计今年采购单据的总金额" slot="action">
-            <a-icon type="info-circle-o" />
-          </a-tooltip>
+          <a-tooltip placement="left" title="统计今年采购单据的总金额" slot="action"><a-icon type="info-circle-o" /></a-tooltip>
           <head-info :content="statistics.yearBuy"></head-info>
         </chart-card>
       </a-col>
     </a-row>
+
+    <!-- 待处理单据列表 -->
     <a-row :gutter="24">
-      <a-col :sm="24" :md="12" :xl="8" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <a-card :loading="loading" :bordered="false" :body-style="{paddingRight: '5'}" data-step="4" data-title="销售统计"
-                data-intro="统计往前6个月每月销售的总金额">
-          <bar title="销售统计" :height="barHeight" :yaxisText="yaxisText" :dataSource="salePriceData"/>
+      <!-- 采购入库待处理 -->
+      <a-col :sm="24" :xl="12" :style="{ marginBottom: '12px' }">
+        <a-card :bordered="false" title="采购入库 - 待关联出库" :loading="pendingLoading">
+          <a-table
+            size="small"
+            bordered
+            rowKey="id"
+            :columns="purchaseInColumns"
+            :dataSource="purchaseInList"
+            :pagination="false"
+            :scroll="{ y: 300 }">
+            <template slot="numberRender" slot-scope="text">
+              <a @click="goToBill('purchase_in', text)">{{ text }}</a>
+            </template>
+            <template slot="weightRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(3) }}
+            </template>
+            <template slot="amountRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(2) }}
+            </template>
+          </a-table>
+          <div style="margin-top:8px;padding:4px 8px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;text-align:right;">
+            <span>{{ purchaseInList.length }} 条</span>
+            <a-divider type="vertical" />
+            <span>合计吨位：<b>{{ purchaseInSummary.weight }}</b></span>
+            <a-divider type="vertical" />
+            <span>合计金额：<b>{{ purchaseInSummary.amount }}</b></span>
+          </div>
         </a-card>
       </a-col>
-      <a-col :sm="24" :md="12" :xl="8" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <a-card :loading="loading" :bordered="false" :body-style="{paddingRight: '5'}" data-step="5" data-title="零售统计"
-                data-intro="统计往前6个月每月零售的总金额">
-          <bar title="零售统计" :height="barHeight" :yaxisText="yaxisText" :dataSource="retailPriceData"/>
-        </a-card>
-      </a-col>
-      <a-col :sm="24" :md="12" :xl="8" :style="{ paddingRight: '0px',marginBottom: '12px' }">
-        <a-card :loading="loading" :bordered="false" :body-style="{paddingRight: '5'}" data-step="6" data-title="采购统计"
-                data-intro="统计往前6个月每月采购的总金额">
-          <bar title="采购统计" :height="barHeight" :yaxisText="yaxisText" :dataSource="buyPriceData"/>
+      <!-- 销售出库待处理 -->
+      <a-col :sm="24" :xl="12" :style="{ marginBottom: '12px' }">
+        <a-card :bordered="false" title="销售出库 - 待审核/待核准" :loading="pendingLoading">
+          <a-table
+            size="small"
+            bordered
+            rowKey="id"
+            :columns="saleOutColumns"
+            :dataSource="saleOutList"
+            :pagination="false"
+            :scroll="{ y: 300 }">
+            <template slot="numberRender" slot-scope="text">
+              <a @click="goToBill('sale_out', text)">{{ text }}</a>
+            </template>
+            <template slot="weightRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(3) }}
+            </template>
+            <template slot="amountRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(2) }}
+            </template>
+            <template slot="statusRender" slot-scope="text, record">
+              <a-tag v-if="record.status === '0'" color="red">未审核</a-tag>
+              <a-tag v-else-if="record.priceApproved !== '1'" color="orange">未核准</a-tag>
+            </template>
+          </a-table>
+          <div style="margin-top:8px;padding:4px 8px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;text-align:right;">
+            <span>{{ saleOutList.length }} 条</span>
+            <a-divider type="vertical" />
+            <span>合计吨位：<b>{{ saleOutSummary.weight }}</b></span>
+            <a-divider type="vertical" />
+            <span>合计金额：<b>{{ saleOutSummary.amount }}</b></span>
+          </div>
         </a-card>
       </a-col>
     </a-row>
+
+    <!-- 物流待处理列表 -->
     <a-row :gutter="24">
-      <a-col :sm="24" :md="24" :xl="24" :style="{ paddingRight: '0px',marginBottom: '6px' }">
-        <a-card :bordered="false" :body-style="{padding: '5'}" data-step="7" data-title="服务和版权"
-                data-intro="展示服务到期时间（快到期时会出现续费链接，请注意及时续费）、
-          用户数量（是指最多可以录入的用户数量）、版权信息">
-          <div class="hidden-xs" style="float:right;">
-            <a-popover
-              trigger="hover"
-              :visible="hovered"
-              @visibleChange="handleHoverChange">
-              <div slot="content">
-                <img src="/static/weixin.jpg" style="width:258px" />
-              </div>
-              <a-button type="link" v-if="showWeixinSpan()">管伊佳ERP微信小程序</a-button>
-            </a-popover>
-            &copy; 2015-2030 {{systemTitle}} V3.6
+      <a-col :sm="24" :xl="24" :style="{ marginBottom: '12px' }">
+        <a-card :bordered="false" title="物流单 - 未审核/未送达" :loading="pendingLoading">
+          <a-table
+            size="small"
+            bordered
+            rowKey="id"
+            :columns="freightColumns"
+            :dataSource="freightList"
+            :pagination="false"
+            :scroll="{ y: 300 }">
+            <template slot="billNoRender" slot-scope="text">
+              <a @click="goToBill('freight', text)">{{ text }}</a>
+            </template>
+            <template slot="weightRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(3) }}
+            </template>
+            <template slot="amountRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(2) }}
+            </template>
+            <template slot="freightStatusRender" slot-scope="text, record">
+              <a-tag v-if="record.status === '0'" color="red">未审核</a-tag>
+              <a-tag v-else color="green">已审核</a-tag>
+              <a-tag v-if="record.deliveryStatus === '1'" color="blue">已送达</a-tag>
+              <a-tag v-else color="orange">未送达</a-tag>
+            </template>
+          </a-table>
+          <div style="margin-top:8px;padding:4px 8px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;text-align:right;">
+            <span>{{ freightList.length }} 条</span>
+            <a-divider type="vertical" />
+            <span>合计吨位：<b>{{ freightSummary.weight }}</b></span>
+            <a-divider type="vertical" />
+            <span>合计运费：<b>{{ freightSummary.freight }}</b></span>
           </div>
-          <a-tag v-if="tenant.type==0" color="blue">试用到期：{{tenant.expireTime}}</a-tag>
-          <a-tag v-if="tenant.type==0" color="blue">试用用户：{{tenant.userCurrentNum}}/{{tenant.userNumLimit}}</a-tag>
-          <a-tag v-if="tenant.type==1" color="blue">服务到期：{{tenant.expireTime}}</a-tag>
-          <a-tag v-if="tenant.type==1" color="blue">授权用户：{{tenant.userCurrentNum}}/{{tenant.userNumLimit}}</a-tag>
-          <a v-if="hasExpire" style="color: red;" :href="payFeeUrl" target="_blank">立即续费</a>
         </a-card>
       </a-col>
     </a-row>
@@ -149,16 +188,9 @@
   import ChartCard from '@/components/ChartCard'
   import ACol from "ant-design-vue/es/grid/Col"
   import ATooltip from "ant-design-vue/es/tooltip/Tooltip"
-  import MiniArea from '@/components/chart/MiniArea'
-  import MiniBar from '@/components/chart/MiniBar'
-  import MiniProgress from '@/components/chart/MiniProgress'
-  import Bar from '@/components/chart/Bar'
-  import LineChartMultid from '@/components/chart/LineChartMultid'
   import HeadInfo from '@/components/tools/HeadInfo.vue'
-  import Trend from '@/components/Trend'
-  import { getBuyAndSaleStatistics, buyOrSalePrice, getPlatformConfigByKey } from '@/api/api'
-  import { handleIntroJs } from "@/utils/util"
-  import { getAction,postAction } from '../../api/manage'
+  import { getBuyAndSaleStatistics } from '@/api/api'
+  import { getAction } from '@/api/manage'
 
   export default {
     name: "IndexChart",
@@ -166,149 +198,101 @@
       ATooltip,
       ACol,
       ChartCard,
-      MiniArea,
-      MiniBar,
-      MiniProgress,
-      Bar,
-      Trend,
-      LineChartMultid,
       HeadInfo
     },
     data() {
       return {
-        hovered: false,
-        systemTitle: window.SYS_TITLE,
-        systemUrl: window.SYS_URL,
         loading: true,
-        center: null,
+        pendingLoading: true,
         statistics: {},
-        barHeight: document.documentElement.clientHeight-585,
-        yaxisText: '金额',
-        buyPriceData: [],
-        salePriceData: [],
-        retailPriceData: [],
-        visitFields:['ip','visit'],
-        visitInfo:[],
-        hasExpire: false,
-        payFeeUrl: '',
-        tenant: {
-          type: '',
-          expireTime: '',
-          userCurrentNum: '',
-          userNumLimit: '',
-          tenantId: ''
-        }
+        purchaseInList: [],
+        saleOutList: [],
+        freightList: [],
+        purchaseInColumns: [
+          { title: '单据编号', dataIndex: 'number', width: 160, scopedSlots: { customRender: 'numberRender' } },
+          { title: '日期', dataIndex: 'operTime', width: 100 },
+          { title: '供应商', dataIndex: 'organName', width: 130, ellipsis: true },
+          { title: '重量(吨)', dataIndex: 'totalWeight', width: 100, align: 'right', scopedSlots: { customRender: 'weightRender' } },
+          { title: '金额', dataIndex: 'totalAmount', width: 100, align: 'right', scopedSlots: { customRender: 'amountRender' } }
+        ],
+        saleOutColumns: [
+          { title: '单据编号', dataIndex: 'number', width: 160, scopedSlots: { customRender: 'numberRender' } },
+          { title: '日期', dataIndex: 'operTime', width: 100 },
+          { title: '客户', dataIndex: 'organName', width: 130, ellipsis: true },
+          { title: '重量(吨)', dataIndex: 'totalWeight', width: 100, align: 'right', scopedSlots: { customRender: 'weightRender' } },
+          { title: '金额', dataIndex: 'totalAmount', width: 100, align: 'right', scopedSlots: { customRender: 'amountRender' } },
+          { title: '状态', dataIndex: 'status', width: 80, align: 'center', scopedSlots: { customRender: 'statusRender' } }
+        ],
+        freightColumns: [
+          { title: '单据编号', dataIndex: 'billNo', width: 150, scopedSlots: { customRender: 'billNoRender' } },
+          { title: '日期', dataIndex: 'billTime', width: 100 },
+          { title: '结算方', dataIndex: 'carrierName', width: 130, ellipsis: true },
+          { title: '重量(吨)', dataIndex: 'totalWeight', width: 100, align: 'right', scopedSlots: { customRender: 'weightRender' } },
+          { title: '运费(元)', dataIndex: 'totalFreight', width: 100, align: 'right', scopedSlots: { customRender: 'amountRender' } },
+          { title: '状态', dataIndex: 'status', width: 140, align: 'center', scopedSlots: { customRender: 'freightStatusRender' } }
+        ]
+      }
+    },
+    computed: {
+      purchaseInSummary() {
+        let w = 0, a = 0
+        this.purchaseInList.forEach(r => { w += parseFloat(r.totalWeight || 0); a += parseFloat(r.totalAmount || 0) })
+        return { weight: w.toFixed(3), amount: a.toFixed(2) }
+      },
+      saleOutSummary() {
+        let w = 0, a = 0
+        this.saleOutList.forEach(r => { w += parseFloat(r.totalWeight || 0); a += parseFloat(r.totalAmount || 0) })
+        return { weight: w.toFixed(3), amount: a.toFixed(2) }
+      },
+      freightSummary() {
+        let w = 0, f = 0
+        this.freightList.forEach(r => { w += parseFloat(r.totalWeight || 0); f += parseFloat(r.totalFreight || 0) })
+        return { weight: w.toFixed(3), freight: f.toFixed(2) }
       }
     },
     created() {
-      setTimeout(() => {
-        this.loading = !this.loading
-      }, 1000)
-      this.initInfo()
-      this.initWithTenant()
-    },
-    mounted() {
-      handleIntroJs('indexChart', 1)
+      setTimeout(() => { this.loading = false }, 1000)
+      this.initStatistics()
+      this.initPendingList()
     },
     methods: {
-      initInfo () {
-        getBuyAndSaleStatistics().then((res)=>{
-          if(res.code === 200){
-            this.statistics = res.data;
-          }
-        })
-        buyOrSalePrice().then(res=>{
-          if(res.code === 200){
-            this.buyPriceData = res.data.buyPriceList
-            this.salePriceData = res.data.salePriceList
-            this.retailPriceData = res.data.retailPriceList
-          }
-        })
-        getPlatformConfigByKey({"platformKey": "pay_fee_url"}).then((res)=> {
-          if (res && res.code === 200) {
-            this.payFeeUrl = res.data.platformValue
+      initStatistics() {
+        getBuyAndSaleStatistics().then((res) => {
+          if (res.code === 200) {
+            this.statistics = res.data
           }
         })
       },
-      initWithTenant() {
-        getAction("/user/infoWithTenant",{}).then(res=>{
-          if(res && res.code === 200) {
-            this.tenant = res.data
-            let currentTime = new Date(); //新建一个日期对象，默认现在的时间
-            let expireTime = new Date(res.data.expireTime); //设置过去的一个时间点，"yyyy-MM-dd HH:mm:ss"格式化日期
-            let difftime = expireTime - currentTime; //计算时间差
-            //如果距离到期还剩5天就进行提示续费
-            if(difftime<86400000*5) {
-              this.hasExpire = true
-              //针对免费租户发送试用到期的消息提醒
-              if(res.data.type === '0') {
-                //先检查有无发送过，只发送一次
-                getAction("/msg/getMsgCountByType",{'type': '试用到期'}).then(res=>{
-                  if(res && res.code === 200) {
-                    if(res.data.count === 0) {
-                      //发送消息
-                      let msgParam = {
-                        'msgTitle': '试用到期提醒',
-                        'msgContent': '试用期即将结束，请您及时续费，过期将会影响正常使用！',
-                        'type': '试用到期',
-                        'userId': this.tenant.tenantId
-                      }
-                      postAction("/msg/add",msgParam).then(res=>{
-                        if(res && res.code === 200) {
-
-                        }
-                      })
-                    }
-                  }
-                })
-              }
-            }
+      initPendingList() {
+        getAction('/depotHead/dashboardPendingList', {}).then((res) => {
+          if (res.code === 200) {
+            this.purchaseInList = res.data.purchaseInList || []
+            this.saleOutList = res.data.saleOutList || []
+            this.freightList = res.data.freightList || []
           }
+        }).finally(() => {
+          this.pendingLoading = false
         })
       },
-      handleHoverChange(visible) {
-        this.hovered = visible
-      },
-      showWeixinSpan() {
-        let host = window.location.host
-        if(host === 'cloud.gyjerp.com') {
-          return true
-        } else {
-          return false
+      goToBill(type, number) {
+        if (type === 'purchase_in') {
+          this.$router.push({ path: '/bill/purchase_in' })
+        } else if (type === 'sale_out') {
+          this.$router.push({ path: '/bill/sale_out' })
+        } else if (type === 'freight') {
+          this.$router.push({ path: '/freight/bill' })
         }
       }
     }
   }
 </script>
 <style lang="less" scoped>
-  .circle-cust{
-    position: relative;
-    top: 28px;
-    left: -100%;
-  }
-  .extra-wrapper {
-    line-height: 55px;
-    padding-right: 24px;
-
-    .extra-item {
-      display: inline-block;
-      margin-right: 24px;
-
-      a {
-        margin-left: 24px;
-      }
-    }
-  }
-  /* 首页访问量统计 */
+  @import '~@assets/less/common.less';
   .head-info {
     position: relative;
     text-align: left;
     padding: 0 32px 0 0;
     min-width: 125px;
-    &.center {
-      text-align: center;
-      padding: 0 32px;
-    }
     span {
       color: rgba(0, 0, 0, .45);
       display: inline-block;

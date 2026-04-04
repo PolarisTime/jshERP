@@ -181,7 +181,7 @@
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="附件" data-step="11" data-title="附件"
                          data-intro="可以上传与单据相关的图片、文档，支持多个文件">
-              <j-upload v-model="fileList" bizPath="bill"></j-upload>
+              <j-upload v-model="fileList" bizPath="bill" :billId="model.id || ''"></j-upload>
             </a-form-item>
           </a-col>
         </a-row>

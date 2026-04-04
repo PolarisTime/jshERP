@@ -1803,3 +1803,12 @@ ALTER TABLE jsh_supplier ADD COLUMN project_name VARCHAR(255) DEFAULT NULL COMME
 ALTER TABLE jsh_supplier ADD COLUMN project_address VARCHAR(500) DEFAULT NULL COMMENT '项目地址' AFTER project_name;
 -- 项目名称+租户唯一索引（MySQL允许多个NULL值，不影响供应商和会员）
 ALTER TABLE jsh_supplier ADD UNIQUE INDEX uk_project_name_tenant (project_name, tenant_id);
+
+-- --------------------------------------------------------
+-- 时间 2026年4月4日
+-- 采购入库单关联标记：独立于status，标记是否已被销售出库关联
+-- --------------------------------------------------------
+ALTER TABLE jsh_depot_head ADD COLUMN linked_flag VARCHAR(1) DEFAULT '0' COMMENT '关联标记：0=未关联，1=已被下游单据关联' AFTER delete_flag;
+
+-- 物流单送达状态
+ALTER TABLE jsh_freight_head ADD COLUMN delivery_status VARCHAR(1) DEFAULT '0' COMMENT '送达状态：0=未送达，1=已送达' AFTER delete_flag;

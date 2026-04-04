@@ -116,7 +116,8 @@ public class DepotHeadService {
     }
 
     public List<DepotHeadVo4List> select(String type, String subType, String hasDebt, String status, String purchaseStatus, String number, String linkApply, String linkNumber,
-           String beginTime, String endTime, String materialParam, Long organId, Long creator, Long depotId, Long accountId, String salesMan, String remark) throws Exception {
+           String beginTime, String endTime, String materialParam, Long organId, Long creator, Long depotId, Long accountId, String salesMan, String remark,
+           String linkedFlag, String priceApproved) throws Exception {
         List<DepotHeadVo4List> list = new ArrayList<>();
         try{
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -137,7 +138,7 @@ public class DepotHeadService {
             PageUtils.startPage();
             list = depotHeadMapperEx.selectByConditionDepotHead(type, subType, creatorArray, hasDebt,
                     statusArray, purchaseStatusArray, number, linkApply, linkNumber, beginTime, endTime,
-                    materialParam, organId, organArray, creator, depotId, depotArray, accountId, salesMan, remark);
+                    materialParam, organId, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, priceApproved);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
@@ -157,6 +158,11 @@ public class DepotHeadService {
                 Map<String,String> referencedByMap = null;
                 if("采购".equals(subType)) {
                     referencedByMap = getReferencedByNumbersMapByList(numberList);
+                }
+                //被采购入库引用的单号（仅采购订单场景）
+                Map<String,String> purchaseInRefMap = null;
+                if("采购订单".equals(subType)) {
+                    purchaseInRefMap = getPurchaseInByOrderNumbersMapByList(numberList);
                 }
                 for (DepotHeadVo4List dh : list) {
                     if(accountMap!=null && StringUtil.isNotEmpty(dh.getAccountIdList()) && StringUtil.isNotEmpty(dh.getAccountMoneyList())) {
@@ -234,9 +240,13 @@ public class DepotHeadService {
                     if(totalWeightMap!=null) {
                         dh.setTotalWeight(totalWeightMap.get(dh.getId()));
                     }
-                    //被引用的出库单号
+                    //被引用的出库单号（采购入库场景）
                     if(referencedByMap!=null && referencedByMap.containsKey(dh.getNumber())) {
                         dh.setReferencedByNumbers(referencedByMap.get(dh.getNumber()));
+                    }
+                    //关联的采购入库单号（采购订单场景）
+                    if(purchaseInRefMap!=null && purchaseInRefMap.containsKey(dh.getNumber())) {
+                        dh.setPurchaseInNumbers(purchaseInRefMap.get(dh.getNumber()));
                     }
                     //以销定购的情况（不能显示销售单据的金额和客户名称）
                     if(StringUtil.isNotEmpty(purchaseStatus)) {
@@ -515,6 +525,12 @@ public class DepotHeadService {
                     DepotHeadExample example = new DepotHeadExample();
                     example.createCriteria().andNumberEqualTo(depotHead.getLinkNumber());
                     depotHeadMapper.updateByExampleSelective(dh, example);
+                    //销售出库删除时，清除采购入库的关联标记（无其他引用时）
+                    if(BusinessConstants.DEPOTHEAD_TYPE_OUT.equals(depotHead.getType())
+                            && BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType())
+                            && (exceptCurrentList==null || exceptCurrentList.size()==0)) {
+                        setLinkedFlag(depotHead.getLinkNumber(), "0");
+                    }
                 }
             }
             //将关联的单据置为审核状态-针对请购单转采购订单的情况
@@ -719,6 +735,16 @@ public class DepotHeadService {
                 if("1".equals(depotHead.getStatus()) && "0".equals(depotHead.getPurchaseStatus())) {
                     dhIds.add(id);
                     noList.add(depotHead.getNumber());
+                } else if(("2".equals(depotHead.getStatus()) || "3".equals(depotHead.getStatus()))
+                        && "0".equals(depotHead.getPurchaseStatus())) {
+                    //status='2'或'3'（历史脏数据兼容）：检查是否还有下游单据引用，若无则允许反审核
+                    if(!hasActiveDownstreamBills(depotHead.getNumber())) {
+                        dhIds.add(id);
+                        noList.add(depotHead.getNumber());
+                    } else {
+                        throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_CODE,
+                                String.format(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_MSG));
+                    }
                 } else if("2".equals(depotHead.getPurchaseStatus())) {
                     throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_CODE,
                             String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_MSG));
@@ -904,6 +930,30 @@ public class DepotHeadService {
     }
 
     /**
+     * 批量查询被采购入库引用的单号（采购订单场景）
+     */
+    public Map<String,String> getPurchaseInByOrderNumbersMapByList(List<String> numberList) {
+        Map<String,String> map = new HashMap<>();
+        if(numberList!=null && numberList.size()>0) {
+            try {
+                List<Map<String, String>> list = depotHeadMapperEx.getPurchaseInByOrderNumbersMap(numberList);
+                if(list!=null) {
+                    for(Map<String, String> item : list) {
+                        String billNumber = item.get("billNumber") != null ? item.get("billNumber").toString() : "";
+                        String refNumbers = item.get("refNumbers") != null ? item.get("refNumbers").toString() : "";
+                        if(StringUtil.isNotEmpty(billNumber)) {
+                            map.put(billNumber, refNumbers);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("查询采购入库关联信息异常", e);
+            }
+        }
+        return map;
+    }
+
+    /**
      * 批量查询被销售出库引用的单号
      */
     public Map<String,String> getReferencedByNumbersMapByList(List<String> numberList) {
@@ -936,6 +986,18 @@ public class DepotHeadService {
             }
         }
         return materialCountListMap;
+    }
+
+    public List<Map<String, Object>> getDashboardPurchaseInList() {
+        return depotHeadMapperEx.getDashboardPurchaseInList();
+    }
+
+    public List<Map<String, Object>> getDashboardSaleOutList() {
+        return depotHeadMapperEx.getDashboardSaleOutList();
+    }
+
+    public List<Map<String, Object>> getDashboardFreightList() {
+        return depotHeadMapperEx.getDashboardFreightList();
     }
 
     /**
@@ -1258,6 +1320,34 @@ public class DepotHeadService {
             JshException.readFail(logger, e);
         }
         return resList;
+    }
+
+    /**
+     * 检查是否存在引用指定单据号的下游活跃单据（未删除）
+     * 用于反审核时判断status='3'的单据是否可以安全回退
+     * @param number 被引用的单据号
+     * @return true=有下游引用，false=无下游引用
+     */
+    public boolean hasActiveDownstreamBills(String number) {
+        DepotHeadExample example = new DepotHeadExample();
+        example.createCriteria().andLinkNumberEqualTo(number)
+                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<DepotHead> list = depotHeadMapper.selectByExample(example);
+        return list != null && list.size() > 0;
+    }
+
+    /**
+     * 设置单据的关联标记（linked_flag），独立于status字段
+     * @param number 单据号
+     * @param flag "0"=未关联, "1"=已关联
+     */
+    public void setLinkedFlag(String number, String flag) {
+        DepotHead dh = new DepotHead();
+        dh.setLinkedFlag(flag);
+        DepotHeadExample example = new DepotHeadExample();
+        List<String> numberList = StringUtil.strToStringList(number);
+        example.createCriteria().andNumberIn(numberList);
+        depotHeadMapper.updateByExampleSelective(dh, example);
     }
 
     /**

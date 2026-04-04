@@ -102,7 +102,7 @@
             <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
               <a-button icon="import" @click="onImport(prefixNo)">导入明细</a-button>
             </a-row>
-            <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
+            <a-row :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
               <a-button icon="select" @click="onSearchPurchaseBill">选择采购入库</a-button>
             </a-row>
           </template>
@@ -204,7 +204,7 @@
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="附件" data-step="12" data-title="附件"
                          data-intro="可以上传与单据相关的图片、文档，支持多个文件">
-              <j-upload v-model="fileList" bizPath="bill"></j-upload>
+              <j-upload v-model="fileList" bizPath="bill" :billId="model.id || ''"></j-upload>
             </a-form-item>
           </a-col>
         </a-row>
@@ -522,6 +522,8 @@
         }
         this.$refs.purchaseBillList.show('入库', '采购', '供应商', "1")
         this.$refs.purchaseBillList.title = "请选择采购入库单"
+        //隐藏已被关联的采购入库单
+        this.$refs.purchaseBillList.queryParam.linkedFlag = '0'
       },
       purchaseBillListOk(selectBillDetailRows, linkNumber, organId, discountMoney, deposit, remark, depotId, accountId, salesMan) {
         let that = this
@@ -530,9 +532,16 @@
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
         if(selectBillDetailRows && selectBillDetailRows.length>0) {
-          //构建已有明细行的 linkId 集合，用于排重（使用 Set + 字符串化，避免类型不一致导致排重失败）
+          //从JEditableTable获取当前实际行（用户删除的行不会出现在这里）
+          let currentRows = []
+          this.$refs.materialDataTable.getValues((error, values) => {
+            if(values) {
+              currentRows = values.filter(row => row.barCode)
+            }
+          })
+          //构建已有明细行的 linkId 集合，用于排重
           let existLinkIdSet = new Set()
-          this.materialTable.dataSource.forEach(row => {
+          currentRows.forEach(row => {
             if(row.linkId) existLinkIdSet.add(String(row.linkId))
           })
           let newRows = []
@@ -552,8 +561,8 @@
             this.$message.warning('所选单据的明细已全部添加')
             return
           }
-          //追加到现有明细行
-          this.materialTable.dataSource = this.materialTable.dataSource.concat(newRows)
+          //用当前实际行+新行替换整个dataSource（避免已删除行残留）
+          this.materialTable.dataSource = currentRows.concat(newRows)
           //重置动态列，基于全部明细行重新计算列显示状态（避免多次选择后列只增不减）
           this.changeColumnHide()
           this.materialTable.dataSource.forEach(row => {
@@ -566,13 +575,8 @@
           })
           let discountLastMoney = (allTaxLastMoney).toFixed(2)-0
           let changeAmount = discountLastMoney
-          //linkNumber 追加（多次选择用逗号分隔，排重避免同一单据号重复追加）
-          let oldLinkNumber = this.form.getFieldValue('linkNumber') || ''
-          let existNumbers = oldLinkNumber ? oldLinkNumber.split(',').map(s => s.trim()).filter(s => s) : []
-          let newLinkNumber = oldLinkNumber
-          if(linkNumber && existNumbers.indexOf(linkNumber) === -1) {
-            newLinkNumber = oldLinkNumber ? (oldLinkNumber + ',' + linkNumber) : linkNumber
-          }
+          //选择采购入库时直接设置linkNumber为当前选择的单号（替换旧值）
+          let newLinkNumber = linkNumber || ''
           this.$nextTick(() => {
             this.form.setFieldsValue({
               'linkNumber': newLinkNumber,

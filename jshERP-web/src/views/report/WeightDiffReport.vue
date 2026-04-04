@@ -18,18 +18,7 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item label="单据类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="全部" allow-clear v-model="queryParam.subType">
-                    <a-select-option value="采购">采购入库</a-select-option>
-                    <a-select-option value="采购退货">采购退货</a-select-option>
-                    <a-select-option value="销售">销售出库</a-select-option>
-                    <a-select-option value="销售退货">销售退货</a-select-option>
-                    <a-select-option value="其它">其它</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :md="6" :sm="24">
-                <a-form-item label="供应商/客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                <a-form-item label="供应商" :labelCol="labelCol" :wrapperCol="wrapperCol">
                   <a-select placeholder="请选择" showSearch allow-clear optionFilterProp="children" v-model="queryParam.organId">
                     <a-select-option v-for="item in organList" :key="item.id" :value="item.id">{{ item.supplier }}</a-select-option>
                   </a-select>
@@ -68,7 +57,7 @@
             ref="table"
             size="middle"
             bordered
-            rowKey="itemId"
+            rowKey="rowId"
             :columns="columns"
             :dataSource="dataSource"
             :components="handleDrag(columns)"
@@ -76,16 +65,33 @@
             :scroll="scroll"
             :loading="loading"
             @change="handleTableChange">
-            <template slot="billNoRender" slot-scope="text">
-              <a @click="handleViewBill(text)">{{ text }}</a>
+            <template slot="purchaseBillNoRender" slot-scope="text">
+              <span v-for="(no, idx) in (text||'').split(',')" :key="idx">
+                <a @click="handleViewBill(no.trim())">{{ no.trim() }}</a>
+                <span v-if="idx < (text||'').split(',').length - 1">, </span>
+              </span>
             </template>
-            <template slot="theoreticalWeightRender" slot-scope="text">
-              {{ parseFloat(text || 0).toFixed(2) }}
+            <template slot="saleBillNoRender" slot-scope="text">
+              <span v-if="text">
+                <span v-for="(no, idx) in text.split(',')" :key="idx">
+                  <a @click="handleViewBill(no.trim())">{{ no.trim() }}</a>
+                  <span v-if="idx < text.split(',').length - 1">, </span>
+                </span>
+              </span>
+              <span v-else>-</span>
             </template>
-            <template slot="actualWeightRender" slot-scope="text">
-              {{ parseFloat(text || 0).toFixed(2) }}
+            <template slot="weightRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(3) }}
             </template>
             <template slot="weightDiffRender" slot-scope="text">
+              <span :style="{color: parseFloat(text || 0) > 0 ? 'green' : parseFloat(text || 0) < 0 ? 'red' : ''}">
+                {{ parseFloat(text || 0).toFixed(3) }}
+              </span>
+            </template>
+            <template slot="priceRender" slot-scope="text">
+              {{ parseFloat(text || 0).toFixed(2) }}
+            </template>
+            <template slot="diffAmountRender" slot-scope="text">
               <span :style="{color: parseFloat(text || 0) > 0 ? 'green' : parseFloat(text || 0) < 0 ? 'red' : ''}">
                 {{ parseFloat(text || 0).toFixed(2) }}
               </span>
@@ -96,11 +102,13 @@
         <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
           <span>记录总数：<b>{{ summary.totalCount }}</b></span>
           <a-divider type="vertical" />
-          <span>理论重量合计(吨)：<b>{{ summary.totalTheoreticalWeight }}</b></span>
+          <span>入库理论重量合计(吨)：<b>{{ summary.totalInWeight }}</b></span>
           <a-divider type="vertical" />
-          <span>过磅重量合计(吨)：<b>{{ summary.totalActualWeight }}</b></span>
+          <span>出库过磅重量合计(吨)：<b>{{ summary.totalOutWeight }}</b></span>
           <a-divider type="vertical" />
           <span>差额合计(吨)：<b :style="{color: parseFloat(summary.totalDiff) > 0 ? 'green' : parseFloat(summary.totalDiff) < 0 ? 'red' : ''}">{{ summary.totalDiff }}</b></span>
+          <a-divider type="vertical" />
+          <span>差额金额合计：<b :style="{color: parseFloat(summary.totalDiffAmount) > 0 ? 'green' : parseFloat(summary.totalDiffAmount) < 0 ? 'red' : ''}">{{ summary.totalDiffAmount }}</b></span>
         </div>
         <bill-detail ref="billDetailModal"></bill-detail>
       </a-card>
@@ -126,7 +134,6 @@
         queryParam: {
           beginTime: '',
           endTime: '',
-          subType: undefined,
           organId: undefined,
           depotId: undefined
         },
@@ -136,38 +143,32 @@
         urlPath: '/report/weight_diff_report',
         pageName: 'weightDiffReport',
         defColumns: [
-          { title: '单据编号', dataIndex: 'billNo', width: 160, scopedSlots: { customRender: 'billNoRender' } },
-          { title: '单据类型', dataIndex: 'subType', width: 90 },
-          { title: '日期', dataIndex: 'billTimeStr', width: 100 },
+          { title: '供应商', dataIndex: 'organName', width: 130, ellipsis: true },
           { title: '商品名称', dataIndex: 'materialName', width: 150, ellipsis: true },
           { title: '规格', dataIndex: 'standard', width: 100 },
           { title: '型号', dataIndex: 'model', width: 100 },
           { title: '条码', dataIndex: 'barCode', width: 130 },
-          { title: '数量', dataIndex: 'basicNumber', width: 80, align: 'right' },
-          {
-            title: '理论重量(吨)', dataIndex: 'theoreticalWeight', width: 120, align: 'right',
-            scopedSlots: { customRender: 'theoreticalWeightRender' }
-          },
-          {
-            title: '过磅重量(吨)', dataIndex: 'actualWeight', width: 120, align: 'right',
-            scopedSlots: { customRender: 'actualWeightRender' }
-          },
-          {
-            title: '差额(吨)', dataIndex: 'weightDiff', width: 100, align: 'right',
-            scopedSlots: { customRender: 'weightDiffRender' }
-          },
-          { title: '供应商/客户', dataIndex: 'organName', width: 130, ellipsis: true },
+          { title: '批号', dataIndex: 'batchNumber', width: 120 },
+          { title: '数量', dataIndex: 'operNumber', width: 80, align: 'right' },
+          { title: '入库单号', dataIndex: 'purchaseBillNo', width: 170, scopedSlots: { customRender: 'purchaseBillNoRender' } },
+          { title: '入库理论重量(吨)', dataIndex: 'inTheoreticalWeight', width: 140, align: 'right', scopedSlots: { customRender: 'weightRender' } },
+          { title: '出库单号', dataIndex: 'saleBillNo', width: 170, scopedSlots: { customRender: 'saleBillNoRender' } },
+          { title: '出库过磅重量(吨)', dataIndex: 'outActualWeight', width: 140, align: 'right', scopedSlots: { customRender: 'weightRender' } },
+          { title: '差额(吨)', dataIndex: 'weightDiff', width: 110, align: 'right', scopedSlots: { customRender: 'weightDiffRender' } },
+          { title: '采购单价', dataIndex: 'purchaseUnitPrice', width: 100, align: 'right', scopedSlots: { customRender: 'priceRender' } },
+          { title: '差额金额', dataIndex: 'diffAmount', width: 110, align: 'right', scopedSlots: { customRender: 'diffAmountRender' } },
           { title: '仓库', dataIndex: 'depotName', width: 100 }
         ],
-        defDataIndex: ['billNo', 'subType', 'billTimeStr', 'materialName', 'standard', 'model', 'barCode', 'basicNumber', 'theoreticalWeight', 'actualWeight', 'weightDiff', 'organName', 'depotName'],
+        defDataIndex: ['organName','materialName','standard','model','barCode','batchNumber','operNumber','purchaseBillNo','inTheoreticalWeight','saleBillNo','outActualWeight','weightDiff','purchaseUnitPrice','diffAmount','depotName'],
         url: {
           list: "/depotItem/weightDifference"
         },
         summary: {
           totalCount: 0,
-          totalTheoreticalWeight: '0.00',
-          totalActualWeight: '0.00',
-          totalDiff: '0.00'
+          totalInWeight: '0.000',
+          totalOutWeight: '0.000',
+          totalDiff: '0.000',
+          totalDiffAmount: '0.00'
         }
       }
     },
@@ -177,7 +178,11 @@
       this.initDepotList();
     },
     watch: {
-      dataSource() {
+      dataSource(val) {
+        // 生成唯一rowKey
+        if(val && val.length) {
+          val.forEach((row, idx) => { row.rowId = idx })
+        }
         this.calcSummary();
       }
     },
@@ -218,7 +223,6 @@
         this.queryParam = {
           beginTime: '',
           endTime: '',
-          subType: undefined,
           organId: undefined,
           depotId: undefined
         }
@@ -231,16 +235,18 @@
         }
       },
       calcSummary() {
-        let totalTheoreticalWeight = 0, totalActualWeight = 0;
+        let totalIn = 0, totalOut = 0, totalDiffAmount = 0;
         (this.dataSource || []).forEach(row => {
-          totalTheoreticalWeight += parseFloat(row.theoreticalWeight || 0);
-          totalActualWeight += parseFloat(row.actualWeight || 0);
+          totalIn += parseFloat(row.inTheoreticalWeight || 0);
+          totalOut += parseFloat(row.outActualWeight || 0);
+          totalDiffAmount += parseFloat(row.diffAmount || 0);
         });
         this.summary = {
           totalCount: this.ipagination ? this.ipagination.total : (this.dataSource || []).length,
-          totalTheoreticalWeight: totalTheoreticalWeight.toFixed(2),
-          totalActualWeight: totalActualWeight.toFixed(2),
-          totalDiff: (totalActualWeight - totalTheoreticalWeight).toFixed(2)
+          totalInWeight: totalIn.toFixed(3),
+          totalOutWeight: totalOut.toFixed(3),
+          totalDiff: (totalIn - totalOut).toFixed(3),
+          totalDiffAmount: totalDiffAmount.toFixed(2)
         };
       },
       handleExport() {
@@ -248,20 +254,22 @@
           this.$message.warning('暂无数据可导出');
           return;
         }
-        let headers = ['单据编号', '单据类型', '日期', '商品名称', '规格', '型号', '条码', '数量', '理论重量(吨)', '过磅重量(吨)', '差额(吨)', '供应商/客户', '仓库'];
+        let headers = ['供应商','商品名称','规格','型号','条码','批号','数量','入库单号','入库理论重量(吨)','出库单号','出库过磅重量(吨)','差额(吨)','采购单价','差额金额','仓库'];
         let rows = this.dataSource.map(row => [
-          row.billNo || '',
-          row.subType || '',
-          row.billTimeStr || '',
+          row.organName || '',
           row.materialName || '',
           row.standard || '',
           row.model || '',
           row.barCode || '',
-          row.basicNumber || 0,
-          parseFloat(row.theoreticalWeight || 0).toFixed(2),
-          parseFloat(row.actualWeight || 0).toFixed(2),
-          parseFloat(row.weightDiff || 0).toFixed(2),
-          row.organName || '',
+          row.batchNumber || '',
+          row.operNumber || 0,
+          row.purchaseBillNo || '',
+          parseFloat(row.inTheoreticalWeight || 0).toFixed(3),
+          row.saleBillNo || '',
+          parseFloat(row.outActualWeight || 0).toFixed(3),
+          parseFloat(row.weightDiff || 0).toFixed(3),
+          parseFloat(row.purchaseUnitPrice || 0).toFixed(2),
+          parseFloat(row.diffAmount || 0).toFixed(2),
           row.depotName || ''
         ]);
         let BOM = '\uFEFF';
@@ -269,7 +277,7 @@
         let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         let link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = '过磅重量差异报表.csv';
+        link.download = '长短款报表.csv';
         link.click();
         URL.revokeObjectURL(link.href);
       }

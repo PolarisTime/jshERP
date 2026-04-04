@@ -268,7 +268,6 @@ public interface DepotItemMapperEx {
     List<DepotItemVo4WeightDiff> getWeightDifferenceList(
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("subType") String subType,
             @Param("organId") Long organId,
             @Param("depotId") Long depotId,
             @Param("categoryIdList") List<Long> categoryIdList,
@@ -278,7 +277,6 @@ public interface DepotItemMapperEx {
     int getWeightDifferenceCount(
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("subType") String subType,
             @Param("organId") Long organId,
             @Param("depotId") Long depotId,
             @Param("categoryIdList") List<Long> categoryIdList);

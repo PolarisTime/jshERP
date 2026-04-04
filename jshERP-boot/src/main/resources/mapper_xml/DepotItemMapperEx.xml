@@ -243,7 +243,7 @@
             )
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="sku != null and sku !=''">
             and di.sku = #{sku}
@@ -286,7 +286,7 @@
             )
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="sku != null and sku !=''">
             and di.sku = #{sku}
@@ -317,7 +317,7 @@
             )
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="sku != null and sku !=''">
             and di.sku = #{sku}
@@ -731,7 +731,7 @@
             </foreach>
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="beginTime != null">
             and dh.oper_time &gt;= #{beginTime}
@@ -758,7 +758,7 @@
             </foreach>
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="beginTime != null">
             and dh.oper_time &gt;= #{beginTime}
@@ -788,7 +788,7 @@
         and di.material_extend_id=#{meId}
         and ifnull(di.sku,'') !=''
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="beginTime != null">
             and dh.oper_time &gt;= #{beginTime}
@@ -815,7 +815,7 @@
         and ifnull(dh.delete_flag,'0') !='1'
         and di.material_id=#{mId}
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="beginTime != null">
             and dh.oper_time &gt;= #{beginTime}
@@ -1066,7 +1066,7 @@
             and dh.number!= #{number}
         </if>
         <if test="forceFlag">
-            and dh.status = '1'
+            and (dh.status = '1' or dh.status = '2' or dh.status = '3')
         </if>
         <if test="inOutManageFlag">
             and (dh.sub_type!='采购' and dh.sub_type!='采购退货' and dh.sub_type!='销售' and dh.sub_type!='销售退货')
@@ -1167,21 +1167,19 @@
         limit 0,1
     </select>
 
+    <!-- 长短款报表：采购入库理论重量 vs 销售出库过磅重量，按供应商+商品+批号汇总 -->
     <sql id="weightDiffCondition">
         <if test="beginTime != null and beginTime != ''">
-            and dh.oper_time &gt;= #{beginTime}
+            and dh_pur.oper_time &gt;= #{beginTime}
         </if>
         <if test="endTime != null and endTime != ''">
-            and dh.oper_time &lt;= #{endTime}
-        </if>
-        <if test="subType != null and subType != ''">
-            and dh.sub_type = #{subType}
+            and dh_pur.oper_time &lt;= #{endTime}
         </if>
         <if test="organId != null">
-            and dh.organ_id = #{organId}
+            and dh_pur.organ_id = #{organId}
         </if>
         <if test="depotId != null">
-            and di.depot_id = #{depotId}
+            and di_pur.depot_id = #{depotId}
         </if>
         <if test="categoryIdList != null and categoryIdList.size() > 0">
             and m.category_id in
@@ -1191,45 +1189,71 @@
         </if>
     </sql>
 
-    <select id="getWeightDifferenceList" resultType="com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff">
-        select dh.id as headerId, dh.number as billNo, dh.sub_type as subType,
-            dh.oper_time as billTime,
-            di.id as itemId, di.basic_number as basicNumber,
-            di.weight as actualWeight,
-            m.name as materialName, m.standard, m.model,
-            m.weight as unitWeight,
-            me.bar_code as barCode,
-            dp.name as depotName,
-            s.supplier as organName,
-            (di.basic_number * ifnull(m.weight, 0)) as theoreticalWeight,
-            (ifnull(di.weight, 0) - di.basic_number * ifnull(m.weight, 0)) as weightDiff
-        from jsh_depot_item di
-        join jsh_depot_head dh on di.header_id = dh.id and ifnull(dh.delete_flag,'0') != '1'
-        join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
+    <sql id="weightDiffFrom">
+        from jsh_depot_item di_pur
+        join jsh_depot_head dh_pur on di_pur.header_id = dh_pur.id and ifnull(dh_pur.delete_flag,'0') != '1'
+        join jsh_material m on di_pur.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
         join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
-        left join jsh_material_extend me on di.material_extend_id = me.id and ifnull(me.delete_flag,'0') != '1'
-        left join jsh_depot dp on di.depot_id = dp.id and ifnull(dp.delete_flag,'0') != '1'
-        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag,'0') != '1'
-        where mc.id IN (${weightEditableCategoryIds})
-        and di.weight is not null
-        and ifnull(di.delete_flag,'0') != '1'
+        left join jsh_material_extend me on di_pur.material_extend_id = me.id and ifnull(me.delete_flag,'0') != '1'
+        left join jsh_depot dp on di_pur.depot_id = dp.id and ifnull(dp.delete_flag,'0') != '1'
+        left join jsh_supplier s on dh_pur.organ_id = s.id and ifnull(s.delete_flag,'0') != '1'
+        left join (
+            select dh2.link_number, di2.material_extend_id, di2.batch_number,
+                   sum(ifnull(di2.weight, 0)) as outActualWeight,
+                   group_concat(distinct dh2.number separator ',') as saleBillNos
+            from jsh_depot_item di2
+            join jsh_depot_head dh2 on di2.header_id = dh2.id
+            where dh2.type = '出库' and dh2.sub_type = '销售'
+              and (dh2.status = '1' or dh2.status = '2' or dh2.status = '3')
+              and ifnull(dh2.delete_flag,'0') != '1'
+              and ifnull(di2.delete_flag,'0') != '1'
+            group by dh2.link_number, di2.material_extend_id, di2.batch_number
+        ) sale_agg on sale_agg.link_number = dh_pur.number
+                  and sale_agg.material_extend_id = di_pur.material_extend_id
+                  and ifnull(sale_agg.batch_number,'') = ifnull(di_pur.batch_number,'')
+        where dh_pur.type = '入库' and dh_pur.sub_type = '采购'
+        and mc.id IN (${weightEditableCategoryIds})
+        and (dh_pur.status = '1' or dh_pur.status = '2' or dh_pur.status = '3')
+        and ifnull(di_pur.delete_flag,'0') != '1'
         <include refid="weightDiffCondition"/>
-        order by dh.oper_time desc, dh.id desc, di.id
+    </sql>
+
+    <select id="getWeightDifferenceList" resultType="com.jsh.erp.datasource.vo.DepotItemVo4WeightDiff">
+        select
+            s.supplier as organName,
+            m.name as materialName, m.standard, m.model,
+            me.bar_code as barCode,
+            di_pur.batch_number as batchNumber,
+            dp.name as depotName,
+            group_concat(distinct dh_pur.number separator ',') as purchaseBillNo,
+            ifnull(sale_agg.saleBillNos, '') as saleBillNo,
+            sum(di_pur.oper_number) as operNumber,
+            round(sum(di_pur.basic_number * ifnull(m.weight, 0)), 4) as inTheoreticalWeight,
+            round(ifnull(sale_agg.outActualWeight, 0), 4) as outActualWeight,
+            round(sum(di_pur.basic_number * ifnull(m.weight, 0)) - ifnull(sale_agg.outActualWeight, 0), 4) as weightDiff,
+            round(case when sum(di_pur.basic_number * ifnull(m.weight, 0)) != 0
+                then sum(di_pur.all_price) / sum(di_pur.basic_number * ifnull(m.weight, 0))
+                else 0 end, 4) as purchaseUnitPrice,
+            round((sum(di_pur.basic_number * ifnull(m.weight, 0)) - ifnull(sale_agg.outActualWeight, 0))
+                * (case when sum(di_pur.basic_number * ifnull(m.weight, 0)) != 0
+                    then sum(di_pur.all_price) / sum(di_pur.basic_number * ifnull(m.weight, 0))
+                    else 0 end), 2) as diffAmount
+        <include refid="weightDiffFrom"/>
+        group by s.id, s.supplier, m.id, m.name, m.standard, m.model, me.bar_code,
+                 di_pur.batch_number, dp.name, sale_agg.outActualWeight, sale_agg.saleBillNos
+        order by s.supplier, m.name, di_pur.batch_number
         <if test="offset != null and rows != null">
             limit #{offset}, #{rows}
         </if>
     </select>
 
     <select id="getWeightDifferenceCount" resultType="int">
-        select count(*)
-        from jsh_depot_item di
-        join jsh_depot_head dh on di.header_id = dh.id and ifnull(dh.delete_flag,'0') != '1'
-        join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
-        join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
-        where mc.id IN (${weightEditableCategoryIds})
-        and di.weight is not null
-        and ifnull(di.delete_flag,'0') != '1'
-        <include refid="weightDiffCondition"/>
+        select count(*) from (
+            select 1
+            <include refid="weightDiffFrom"/>
+            group by s.id, m.id, me.bar_code, di_pur.batch_number, dp.name,
+                     sale_agg.outActualWeight, sale_agg.saleBillNos
+        ) t
     </select>
 
 </mapper>

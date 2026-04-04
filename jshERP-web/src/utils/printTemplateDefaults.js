@@ -120,15 +120,15 @@ function buildSimpleTemplate(title) {
   return buildStandardTemplate(title, '', '<div class="footer-info"><p>备注：{{remark}}</p></div>')
 }
 
-// ─── 建材供货单（CLodop 格式, 800×600 画布） ───
+// ─── A4打印模版（CLodop 格式, 800×600 画布） ───
 
-const saleOutJiancaiTemplate = `LODOP.PRINT_INIT("建材供货单");
+const saleOutJiancaiTemplate = `LODOP.PRINT_INIT("A4打印模版");
 LODOP.SET_PRINT_PAGESIZE(1,2120,1590,"");
 LODOP.SET_PRINT_STYLE("FontName","微软雅黑");
 LODOP.SET_PRINT_STYLE("FontSize",9);
 
 // ═══ 标题 ═══
-LODOP.ADD_PRINT_TEXT(8,10,780,28,"嘉兴熠祺建材有限公司（供货单）");
+LODOP.ADD_PRINT_TEXT(8,10,780,28,"供货单");
 LODOP.SET_PRINT_STYLEA(0,"FontSize",16);
 LODOP.SET_PRINT_STYLEA(0,"Bold",1);
 LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
@@ -160,13 +160,13 @@ LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
 LODOP.ADD_PRINT_TEXT(hTop+4,hL+hSplit+8,hW-hSplit-16,16,"车号：{{carNo}}");
 LODOP.SET_PRINT_STYLEA(0,"FontSize",10);
 
-// ═══ 明细表格（7列：去掉单价、金额） ═══
+// ═══ 明细表格（8列：增加长度列） ═══
 var tTop=hTop+hRowH+4;
 var thH=28;
 var rowH=24;
-var col=[75,80,75,65,50,60,60];
+var col=[70,75,70,60,45,50,55,40];
 var remarkW=315;
-var colName=["品牌","品名","材质","规格","件数","件重/吨","总重/吨"];
+var colName=["品牌","品名","材质","规格","长度","件数","件重/吨","总重/吨"];
 
 // 表头行 — 列0-6
 var left=10;
@@ -188,14 +188,14 @@ LODOP.SET_PRINT_STYLEA(0,"FontSize",9);
 // ═══ 明细数据 ═══
 var DetailList = [
 {{#each details}}
-  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",piece:"{{operNumber}}",weight:"{{weight}}"},
+  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",len:"{{length}}",piece:"{{operNumber}}",weight:"{{weight}}"},
 {{/each}}
 ];
 
 var maxRows=12;
 var dataTop=tTop+thH;
 
-// 绘制固定12行网格（列0-6）
+// 绘制固定12行网格（列0-7）
 for(var r=0;r<maxRows;r++){
   var l=10;
   for(var i=0;i<col.length;i++){
@@ -213,7 +213,7 @@ for(var k=0;k<DetailList.length&&k<maxRows;k++){
   if(!isNaN(w)&&!isNaN(n)&&n>0) pw=(w/n).toFixed(3);
   if(!isNaN(n)) totalPiece+=n;
   if(!isNaN(w)) totalWeight+=w;
-  var arr=[d.brand,d.pname,d.material,d.spec,d.piece,pw,d.weight];
+  var arr=[d.brand,d.pname,d.material,d.spec,d.len||"",d.piece,pw,d.weight];
   var l=10;
   for(var i=0;i<arr.length;i++){
     LODOP.ADD_PRINT_TEXT(dataTop+k*rowH+5,l+2,col[i]-4,16,arr[i]||"");
@@ -237,7 +237,7 @@ if(noContentRow<maxRows){
 
 // ═══ 合计行 ═══
 var sumTop=dataTop+maxRows*rowH;
-var sumArr=["合计","","","",totalPiece||"","",totalWeight?totalWeight.toFixed(3):""];
+var sumArr=["合计","","","","",totalPiece||"","",totalWeight?totalWeight.toFixed(3):""];
 var l=10;
 for(var i=0;i<col.length;i++){
   LODOP.ADD_PRINT_RECT(sumTop,l,col[i],rowH,0,1);
@@ -482,7 +482,7 @@ export function getDefaultTemplate(billType) {
  * 按模板分组，每组包含主表字段(header)和明细字段(detail)
  */
 export const clodopTemplateVars = {
-  // 建材供货单
+  // A4打印模版
   saleOutJiancai: {
     header: [
       { key: 'organName', label: '需方公司' },
@@ -497,6 +497,7 @@ export const clodopTemplateVars = {
       { key: 'categoryName', label: '品名' },
       { key: 'model', label: '材质' },
       { key: 'standard', label: '规格' },
+      { key: 'length', label: '长度' },
       { key: 'operNumber', label: '件数' },
       { key: 'weight', label: '总重/吨' }
     ]

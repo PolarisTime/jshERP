@@ -36,7 +36,15 @@ public interface DepotHeadMapperEx {
             @Param("depotArray") String[] depotArray,
             @Param("accountId") Long accountId,
             @Param("salesMan") String salesMan,
-            @Param("remark") String remark);
+            @Param("remark") String remark,
+            @Param("linkedFlag") String linkedFlag,
+            @Param("priceApproved") String priceApproved);
+
+    List<Map<String, Object>> getDashboardPurchaseInList();
+
+    List<Map<String, Object>> getDashboardSaleOutList();
+
+    List<Map<String, Object>> getDashboardFreightList();
 
     List<MaterialsListVo> findMaterialsListMapByHeaderIdList(
             @Param("idList") List<Long> idList);
@@ -306,5 +314,8 @@ public interface DepotHeadMapperEx {
             @Param("organId") Long organId);
 
     List<Map<String, String>> getReferencedByNumbersMap(
+            @Param("numberList") List<String> numberList);
+
+    List<Map<String, String>> getPurchaseInByOrderNumbersMap(
             @Param("numberList") List<String> numberList);
 }

@@ -15,7 +15,7 @@
       :multiple="true"
       :action="uploadAction"
       :headers="headers"
-      :data="{'biz':bizPath}"
+      :data="{'biz':bizPath,'billId':billId}"
       :fileList="fileList"
       :beforeUpload="beforeUpload"
       @change="handleChange"
@@ -99,6 +99,12 @@
         type:String,
         required:false,
         default:"temp"
+      },
+      /*单据ID，用于按规则重命名上传文件*/
+      billId:{
+        type:[String,Number],
+        required:false,
+        default:""
       },
       value:{
         type:[String,Array],

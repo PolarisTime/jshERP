@@ -733,8 +733,8 @@ public class DepotItemService {
                                 changeBillStatus(singleLinkNo, billStatus);
                             } else if(BusinessConstants.SUB_TYPE_PURCHASE.equals(linkedBill.getSubType())
                                     && BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType())) {
-                                //销售出库引用采购入库：锁定采购入库单，设为"3"使其不再出现在选择列表中
-                                changeBillStatus(singleLinkNo, BusinessConstants.BILLS_STATUS_SKIPING);
+                                //销售出库引用采购入库：标记采购入库单已被关联（独立于status字段）
+                                depotHeadService.setLinkedFlag(singleLinkNo, "1");
                             }
                         }
                     }
@@ -1591,13 +1591,13 @@ public class DepotItemService {
     }
 
     public List<DepotItemVo4WeightDiff> getWeightDifferenceList(String beginTime, String endTime,
-            String subType, Long organId, Long depotId, List<Long> categoryIdList,
+            Long organId, Long depotId, List<Long> categoryIdList,
             Integer offset, Integer rows) {
-        return depotItemMapperEx.getWeightDifferenceList(beginTime, endTime, subType, organId, depotId, categoryIdList, offset, rows);
+        return depotItemMapperEx.getWeightDifferenceList(beginTime, endTime, organId, depotId, categoryIdList, offset, rows);
     }
 
     public int getWeightDifferenceCount(String beginTime, String endTime,
-            String subType, Long organId, Long depotId, List<Long> categoryIdList) {
-        return depotItemMapperEx.getWeightDifferenceCount(beginTime, endTime, subType, organId, depotId, categoryIdList);
+            Long organId, Long depotId, List<Long> categoryIdList) {
+        return depotItemMapperEx.getWeightDifferenceCount(beginTime, endTime, organId, depotId, categoryIdList);
     }
 }

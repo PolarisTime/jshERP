@@ -166,6 +166,12 @@
             <bind name="bindRemark" value="'%'+remark+'%'"/>
             and (dh.remark like #{bindRemark} or di.remark like #{bindRemark})
         </if>
+        <if test="linkedFlag != null and linkedFlag !=''">
+            and ifnull(dh.linked_flag,'0') = #{linkedFlag}
+        </if>
+        <if test="priceApproved != null and priceApproved !=''">
+            and ifnull(dh.price_approved,'0') = #{priceApproved}
+        </if>
         and ifnull(dh.delete_flag,'0') !='1'
         group by dh.id
         order by dh.id desc) tb
@@ -1131,6 +1137,19 @@
         GROUP BY dh.link_number
     </select>
 
+    <!-- 批量查询被采购入库引用的单号（用于采购订单列表） -->
+    <select id="getPurchaseInByOrderNumbersMap" resultType="java.util.Map">
+        SELECT dh.link_number AS billNumber, GROUP_CONCAT(dh.number SEPARATOR ',') AS refNumbers
+        FROM jsh_depot_head dh
+        WHERE dh.link_number IN
+        <foreach collection="numberList" item="num" open="(" separator="," close=")">
+            #{num}
+        </foreach>
+        AND dh.sub_type = '采购' AND dh.type = '入库'
+        AND ifnull(dh.delete_flag,'0') != '1'
+        GROUP BY dh.link_number
+    </select>
+
     <update id="batchDeleteDepotHeadByIds">
         update jsh_depot_head
         set delete_flag='1'
@@ -1475,5 +1494,72 @@
         and dh.sub_type = '零售'
         and dh.pay_type = '预付款'
         and ifnull(dh.delete_flag,'0') !='1'
+    </select>
+
+    <!-- 首页：采购入库待处理列表（未审核，未被销售出库关联） -->
+    <select id="getDashboardPurchaseInList" resultType="java.util.Map">
+        select dh.id, dh.number, date_format(dh.oper_time, '%Y-%m-%d') as operTime,
+            s.supplier as organName,
+            round(ifnull(tw.totalWeight, 0), 3) as totalWeight,
+            round(ifnull(dh.discount_last_money, 0), 2) as totalAmount
+        from jsh_depot_head dh
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag,'0') != '1'
+        left join (
+            select di.header_id,
+                sum(case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
+                    then di.weight else di.basic_number * ifnull(m.weight, 0) end) as totalWeight
+            from jsh_depot_item di
+            left join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
+            left join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
+            where ifnull(di.delete_flag,'0') != '1'
+            group by di.header_id
+        ) tw on tw.header_id = dh.id
+        where dh.type = '入库' and dh.sub_type = '采购'
+        and dh.status = '0'
+        and ifnull(dh.linked_flag, '0') = '0'
+        and ifnull(dh.delete_flag,'0') != '1'
+        order by dh.oper_time desc
+        limit 50
+    </select>
+
+    <!-- 首页：销售出库待处理列表（未审核 或 已审核未核准） -->
+    <select id="getDashboardSaleOutList" resultType="java.util.Map">
+        select dh.id, dh.number, date_format(dh.oper_time, '%Y-%m-%d') as operTime,
+            s.supplier as organName, dh.status,
+            ifnull(dh.price_approved, '0') as priceApproved,
+            round(ifnull(tw.totalWeight, 0), 3) as totalWeight,
+            round(ifnull(dh.discount_last_money, 0), 2) as totalAmount
+        from jsh_depot_head dh
+        left join jsh_supplier s on dh.organ_id = s.id and ifnull(s.delete_flag,'0') != '1'
+        left join (
+            select di.header_id,
+                sum(case when mc.id IN (${weightEditableCategoryIds}) and di.weight is not null
+                    then di.weight else di.basic_number * ifnull(m.weight, 0) end) as totalWeight
+            from jsh_depot_item di
+            left join jsh_material m on di.material_id = m.id and ifnull(m.delete_flag,'0') != '1'
+            left join jsh_material_category mc on m.category_id = mc.id and ifnull(mc.delete_flag,'0') != '1'
+            where ifnull(di.delete_flag,'0') != '1'
+            group by di.header_id
+        ) tw on tw.header_id = dh.id
+        where dh.type = '出库' and dh.sub_type = '销售'
+        and (dh.status = '0' or (dh.status = '1' and ifnull(dh.price_approved, '0') != '1'))
+        and ifnull(dh.delete_flag,'0') != '1'
+        order by dh.oper_time desc
+        limit 50
+    </select>
+
+    <!-- 首页：物流单待处理列表（隐藏已审核+已送达） -->
+    <select id="getDashboardFreightList" resultType="java.util.Map">
+        select fh.id, fh.bill_no as billNo, date_format(fh.bill_time, '%Y-%m-%d') as billTime,
+            fc.name as carrierName, fh.status,
+            ifnull(fh.delivery_status, '0') as deliveryStatus,
+            round(ifnull(fh.total_weight, 0), 3) as totalWeight,
+            round(ifnull(fh.total_freight, 0), 2) as totalFreight
+        from jsh_freight_head fh
+        left join jsh_freight_carrier fc on fh.carrier_id = fc.id
+        where fh.delete_flag = '0'
+        and not (fh.status = '1' and ifnull(fh.delivery_status, '0') = '1')
+        order by fh.bill_time desc
+        limit 50
     </select>
 </mapper>
