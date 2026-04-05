@@ -1562,4 +1562,25 @@
         order by fh.bill_time desc
         limit 50
     </select>
+    <!-- 查找link_number包含指定单号的同类型其他活跃单据（支持逗号分隔的link_number） -->
+    <select id="getListByLinkNumberContaining" resultMap="com.jsh.erp.datasource.mappers.DepotHeadMapper.BaseResultMap">
+        select
+        <include refid="com.jsh.erp.datasource.mappers.DepotHeadMapper.Base_Column_List" />
+        from jsh_depot_head
+        where FIND_IN_SET(#{singleLinkNo}, link_number) > 0
+        <if test="exceptNumber != null and exceptNumber != ''">
+            and number != #{exceptNumber}
+        </if>
+        <if test="type != null and type != ''">
+            and type = #{type}
+        </if>
+        and ifnull(delete_flag,'0') != '1'
+    </select>
+
+    <!-- 统计引用指定单号的下游活跃单据数（支持逗号分隔的link_number） -->
+    <select id="countActiveDownstreamBillsByLinkNumber" resultType="java.lang.Integer">
+        select count(1) from jsh_depot_head
+        where FIND_IN_SET(#{singleLinkNo}, link_number) > 0
+        and ifnull(delete_flag,'0') != '1'
+    </select>
 </mapper>

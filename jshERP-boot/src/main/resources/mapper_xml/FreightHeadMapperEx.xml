@@ -183,4 +183,9 @@
         )
     </update>
 
+    <!-- 查询指定前缀的最大单据编号（包含已删除记录，避免单号复用） -->
+    <select id="getMaxBillNoByPrefix" resultType="java.lang.String">
+        select max(bill_no) from jsh_freight_head
+        where bill_no like concat(#{prefix}, '%')
+    </select>
 </mapper>

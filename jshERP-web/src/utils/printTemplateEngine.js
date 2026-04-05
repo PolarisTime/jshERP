@@ -42,6 +42,24 @@ function deriveLength(barCode, standard) {
  * @param {object} [extraFields] - 用户输入的额外字段（carNo, sendDate 等）
  */
 function preProcess(model, dataSource, extraFields) {
+  // 为 LODOP 模板提供数字格式的年月日（在修改 sendDate 之前先计算）
+  // 优先使用 extraFields.sendDate（用户输入的送货日期），否则用当前日期
+  var sendDateNum = ''
+  if (extraFields && extraFields.sendDate && String(extraFields.sendDate).trim()) {
+    var inputDate = String(extraFields.sendDate).replace(/-/g, '')
+    if (inputDate.length === 8) {
+      sendDateNum = inputDate
+    }
+  }
+  if (!sendDateNum) {
+    // 使用当前日期
+    var d0 = new Date()
+    sendDateNum = String(d0.getFullYear()) +
+      String(d0.getMonth() + 1).padStart(2, '0') +
+      String(d0.getDate()).padStart(2, '0')
+  }
+  model.sendDateNum = sendDateNum
+
   // 合并用户输入字段到 model
   if (extraFields) {
     Object.keys(extraFields).forEach(k => {
@@ -91,9 +109,11 @@ function preProcess(model, dataSource, extraFields) {
       if (item.length == null || item.length === '') {
         item.length = deriveLength(item.barCode, item.standard)
       }
-      // 规格去除 *12 后缀（如 18*12 → 18）
-      if (item.standard) {
+      // 保存规格原始值（含*12），供A5打印模板使用（仅首次保存，防止二次调用覆盖）
+      if (item.standard && !item._standardProcessed) {
+        item.standardFull = String(item.standard)
         item.standard = String(item.standard).replace(/\*12$/g, '')
+        item._standardProcessed = true
       }
     })
     model.totalPiece = totalPiece
@@ -121,7 +141,26 @@ export function render(templateHtml, model, dataSource, extraFields) {
   if (!templateHtml) return ''
   let html = templateHtml
 
-  // 0. 过滤空明细行（无商品名称的行不打印）+ 预处理
+  // 0a. 设置 saleRemark（出库单备注）
+  // 优先从 model.remark 取（销售出库单场景），其次从明细行聚合（物流单场景）
+  if (model) {
+    if (model['remark'] && String(model['remark']).trim()) {
+      model['saleRemark'] = String(model['remark'])
+    } else if (dataSource && dataSource.length > 0) {
+      var remarks = []
+      for (var ri = 0; ri < dataSource.length; ri++) {
+        var rVal = dataSource[ri]['remark']
+        if (rVal && String(rVal).trim() && remarks.indexOf(String(rVal)) === -1) {
+          remarks.push(String(rVal))
+        }
+      }
+      if (remarks.length > 0) {
+        model['saleRemark'] = remarks.join('、')
+      }
+    }
+  }
+
+  // 0b. 过滤空明细行（无商品名称的行不打印）+ 预处理
   if (dataSource) {
     dataSource = dataSource.filter(item => item.name || item.barCode || item.materialName)
   }

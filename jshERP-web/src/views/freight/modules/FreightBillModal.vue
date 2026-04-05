@@ -580,13 +580,15 @@
         })
       },
       handleCustomPrint() {
-        // 从明细行聚合客户名称、项目名称、项目地址到主表，供打印模板使用
+        // 从明细行聚合客户名称、项目名称、项目地址、出库单备注到主表，供打印模板使用
         let customers = [...new Set(this.selectedSaleOutList.map(i => i.customerName).filter(Boolean))]
         let projects = [...new Set(this.selectedSaleOutList.map(i => i.projectName).filter(Boolean))]
         let addresses = [...new Set(this.selectedSaleOutList.map(i => i.projectAddress).filter(Boolean))]
+        let saleRemarks = [...new Set(this.selectedSaleOutList.map(i => i.remark).filter(Boolean))]
         this.model.customerName = customers.join('、')
         this.model.projectName = projects.join('、')
         this.model.projectAddress = addresses.join('、')
+        this.model.saleRemark = saleRemarks.join('、')
         this.$refs.customPrintModal.show()
       },
       /** 普通打印：通过 iframe 打印 #freightBillPrint 区域内容 */

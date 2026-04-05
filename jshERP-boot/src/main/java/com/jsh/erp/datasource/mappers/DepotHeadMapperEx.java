@@ -318,4 +318,18 @@ public interface DepotHeadMapperEx {
 
     List<Map<String, String>> getPurchaseInByOrderNumbersMap(
             @Param("numberList") List<String> numberList);
+
+    /**
+     * 查找link_number包含指定单号的同类型其他活跃单据（支持逗号分隔的link_number）
+     */
+    List<DepotHead> getListByLinkNumberContaining(
+            @Param("singleLinkNo") String singleLinkNo,
+            @Param("exceptNumber") String exceptNumber,
+            @Param("type") String type);
+
+    /**
+     * 统计引用指定单号的下游活跃单据数（支持逗号分隔的link_number）
+     */
+    int countActiveDownstreamBillsByLinkNumber(
+            @Param("singleLinkNo") String singleLinkNo);
 }

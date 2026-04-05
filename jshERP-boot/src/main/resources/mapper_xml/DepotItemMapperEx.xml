@@ -1001,7 +1001,7 @@
         select dh.id from jsh_depot_head dh
         where 1=1
         <if test="noType == 'normal'">
-            and dh.link_number=#{linkStr}
+            and FIND_IN_SET(#{linkStr}, dh.link_number) > 0
         </if>
         <if test="noType == 'apply'">
             and dh.link_apply=#{linkStr}
@@ -1025,7 +1025,7 @@
         where
         dh.id!=#{currentHeaderId}
         <if test="linkType == 'normal'">
-            and dh.link_number=#{linkStr}
+            and FIND_IN_SET(#{linkStr}, dh.link_number) > 0
         </if>
         <if test="linkType == 'apply'">
             and dh.link_apply=#{linkStr}
@@ -1098,7 +1098,7 @@
         left join jsh_depot_item di on dh.id=di.header_id and ifnull(di.delete_flag,'0') !='1'
         where dh.type=#{type}
         <if test="linkType == 'normal'">
-            and dh.link_number=#{linkStr}
+            and FIND_IN_SET(#{linkStr}, dh.link_number) > 0
         </if>
         <if test="linkType == 'apply'">
             and dh.link_apply=#{linkStr}

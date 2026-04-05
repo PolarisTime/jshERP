@@ -514,22 +514,29 @@ public class DepotHeadService {
                         BusinessConstants.SUB_TYPE_OTHER.equals(depotHead.getSubType()))
                         || (BusinessConstants.DEPOTHEAD_TYPE_OUT.equals(depotHead.getType()) &&
                         BusinessConstants.SUB_TYPE_OTHER.equals(depotHead.getSubType()))) {
-                    String status = BusinessConstants.BILLS_STATUS_AUDIT;
-                    //查询除当前单据之外的关联单据列表
-                    List<DepotHead> exceptCurrentList = getListByLinkNumberExceptCurrent(depotHead.getLinkNumber(), depotHead.getNumber(), depotHead.getType());
-                    if(exceptCurrentList!=null && exceptCurrentList.size()>0) {
-                        status = BusinessConstants.BILLS_STATUS_SKIPING;
-                    }
-                    DepotHead dh = new DepotHead();
-                    dh.setStatus(status);
-                    DepotHeadExample example = new DepotHeadExample();
-                    example.createCriteria().andNumberEqualTo(depotHead.getLinkNumber());
-                    depotHeadMapper.updateByExampleSelective(dh, example);
-                    //销售出库删除时，清除采购入库的关联标记（无其他引用时）
-                    if(BusinessConstants.DEPOTHEAD_TYPE_OUT.equals(depotHead.getType())
-                            && BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType())
-                            && (exceptCurrentList==null || exceptCurrentList.size()==0)) {
-                        setLinkedFlag(depotHead.getLinkNumber(), "0");
+                    //支持逗号分隔的多关联单号，逐个检查并回退关联单据状态
+                    List<String> linkNoList = StringUtil.strToStringList(depotHead.getLinkNumber());
+                    for(String singleLinkNo : linkNoList) {
+                        singleLinkNo = singleLinkNo.trim();
+                        if(StringUtil.isEmpty(singleLinkNo)) continue;
+                        String status = BusinessConstants.BILLS_STATUS_AUDIT;
+                        //查询除当前单据之外，link_number中包含该单号的同类型活跃单据
+                        List<DepotHead> exceptCurrentList = depotHeadMapperEx.getListByLinkNumberContaining(
+                                singleLinkNo, depotHead.getNumber(), depotHead.getType());
+                        if(exceptCurrentList != null && exceptCurrentList.size() > 0) {
+                            status = BusinessConstants.BILLS_STATUS_SKIPING;
+                        }
+                        DepotHead dh = new DepotHead();
+                        dh.setStatus(status);
+                        DepotHeadExample example = new DepotHeadExample();
+                        example.createCriteria().andNumberEqualTo(singleLinkNo);
+                        depotHeadMapper.updateByExampleSelective(dh, example);
+                        //销售出库删除时，清除采购入库的关联标记（无其他引用时）
+                        if(BusinessConstants.DEPOTHEAD_TYPE_OUT.equals(depotHead.getType())
+                                && BusinessConstants.SUB_TYPE_SALES.equals(depotHead.getSubType())
+                                && (exceptCurrentList == null || exceptCurrentList.size() == 0)) {
+                            setLinkedFlag(singleLinkNo, "0");
+                        }
                     }
                 }
             }
@@ -554,17 +561,23 @@ public class DepotHeadService {
             if(StringUtil.isNotEmpty(depotHead.getLinkNumber())){
                 if(BusinessConstants.DEPOTHEAD_TYPE_OTHER.equals(depotHead.getType()) &&
                         BusinessConstants.SUB_TYPE_PURCHASE_ORDER.equals(depotHead.getSubType())) {
-                    DepotHead dh = new DepotHead();
-                    //获取分批操作后单据的商品和商品数量（汇总）
-                    List<DepotItemVo4MaterialAndSum> batchList = depotItemMapperEx.getBatchBillDetailMaterialSum(depotHead.getLinkNumber(), "normal", depotHead.getType());
-                    if(batchList.size()>0) {
-                        dh.setPurchaseStatus(BusinessConstants.PURCHASE_STATUS_SKIPING);
-                    } else {
-                        dh.setPurchaseStatus(BusinessConstants.PURCHASE_STATUS_UN_AUDIT);
+                    //支持逗号分隔的多关联单号，逐个更新销售订单的采购状态
+                    List<String> linkNoList = StringUtil.strToStringList(depotHead.getLinkNumber());
+                    for(String singleLinkNo : linkNoList) {
+                        singleLinkNo = singleLinkNo.trim();
+                        if(StringUtil.isEmpty(singleLinkNo)) continue;
+                        DepotHead dh = new DepotHead();
+                        //获取分批操作后单据的商品和商品数量（汇总）
+                        List<DepotItemVo4MaterialAndSum> batchList = depotItemMapperEx.getBatchBillDetailMaterialSum(singleLinkNo, "normal", depotHead.getType());
+                        if(batchList.size() > 0) {
+                            dh.setPurchaseStatus(BusinessConstants.PURCHASE_STATUS_SKIPING);
+                        } else {
+                            dh.setPurchaseStatus(BusinessConstants.PURCHASE_STATUS_UN_AUDIT);
+                        }
+                        DepotHeadExample example = new DepotHeadExample();
+                        example.createCriteria().andNumberEqualTo(singleLinkNo);
+                        depotHeadMapper.updateByExampleSelective(dh, example);
                     }
-                    DepotHeadExample example = new DepotHeadExample();
-                    example.createCriteria().andNumberEqualTo(depotHead.getLinkNumber());
-                    depotHeadMapper.updateByExampleSelective(dh, example);
                 }
             }
             //对于零售出库单据，更新会员的预收款信息
@@ -1329,11 +1342,9 @@ public class DepotHeadService {
      * @return true=有下游引用，false=无下游引用
      */
     public boolean hasActiveDownstreamBills(String number) {
-        DepotHeadExample example = new DepotHeadExample();
-        example.createCriteria().andLinkNumberEqualTo(number)
-                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        List<DepotHead> list = depotHeadMapper.selectByExample(example);
-        return list != null && list.size() > 0;
+        //使用FIND_IN_SET查询，支持下游单据link_number为逗号分隔值的场景
+        int count = depotHeadMapperEx.countActiveDownstreamBillsByLinkNumber(number);
+        return count > 0;
     }
 
     /**

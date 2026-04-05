@@ -80,4 +80,8 @@ public interface FreightHeadMapperEx {
      */
     int cancelPayment(@Param("ids") String[] ids);
 
+    /**
+     * 查询指定前缀的最大单据编号（包含已删除记录，避免单号复用）
+     */
+    String getMaxBillNoByPrefix(@Param("prefix") String prefix);
 }

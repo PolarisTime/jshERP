@@ -188,6 +188,7 @@ public class PrintTemplateService {
             headerFields.add(field("customerName", "客户名称"));
             headerFields.add(field("projectName", "项目名称"));
             headerFields.add(field("projectAddress", "项目地址"));
+            headerFields.add(field("saleRemark", "出库单备注"));
             // 物流单明细字段 —— 出库单信息
             detailFields.add(field("billNo", "出库单号"));
             detailFields.add(field("billTimeStr", "出库日期"));

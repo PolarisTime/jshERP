@@ -715,6 +715,13 @@
               </a-form-item>
             </a-col>
           </a-row>
+          <a-row class="form-row" :gutter="24">
+            <a-col :span="24">
+              <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 2 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 22 }}" label="备注">
+                {{model.remark}}
+              </a-form-item>
+            </a-col>
+          </a-row>
           <div :style="tableWidth">
             <a-table
               ref="table"

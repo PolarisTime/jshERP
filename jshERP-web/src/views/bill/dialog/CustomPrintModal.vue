@@ -26,13 +26,8 @@
           </a-select-option>
         </a-select-opt-group>
       </a-select>
-      <a-input v-model="templateName" placeholder="模板名称" style="width:140px;" />
-      <a-checkbox :checked="isDefault" @change="e => isDefault = e.target.checked">设为默认</a-checkbox>
-      <a-button type="primary" @click="handleSave" :loading="saving">{{ saveButtonText }}</a-button>
-      <a-button @click="handleNewTemplate">新增模板</a-button>
-      <a-popconfirm v-if="isCustomTemplate || isFileTemplate" title="确定删除此模板？" @confirm="handleDelete">
-        <a-button type="danger" ghost>删除</a-button>
-      </a-popconfirm>
+      <a-input v-model="userInputFields.carNo" placeholder="车号" style="width:100px;" size="small" />
+      <a-date-picker v-model="userInputFields.sendDate" placeholder="送货日期" style="width:140px;" size="small" format="YYYYMMDD" valueFormat="YYYYMMDD" />
       <!-- CLodop 操作区 -->
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
         <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
@@ -45,60 +40,10 @@
           <a-select-option value="">默认打印机</a-select-option>
           <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
         </a-select>
-        <a-button v-if="clodopReady" icon="tool" @click="openDesigner" :loading="designing">设计器</a-button>
         <a-button type="primary" icon="eye" @click="handlePrint(true)" :disabled="!clodopReady">预览</a-button>
         <a-button v-if="clodopReady" type="primary" icon="printer" @click="handlePrint(false)">打印</a-button>
       </div>
     </div>
-    <!-- 打印附加信息 -->
-    <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px;padding:6px 10px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
-      <span style="font-size:12px;color:#666;white-space:nowrap;">附加信息：</span>
-      <a-input v-model="userInputFields.carNo" placeholder="车号" style="width:140px;" size="small" />
-      <a-input v-model="userInputFields.extraText" placeholder="自定义文本" style="width:200px;" size="small" />
-      <a-date-picker v-model="userInputFields.sendDate" placeholder="送货日期" style="width:160px;" size="small" format="YYYYMMDD" valueFormat="YYYYMMDD" />
-    </div>
-    <!-- 主体：左侧编辑器 + 右侧字段面板 -->
-    <a-row :gutter="12">
-      <a-col :span="18">
-        <div class="editor-pane">
-          <textarea
-            class="template-textarea"
-            v-model="templateHtml"
-            spellcheck="false"
-            :placeholder="'在此编辑 HTML 模板，使用 {{字段名}} 引用数据'"
-          ></textarea>
-        </div>
-      </a-col>
-      <a-col :span="6">
-        <div class="field-panel">
-          <h4 class="panel-title">主表字段 <small>(点击插入)</small></h4>
-          <div v-for="f in headerFields" :key="'h_'+f.key" style="margin-bottom:3px;">
-            <a-tag color="blue" style="cursor:pointer;" @click="insertField(f.key, false)">{{ f.label }}</a-tag>
-          </div>
-          <a-divider style="margin:8px 0;" />
-          <h4 class="panel-title">明细字段 <small>(点击插入)</small></h4>
-          <div v-for="f in detailFields" :key="'d_'+f.key" style="margin-bottom:3px;">
-            <a-tag color="green" style="cursor:pointer;" @click="insertField(f.key, true)">{{ f.label }}</a-tag>
-          </div>
-          <a-divider style="margin:8px 0;" />
-          <h4 class="panel-title">内置变量</h4>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:3px;" @click="insertRaw('{{_index}}')">行序号</a-tag>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:3px;" @click="insertRaw('{{_printDate}}')">打印日期</a-tag>
-          <a-tag color="orange" style="cursor:pointer;margin-bottom:3px;" @click="insertRaw('{{_printTime}}')">打印时间</a-tag>
-          <a-divider style="margin:8px 0;" />
-          <h4 class="panel-title">循环标记</h4>
-          <a-tag color="red" style="cursor:pointer;margin-bottom:3px;" @click="insertRaw('<!--DETAIL_ROW_START-->')">循环开始</a-tag>
-          <a-tag color="red" style="cursor:pointer;margin-bottom:3px;" @click="insertRaw('<!--DETAIL_ROW_END-->')">循环结束</a-tag>
-          <a-divider style="margin:8px 0;" />
-          <div style="font-size:11px;color:#999;line-height:1.6;">
-            <p style="margin:0 0 4px;"><b>用法说明：</b></p>
-            <p style="margin:0;">主表：<code>{'{{'}字段名{'}}'}</code></p>
-            <p style="margin:0;">明细：<code>{'{{'}detail.字段名{'}}'}</code></p>
-            <p style="margin:0;">明细行需放在循环标记之间</p>
-          </div>
-        </div>
-      </a-col>
-    </a-row>
   </a-modal>
 </template>
 <script>
@@ -130,7 +75,8 @@
         detailFields: [],
         isDefault: false,
         userInputFields: { carNo: '', extraText: '', sendDate: '' },
-        currentSource: '' // 当前选中模板的来源: 'db'/'file'/''
+        currentSource: '', // 当前选中模板的来源: 'db'/'file'/''
+        printPreview: '' // 实时预览内容
       }
     },
     computed: {
@@ -155,6 +101,19 @@
         return this.templateList.filter(t => t.source === 'db')
       }
     },
+    watch: {
+      /** 监听模板HTML变化，实时更新预览 */
+      templateHtml() {
+        this.updatePreview()
+      },
+      /** 监听附加信息变化，实时更新预览 */
+      userInputFields: {
+        handler() {
+          this.updatePreview()
+        },
+        deep: true
+      }
+    },
     methods: {
       // ═══ 生命周期 ═══
 
@@ -162,9 +121,37 @@
         this.visible = true
         this.designing = false
         await this.loadTemplateList()
-        this.selectDefault()
+        this.restorePrintPreferences()
         this.loadFieldMeta()
         this.initCLodop()
+        this.updatePreview()
+      },
+      /** 恢复上次打印的模板和打印机选择 */
+      restorePrintPreferences() {
+        const storageKey = `printPrefs_${this.billType}`
+        const prefs = JSON.parse(localStorage.getItem(storageKey) || '{}')
+        if (prefs.templateId) {
+          const tpl = this.templateList.find(t => t.id === prefs.templateId)
+          if (tpl) {
+            this.handleTemplateChange(prefs.templateId)
+          } else {
+            this.selectDefault()
+          }
+        } else {
+          this.selectDefault()
+        }
+        if (prefs.printer) {
+          this.selectedPrinter = prefs.printer
+        }
+      },
+      /** 保存打印偏好设置 */
+      savePrintPreferences() {
+        const storageKey = `printPrefs_${this.billType}`
+        const prefs = {
+          templateId: this.selectedTemplateId,
+          printer: this.selectedPrinter
+        }
+        localStorage.setItem(storageKey, JSON.stringify(prefs))
       },
       handleCancel() {
         this.visible = false
@@ -179,6 +166,15 @@
         this.templateName = name
         this.templateHtml = html
         this.isDefault = isDefault
+        this.updatePreview()
+      },
+      /** 实时更新预览内容 */
+      updatePreview() {
+        try {
+          this.printPreview = render(this.templateHtml, this.model, this.dataSource, this.userInputFields)
+        } catch (e) {
+          this.printPreview = `<p style="color:red;">预览出错: ${e.message}</p>`
+        }
       },
       /** 选中默认模板，无则回退系统默认 */
       selectDefault() {
@@ -360,6 +356,8 @@
           this.$message.warning('CLodop 未连接')
           return
         }
+        // 保存当前模板和打印机选择
+        this.savePrintPreferences()
         const opts = {
           preview: preview !== false,
           printer: this.selectedPrinter || undefined,

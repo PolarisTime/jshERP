@@ -425,7 +425,7 @@ LODOP.ADD_PRINT_LINE(159,15,159,785,0,1);
 // ═══ 明细数据 ═══
 var DetailList = [
 {{#each details}}
-  {idx:"{{_index}}",billNo:"{{billNo}}",materialName:"{{materialName}}",model:"{{model}}",standard:"{{standard}}",operNumber:"{{operNumber}}",itemWeight:"{{itemWeight}}"},
+  {idx:"{{_index}}",billNo:"{{billNo}}",materialName:"{{materialName}}",model:"{{model}}",standard:"{{standardFull}}",operNumber:"{{operNumber}}",itemWeight:"{{itemWeight}}"},
 {{/each}}
 ];
 
