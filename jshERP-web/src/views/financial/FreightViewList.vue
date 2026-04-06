@@ -203,7 +203,7 @@
         },
         summary: {
           totalCount: 0,
-          totalWeight: '0.00',
+          totalWeight: '0.000',
           totalFreight: '0.00',
           paidAmount: '0.00',
           unpaidAmount: '0.00'
@@ -268,7 +268,7 @@
         });
         this.summary = {
           totalCount: this.ipagination ? this.ipagination.total : (this.dataSource || []).length,
-          totalWeight: totalWeight.toFixed(2),
+          totalWeight: totalWeight.toFixed(3),
           totalFreight: totalFreight.toFixed(2),
           paidAmount: paidAmount.toFixed(2),
           unpaidAmount: (totalFreight - paidAmount).toFixed(2)
@@ -290,7 +290,7 @@
             row.billNo || '',
             row.billTimeStr || '',
             row.carrierName || '',
-            parseFloat(row.totalWeight || 0).toFixed(2),
+            parseFloat(row.totalWeight || 0).toFixed(3),
             row.unitPrice || 0,
             totalFreight.toFixed(2),
             statusMap[row.status] || '未审核',

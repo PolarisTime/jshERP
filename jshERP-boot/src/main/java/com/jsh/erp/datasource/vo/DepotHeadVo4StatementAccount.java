@@ -9,6 +9,8 @@ public class DepotHeadVo4StatementAccount {
 
     private String supplier;
 
+    private String projectName;
+
     private String contacts;
 
     private String telephone;
@@ -77,6 +79,14 @@ public class DepotHeadVo4StatementAccount {
 
     public void setSupplier(String supplier) {
         this.supplier = supplier;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getContacts() {

@@ -116,7 +116,7 @@ public class DepotHeadService {
     }
 
     public List<DepotHeadVo4List> select(String type, String subType, String hasDebt, String status, String purchaseStatus, String number, String linkApply, String linkNumber,
-           String beginTime, String endTime, String materialParam, Long organId, Long creator, Long depotId, Long accountId, String salesMan, String remark,
+           String beginTime, String endTime, String materialParam, Long organId, String[] organIdList, Long creator, Long depotId, Long accountId, String salesMan, String remark,
            String linkedFlag, String priceApproved) throws Exception {
         List<DepotHeadVo4List> list = new ArrayList<>();
         try{
@@ -138,7 +138,7 @@ public class DepotHeadService {
             PageUtils.startPage();
             list = depotHeadMapperEx.selectByConditionDepotHead(type, subType, creatorArray, hasDebt,
                     statusArray, purchaseStatusArray, number, linkApply, linkNumber, beginTime, endTime,
-                    materialParam, organId, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, priceApproved);
+                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, priceApproved);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
@@ -313,6 +313,34 @@ public class DepotHeadService {
      * 获取机构数组
      * @return
      */
+    /**
+     * 根据单据类型和子类型获取编号前缀
+     */
+    private String getPrefixByTypeAndSubType(String type, String subType) {
+        if ("入库".equals(type)) {
+            if ("采购".equals(subType)) return "CGRK";
+            if ("采购退货".equals(subType)) return "CGTH";
+            if ("销售退货".equals(subType)) return "XSTH";
+            if ("其它".equals(subType)) return "QTRK";
+            if ("调拨".equals(subType)) return "DBRK";
+            if ("组装单".equals(subType)) return "ZZD";
+            if ("拆卸单".equals(subType)) return "CXD";
+        } else if ("出库".equals(type)) {
+            if ("销售".equals(subType)) return "XSCK";
+            if ("采购退货".equals(subType)) return "CGTH";
+            if ("销售退货".equals(subType)) return "XSTH";
+            if ("其它".equals(subType)) return "QTCK";
+            if ("调拨".equals(subType)) return "DBCK";
+            if ("零售".equals(subType)) return "LSCK";
+            if ("零售退货".equals(subType)) return "LSTH";
+        } else if ("其它".equals(type)) {
+            if ("采购订单".equals(subType)) return "CGDD";
+            if ("销售订单".equals(subType)) return "XSDD";
+            if ("请购单".equals(subType)) return "QGD";
+        }
+        return "BILL";
+    }
+
     public String[] getOrganArray(String subType, String purchaseStatus) throws Exception {
         String [] organArray = null;
         String type = "UserCustomer";
@@ -1178,11 +1206,11 @@ public class DepotHeadService {
     }
 
     public List<DepotHeadVo4StatementAccount> getStatementAccount(String beginTime, String endTime, Integer organId, String [] organArray,
-                                                                  Integer hasDebt, String supplierType, String type, String subType, String typeBack,
+                                                                  String[] projectNames, Integer hasDebt, String supplierType, String type, String subType, String typeBack,
                                                                   String subTypeBack, String billType, Integer offset, Integer rows) {
         List<DepotHeadVo4StatementAccount> list = null;
         try{
-            list = depotHeadMapperEx.getStatementAccount(beginTime, endTime, organId, organArray, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType, offset, rows);
+            list = depotHeadMapperEx.getStatementAccount(beginTime, endTime, organId, organArray, projectNames, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType, offset, rows);
         } catch(Exception e){
             JshException.readFail(logger, e);
         }
@@ -1190,10 +1218,10 @@ public class DepotHeadService {
     }
 
     public int getStatementAccountCount(String beginTime, String endTime, Integer organId, String [] organArray,
-                                        Integer hasDebt, String supplierType, String type, String subType, String typeBack, String subTypeBack, String billType) {
+                                        String[] projectNames, Integer hasDebt, String supplierType, String type, String subType, String typeBack, String subTypeBack, String billType) {
         int result = 0;
         try{
-            result = depotHeadMapperEx.getStatementAccountCount(beginTime, endTime, organId, organArray, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
+            result = depotHeadMapperEx.getStatementAccountCount(beginTime, endTime, organId, organArray, projectNames, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
         } catch(Exception e){
             JshException.readFail(logger, e);
         }
@@ -1201,11 +1229,11 @@ public class DepotHeadService {
     }
 
     public List<DepotHeadVo4StatementAccount> getStatementAccountTotalPay(String beginTime, String endTime, Integer organId, String [] organArray,
-                                                                          Integer hasDebt, String supplierType, String type, String subType,
+                                                                          String[] projectNames, Integer hasDebt, String supplierType, String type, String subType,
                                                                           String typeBack, String subTypeBack, String billType) {
         List<DepotHeadVo4StatementAccount> list = null;
         try{
-            list = depotHeadMapperEx.getStatementAccountTotalPay(beginTime, endTime, organId, organArray, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
+            list = depotHeadMapperEx.getStatementAccountTotalPay(beginTime, endTime, organId, organArray, projectNames, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
         } catch(Exception e){
             JshException.readFail(logger, e);
         }
@@ -1235,7 +1263,7 @@ public class DepotHeadService {
         String endTime = Tools.getCenternTime(new Date());
         String [] organArray = getOrganArray(subType, "");
         return getStatementAccountCount(beginTime, endTime, null, organArray,
-                1, supplierType, type, subType,typeBack, subTypeBack, billType);
+                null, 1, supplierType, type, subType,typeBack, subTypeBack, billType);
     }
 
     public List<DepotHeadVo4List> getDetailByNumber(String number, HttpServletRequest request)throws Exception {
@@ -1433,6 +1461,12 @@ public class DepotHeadService {
         User userInfo=userService.getCurrentUser();
         //通过redis去校验重复
         checkExistByRedis(userInfo, depotHead);
+        //保存时生成编号，确保编号连续性（不在打开窗口时消耗序列号）
+        String prefixNo = getPrefixByTypeAndSubType(depotHead.getType(), depotHead.getSubType());
+        String year = String.valueOf(java.time.LocalDate.now().getYear());
+        String newNumber = year + prefixNo + sequenceService.buildOnlyNumber();
+        depotHead.setNumber(newNumber);
+        depotHead.setDefaultNumber(newNumber);
         //校验单号是否重复
         if(checkIsBillNumberExist(0L, depotHead.getNumber())>0) {
             throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_BILL_NUMBER_EXIST_CODE,

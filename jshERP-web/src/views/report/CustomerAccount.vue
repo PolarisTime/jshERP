@@ -54,6 +54,16 @@
             <template v-if="toggleSearchStatus">
               <a-row :gutter="24">
                 <a-col :md="6" :sm="24">
+                  <a-form-item label="项目名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                    <a-select placeholder="请选择项目" mode="multiple" allow-clear showSearch optionFilterProp="children"
+                      v-model="queryParam.projectNameArray" :maxTagCount="1" :maxTagTextLength="8">
+                      <a-select-option v-for="(item,index) in projectNameList" :key="index" :value="item">
+                        {{ item }}
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+                <a-col :md="6" :sm="24">
                   <a-form-item label="欠款情况" :labelCol="labelCol" :wrapperCol="wrapperCol">
                     <a-select v-model="queryParam.hasDebt">
                       <a-select-option value="1">有欠款</a-select-option>
@@ -146,6 +156,7 @@
         queryParam: {
           supplierType: "客户",
           organId: undefined,
+          projectNameArray: [],
           hasDebt: '1',
           beginTime: getPrevMonthFormatDate(3),
           endTime: getFormatDate(),
@@ -156,13 +167,14 @@
           pageSizeOptions: ['11', '21', '31', '101', '201']
         },
         cusList: [],
+        projectNameList: [],
         firstTotal: '',
         lastTotal: '',
         setTimeFlag: null,
         tabKey: "1",
         pageName: 'customerAccount',
         // 默认索引
-        defDataIndex:['rowIndex','action','supplier','contacts','telephone','phoneNum','email','preNeed','debtMoney','backMoney','allNeed'],
+        defDataIndex:['rowIndex','action','supplier','projectName','contacts','telephone','phoneNum','email','preNeed','debtMoney','backMoney','allNeed'],
         // 默认列
         defColumns: [
           {
@@ -175,6 +187,7 @@
             scopedSlots: { customRender: 'action' }
           },
           {title: '客户', dataIndex: 'supplier', width: 150, ellipsis:true},
+          {title: '项目名称', dataIndex: 'projectName', width: 200, ellipsis:true},
           {title: '联系人', dataIndex: 'contacts', width: 100, ellipsis:true},
           {title: '手机号码', dataIndex: 'telephone', width: 100},
           {title: '联系电话', dataIndex: 'phoneNum', width: 100},
@@ -197,7 +210,14 @@
     },
     methods: {
       getQueryParams() {
-        let param = Object.assign({}, this.queryParam, this.isorter);
+        // 将项目名称多选数组转为逗号分隔字符串传给后端
+        let paramCopy = Object.assign({}, this.queryParam)
+        if (paramCopy.projectNameArray && paramCopy.projectNameArray.length > 0) {
+          paramCopy.projectName = paramCopy.projectNameArray.join(',')
+        }
+        delete paramCopy.projectNameArray
+        delete paramCopy.createTimeRange
+        let param = Object.assign({}, paramCopy, this.isorter);
         param.field = this.getQueryField();
         param.currentPage = this.ipagination.current;
         param.pageSize = this.ipagination.pageSize-1;
@@ -208,6 +228,14 @@
         findBySelectCus({limit:1}).then((res)=>{
           if(res) {
             that.cusList = res;
+            // 从客户列表中提取去重的项目名称
+            let nameSet = new Set()
+            res.forEach(item => {
+              if (item.projectName) {
+                nameSet.add(item.projectName)
+              }
+            })
+            that.projectNameList = Array.from(nameSet).sort()
           }
         });
       },
@@ -262,11 +290,11 @@
       },
       exportExcel() {
         let list = []
-        let head = '客户,联系人,手机号码,联系电话,电子邮箱,期初应收,本期欠款,本期收款,期末应收'
+        let head = '客户,项目名称,联系人,手机号码,联系电话,电子邮箱,期初应收,本期欠款,本期收款,期末应收'
         for (let i = 0; i < this.dataSource.length; i++) {
           let item = []
           let ds = this.dataSource[i]
-          item.push(ds.supplier, ds.contacts, ds.telephone, ds.phoneNum, ds.email, ds.preNeed, ds.debtMoney, ds.backMoney, ds.allNeed)
+          item.push(ds.supplier, ds.projectName || '', ds.contacts, ds.telephone, ds.phoneNum, ds.email, ds.preNeed, ds.debtMoney, ds.backMoney, ds.allNeed)
           list.push(item)
         }
         let tip = '单据日期：' + this.queryParam.beginTime + '~' + this.queryParam.endTime

@@ -89,7 +89,15 @@ public class DepotHeadController extends BaseController {
         String beginTime = StringUtil.getInfo(search, "beginTime");
         String endTime = StringUtil.getInfo(search, "endTime");
         String materialParam = StringUtil.getInfo(search, "materialParam");
-        Long organId = StringUtil.parseStrLong(StringUtil.getInfo(search, "organId"));
+        String organIdStr = StringUtil.getInfo(search, "organId");
+        Long organId = null;
+        String[] organIdList = null;
+        // 支持客户多选筛选：逗号分隔的多个ID走IN查询
+        if (StringUtil.isNotEmpty(organIdStr) && organIdStr.contains(",")) {
+            organIdList = organIdStr.split(",");
+        } else {
+            organId = StringUtil.parseStrLong(organIdStr);
+        }
         Long creator = StringUtil.parseStrLong(StringUtil.getInfo(search, "creator"));
         Long depotId = StringUtil.parseStrLong(StringUtil.getInfo(search, "depotId"));
         Long accountId = StringUtil.parseStrLong(StringUtil.getInfo(search, "accountId"));
@@ -98,7 +106,7 @@ public class DepotHeadController extends BaseController {
         String linkedFlag = StringUtil.getInfo(search, "linkedFlag");
         String priceApproved = StringUtil.getInfo(search, "priceApproved");
         List<DepotHeadVo4List> list = depotHeadService.select(type, subType, hasDebt, status, purchaseStatus, number, linkApply, linkNumber,
-                beginTime, endTime, materialParam, organId, creator, depotId, accountId, salesMan, remark, linkedFlag, priceApproved);
+                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, priceApproved);
         return getDataTable(list);
     }
 
@@ -443,6 +451,7 @@ public class DepotHeadController extends BaseController {
                                                  @RequestParam("beginTime") String beginTime,
                                                  @RequestParam("endTime") String endTime,
                                                  @RequestParam(value = "organId", required = false) Integer organId,
+                                                 @RequestParam(value = "projectName", required = false) String projectName,
                                                  @RequestParam(value = "hasDebt", required = false) Integer hasDebt,
                                                  @RequestParam("supplierType") String supplierType,
                                                  HttpServletRequest request) throws Exception{
@@ -468,12 +477,17 @@ public class DepotHeadController extends BaseController {
                 billType = "收款";
             }
             String [] organArray = depotHeadService.getOrganArray(subType, "");
+            // 项目名称多选筛选：逗号分隔的多个项目名称
+            String[] projectNames = null;
+            if (StringUtil.isNotEmpty(projectName)) {
+                projectNames = projectName.split(",");
+            }
             beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
             List<DepotHeadVo4StatementAccount> list = depotHeadService.getStatementAccount(beginTime, endTime, organId, organArray,
-                    hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType, (currentPage-1)*pageSize, pageSize);
+                    projectNames, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType, (currentPage-1)*pageSize, pageSize);
             int total = depotHeadService.getStatementAccountCount(beginTime, endTime, organId, organArray,
-                    hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
+                    projectNames, hasDebt, supplierType, type, subType,typeBack, subTypeBack, billType);
             for(DepotHeadVo4StatementAccount item: list) {
                 //期初 = 起始期初金额+上期欠款金额-上期退货的欠款金额-上期收付款
                 BigDecimal preNeed = item.getBeginNeed().add(item.getPreDebtMoney()).subtract(item.getPreReturnDebtMoney()).subtract(item.getPreBackMoney());
@@ -488,7 +502,7 @@ public class DepotHeadController extends BaseController {
             map.put("rows", list);
             map.put("total", total);
             List<DepotHeadVo4StatementAccount> totalPayList = depotHeadService.getStatementAccountTotalPay(beginTime, endTime, organId, organArray,
-                    hasDebt, supplierType, type, subType, typeBack, subTypeBack, billType);
+                    projectNames, hasDebt, supplierType, type, subType, typeBack, subTypeBack, billType);
             if(totalPayList.size()>0) {
                 DepotHeadVo4StatementAccount totalPayItem = totalPayList.get(0);
                 BigDecimal firstMoney = BigDecimal.ZERO;

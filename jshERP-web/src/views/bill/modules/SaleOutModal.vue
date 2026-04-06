@@ -584,17 +584,9 @@
               'discountMoney': 0,
               'discountLastMoney': discountLastMoney,
               'deposit': 0,
-              'changeAmount': changeAmount,
+              'changeAmount': 0,
+              'debt': changeAmount,
               'remark': remark || this.form.getFieldValue('remark') || ''
-            })
-            getCurrentSystemConfig().then((res) => {
-              if (res.code === 200 && res.data) {
-                let flag = res.data.zeroChangeAmountFlag==='1'?true:false
-                if(flag) {
-                  let oldChangeAmount = this.form.getFieldValue('changeAmount')-0
-                  this.form.setFieldsValue({'changeAmount':0, 'debt':oldChangeAmount})
-                }
-              }
             })
           })
           //判断后进行仓库的切换
@@ -657,22 +649,13 @@
               'discountMoney': discountMoney,
               'discountLastMoney': discountLastMoney,
               'deposit': deposit,
-              'changeAmount': changeAmount,
+              'changeAmount': 0,
+              'debt': changeAmount,
               'accountId': accountId,
               'remark': remark
             })
             findBySelectCus({organId: organId, limit:1}).then((res)=> {
               this.cusList = res && Array.isArray(res) ? res : [];
-            })
-            getCurrentSystemConfig().then((res) => {
-              if (res.code === 200 && res.data) {
-                let flag = res.data.zeroChangeAmountFlag==='1'?true:false
-                if(flag) {
-                  //切换收付款的金额为0
-                  let oldChangeAmount = this.form.getFieldValue('changeAmount')-0
-                  this.form.setFieldsValue({'changeAmount':0, 'debt':oldChangeAmount})
-                }
-              }
             })
             this.personList.value = salesMan
           })

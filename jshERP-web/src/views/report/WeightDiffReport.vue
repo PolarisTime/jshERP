@@ -120,6 +120,7 @@
   import BillDetail from '../bill/dialog/BillDetail'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { getAction } from '@/api/manage'
+  import { findBySelectSup } from '@/api/api'
   export default {
     name: "WeightDiffReport",
     mixins: [JeecgListMixin],
@@ -194,9 +195,9 @@
         return param;
       },
       initOrganList() {
-        getAction('/supplier/findBySelectSup', {}).then((res) => {
-          if (res && res.code === 200) {
-            this.organList = res.data || [];
+        findBySelectSup({}).then((res) => {
+          if (res) {
+            this.organList = res;
           }
         })
       },

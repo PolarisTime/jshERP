@@ -350,7 +350,7 @@
         ],
         summary: {
           count: 0,
-          totalWeight: '0.00',
+          totalWeight: '0.000',
           totalAmount: '0.00'
         },
         url: {
@@ -395,7 +395,7 @@
         })
         this.summary = {
           count: rows.length,
-          totalWeight: totalWeight.toFixed(2),
+          totalWeight: totalWeight.toFixed(3),
           totalAmount: Math.abs(totalAmount).toFixed(2)
         }
       },

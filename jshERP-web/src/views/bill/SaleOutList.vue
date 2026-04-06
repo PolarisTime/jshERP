@@ -45,7 +45,7 @@
               <a-row :gutter="24">
                 <a-col :md="6" :sm="24">
                   <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择客户" showSearch allow-clear optionFilterProp="children" v-model="queryParam.organId" @search="handleSearchCustomer">
+                    <a-select placeholder="请选择客户" mode="multiple" showSearch allow-clear optionFilterProp="children" v-model="queryParam.organIdArray" @search="handleSearchCustomer" :maxTagCount="1" :maxTagTextLength="6">
                       <div slot="dropdownRender" slot-scope="menu">
                         <v-nodes :vnodes="menu" />
                         <a-divider style="margin: 4px 0;" />
@@ -279,7 +279,7 @@
           materialParam: "",
           type: "出库",
           subType: "销售",
-          organId: undefined,
+          organIdArray: [],
           depotId: undefined,
           creator: undefined,
           linkNumber: "",
@@ -364,7 +364,7 @@
         ],
         summary: {
           count: 0,
-          totalWeight: '0.00',
+          totalWeight: '0.000',
           totalAmount: '0.00'
         },
         url: {
@@ -397,6 +397,26 @@
       this.getDepotByCurrentUser()
     },
     methods: {
+      getQueryParams() {
+        // 覆盖父级方法，将客户多选数组转为逗号分隔字符串传给后端
+        let queryParamCopy = Object.assign({}, this.queryParam)
+        if (queryParamCopy.organIdArray && queryParamCopy.organIdArray.length > 0) {
+          queryParamCopy.organId = queryParamCopy.organIdArray.join(',')
+        }
+        delete queryParamCopy.organIdArray
+        let sqp = {}
+        if (this.superQueryParams) {
+          sqp['superQueryParams'] = encodeURI(this.superQueryParams)
+          sqp['superQueryMatchType'] = this.superQueryMatchType
+        }
+        let searchObj = {}
+        searchObj.search = JSON.stringify(queryParamCopy)
+        var param = Object.assign(sqp, searchObj, this.isorter, this.filters)
+        param.field = this.getQueryField()
+        param.currentPage = this.ipagination.current
+        param.pageSize = this.ipagination.pageSize
+        return param
+      },
       calcSummary() {
         let rows = this.dataSource || []
         if (this.selectedRowKeys && this.selectedRowKeys.length > 0) {
@@ -410,7 +430,7 @@
         })
         this.summary = {
           count: rows.length,
-          totalWeight: totalWeight.toFixed(2),
+          totalWeight: totalWeight.toFixed(3),
           totalAmount: Math.abs(totalAmount).toFixed(2)
         }
       },

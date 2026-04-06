@@ -112,14 +112,11 @@ export const BillModalMixin = {
       if(this.materialTable) {
         this.materialTable.dataSource = []
       }
-      getAction('/sequence/buildNumber').then((res) => {
-        if (res && res.code === 200) {
-          const year = new Date().getFullYear()
-          const billNo = year + amountNum + res.data.defaultNumber
-          this.model.defaultNumber = billNo
-          this.form.setFieldsValue({'number': billNo})
-        }
-      })
+      // 编号在保存时由后端生成，前端仅显示占位符，避免打开窗口就消耗序列号
+      const year = new Date().getFullYear()
+      const placeholder = year + amountNum + '(自动)'
+      this.model.defaultNumber = placeholder
+      this.form.setFieldsValue({'number': placeholder})
       this.$nextTick(() => {
         this.form.setFieldsValue({'operTime':getNowFormatDateTime(), 'discount': 0,
           'discountMoney': 0, 'discountLastMoney': 0, 'otherMoney': 0, 'changeAmount': 0, 'debt': 0})
@@ -976,8 +973,14 @@ export const BillModalMixin = {
       }
       this.$nextTick(() => {
         changeAmountNew = this.prefixNo === 'CGDD' || this.prefixNo === 'XSDD'?0:changeAmountNew
-        this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
-          'changeAmount':changeAmountNew,'debt':0})
+        // 销售出库：本次收款默认置为0，欠款为总金额
+        if(this.prefixNo === 'XSCK') {
+          this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+            'changeAmount':0,'debt':changeAmountNew})
+        } else {
+          this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+            'changeAmount':changeAmountNew,'debt':0})
+        }
         this.setZeroChangeAmount()
       });
     },
@@ -995,8 +998,14 @@ export const BillModalMixin = {
       }
       this.$nextTick(() => {
         changeAmountNew = this.prefixNo === 'CGDD' || this.prefixNo === 'XSDD'?0:changeAmountNew
-        this.form.setFieldsValue({'discountMoney':discountMoneyNew,'discountLastMoney':discountLastMoneyNew,
-          'changeAmount':changeAmountNew,'debt':0})
+        // 销售出库：本次收款默认置为0，欠款为总金额
+        if(this.prefixNo === 'XSCK') {
+          this.form.setFieldsValue({'discountMoney':discountMoneyNew,'discountLastMoney':discountLastMoneyNew,
+            'changeAmount':0,'debt':changeAmountNew})
+        } else {
+          this.form.setFieldsValue({'discountMoney':discountMoneyNew,'discountLastMoney':discountLastMoneyNew,
+            'changeAmount':changeAmountNew,'debt':0})
+        }
         this.setZeroChangeAmount()
       });
     },
@@ -1014,8 +1023,14 @@ export const BillModalMixin = {
       }
       this.$nextTick(() => {
         changeAmountNew = this.prefixNo === 'CGDD' || this.prefixNo === 'XSDD'?0:changeAmountNew
-        this.form.setFieldsValue({'discount':discountNew,'discountLastMoney':discountLastMoneyNew,
-          'changeAmount':changeAmountNew,'debt':0})
+        // 销售出库：本次收款默认置为0，欠款为总金额
+        if(this.prefixNo === 'XSCK') {
+          this.form.setFieldsValue({'discount':discountNew,'discountLastMoney':discountLastMoneyNew,
+            'changeAmount':0,'debt':changeAmountNew})
+        } else {
+          this.form.setFieldsValue({'discount':discountNew,'discountLastMoney':discountLastMoneyNew,
+            'changeAmount':changeAmountNew,'debt':0})
+        }
         this.setZeroChangeAmount()
       });
     },
@@ -1029,7 +1044,12 @@ export const BillModalMixin = {
         changeAmountNew = (changeAmountNew - deposit).toFixed(2)-0
       }
       this.$nextTick(() => {
-        this.form.setFieldsValue({'changeAmount':changeAmountNew, 'debt':0})
+        // 销售出库：本次收款默认置为0，欠款为总金额
+        if(this.prefixNo === 'XSCK') {
+          this.form.setFieldsValue({'changeAmount':0, 'debt':changeAmountNew})
+        } else {
+          this.form.setFieldsValue({'changeAmount':changeAmountNew, 'debt':0})
+        }
         this.setZeroChangeAmount()
       });
     },
@@ -1043,7 +1063,12 @@ export const BillModalMixin = {
         changeAmountNew = (changeAmountNew - value).toFixed(2)-0
       }
       this.$nextTick(() => {
-        this.form.setFieldsValue({'changeAmount':changeAmountNew, 'debt':0})
+        // 销售出库：本次收款默认置为0，欠款为总金额
+        if(this.prefixNo === 'XSCK') {
+          this.form.setFieldsValue({'changeAmount':0, 'debt':changeAmountNew})
+        } else {
+          this.form.setFieldsValue({'changeAmount':changeAmountNew, 'debt':0})
+        }
         this.setZeroChangeAmount()
       });
     },
@@ -1131,8 +1156,14 @@ export const BillModalMixin = {
               }
               this.$nextTick(() => {
                 changeAmountNew = this.prefixNo === 'XSDD'?0:changeAmountNew
-                this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
-                  'changeAmount':changeAmountNew,'debt':0})
+                // 销售出库：本次收款默认置为0，欠款为总金额
+                if(this.prefixNo === 'XSCK') {
+                  this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+                    'changeAmount':0,'debt':changeAmountNew})
+                } else {
+                  this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+                    'changeAmount':changeAmountNew,'debt':0})
+                }
                 this.setZeroChangeAmount()
               });
             }
@@ -1142,12 +1173,21 @@ export const BillModalMixin = {
     },
     //切换收付款的金额为0
     setZeroChangeAmount() {
-      if(this.prefixNo === 'CGRK'||this.prefixNo === 'CGTH'||this.prefixNo === 'XSCK'||this.prefixNo === 'XSTH') {
+      // 销售出库/销售退货：本次收款始终置为0
+      if(this.prefixNo === 'XSCK'||this.prefixNo === 'XSTH') {
+        let oldChangeAmount = this.form.getFieldValue('changeAmount')-0
+        if(oldChangeAmount !== 0) {
+          this.form.setFieldsValue({'changeAmount':0, 'debt':oldChangeAmount})
+        }
+      }
+      // 采购退货：仍遵循原有 zeroChangeAmountFlag 配置
+      if(this.prefixNo === 'CGTH') {
         if(this.zeroChangeAmountFlag) {
           let oldChangeAmount = this.form.getFieldValue('changeAmount')-0
           this.form.setFieldsValue({'changeAmount':0, 'debt':oldChangeAmount})
         }
       }
+      // 采购入库(CGRK)：本次付款默认为单据总金额，不再置0
     },
     scanEnter() {
       this.scanStatus = false
@@ -1287,8 +1327,14 @@ export const BillModalMixin = {
               } else {
                 this.$nextTick(() => {
                   changeAmountNew = this.prefixNo === 'CGDD' || this.prefixNo === 'XSDD'?0:changeAmountNew
-                  this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
-                    'changeAmount':changeAmountNew,'debt':0})
+                  // 销售出库：本次收款默认置为0，欠款为总金额
+                  if(this.prefixNo === 'XSCK') {
+                    this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+                      'changeAmount':0,'debt':changeAmountNew})
+                  } else {
+                    this.form.setFieldsValue({'discount':discount,'discountMoney':discountMoney,'discountLastMoney':discountLastMoney,
+                      'changeAmount':changeAmountNew,'debt':0})
+                  }
                 });
               }
               //置空扫码的内容
@@ -1320,14 +1366,14 @@ export const BillModalMixin = {
         }
         let changeAmount = 0
         let debt = 0
-        if(this.prefixNo === 'CGRK' || this.prefixNo === 'XSCK') {
-          if(this.zeroChangeAmountFlag) {
-            changeAmount = 0
-            debt = discountLastMoney
-          } else {
-            changeAmount = discountLastMoney
-            debt = 0
-          }
+        if(this.prefixNo === 'XSCK') {
+          // 销售出库：本次收款默认置为0
+          changeAmount = 0
+          debt = discountLastMoney
+        } else if(this.prefixNo === 'CGRK') {
+          // 采购入库：本次付款默认为单据总金额
+          changeAmount = discountLastMoney
+          debt = 0
         }
         this.form.setFieldsValue({'discountLastMoney':discountLastMoney, 'changeAmount':changeAmount, 'debt': debt})
       });
