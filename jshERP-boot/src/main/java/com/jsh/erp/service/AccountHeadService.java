@@ -154,6 +154,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertAccountHead(JSONObject obj, HttpServletRequest request) throws Exception{
         AccountHead accountHead = JSONObject.parseObject(obj.toJSONString(), AccountHead.class);
+        accountHead.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             User userInfo=userService.getCurrentUser();
@@ -170,6 +171,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateAccountHead(JSONObject obj, HttpServletRequest request)throws Exception {
         AccountHead accountHead = JSONObject.parseObject(obj.toJSONString(), AccountHead.class);
+        accountHead.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result = accountHeadMapper.updateByPrimaryKeySelective(accountHead);
@@ -298,6 +300,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void addAccountHeadAndDetail(String beanJson, String rows, HttpServletRequest request) throws Exception {
         AccountHead accountHead = JSONObject.parseObject(beanJson, AccountHead.class);
+        accountHead.setTenantId(null); // security: prevent client-supplied tenantId
         //校验单号是否重复
         if(checkIsBillNoExist(0L, accountHead.getBillNo())>0) {
             throw new BusinessRunTimeException(ExceptionConstants.ACCOUNT_HEAD_BILL_NO_EXIST_CODE,
@@ -348,6 +351,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void updateAccountHeadAndDetail(String beanJson, String rows, HttpServletRequest request) throws Exception {
         AccountHead accountHead = JSONObject.parseObject(beanJson, AccountHead.class);
+        accountHead.setTenantId(null); // security: prevent client-supplied tenantId
         //校验单号是否重复
         if(checkIsBillNoExist(accountHead.getId(), accountHead.getBillNo())>0) {
             throw new BusinessRunTimeException(ExceptionConstants.ACCOUNT_HEAD_BILL_NO_EXIST_CODE,

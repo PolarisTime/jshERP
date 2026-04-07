@@ -159,6 +159,7 @@ public class AccountService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertAccount(JSONObject obj, HttpServletRequest request)throws Exception {
         Account account = JSONObject.parseObject(obj.toJSONString(), Account.class);
+        account.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         if(account.getInitialAmount() == null) {
             account.setInitialAmount(BigDecimal.ZERO);
         }
@@ -183,6 +184,7 @@ public class AccountService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateAccount(JSONObject obj, HttpServletRequest request)throws Exception {
         Account account = JSONObject.parseObject(obj.toJSONString(), Account.class);
+        account.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result = accountMapper.updateByPrimaryKeySelective(account);

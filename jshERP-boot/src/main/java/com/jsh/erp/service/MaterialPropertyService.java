@@ -110,6 +110,7 @@ public class MaterialPropertyService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertMaterialProperty(JSONObject obj, HttpServletRequest request)throws Exception {
         MaterialProperty materialProperty = JSONObject.parseObject(obj.toJSONString(), MaterialProperty.class);
+        materialProperty.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int  result=0;
         try{
             result = materialPropertyMapper.insertSelective(materialProperty);
@@ -124,6 +125,7 @@ public class MaterialPropertyService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateMaterialProperty(JSONObject obj, HttpServletRequest request)throws Exception {
         MaterialProperty materialProperty = JSONObject.parseObject(obj.toJSONString(), MaterialProperty.class);
+        materialProperty.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int  result=0;
         try{
             result = materialPropertyMapper.updateByPrimaryKeySelective(materialProperty);

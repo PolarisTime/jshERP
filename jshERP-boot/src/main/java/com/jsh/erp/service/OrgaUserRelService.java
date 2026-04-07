@@ -48,6 +48,7 @@ public class OrgaUserRelService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertOrgaUserRel(JSONObject obj, HttpServletRequest request) throws Exception{
         OrgaUserRel orgaUserRel = JSONObject.parseObject(obj.toJSONString(), OrgaUserRel.class);
+        orgaUserRel.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result=orgaUserRelMapper.insertSelective(orgaUserRel);
@@ -60,6 +61,7 @@ public class OrgaUserRelService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateOrgaUserRel(JSONObject obj, HttpServletRequest request) throws Exception{
         OrgaUserRel orgaUserRel = JSONObject.parseObject(obj.toJSONString(), OrgaUserRel.class);
+        orgaUserRel.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result=orgaUserRelMapper.updateByPrimaryKeySelective(orgaUserRel);

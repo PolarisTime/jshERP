@@ -151,6 +151,7 @@ public class SupplierService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertSupplier(JSONObject obj, HttpServletRequest request)throws Exception {
         Supplier supplier = JSONObject.parseObject(obj.toJSONString(), Supplier.class);
+        supplier.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             supplier.setEnabled(true);
@@ -170,6 +171,7 @@ public class SupplierService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateSupplier(JSONObject obj, HttpServletRequest request)throws Exception {
         Supplier supplier = JSONObject.parseObject(obj.toJSONString(), Supplier.class);
+        supplier.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         if(supplier.getBeginNeedPay() == null) {
             supplier.setBeginNeedPay(BigDecimal.ZERO);
         }
@@ -814,6 +816,7 @@ public class SupplierService {
             ubObj.put("keyId", userId);
             ubObj.put("value", ubKey);
             UserBusiness userBusiness = JSONObject.parseObject(ubObj.toJSONString(), UserBusiness.class);
+            userBusiness.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
             userBusinessMapper.insertSelective(userBusiness);
         } else {
             UserBusiness ubInfo = ubList.get(0);
@@ -823,6 +826,7 @@ public class SupplierService {
             ubObj.put("keyId", ubInfo.getKeyId());
             ubObj.put("value", ubInfo.getValue() + ubKey);
             UserBusiness userBusiness = JSONObject.parseObject(ubObj.toJSONString(), UserBusiness.class);
+            userBusiness.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
             userBusinessMapper.updateByPrimaryKeySelective(userBusiness);
         }
     }

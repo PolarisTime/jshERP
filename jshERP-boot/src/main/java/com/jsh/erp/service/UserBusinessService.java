@@ -61,6 +61,7 @@ public class UserBusinessService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertUserBusiness(JSONObject obj, HttpServletRequest request) throws Exception {
         UserBusiness userBusiness = JSONObject.parseObject(obj.toJSONString(), UserBusiness.class);
+        userBusiness.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             String value = userBusiness.getValue();
@@ -78,6 +79,7 @@ public class UserBusinessService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateUserBusiness(JSONObject obj, HttpServletRequest request) throws Exception {
         UserBusiness userBusiness = JSONObject.parseObject(obj.toJSONString(), UserBusiness.class);
+        userBusiness.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             String value = userBusiness.getValue();

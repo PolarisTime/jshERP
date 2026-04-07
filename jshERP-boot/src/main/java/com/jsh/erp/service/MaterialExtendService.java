@@ -314,6 +314,7 @@ public class MaterialExtendService {
 
     public int insertMaterialExtend(JSONObject obj, HttpServletRequest request) throws Exception{
         MaterialExtend materialExtend = JSONObject.parseObject(obj.toJSONString(), MaterialExtend.class);
+        materialExtend.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result = materialExtendMapper.insertSelective(materialExtend);
@@ -325,6 +326,7 @@ public class MaterialExtendService {
 
     public int updateMaterialExtend(JSONObject obj, HttpServletRequest request)throws Exception {
         MaterialExtend materialExtend = JSONObject.parseObject(obj.toJSONString(), MaterialExtend.class);
+        materialExtend.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result = materialExtendMapper.updateByPrimaryKeySelective(materialExtend);

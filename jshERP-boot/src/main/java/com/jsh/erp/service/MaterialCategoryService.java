@@ -120,6 +120,7 @@ public class MaterialCategoryService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertMaterialCategory(JSONObject obj, HttpServletRequest request)throws Exception {
         MaterialCategory materialCategory = JSONObject.parseObject(obj.toJSONString(), MaterialCategory.class);
+        materialCategory.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         materialCategory.setCreateTime(new Date());
         materialCategory.setUpdateTime(new Date());
         int result=0;
@@ -136,6 +137,7 @@ public class MaterialCategoryService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateMaterialCategory(JSONObject obj, HttpServletRequest request) throws Exception{
         MaterialCategory materialCategory = JSONObject.parseObject(obj.toJSONString(), MaterialCategory.class);
+        materialCategory.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         materialCategory.setUpdateTime(new Date());
         int result=0;
         try{

@@ -158,6 +158,7 @@ public class MaterialService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertMaterial(JSONObject obj, HttpServletRequest request)throws Exception {
         Material m = JSONObject.parseObject(obj.toJSONString(), Material.class);
+        m.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         m.setEnabled(true);
         //构造多属性数组字符串
         m.setAttribute(parseAttributeBySku(obj));
@@ -203,6 +204,7 @@ public class MaterialService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateMaterial(JSONObject obj, HttpServletRequest request) throws Exception{
         Material material = JSONObject.parseObject(obj.toJSONString(), Material.class);
+        material.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         //构造多属性数组字符串
         material.setAttribute(parseAttributeBySku(obj));
         try{
@@ -800,6 +802,7 @@ public class MaterialService {
                     mId = materials.get(0).getId();
                     String materialJson = JSON.toJSONString(m);
                     Material material = JSONObject.parseObject(materialJson, Material.class);
+        material.setTenantId(null); // security: prevent client-supplied tenantId
                     material.setId(mId);
                     materialMapper.updateByPrimaryKeySelective(material);
                     //更新多单位
@@ -828,6 +831,7 @@ public class MaterialService {
                     if(stock!=null && stock.compareTo(BigDecimal.ZERO)!=0) {
                         String basicStr = materialExObj.getString("basic");
                         MaterialExtend materialExtend = JSONObject.parseObject(basicStr, MaterialExtend.class);
+                        materialExtend.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
                         if(StringUtil.isNotEmpty(materialExtend.getSku())) {
                             throw new BusinessRunTimeException(ExceptionConstants.MATERIAL_SKU_BEGIN_STOCK_FAILED_CODE,
                                     String.format(ExceptionConstants.MATERIAL_SKU_BEGIN_STOCK_FAILED_MSG, materialExtend.getBarCode()));
@@ -1069,6 +1073,7 @@ public class MaterialService {
         if(StringUtil.isExist(materialExObj.get(type))){
             String basicStr = materialExObj.getString(type);
             MaterialExtend materialExtend = JSONObject.parseObject(basicStr, MaterialExtend.class);
+            materialExtend.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
             materialExtend.setMaterialId(mId);
             materialExtend.setDefaultFlag(defaultFlag);
             materialExtend.setCreateTime(new Date());
@@ -1105,6 +1110,7 @@ public class MaterialService {
         if(StringUtil.isExist(materialExObj.get("basic"))) {
             String basicStr = materialExObj.getString("basic");
             MaterialExtend basicMaterialExtend = JSONObject.parseObject(basicStr, MaterialExtend.class);
+            basicMaterialExtend.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
             barCode = basicMaterialExtend.getBarCode();
         }
         return barCode;
@@ -1518,6 +1524,7 @@ public class MaterialService {
         String materialStr = jsonObject.getString("material");
         List<Long> idList = StringUtil.strToLongList(ids);
         Material material = JSONObject.parseObject(materialStr, Material.class);
+        material.setTenantId(null); // security: prevent client-supplied tenantId
         MaterialExample example = new MaterialExample();
         example.createCriteria().andIdIn(idList).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
         return materialMapper.updateByExampleSelective(material, example);

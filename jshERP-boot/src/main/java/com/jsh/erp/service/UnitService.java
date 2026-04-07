@@ -93,6 +93,7 @@ public class UnitService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertUnit(JSONObject obj, HttpServletRequest request)throws Exception {
         Unit unit = JSONObject.parseObject(obj.toJSONString(), Unit.class);
+        unit.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             parseNameByUnit(unit);
@@ -109,6 +110,7 @@ public class UnitService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateUnit(JSONObject obj, HttpServletRequest request)throws Exception {
         Unit unit = JSONObject.parseObject(obj.toJSONString(), Unit.class);
+        unit.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             parseNameByUnit(unit);

@@ -71,6 +71,7 @@ public class MaterialAttributeService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertMaterialAttribute(JSONObject obj, HttpServletRequest request)throws Exception {
         MaterialAttribute m = JSONObject.parseObject(obj.toJSONString(), MaterialAttribute.class);
+        m.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         try{
             materialAttributeMapper.insertSelective(m);
             logService.insertLog("商品属性",
@@ -89,6 +90,7 @@ public class MaterialAttributeService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateMaterialAttribute(JSONObject obj, HttpServletRequest request) throws Exception{
         MaterialAttribute materialAttribute = JSONObject.parseObject(obj.toJSONString(), MaterialAttribute.class);
+        materialAttribute.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         try{
             materialAttributeMapper.updateByPrimaryKeySelective(materialAttribute);
             logService.insertLog("商品属性",

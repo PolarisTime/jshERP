@@ -102,6 +102,7 @@ public class DepotService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertDepot(JSONObject obj, HttpServletRequest request)throws Exception {
         Depot depot = JSONObject.parseObject(obj.toJSONString(), Depot.class);
+        depot.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             depot.setType(0);
@@ -144,6 +145,7 @@ public class DepotService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateDepot(JSONObject obj, HttpServletRequest request) throws Exception{
         Depot depot = JSONObject.parseObject(obj.toJSONString(), Depot.class);
+        depot.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result= depotMapper.updateByPrimaryKeySelective(depot);

@@ -92,6 +92,7 @@ public class InOutItemService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertInOutItem(JSONObject obj, HttpServletRequest request)throws Exception {
         InOutItem inOutItem = JSONObject.parseObject(obj.toJSONString(), InOutItem.class);
+        inOutItem.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int exist = checkIsNameAndTypeExist(inOutItem.getId(), inOutItem.getName(), inOutItem.getType());
         if(exist>0) {
             //存在
@@ -113,6 +114,7 @@ public class InOutItemService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateInOutItem(JSONObject obj, HttpServletRequest request)throws Exception {
         InOutItem inOutItem = JSONObject.parseObject(obj.toJSONString(), InOutItem.class);
+        inOutItem.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int exist = checkIsNameAndTypeExist(inOutItem.getId(), inOutItem.getName(), inOutItem.getType());
         if(exist>0) {
             //存在

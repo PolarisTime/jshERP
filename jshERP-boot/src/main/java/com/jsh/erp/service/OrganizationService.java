@@ -61,6 +61,7 @@ public class OrganizationService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertOrganization(JSONObject obj, HttpServletRequest request)throws Exception {
         Organization organization = JSONObject.parseObject(obj.toJSONString(), Organization.class);
+        organization.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         organization.setCreateTime(new Date());
         organization.setUpdateTime(new Date());
         int result=0;
@@ -76,6 +77,7 @@ public class OrganizationService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateOrganization(JSONObject obj, HttpServletRequest request)throws Exception {
         Organization organization = JSONObject.parseObject(obj.toJSONString(), Organization.class);
+        organization.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         organization.setUpdateTime(new Date());
         int result=0;
         try{

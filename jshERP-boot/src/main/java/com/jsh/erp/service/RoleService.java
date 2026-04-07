@@ -120,6 +120,7 @@ public class RoleService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertRole(JSONObject obj, HttpServletRequest request)throws Exception {
         Role role = JSONObject.parseObject(obj.toJSONString(), Role.class);
+        role.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             role.setEnabled(true);
@@ -135,6 +136,7 @@ public class RoleService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateRole(JSONObject obj, HttpServletRequest request) throws Exception{
         Role role = JSONObject.parseObject(obj.toJSONString(), Role.class);
+        role.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result=roleMapper.updateByPrimaryKeySelective(role);

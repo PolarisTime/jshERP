@@ -96,6 +96,7 @@ public class PersonService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertPerson(JSONObject obj, HttpServletRequest request)throws Exception {
         Person person = JSONObject.parseObject(obj.toJSONString(), Person.class);
+        person.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             person.setEnabled(true);
@@ -111,6 +112,7 @@ public class PersonService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updatePerson(JSONObject obj, HttpServletRequest request)throws Exception {
         Person person = JSONObject.parseObject(obj.toJSONString(), Person.class);
+        person.setTenantId(null); // prevent client-supplied tenantId (CVE fix)
         int result=0;
         try{
             result=personMapper.updateByPrimaryKeySelective(person);
