@@ -88,7 +88,7 @@ public class MaterialCategoryController extends BaseController {
 
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
-    public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+    public String deleteResource(@RequestParam(value = "id", required = false) Long id, HttpServletRequest request)throws Exception {
         if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialCategoryService.deleteMaterialCategory(id, request);
@@ -151,7 +151,7 @@ public class MaterialCategoryController extends BaseController {
      */
     @GetMapping(value = "/findById")
     @ApiOperation(value = "根据id来查询商品名称")
-    public BaseResponseInfo findById(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+    public BaseResponseInfo findById(@RequestParam(value = "id", required = false) Long id, HttpServletRequest request)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             List<MaterialCategory> dataList = materialCategoryService.findById(id);
@@ -186,7 +186,7 @@ public class MaterialCategoryController extends BaseController {
      */
     @RequestMapping(value = "/getMaterialCategoryTree")
     @ApiOperation(value = "获取商品类别树数据")
-    public JSONArray getMaterialCategoryTree(@RequestParam("id") Long id) throws Exception{
+    public JSONArray getMaterialCategoryTree(@RequestParam(value = "id", required = false, defaultValue = "0") Long id) throws Exception{
        JSONArray arr=new JSONArray();
        List<TreeNode> materialCategoryTree = materialCategoryService.getMaterialCategoryTree(id);
        if(materialCategoryTree!=null&&materialCategoryTree.size()>0){

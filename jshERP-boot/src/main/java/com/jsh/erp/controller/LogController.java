@@ -85,7 +85,7 @@ public class LogController extends BaseController {
 
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
-    public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+    public String deleteResource(@RequestParam(value = "id", required = false) Long id, HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int delete = logService.deleteLog(id, request);
         return returnStr(objectMap, delete);
