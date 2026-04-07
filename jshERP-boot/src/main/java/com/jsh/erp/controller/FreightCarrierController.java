@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * 运费结算方Controller
@@ -30,6 +32,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 @Api(tags = {"运费结算方"})
 public class FreightCarrierController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(FreightCarrierController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private FreightCarrierService freightCarrierService;
@@ -72,6 +77,7 @@ public class FreightCarrierController extends BaseController {
     @ApiOperation(value = "新增结算方")
     public String add(@RequestBody FreightCarrier freightCarrier,
                       HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int res = freightCarrierService.add(freightCarrier);
         if (res > 0) {
@@ -88,6 +94,7 @@ public class FreightCarrierController extends BaseController {
     @ApiOperation(value = "更新结算方")
     public String update(@RequestBody FreightCarrier freightCarrier,
                          HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int res = freightCarrierService.update(freightCarrier);
         if (res > 0) {
@@ -104,6 +111,7 @@ public class FreightCarrierController extends BaseController {
     @ApiOperation(value = "删除结算方")
     public String delete(@RequestParam("id") Long id,
                          HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int res = freightCarrierService.delete(id);
         if (res > 0) {
@@ -120,6 +128,7 @@ public class FreightCarrierController extends BaseController {
     @ApiOperation(value = "批量删除结算方")
     public String deleteBatch(@RequestParam("ids") String ids,
                               HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int res = freightCarrierService.deleteBatch(ids);
         if (res > 0) {

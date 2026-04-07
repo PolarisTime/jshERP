@@ -26,6 +26,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author jishenghua 752*718*920
@@ -35,6 +37,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"财务管理"})
 public class AccountHeadController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(AccountHeadController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private AccountHeadService accountHeadService;
@@ -77,6 +82,7 @@ public class AccountHeadController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountHeadService.deleteAccountHead(id, request);
         return returnStr(objectMap, delete);
@@ -85,6 +91,7 @@ public class AccountHeadController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountHeadService.batchDeleteAccountHead(ids, request);
         return returnStr(objectMap, delete);
@@ -100,6 +107,7 @@ public class AccountHeadController extends BaseController {
     @ApiOperation(value = "批量设置状态-审核或者反审核")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         String status = jsonObject.getString("status");
         String ids = jsonObject.getString("ids");
@@ -121,6 +129,7 @@ public class AccountHeadController extends BaseController {
     @PostMapping(value = "/addAccountHeadAndDetail")
     @ApiOperation(value = "新增财务主表及财务子表信息")
     public Object addAccountHeadAndDetail(@RequestBody AccountHeadVo4Body body, HttpServletRequest request) throws  Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         JSONObject result = ExceptionConstants.standardSuccess();
         String beanJson = body.getInfo();
         String rows = body.getRows();
@@ -138,6 +147,7 @@ public class AccountHeadController extends BaseController {
     @PutMapping(value = "/updateAccountHeadAndDetail")
     @ApiOperation(value = "更新财务主表及财务子表信息")
     public Object updateAccountHeadAndDetail(@RequestBody AccountHeadVo4Body body, HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         JSONObject result = ExceptionConstants.standardSuccess();
         String beanJson = body.getInfo();
         String rows = body.getRows();

@@ -2,6 +2,7 @@ package com.jsh.erp.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.*;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji|sheng|hua jshERP
@@ -108,6 +110,7 @@ public class MaterialController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = materialService.insertMaterial(obj, request);
         return returnStr(objectMap, insert);
@@ -116,6 +119,7 @@ public class MaterialController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = materialService.updateMaterial(obj, request);
         return returnStr(objectMap, update);
@@ -124,6 +128,7 @@ public class MaterialController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialService.deleteMaterial(id, request);
         return returnStr(objectMap, delete);
@@ -132,6 +137,7 @@ public class MaterialController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialService.batchDeleteMaterial(ids, request);
         return returnStr(objectMap, delete);
@@ -199,6 +205,7 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "批量设置状态-启用或者禁用")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
@@ -494,8 +501,10 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "excel表格导入产品")
     public BaseResponseInfo importExcel(MultipartFile file,
                             HttpServletRequest request, HttpServletResponse response) throws Exception{
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             res = materialService.importExcel(file, request);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -801,6 +810,7 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "批量设置商品当前的实时库存（按每个仓库）")
     public String batchSetMaterialCurrentStock(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
         List<Depot> depotList = depotService.getAllList();
@@ -826,6 +836,7 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "批量设置商品当前的成本价")
     public String batchSetMaterialCurrentUnitPrice(@RequestBody JSONObject jsonObject,
                                                HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
         int res = materialService.batchSetMaterialCurrentUnitPrice(ids);
@@ -847,6 +858,7 @@ public class MaterialController extends BaseController {
     @ApiOperation(value = "批量更新商品信息")
     public String batchUpdate(@RequestBody JSONObject jsonObject,
                               HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int res = materialService.batchUpdate(jsonObject);
         if(res > 0) {
@@ -863,8 +875,10 @@ public class MaterialController extends BaseController {
     @PostMapping(value = "/changeNameToPinYin")
     @ApiOperation(value = "转换名称为拼音")
     public BaseResponseInfo changeNameToPinYin(@RequestBody JSONObject jsonObject)throws Exception {
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String name = jsonObject.getString("name");
             res.code = 200;
             res.data = PinYinUtil.getFirstLettersLo(name);

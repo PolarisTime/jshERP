@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * 数据字典信息
@@ -69,6 +70,7 @@ public class SysDictTypeController extends BaseController {
     @ApiOperation("新增字典类型")
     @PostMapping(value = "/add")
     public String add(@Validated @RequestBody SysDictType dict) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         if (!dictTypeService.checkDictTypeUnique(dict)) {
             return returnJson(objectMap, "新增字典'" + dict.getDictName() + "'失败，字典类型已存在", ErpInfo.ERROR.code);
@@ -83,6 +85,7 @@ public class SysDictTypeController extends BaseController {
     @ApiOperation("修改字典类型")
     @PutMapping(value = "/update")
     public String edit(@Validated @RequestBody SysDictType dict) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         if (!dictTypeService.checkDictTypeUnique(dict)) {
             return returnJson(objectMap, "修改字典'" + dict.getDictName() + "'失败，字典类型已存在", ErpInfo.ERROR.code);
@@ -94,6 +97,7 @@ public class SysDictTypeController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = dictTypeService.deleteDictType(id, request);
         return returnStr(objectMap, delete);
@@ -102,6 +106,7 @@ public class SysDictTypeController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = dictTypeService.batchDeleteDictType(ids, request);
         return returnStr(objectMap, delete);
@@ -112,7 +117,8 @@ public class SysDictTypeController extends BaseController {
      */
     @ApiOperation("刷新字典缓存")
     @DeleteMapping("/refreshCache")
-    public AjaxResult refreshCache() {
+    public AjaxResult refreshCache() throws Exception {
+        if (!userService.isCurrentUserAdmin()) { return error("无权限"); }
         dictTypeService.resetDictCache();
         return success();
     }

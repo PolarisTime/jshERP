@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * 列配置Controller
@@ -20,6 +22,9 @@ import javax.annotation.Resource;
 @Api(tags = {"列配置"})
 public class ColumnConfigController {
     private Logger logger = LoggerFactory.getLogger(ColumnConfigController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private ColumnConfigService columnConfigService;
@@ -45,6 +50,7 @@ public class ColumnConfigController {
     public BaseResponseInfo save(@RequestBody JSONObject obj) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String pageCode = obj.getString("pageCode");
             String columnConfig = obj.getString("columnConfig");
             columnConfigService.saveColumnConfig(pageCode, columnConfig);
@@ -63,6 +69,7 @@ public class ColumnConfigController {
     public BaseResponseInfo reset(@RequestParam("pageCode") String pageCode) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             columnConfigService.deleteByPageCode(pageCode);
             res.code = 200;
             res.data = "成功";

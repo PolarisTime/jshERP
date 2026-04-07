@@ -23,6 +23,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author jijiaqing
@@ -32,6 +34,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"商品价格扩展"})
 public class MaterialExtendController {
     private Logger logger = LoggerFactory.getLogger(MaterialExtendController.class);
+        @Resource
+    private UserService userService;
+
     @Resource
     private MaterialExtendService materialExtendService;
 
@@ -52,6 +57,7 @@ public class MaterialExtendController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = materialExtendService.insertMaterialExtend(obj, request);
         return returnStr(objectMap, insert);
@@ -60,6 +66,7 @@ public class MaterialExtendController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = materialExtendService.updateMaterialExtend(obj, request);
         return returnStr(objectMap, update);
@@ -68,6 +75,7 @@ public class MaterialExtendController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialExtendService.deleteMaterialExtend(id, request);
         return returnStr(objectMap, delete);
@@ -76,6 +84,7 @@ public class MaterialExtendController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialExtendService.batchDeleteMaterialExtendByIds(ids, request);
         return returnStr(objectMap, delete);

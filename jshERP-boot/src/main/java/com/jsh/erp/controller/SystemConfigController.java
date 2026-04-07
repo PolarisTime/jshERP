@@ -34,6 +34,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * Description
@@ -45,6 +47,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"系统参数"})
 public class SystemConfigController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(SystemConfigController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private SystemConfigService systemConfigService;
@@ -87,6 +92,7 @@ public class SystemConfigController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = systemConfigService.insertSystemConfig(obj, request);
         return returnStr(objectMap, insert);
@@ -95,6 +101,7 @@ public class SystemConfigController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = systemConfigService.updateSystemConfig(obj, request);
         return returnStr(objectMap, update);
@@ -103,6 +110,7 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.deleteSystemConfig(id, request);
         return returnStr(objectMap, delete);
@@ -111,6 +119,7 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.batchDeleteSystemConfig(ids, request);
         return returnStr(objectMap, delete);
@@ -191,6 +200,7 @@ public class SystemConfigController extends BaseController {
     public BaseResponseInfo upload(HttpServletRequest request, HttpServletResponse response) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+            if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String savePath = "";
             String bizPath = request.getParameter("biz");
             String billId = request.getParameter("billId");
@@ -371,6 +381,7 @@ public class SystemConfigController extends BaseController {
     public void exportExcelByParam(@RequestBody JSONObject jsonObject,
                                    HttpServletResponse response) {
         try {
+            if (!userService.isCurrentUserAdmin()) { return; }
             String title = jsonObject.getString("title");
             String head = jsonObject.getString("head");
             String tip = jsonObject.getString("tip");

@@ -20,6 +20,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * Description
@@ -32,6 +34,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"单位管理"})
 public class UnitController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(UnitController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private UnitService unitService;
@@ -62,6 +67,7 @@ public class UnitController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = unitService.insertUnit(obj, request);
         return returnStr(objectMap, insert);
@@ -70,6 +76,7 @@ public class UnitController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = unitService.updateUnit(obj, request);
         return returnStr(objectMap, update);
@@ -78,6 +85,7 @@ public class UnitController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = unitService.deleteUnit(id, request);
         return returnStr(objectMap, delete);
@@ -86,6 +94,7 @@ public class UnitController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = unitService.batchDeleteUnit(ids, request);
         return returnStr(objectMap, delete);
@@ -137,6 +146,7 @@ public class UnitController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

@@ -28,6 +28,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author jishenghua 75271*8920
@@ -37,6 +39,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"账户管理"})
 public class AccountController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(AccountController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private AccountService accountService;
@@ -72,6 +77,7 @@ public class AccountController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = accountService.insertAccount(obj, request);
         return returnStr(objectMap, insert);
@@ -80,6 +86,7 @@ public class AccountController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = accountService.updateAccount(obj, request);
         return returnStr(objectMap, update);
@@ -88,6 +95,7 @@ public class AccountController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountService.deleteAccount(id, request);
         return returnStr(objectMap, delete);
@@ -96,6 +104,7 @@ public class AccountController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountService.batchDeleteAccount(ids, request);
         return returnStr(objectMap, delete);
@@ -234,6 +243,7 @@ public class AccountController extends BaseController {
     @ApiOperation(value = "更新默认账户")
     public String updateIsDefault(@RequestBody JSONObject object,
                                        HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Long accountId = object.getLong("id");
         Map<String, Object> objectMap = new HashMap<>();
         int res = accountService.updateIsDefault(accountId);
@@ -291,6 +301,7 @@ public class AccountController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

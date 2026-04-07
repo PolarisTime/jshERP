@@ -20,6 +20,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji_sheng_hua jshERP
@@ -29,6 +31,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"用户角色模块的关系"})
 public class UserBusinessController {
     private Logger logger = LoggerFactory.getLogger(UserBusinessController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private UserBusinessService userBusinessService;
@@ -50,6 +55,7 @@ public class UserBusinessController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = userBusinessService.insertUserBusiness(obj, request);
         return returnStr(objectMap, insert);
@@ -58,6 +64,7 @@ public class UserBusinessController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = userBusinessService.updateUserBusiness(obj, request);
         return returnStr(objectMap, update);
@@ -66,6 +73,7 @@ public class UserBusinessController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userBusinessService.deleteUserBusiness(id, request);
         return returnStr(objectMap, delete);
@@ -74,6 +82,7 @@ public class UserBusinessController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userBusinessService.batchDeleteUserBusiness(ids, request);
         return returnStr(objectMap, delete);
@@ -150,8 +159,10 @@ public class UserBusinessController {
     @ApiOperation(value = "更新角色的按钮权限")
     public BaseResponseInfo updateBtnStr(@RequestBody JSONObject jsonObject,
                                          HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String roleId = jsonObject.getString("roleId");
             String btnStr = jsonObject.getString("btnStr");
             String keyId = roleId;
@@ -179,8 +190,10 @@ public class UserBusinessController {
     @ApiOperation(value = "根据KeyId和类型更新一个值")
     public BaseResponseInfo updateOneValueByKeyIdAndType(@RequestBody JSONObject jsonObject,
                                                          HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String type = jsonObject.getString("type");
             JSONArray keyIdArr = jsonObject.getJSONArray("keyIds");
             String oneValue = jsonObject.getString("oneValue");

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * create by: jsh
@@ -58,6 +59,7 @@ public class OrganizationController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = organizationService.insertOrganization(obj, request);
         return returnStr(objectMap, insert);
@@ -66,6 +68,7 @@ public class OrganizationController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = organizationService.updateOrganization(obj, request);
         return returnStr(objectMap, update);
@@ -74,6 +77,7 @@ public class OrganizationController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = organizationService.deleteOrganization(id, request);
         return returnStr(objectMap, delete);
@@ -82,6 +86,7 @@ public class OrganizationController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = organizationService.batchDeleteOrganization(ids, request);
         return returnStr(objectMap, delete);

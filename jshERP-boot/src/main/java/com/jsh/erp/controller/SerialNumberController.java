@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * Description
@@ -34,6 +36,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"序列号管理"})
 public class SerialNumberController {
     private Logger logger = LoggerFactory.getLogger(SerialNumberController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private SerialNumberService serialNumberService;
@@ -71,6 +76,7 @@ public class SerialNumberController {
         BaseResponseInfo res = new BaseResponseInfo();
         Map<String, Object> map = new HashMap<>();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String name = jsonObject.getString("name");
             Long depotItemId = jsonObject.getLong("depotItemId");
             Long depotId = jsonObject.getLong("depotId");

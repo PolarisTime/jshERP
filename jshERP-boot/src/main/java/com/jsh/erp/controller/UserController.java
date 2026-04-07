@@ -3,6 +3,7 @@ package com.jsh.erp.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.constants.BusinessConstants;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji_sheng_hua 管伊佳erp
@@ -89,6 +91,7 @@ public class UserController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = userService.insertUser(obj, request);
         return returnStr(objectMap, insert);
@@ -97,6 +100,7 @@ public class UserController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = userService.updateUser(obj, request);
         return returnStr(objectMap, update);
@@ -105,6 +109,7 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.deleteUser(id, request);
         return returnStr(objectMap, delete);
@@ -113,6 +118,7 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.batchDeleteUser(ids, request);
         return returnStr(objectMap, delete);
@@ -135,8 +141,10 @@ public class UserController extends BaseController {
     @PostMapping(value = "/login")
     @ApiOperation(value = "登录")
     public BaseResponseInfo login(@RequestBody UserEx userParam, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             userService.validateCaptcha(userParam.getCode(), userParam.getUuid());
             Map<String, Object> data = userService.login(userParam.getLoginName().trim(), userParam.getPassword().trim(), request);
             res.code = 200;
@@ -155,8 +163,10 @@ public class UserController extends BaseController {
     @ApiOperation(value = "微信登录")
     public BaseResponseInfo weixinLogin(@RequestBody JSONObject jsonObject,
                                   HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) { BaseResponseInfo _fr = new BaseResponseInfo(); _fr.code = 403; _fr.data = "无权限"; return _fr; }
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String weixinCode = jsonObject.getString("weixinCode");
             User user = userService.getUserByWeixinCode(weixinCode);
             if(user == null) {
@@ -180,6 +190,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "绑定微信")
     public String weixinBind(@RequestBody JSONObject jsonObject,
                              HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         String loginName = jsonObject.getString("loginName");
         String password = jsonObject.getString("password");
@@ -244,6 +255,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "重置密码")
     public String resetPwd(@RequestBody JSONObject jsonObject,
                                      HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         Long id = jsonObject.getLong("id");
         String md5Pwd = jsonObject.getString("password");
@@ -258,9 +270,11 @@ public class UserController extends BaseController {
     @PutMapping(value = "/updatePwd")
     @ApiOperation(value = "更新密码")
     public String updatePwd(@RequestBody JSONObject jsonObject, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Integer flag = 0;
         Map<String, Object> objectMap = new HashMap<String, Object>();
         try {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
             String info = "";
             Long userId = jsonObject.getLong("userId");
             String oldpwd = jsonObject.getString("oldpassword");
@@ -327,6 +341,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "新增用户")
     @ResponseBody
     public Object addUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         JSONObject result = ExceptionConstants.standardSuccess();
         User userInfo = userService.getCurrentUser();
         Tenant tenant = tenantService.getTenantByTenantId(userInfo.getTenantId());
@@ -355,6 +370,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "修改用户")
     @ResponseBody
     public Object updateUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         JSONObject result = ExceptionConstants.standardSuccess();
         UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
         userService.updateUserAndOrgUserRel(ue, request);
@@ -371,6 +387,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "注册用户")
     public Object registerUser(@RequestBody UserEx ue,
                                HttpServletRequest request)throws Exception{
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         JSONObject result = ExceptionConstants.standardSuccess();
         ue.setUsername(ue.getLoginName());
         userService.validateCaptcha(ue.getCode(), ue.getUuid());
@@ -554,6 +571,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Byte status = jsonObject.getByte("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

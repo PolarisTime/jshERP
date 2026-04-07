@@ -26,6 +26,8 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji—sheng—hua   jshERP
@@ -35,6 +37,9 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Api(tags = {"商品类别"})
 public class MaterialCategoryController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(MaterialCategoryController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private MaterialCategoryService materialCategoryService;
@@ -66,6 +71,7 @@ public class MaterialCategoryController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = materialCategoryService.insertMaterialCategory(obj, request);
         return returnStr(objectMap, insert);
@@ -74,6 +80,7 @@ public class MaterialCategoryController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = materialCategoryService.updateMaterialCategory(obj, request);
         return returnStr(objectMap, update);
@@ -82,6 +89,7 @@ public class MaterialCategoryController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialCategoryService.deleteMaterialCategory(id, request);
         return returnStr(objectMap, delete);
@@ -90,6 +98,7 @@ public class MaterialCategoryController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialCategoryService.batchDeleteMaterialCategory(ids, request);
         return returnStr(objectMap, delete);

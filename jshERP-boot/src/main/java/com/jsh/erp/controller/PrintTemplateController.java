@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.*;
+import com.jsh.erp.service.UserService;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * 打印模板Controller
@@ -21,6 +23,9 @@ import java.util.*;
 @Api(tags = {"打印模板"})
 public class PrintTemplateController {
     private Logger logger = LoggerFactory.getLogger(PrintTemplateController.class);
+
+        @Resource
+    private UserService userService;
 
     @Resource
     private PrintTemplateService printTemplateService;
@@ -85,6 +90,7 @@ public class PrintTemplateController {
     public BaseResponseInfo save(@RequestBody JSONObject obj) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             String source = obj.getString("source");
             String billType = obj.getString("billType");
             String templateName = obj.getString("templateName");
@@ -117,6 +123,7 @@ public class PrintTemplateController {
                                    @RequestParam(value = "fileName", required = false) String fileName) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+        if (!userService.isCurrentUserAdmin()) { res.code = 403; res.data = "无权限"; return res; }
             if ("file".equals(source)) {
                 printTemplateService.deleteFileTemplate(billType, fileName);
             } else {
