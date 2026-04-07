@@ -37,8 +37,8 @@ export const ClodopMixin = {
       try {
         const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
         resetCLodop()
-        await loadCLodop()
-        this.clodopReady = isAvailable()
+        const ok = await loadCLodop()
+        this.clodopReady = ok && isAvailable()
         if (this.clodopReady) {
           this.printerList = getPrinterList()
           if (this.clodopBillType && !this.printTemplateList.length) {
@@ -46,6 +46,7 @@ export const ClodopMixin = {
           }
         }
       } catch (e) {
+        console.error('[CLodop] 初始化失败', e)
         this.clodopReady = false
       }
     },
