@@ -27,6 +27,13 @@ spring:
       # 文件上传限制 (byte)
       max-file-size: 10485760
       max-request-size: 10485760
+  # Spring Boot 2.6+ 路径匹配策略：保持 AntPathMatcher 兼容 springfox 2.x
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # Spring Boot 2.6+ 循环依赖检测，springfox 存在循环依赖需开启
+  main:
+    allow-circular-references: true
   # 开发热部署
   devtools:
     restart:

@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.9.RELEASE</version>
+		<version>2.7.18</version>
 	</parent>
 
 	<properties>
@@ -67,30 +67,30 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.12</version>
+			<version>1.18.30</version>
 		</dependency>
-		<!-- 日志 -->
+		<!-- 日志（Spring Boot 2.7 已自动管理，保留以锁定版本） -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-to-slf4j</artifactId>
-			<version>2.15.0</version>
+			<version>2.17.2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
-			<version>1.7.25</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- MyBatis-Plus 3.5.16（当前 Maven Central 最新稳定版） -->
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
-			<version>3.0.7.1</version>
+			<version>3.5.16</version>
 		</dependency>
+		<!-- Redis（Spring Boot 2.7 默认 Lettuce，无需显式版本） -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-redis</artifactId>
-			<version>1.4.1.RELEASE</version>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 		<!-- JWT -->
 		<dependency>
@@ -110,6 +110,7 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Swagger（springfox 2.x + ant_path_matcher 规避 Spring Boot 2.6+ 兼容问题） -->
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
@@ -141,10 +142,28 @@
 			<artifactId>pinyin4j</artifactId>
 			<version>2.5.1</version>
 		</dependency>
+		<!-- MyBatis-Plus JSQLParser 扩展（3.5.x 起 TenantLine/Pagination/BlockAttack 迁移到此模块） -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-jsqlparser</artifactId>
+			<version>3.5.16</version>
+		</dependency>
+		<!-- Bean Validation（javax.validation @NotBlank/@Size 等注解，Spring Boot 2.3+ 需显式引入） -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<!-- PageHelper（排除 mybatis-spring-boot-starter，避免与 mybatis-plus 冲突） -->
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>
 			<artifactId>pagehelper-spring-boot-starter</artifactId>
-			<version>1.2.13</version>
+			<version>1.4.7</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.mybatis.spring.boot</groupId>
+					<artifactId>mybatis-spring-boot-starter</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.mail</groupId>
@@ -166,7 +185,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.0.9.RELEASE</version>
+				<version>2.7.18</version>
 				<executions>
 					<execution>
 						<id>build-info</id>
@@ -221,11 +240,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<version>3.10.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>

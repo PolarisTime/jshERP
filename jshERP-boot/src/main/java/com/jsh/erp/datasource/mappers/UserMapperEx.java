@@ -5,6 +5,7 @@ import com.jsh.erp.datasource.entities.UserEx;
 import com.jsh.erp.datasource.entities.UserExample;
 import com.jsh.erp.datasource.vo.TreeNode;
 import com.jsh.erp.datasource.vo.TreeNodeEx;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -21,6 +22,7 @@ public interface UserMapperEx {
             @Param("userName") String userName,
             @Param("loginName") String loginName);
 
+    @InterceptorIgnore(tenantLine = "true")
     List<User> getUserListByUserNameOrLoginName(@Param("userName") String userName,
                                                 @Param("loginName") String loginName);
 
@@ -29,15 +31,18 @@ public interface UserMapperEx {
     List<TreeNodeEx> getNodeTree();
     List<TreeNodeEx> getNextNodeTree(Map<String, Object> parameterMap);
 
+    @InterceptorIgnore(tenantLine = "true")
     void disableUserByLimit(@Param("tenantId") Long tenantId);
 
     List<User> getListByOrgaId(
             @Param("id") Long id,
             @Param("orgaId") Long orgaId);
 
+    @InterceptorIgnore(tenantLine = "true")
     User getUserByWeixinOpenId(
             @Param("weixinOpenId") String weixinOpenId);
 
+    @InterceptorIgnore(tenantLine = "true")
     int updateUserWithWeixinOpenId(
             @Param("loginName") String loginName,
             @Param("password") String password,
