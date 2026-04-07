@@ -124,9 +124,10 @@
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { findBySelectCus, deleteCustomerStatement, getCustomerStatementDetail,
-           auditCustomerStatement, signCustomerStatement, listPrintTemplate } from '@/api/api'
+           auditCustomerStatement, signCustomerStatement } from '@/api/api'
   import { getAction } from '@/api/manage'
   import { render } from '@/utils/printTemplateEngine'
+  import { getTemplatesByBillType } from '@/utils/printTemplateDefaults'
   import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
   import CustomerStatementGenerateModal from './modules/CustomerStatementGenerateModal'
   import CustomerStatementDetailModal from './modules/CustomerStatementDetailModal'
@@ -304,13 +305,10 @@
         }
       },
       loadPrintTemplate() {
-        listPrintTemplate({ billType: 'customerStatement' }).then(res => {
-          if (res && res.code === 200 && Array.isArray(res.data)) {
-            this.templateList = res.data
-            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
-            this.selectedTemplateId = def ? def.id : null
-          }
-        })
+        const templates = getTemplatesByBillType('customerStatement')
+        this.templateList = templates
+        const def = templates.find(t => t.isDefault === '1') || templates[0]
+        this.selectedTemplateId = def ? def.id : null
       },
 
       // ─── 预览 / 打印 ─────────────────────────────────────────────

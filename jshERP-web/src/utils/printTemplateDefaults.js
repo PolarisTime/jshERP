@@ -473,8 +473,72 @@ export const defaultTemplates = {
   freightBill: freightBillClodopTemplate
 }
 
+// ─── 客户对账单 HTML 模板 ───
+const customerStatementTemplate = `<div style="padding:10px;">
+<h2>客户对账单</h2>
+<table style="border:none;width:100%;margin-bottom:8px;">
+<tr class="header-row">
+  <td style="border:none;">对账单号：{{statementNo}}</td>
+  <td style="border:none;">客户：{{organName}}</td>
+  <td style="border:none;">日期：{{_printDate}}</td>
+</tr>
+</table>
+<table>
+<thead><tr>
+  <th>序号</th><th>出库单号</th><th>出库日期</th><th>品名</th><th>规格</th><th>数量(件)</th><th>重量(吨)</th><th>单价</th><th>金额</th>
+</tr></thead>
+<tbody>
+<!--DETAIL_ROW_START-->
+<tr>
+  <td>{{_index}}</td><td>{{detail.depotHeadNumber}}</td><td>{{detail.operTime}}</td><td>{{detail.materialName}}</td><td>{{detail.standard}}</td><td>{{detail.operNumber}}</td><td>{{detail.weight}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td>
+</tr>
+<!--DETAIL_ROW_END-->
+</tbody>
+</table>
+<div class="footer-info" style="margin-top:10px;">
+<p>合计重量：{{totalWeight}} 吨　合计金额：{{totalAmount}} 元</p>
+<p>备注：{{remark}}</p>
+</div>
+<p style="text-align:right;font-size:11px;margin-top:10px;">打印日期：{{_printDate}}</p>
+</div>`
+
 export function getDefaultTemplate(billType) {
   return defaultTemplates[billType] || defaultTemplates['saleOut']
+}
+
+/**
+ * 每个 billType 对应的可用模板列表（文件驱动，不依赖数据库）
+ * 格式与 jsh_print_template 表字段保持一致：id / templateName / templateHtml / isDefault
+ */
+export const billTypeTemplateMap = {
+  saleOut: [
+    { id: 'saleOutJiancai', templateName: '建材送货单', templateHtml: saleOutJiancaiTemplate, isDefault: '1' },
+    { id: 'saleOutA',       templateName: 'A版套打单',  templateHtml: saleOutATemplate,        isDefault: '0' }
+  ],
+  purchaseIn:   [{ id: 'purchaseIn',   templateName: '采购入库单',   templateHtml: buildTaxTemplate('采购入库单'),    isDefault: '1' }],
+  purchaseOrder:[{ id: 'purchaseOrder',templateName: '采购订单',     templateHtml: buildTaxTemplate('采购订单'),      isDefault: '1' }],
+  purchaseApply:[{ id: 'purchaseApply',templateName: '请购单',       templateHtml: buildSimpleTemplate('请购单'),     isDefault: '1' }],
+  purchaseBack: [{ id: 'purchaseBack', templateName: '采购退货出库', templateHtml: buildTaxTemplate('采购退货出库单'),isDefault: '1' }],
+  saleOrder:    [{ id: 'saleOrder',    templateName: '销售订单',     templateHtml: buildTaxTemplate('销售订单'),      isDefault: '1' }],
+  saleBack:     [{ id: 'saleBack',     templateName: '销售退货入库', templateHtml: buildTaxTemplate('销售退货入库单'),isDefault: '1' }],
+  retailOut:    [{ id: 'retailOut',    templateName: '零售出库单',   templateHtml: buildRetailTemplate('零售出库单'), isDefault: '1' }],
+  retailBack:   [{ id: 'retailBack',   templateName: '零售退货入库', templateHtml: buildRetailTemplate('零售退货入库单'), isDefault: '1' }],
+  otherIn:      [{ id: 'otherIn',      templateName: '其它入库单',   templateHtml: buildSimpleTemplate('其它入库单'), isDefault: '1' }],
+  otherOut:     [{ id: 'otherOut',     templateName: '其它出库单',   templateHtml: buildSimpleTemplate('其它出库单'), isDefault: '1' }],
+  allocationOut:[{ id: 'allocationOut',templateName: '调拨出库单',   templateHtml: buildSimpleTemplate('调拨出库单'), isDefault: '1' }],
+  assemble:     [{ id: 'assemble',     templateName: '组装单',       templateHtml: buildSimpleTemplate('组装单'),     isDefault: '1' }],
+  disassemble:  [{ id: 'disassemble',  templateName: '拆卸单',       templateHtml: buildSimpleTemplate('拆卸单'),     isDefault: '1' }],
+  freightBill:       [{ id: 'freightBill',       templateName: '物流运费单',   templateHtml: freightBillClodopTemplate,       isDefault: '1' }],
+  customerStatement: [{ id: 'customerStatement', templateName: '客户对账单',   templateHtml: customerStatementTemplate,       isDefault: '1' }]
+}
+
+/**
+ * 根据 billType 获取可用模板列表
+ * @param {string} billType
+ * @returns {{ id, templateName, templateHtml, isDefault }[]}
+ */
+export function getTemplatesByBillType(billType) {
+  return billTypeTemplateMap[billType] || []
 }
 
 /**

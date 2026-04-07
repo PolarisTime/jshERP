@@ -148,9 +148,10 @@
   import FreightBillModal from './modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail, listPrintTemplate } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
   import { postAction } from '@/api/manage'
   import { render } from '@/utils/printTemplateEngine'
+  import { getTemplatesByBillType } from '@/utils/printTemplateDefaults'
   import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
   import Vue from 'vue'
   export default {
@@ -415,14 +416,11 @@
         }
       },
       loadPrintTemplate() {
-        listPrintTemplate({ billType: 'freightBill' }).then(res => {
-          if (res && res.code === 200 && Array.isArray(res.data)) {
-            this.printTemplateList = res.data
-            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
-            this.printTemplate = def || null
-            this.selectedTemplateId = def ? def.id : null
-          }
-        })
+        const templates = getTemplatesByBillType('freightBill')
+        this.printTemplateList = templates
+        const def = templates.find(t => t.isDefault === '1') || templates[0]
+        this.printTemplate = def || null
+        this.selectedTemplateId = def ? def.id : null
       },
 
       // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
