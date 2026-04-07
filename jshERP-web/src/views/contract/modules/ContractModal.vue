@@ -1,14 +1,22 @@
 <template>
-  <div ref="container">
-    <a-modal
-      :title="title"
-      :width="960"
-      :visible="visible"
-      :confirmLoading="confirmLoading"
-      :maskClosable="false"
-      @ok="handleOk"
-      @cancel="handleCancel">
-      <a-form :form="form" layout="horizontal">
+  <j-modal
+    :title="title"
+    :width="1200"
+    :visible="visible"
+    :confirmLoading="confirmLoading"
+    :keyboard="false"
+    :maskClosable="false"
+    fullscreen
+    switchFullscreen
+    switchHelp
+    @cancel="handleCancel"
+    style="top:20px;height:95%;">
+    <template slot="footer">
+      <a-button @click="handleCancel">取消</a-button>
+      <a-button type="primary" :loading="confirmLoading" @click="handleOk">保存</a-button>
+    </template>
+    <a-spin :spinning="confirmLoading">
+    <a-form :form="form" layout="horizontal">
         <!-- ── 基本信息 ── -->
         <a-row :gutter="16">
           <a-col :span="12">
@@ -86,18 +94,19 @@
         <a-divider orientation="left" style="font-size:13px;font-weight:600;margin-top:16px;">合同附件（PDF/图片）</a-divider>
         <j-upload v-model="attachments" bizPath="contract" :billId="String(model.id||'')" fileType="all" />
       </a-form>
-    </a-modal>
-  </div>
+    </a-spin>
+  </j-modal>
 </template>
 
 <script>
   import { addContract, editContract, findBySelectCus, getContractDetail } from '@/api/api'
+  import JModal from '@/components/jeecg/JModal'
   import JUpload from '@/components/jeecg/JUpload'
   import moment from 'moment'
 
   export default {
     name: 'ContractModal',
-    components: { JUpload },
+    components: { JModal, JUpload },
     data() {
       return {
         title: '新增合同',

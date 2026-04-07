@@ -76,6 +76,10 @@
           <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
             <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
             <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
+            <a-select v-if="clodopReady && printTemplateList.length" v-model="selectedTemplateId"
+              style="width:160px;" size="small" placeholder="选择打印模板">
+              <a-select-option v-for="t in printTemplateList" :key="t.id" :value="t.id">{{ t.templateName }}</a-select-option>
+            </a-select>
             <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
               style="width:180px;" size="small" placeholder="默认打印机">
               <a-select-option value="">默认打印机</a-select-option>
@@ -226,6 +230,8 @@
         clodopReady: false,
         printerList: [],
         selectedPrinter: '',
+        printTemplateList: [],
+        selectedTemplateId: null,
         printTemplate: null
       }
     },
@@ -411,8 +417,10 @@
       loadPrintTemplate() {
         listPrintTemplate({ billType: 'freightBill' }).then(res => {
           if (res && res.code === 200 && Array.isArray(res.data)) {
+            this.printTemplateList = res.data
             const def = res.data.find(t => t.isDefault === '1') || res.data[0]
             this.printTemplate = def || null
+            this.selectedTemplateId = def ? def.id : null
           }
         })
       },
@@ -420,7 +428,8 @@
       // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
       async doPrint(preview) {
         if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
-        if (!this.printTemplate) { this.$message.warning('未找到打印模板'); return }
+        const tpl = this.printTemplateList.find(t => t.id === this.selectedTemplateId) || this.printTemplate
+        if (!tpl) { this.$message.warning('未找到打印模板'); return }
         if (this.selectedRowKeys.length === 0) { this.$message.warning('请先勾选物流单'); return }
         const ids = preview ? [this.selectedRowKeys[0]] : this.selectedRowKeys
         let successCount = 0, failCount = 0
@@ -441,9 +450,9 @@
               projectAddress: addresses.join('、'),
               saleRemark: saleRemarks.join('、')
             }
-            const rendered = render(this.printTemplate.templateHtml, model, detailList, {})
+            const rendered = render(tpl.templateHtml, model, detailList, {})
             const opts = { preview, printer: this.selectedPrinter || undefined, title: model.billNo || '物流单' }
-            const ok = isCLodopCode(this.printTemplate.templateHtml)
+            const ok = isCLodopCode(tpl.templateHtml)
               ? execPrintCode(rendered, opts)
               : printHtml(rendered, opts)
             if (ok) successCount++; else failCount++
