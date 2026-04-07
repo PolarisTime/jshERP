@@ -33,8 +33,10 @@ export const ClodopMixin = {
       try {
         const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
         resetCLodop()
-        const ok = await loadCLodop()
-        this.clodopReady = ok && isAvailable()
+        await loadCLodop()
+        // 与 CustomPrintModal 保持一致：直接调用 isAvailable() 而不用 loadCLodop 的返回值，
+        // 避免 WS eval 注入尚未完成导致误判 ok=false
+        this.clodopReady = isAvailable()
         if (this.clodopReady) {
           this.printerList = getPrinterList()
         }
