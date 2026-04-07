@@ -56,22 +56,21 @@
           <a-button icon="rollback" @click="handleAudit('0')" :disabled="!hasSingleSelected">反审核</a-button>
           <a-button icon="edit" @click="handleSign('1')" :disabled="!hasSingleSelected">签署</a-button>
           <a-button icon="close-circle" @click="handleSign('0')" :disabled="!hasSingleSelected">取消签署</a-button>
-          <!-- CLodop -->
+                    <!-- CLodop -->
           <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
             <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
             <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
-            <a-select v-model="selectedTemplateId" style="width:200px;" placeholder="选择打印模板">
-              <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
-                {{ t.templateName }}{{ t.isDefault === '1' ? '（默认）' : '' }}
-              </a-select-option>
+            <a-select v-if="printTemplateList.length" v-model="selectedTemplateId"
+              style="width:160px;" placeholder="选择打印模板">
+              <a-select-option v-for="t in printTemplateList" :key="t.id" :value="t.id">{{ t.templateName }}</a-select-option>
             </a-select>
             <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
               style="width:180px;" placeholder="默认打印机">
               <a-select-option value="">默认打印机</a-select-option>
               <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
             </a-select>
-            <a-button icon="eye" :disabled="!clodopReady || !hasSingleSelected" @click="doPrint(true)">预览</a-button>
-            <a-button type="primary" icon="printer" :disabled="!clodopReady || !hasSingleSelected" @click="doPrint(false)">打印</a-button>
+            <a-button icon="eye" :disabled="!clodopReady || !selectedTemplateId || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
+            <a-button type="primary" icon="printer" :disabled="!clodopReady || !selectedTemplateId || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
           </span>
         </div>
 

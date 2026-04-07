@@ -64,9 +64,15 @@ export const ClodopMixin = {
 
     // ─── 通用打印（子页面可重写以加载明细数据）───────────────
     async doPrint(preview) {
-      if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
+      if (!this.clodopReady) {
+        this.$message.warning('CLodop 未连接，请先点击状态标签重试')
+        return
+      }
       const tpl = this.printTemplateList.find(t => t.id === this.selectedTemplateId)
-      if (!tpl) { this.$message.warning('未找到打印模板'); return }
+      if (!tpl) {
+        this.$message.warning('未找到打印模板，请在【系统管理-打印模板管理】中配置')
+        return
+      }
       const keys = this.selectedRowKeys || []
       if (keys.length === 0) { this.$message.warning('请先勾选数据'); return }
       const ids = preview ? [keys[0]] : keys
@@ -86,9 +92,15 @@ export const ClodopMixin = {
             ? execPrintCode(rendered, opts)
             : printHtml(rendered, opts)
           success ? ok++ : fail++
-        } catch (e) { fail++ }
+        } catch (e) {
+          console.error('[CLodop] 打印异常', e)
+          fail++
+        }
       }
-      if (!preview) {
+      // 预览和打印都给出反馈
+      if (preview) {
+        if (fail > 0) this.$message.error('预览失败，请检查 CLodop 是否正常运行')
+      } else {
         if (fail === 0) this.$message.success(`已发送 ${ok} 张到打印机`)
         else this.$message.warning(`打印完成：成功 ${ok} 张，失败 ${fail} 张`)
       }
