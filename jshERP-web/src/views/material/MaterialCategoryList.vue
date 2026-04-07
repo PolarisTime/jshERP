@@ -100,14 +100,16 @@ import pick from 'lodash.pick'
 import {queryMaterialCategoryTreeList,queryMaterialCategoryById,checkMaterialCategory} from '@/api/api'
 import {httpAction, deleteAction} from '@/api/manage'
 import {JeecgListMixin} from '@/mixins/JeecgListMixin'
+import { ClodopMixin } from '@/mixins/ClodopMixin'
 export default {
   name: 'MaterialCategoryList',
-  mixins: [JeecgListMixin],
+  mixins: [ClodopMixin, JeecgListMixin],
   components: {
     MaterialCategoryModal
   },
   data() {
     return {
+        clodopBillType: \'materialCategory\',
       iExpandedKeys: [],
       loading: false,
       currFlowId: '',

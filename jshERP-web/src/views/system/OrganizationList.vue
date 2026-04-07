@@ -102,14 +102,16 @@ import pick from 'lodash.pick'
 import {queryOrganizationTreeList,queryOrganizationById, checkOrganization} from '@/api/api'
 import {httpAction, deleteAction} from '@/api/manage'
 import {JeecgListMixin} from '@/mixins/JeecgListMixin'
+import { ClodopMixin } from '@/mixins/ClodopMixin'
 export default {
   name: 'OrganizationList',
-  mixins: [JeecgListMixin],
+  mixins: [ClodopMixin, JeecgListMixin],
   components: {
     OrganizationModal
   },
   data() {
     return {
+        clodopBillType: \'organization\',
       iExpandedKeys: [],
       loading: false,
       currFlowId: '',

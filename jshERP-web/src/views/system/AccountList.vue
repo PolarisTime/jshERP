@@ -44,7 +44,24 @@
             @change="onColChange"
             @reset="handleRestDefault"
           />
-        </div>
+
+          <!-- CLodop -->
+          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
+            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
+            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
+            <a-select v-if="clodopReady && printTemplateList.length" v-model="selectedTemplateId"
+              style="width:160px;" placeholder="选择打印模板">
+              <a-select-option v-for="t in printTemplateList" :key="t.id" :value="t.id">{{ t.templateName }}</a-select-option>
+            </a-select>
+            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
+              style="width:180px;" placeholder="默认打印机">
+              <a-select-option value="">默认打印机</a-select-option>
+              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
+            </a-select>
+            <a-button icon="eye" :disabled="!clodopReady || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
+            <a-button type="primary" icon="printer" :disabled="!clodopReady || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
+          </span>
+                </div>
         <!-- table区域-begin -->
         <div>
           <a-table
@@ -96,9 +113,10 @@
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JDate from '@/components/jeecg/JDate'
   import { postAction } from '@api/manage'
+import { ClodopMixin } from '@/mixins/ClodopMixin'
   export default {
     name: "AccountList",
-    mixins:[JeecgListMixin],
+    mixins:[ClodopMixin, JeecgListMixin],
     components: {
       AccountModal,
       ColumnSettingPopover,
@@ -106,6 +124,7 @@
     },
     data () {
       return {
+        clodopBillType: \'account\',
         labelCol: {
           span: 5
         },
