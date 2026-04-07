@@ -39,6 +39,10 @@ export const ClodopMixin = {
         this.clodopReady = isAvailable()
         if (this.clodopReady) {
           this.printerList = getPrinterList()
+          // CLodop 区域渲染后重新计算 scroll.y，避免 table-operator 高度变化导致截断
+          this.$nextTick(() => {
+            if (typeof this.initScroll === 'function') this.initScroll()
+          })
         }
       } catch (e) {
         console.error('[CLodop] 初始化失败', e)
