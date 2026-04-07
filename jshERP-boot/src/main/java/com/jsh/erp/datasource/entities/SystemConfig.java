@@ -51,6 +51,8 @@ public class SystemConfig {
 
     private String priceByWeightFlag;
 
+    private String forceLinkPurchaseFlag;
+
     private java.math.BigDecimal defaultTaxRate;
 
     private Long tenantId;
@@ -255,6 +257,14 @@ public class SystemConfig {
 
     public void setPriceByWeightFlag(String priceByWeightFlag) {
         this.priceByWeightFlag = priceByWeightFlag == null ? null : priceByWeightFlag.trim();
+    }
+
+    public String getForceLinkPurchaseFlag() {
+        return forceLinkPurchaseFlag;
+    }
+
+    public void setForceLinkPurchaseFlag(String forceLinkPurchaseFlag) {
+        this.forceLinkPurchaseFlag = forceLinkPurchaseFlag == null ? null : forceLinkPurchaseFlag.trim();
     }
 
     public java.math.BigDecimal getDefaultTaxRate() {

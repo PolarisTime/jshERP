@@ -48,6 +48,17 @@
               <span>{{ currentProjectName }}</span>
             </a-form-item>
           </a-col>
+          <!-- 合同余额提示 -->
+          <a-col :lg="12" :md="24" :sm="24" v-if="contractBalance">
+            <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="合同余额">
+              <span style="font-size:12px;color:#666;">
+                剩余额度：<b :style="{color: contractBalance.remainAmount < 0 ? 'red' : '#1890ff'}">{{ contractBalance.remainAmount }}</b> 元
+                &nbsp;｜&nbsp;
+                剩余吨位：<b :style="{color: contractBalance.remainTonnage < 0 ? 'red' : '#1890ff'}">{{ contractBalance.remainTonnage }}</b> 吨
+                <a-tag v-if="contractBalance.totalAmount == 0 && contractBalance.totalTonnage == 0" color="orange" style="margin-left:8px;">无合同</a-tag>
+              </span>
+            </a-form-item>
+          </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
               <j-date v-decorator="['operTime', validatorRules.operTime]" :show-time="true"/>
@@ -245,7 +256,7 @@
   import JUpload from '@/components/jeecg/JUpload'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
-  import { getCurrentSystemConfig, findBySelectCus } from '@/api/api'
+  import { getCurrentSystemConfig, findBySelectCus, getContractBalance } from '@/api/api'
   export default {
     name: "SaleOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
@@ -274,12 +285,12 @@
         title:"操作",
         width: '1600px',
         moreStatus: false,
-        // 新增时子表默认添加几行空数据
         addDefaultRowNum: 1,
         visible: false,
         operTimeStr: '',
         prefixNo: 'XSCK',
         depositStatus: false,
+        contractBalance: null,  // 当前客户的合同余额信息
         fileList:[],
         rowCanEdit: true,
         priceEditOnly: false,
@@ -382,6 +393,53 @@
       }
     },
     methods: {
+      // ─── 覆盖保存方法：超额提示（不阻拦）─────────────────────────
+      handleOkOnly() {
+        if (this.contractBalance) {
+          const cb = this.contractBalance
+          const warnings = []
+          if (parseFloat(cb.remainAmount) < 0) {
+            warnings.push(`已超出合同金额额度 ${Math.abs(cb.remainAmount)} 元`)
+          }
+          if (parseFloat(cb.remainTonnage) < 0) {
+            warnings.push(`已超出合同吨位额度 ${Math.abs(cb.remainTonnage)} 吨`)
+          }
+          if (warnings.length > 0) {
+            this.$notification.warning({
+              message: '超出合同限额提示',
+              description: warnings.join('；'),
+              duration: 6
+            })
+          }
+        }
+        this.billStatus = '0'
+        this.handleOk()
+      },
+      // ─── 覆盖父类 handleOrganChange，追加合同余额查询 ──────────
+      handleOrganChange(value) {
+        // 调用父类逻辑（更新商品单价）
+        this.$options.mixins.forEach(mixin => {
+          if (mixin.methods && mixin.methods.handleOrganChange) {
+            mixin.methods.handleOrganChange.call(this, value)
+          }
+        })
+        // 查询合同余额
+        this.contractBalance = null
+        if (value) {
+          getContractBalance({ organId: value }).then(res => {
+            if (res && res.code === 200 && res.data) {
+              const d = res.data
+              this.contractBalance = {
+                totalAmount:    Number(d.totalAmount    || 0).toFixed(2),
+                totalTonnage:   Number(d.totalTonnage   || 0).toFixed(3),
+                deliveredAmount:Number(d.deliveredAmount|| 0).toFixed(2),
+                remainAmount:   Number(d.remainAmount   || 0).toFixed(2),
+                remainTonnage:  Number(d.remainTonnage  || 0).toFixed(3)
+              }
+            }
+          }).catch(() => {})
+        }
+      },
       //调用完edit()方法之后会自动调用此方法
       editAfter() {
         this.billStatus = '0'

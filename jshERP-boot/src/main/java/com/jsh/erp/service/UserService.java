@@ -345,7 +345,8 @@ public class UserService {
             logger.error(">>>>>>>>>>>>>用户  " + loginName + " 登录 login 方法 访问服务层异常====", e);
             msgTip = "access service exception";
         }
-        String token = UUID.randomUUID().toString().replaceAll("-", "") + "";
+        // 旧格式 token（兼容旧前端）
+        String legacyToken = UUID.randomUUID().toString().replaceAll("-", "") + "";
         switch (userStatus) {
             case ExceptionCodeConstants.UserExceptionCode.USER_NOT_EXIST:
                 msgTip = "user is not exist";
@@ -370,9 +371,9 @@ public class UserService {
                 //验证通过 ，可以登录，放入session，记录登录日志
                 user = getUserByLoginName(loginName);
                 if(user.getTenantId()!=null) {
-                    token = token + "_" + user.getTenantId();
+                    legacyToken = legacyToken + "_" + user.getTenantId();
                 }
-                redisService.storageObjectBySession(token,"userId",user.getId());
+                redisService.storageObjectBySession(legacyToken,"userId",user.getId());
                 break;
             default:
                 break;
@@ -389,11 +390,15 @@ public class UserService {
                 //如果是管理员，则发送登录邮件
                 sendEmailToCurrentUser(request, user);
             }
-            redisService.storageObjectBySession(token,"clientIp", Tools.getLocalIp(request));
+            redisService.storageObjectBySession(legacyToken,"clientIp", Tools.getLocalIp(request));
             logService.insertLogWithUserId(user.getId(), user.getTenantId(), "用户",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_LOGIN).append(user.getLoginName()).toString(),
                     ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
-            data.put("token", token);
+            // 生成 JWT token（新前端使用）
+            String jwtToken = JwtUtil.generateAccessToken(user.getId(), user.getTenantId());
+            data.put("token", jwtToken);
+            // 旧格式 token 也返回（兼容旧前端）
+            data.put("legacyToken", legacyToken);
             data.put("user", user);
             data.put("pwdSimple", pwdSimple);
         }

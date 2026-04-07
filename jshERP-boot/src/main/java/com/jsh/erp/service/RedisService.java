@@ -1,6 +1,7 @@
 package com.jsh.erp.service;
 
 import com.jsh.erp.constants.BusinessConstants;
+import com.jsh.erp.utils.JwtUtil;
 import com.jsh.erp.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.DataType;
@@ -53,11 +54,19 @@ public class RedisService {
         if(request==null){
             return null;
         }
-        String token = request.getHeader(ACCESS_TOKEN);
+        // 优先从 Authorization: Bearer 获取 JWT token
+        String token = JwtUtil.extractToken(request);
         if(token!=null) {
-            //开启redis，用户数据放在redis中，从redis中获取
+            // JWT 格式 token：直接从 JWT payload 中提取
+            if(!JwtUtil.isLegacyToken(token)) {
+                if("userId".equals(key)) {
+                    Long userId = JwtUtil.getUserId(token);
+                    return userId != null ? userId.toString() : null;
+                }
+                return null;
+            }
+            // 旧格式 token：从 Redis Hash 中获取
             if(redisTemplate.opsForHash().hasKey(token,key)){
-                //redis中存在，拿出来使用
                 obj=redisTemplate.opsForHash().get(token,key);
                 redisTemplate.expire(token, BusinessConstants.MAX_SESSION_IN_SECONDS, TimeUnit.SECONDS);
             }
@@ -181,5 +190,23 @@ public class RedisService {
                 }
             }
         }
+    }
+
+    /**
+     * 判断 key 是否存在
+     */
+    public boolean hasKey(String key) {
+        Boolean result = redisTemplate.hasKey(key);
+        return result != null && result;
+    }
+
+    /**
+     * 将 JWT token 加入黑名单（用于主动登出/踢人）
+     * @param token JWT token
+     * @param expireSeconds 过期时间（秒），应等于 token 的剩余有效期
+     */
+    public void addToBlacklist(String token, long expireSeconds) {
+        String key = JwtUtil.getBlacklistKey(token);
+        redisTemplate.opsForValue().set(key, "1", expireSeconds, java.util.concurrent.TimeUnit.SECONDS);
     }
 }

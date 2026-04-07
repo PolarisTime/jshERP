@@ -65,13 +65,25 @@
           </a-form>
         </div>
         <!-- 操作按钮区域 -->
-        <div class="table-operator" style="margin-top: 5px">
+        <div class="table-operator" style="margin-top: 5px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
           <a-button icon="car" style="color:#52c41a" @click="batchSetDeliveryStatus('1')">标记送达</a-button>
           <a-button icon="undo" @click="batchSetDeliveryStatus('0')">取消送达</a-button>
+          <!-- CLodop -->
+          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
+            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
+            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
+            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
+              style="width:180px;" size="small" placeholder="默认打印机">
+              <a-select-option value="">默认打印机</a-select-option>
+              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
+            </a-select>
+            <a-button icon="eye" :disabled="!clodopReady || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
+            <a-button type="primary" icon="printer" :disabled="!clodopReady || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
+          </span>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -132,8 +144,10 @@
   import FreightBillModal from './modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail, listPrintTemplate } from '@/api/api'
   import { postAction } from '@/api/manage'
+  import { render } from '@/utils/printTemplateEngine'
+  import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
   import Vue from 'vue'
   export default {
     name: "FreightBillList",
@@ -207,7 +221,12 @@
           delete: "/freightHead/deleteFreightBill",
           deleteBatch: "/freightHead/deleteBatchFreightBill",
           batchSetStatusUrl: "/freightHead/batchSetStatus"
-        }
+        },
+        // CLodop
+        clodopReady: false,
+        printerList: [],
+        selectedPrinter: '',
+        printTemplate: null
       }
     },
     watch: {
@@ -218,6 +237,10 @@
     created() {
       this.initCarrierList();
       this.initColumnsSetting();
+    },
+    mounted() {
+      this.initClodop()
+      this.loadPrintTemplate()
     },
     methods: {
       initColumnsSetting() {
@@ -371,6 +394,65 @@
             that.$message.warning(res.data.message);
           }
         })
+      },
+
+      // ─── CLodop ───────────────────────────────────────────────
+      async initClodop() {
+        try {
+          const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
+          resetCLodop()
+          await loadCLodop()
+          this.clodopReady = isAvailable()
+          if (this.clodopReady) this.printerList = getPrinterList()
+        } catch (e) {
+          this.clodopReady = false
+        }
+      },
+      loadPrintTemplate() {
+        listPrintTemplate({ billType: 'freightBill' }).then(res => {
+          if (res && res.code === 200 && Array.isArray(res.data)) {
+            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
+            this.printTemplate = def || null
+          }
+        })
+      },
+
+      // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
+      async doPrint(preview) {
+        if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
+        if (!this.printTemplate) { this.$message.warning('未找到打印模板'); return }
+        if (this.selectedRowKeys.length === 0) { this.$message.warning('请先勾选物流单'); return }
+        const ids = preview ? [this.selectedRowKeys[0]] : this.selectedRowKeys
+        let successCount = 0, failCount = 0
+        for (const id of ids) {
+          try {
+            const res = await getFreightDetail({ id })
+            if (!res || res.code !== 200 || !res.data) { failCount++; continue }
+            const detail = res.data
+            const detailList = detail.detailList || []
+            const customers = [...new Set(detailList.map(i => i.customerName).filter(Boolean))]
+            const projects  = [...new Set(detailList.map(i => i.projectName).filter(Boolean))]
+            const addresses = [...new Set(detailList.map(i => i.projectAddress).filter(Boolean))]
+            const saleRemarks = [...new Set(detailList.map(i => i.remark).filter(Boolean))]
+            const model = {
+              ...detail,
+              customerName: customers.join('、'),
+              projectName:  projects.join('、'),
+              projectAddress: addresses.join('、'),
+              saleRemark: saleRemarks.join('、')
+            }
+            const rendered = render(this.printTemplate.templateHtml, model, detailList, {})
+            const opts = { preview, printer: this.selectedPrinter || undefined, title: model.billNo || '物流单' }
+            const ok = isCLodopCode(this.printTemplate.templateHtml)
+              ? execPrintCode(rendered, opts)
+              : printHtml(rendered, opts)
+            if (ok) successCount++; else failCount++
+          } catch (e) { failCount++ }
+        }
+        if (!preview) {
+          if (failCount === 0) this.$message.success(`已发送 ${successCount} 张到打印机`)
+          else this.$message.warning(`打印完成：成功 ${successCount} 张，失败 ${failCount} 张`)
+        }
       }
     }
   }

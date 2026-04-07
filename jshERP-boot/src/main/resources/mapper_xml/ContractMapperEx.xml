@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.jsh.erp.datasource.mappers.ContractMapperEx">
+
   <resultMap id="ContractExResultMap" type="com.jsh.erp.datasource.entities.ContractEx">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="contract_no" jdbcType="VARCHAR" property="contractNo" />
@@ -18,13 +19,37 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="organ_name" jdbcType="VARCHAR" property="organName" />
+    <!-- project_name 优先取合同自身字段，fallback 到 supplier.project_name -->
     <result column="project_name" jdbcType="VARCHAR" property="projectName" />
+    <result column="tonnage" jdbcType="DECIMAL" property="tonnage" />
+    <result column="audit_status" jdbcType="VARCHAR" property="auditStatus" />
+    <result column="sign_status" jdbcType="VARCHAR" property="signStatus" />
+    <!-- 已送货统计（LEFT JOIN 计算） -->
+    <result column="delivered_amount" jdbcType="DECIMAL" property="deliveredAmount" />
+    <result column="delivered_tonnage" jdbcType="DECIMAL" property="deliveredTonnage" />
   </resultMap>
 
   <select id="selectByCondition" resultMap="ContractExResultMap">
-    select c.*, s.supplier as organ_name, s.project_name
+    select c.*,
+           s.supplier as organ_name,
+           COALESCE(c.project_name, s.project_name) as project_name,
+           dh.delivered_amount,
+           dh.delivered_tonnage
     from jsh_contract c
     left join jsh_supplier s on c.organ_id = s.id
+    left join (
+      select dh.organ_id,
+             SUM(ifnull(dh.discount_last_money,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as delivered_amount,
+             SUM(ifnull(di_sum.w,0)) as delivered_tonnage
+      from jsh_depot_head dh
+      left join (
+        select header_id, SUM(ifnull(weight,0)) as w
+        from jsh_depot_item where ifnull(delete_flag,'0')!='1' group by header_id
+      ) di_sum on di_sum.header_id = dh.id
+      where dh.type='出库' and dh.sub_type='销售'
+        and ifnull(dh.delete_flag,'0')!='1'
+      group by dh.organ_id
+    ) dh on dh.organ_id = c.organ_id
     where ifnull(c.delete_flag,'0') != '1'
     <if test="tenantId != null">
       and c.tenant_id = #{tenantId}
@@ -38,9 +63,41 @@
     <if test="organId != null">
       and c.organ_id = #{organId}
     </if>
-    <if test="status != null and status != ''">
-      and c.status = #{status}
+    <if test="auditStatus != null and auditStatus != ''">
+      and c.audit_status = #{auditStatus}
+    </if>
+    <if test="signStatus != null and signStatus != ''">
+      and c.sign_status = #{signStatus}
     </if>
     order by c.create_time desc
   </select>
+
+  <!-- 按客户汇总合同余额（多份合同累加） -->
+  <select id="getContractBalance" resultType="java.util.Map">
+    select
+      ifnull(SUM(c.amount),0) as totalAmount,
+      ifnull(SUM(c.tonnage),0) as totalTonnage,
+      ifnull(dh.delivered_amount,0) as deliveredAmount,
+      ifnull(dh.delivered_tonnage,0) as deliveredTonnage,
+      ifnull(SUM(c.amount),0) - ifnull(dh.delivered_amount,0) as remainAmount,
+      ifnull(SUM(c.tonnage),0) - ifnull(dh.delivered_tonnage,0) as remainTonnage
+    from jsh_contract c
+    left join (
+      select dh.organ_id,
+             SUM(ifnull(dh.discount_last_money,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as delivered_amount,
+             SUM(ifnull(di_sum.w,0)) as delivered_tonnage
+      from jsh_depot_head dh
+      left join (
+        select header_id, SUM(ifnull(weight,0)) as w
+        from jsh_depot_item where ifnull(delete_flag,'0')!='1' group by header_id
+      ) di_sum on di_sum.header_id = dh.id
+      where dh.type='出库' and dh.sub_type='销售'
+        and ifnull(dh.delete_flag,'0')!='1'
+      group by dh.organ_id
+    ) dh on dh.organ_id = c.organ_id
+    where ifnull(c.delete_flag,'0') != '1'
+      and c.organ_id = #{organId}
+      and c.tenant_id = #{tenantId}
+  </select>
+
 </mapper>

@@ -37,6 +37,11 @@ public class Contract {
 
     private Date updateTime;
 
+    private String projectName;
+    private BigDecimal tonnage;
+    private String auditStatus;
+    private String signStatus;
+
     public Long getId() {
         return id;
     }
@@ -156,4 +161,16 @@ public class Contract {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
+    public String getProjectName() { return projectName; }
+    public void setProjectName(String projectName) { this.projectName = projectName; }
+
+    public BigDecimal getTonnage() { return tonnage; }
+    public void setTonnage(BigDecimal tonnage) { this.tonnage = tonnage; }
+
+    public String getAuditStatus() { return auditStatus; }
+    public void setAuditStatus(String auditStatus) { this.auditStatus = auditStatus; }
+
+    public String getSignStatus() { return signStatus; }
+    public void setSignStatus(String signStatus) { this.signStatus = signStatus; }
 }

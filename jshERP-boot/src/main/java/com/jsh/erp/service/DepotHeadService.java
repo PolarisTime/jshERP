@@ -1478,6 +1478,13 @@ public class DepotHeadService {
                     String.format(ExceptionConstants.DEPOT_ITEM_EXIST_REPEAT_NO_FAILED_MSG));
         }
         String subType = depotHead.getSubType();
+        //销售出库强制关联采购入库单校验
+        if("出库".equals(depotHead.getType()) && "销售".equals(subType)) {
+            if(systemConfigService.getForceLinkPurchaseFlag() && StringUtil.isEmpty(depotHead.getLinkNumber())) {
+                throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_BILL_NUMBER_EXIST_CODE,
+                        "系统已开启强制关联入库单，销售出库必须关联采购入库单后才能保存");
+            }
+        }
         //结算账户校验
         if("采购".equals(subType) || "采购退货".equals(subType) || "销售".equals(subType) || "销售退货".equals(subType)) {
             if (StringUtil.isEmpty(depotHead.getAccountIdList()) && depotHead.getAccountId() == null) {

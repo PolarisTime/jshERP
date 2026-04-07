@@ -217,8 +217,21 @@ public class UserController extends BaseController {
     public BaseResponseInfo logout(HttpServletRequest request, HttpServletResponse response)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+            // 旧格式 token 清理 Redis session
             redisService.deleteObjectBySession(request,"userId");
             redisService.deleteObjectBySession(request,"clientIp");
+            // JWT token 加入黑名单（即使 token 已过期也尝试解析，避免遗漏）
+            String jwtToken = JwtUtil.extractToken(request);
+            if(jwtToken != null && !JwtUtil.isLegacyToken(jwtToken)) {
+                io.jsonwebtoken.Claims claims = JwtUtil.parseTokenAllowExpired(jwtToken);
+                if(claims != null && claims.getExpiration() != null) {
+                    long remainSeconds = (claims.getExpiration().getTime() - System.currentTimeMillis()) / 1000;
+                    if(remainSeconds > 0) {
+                        redisService.addToBlacklist(jwtToken, remainSeconds);
+                    }
+                }
+            }
+            res.code = 200;
         } catch(Exception e){
             logger.error(e.getMessage(), e);
             res.code = 500;

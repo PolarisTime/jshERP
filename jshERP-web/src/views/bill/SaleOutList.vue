@@ -135,7 +135,7 @@
           </a-form>
         </div>
         <!-- 操作按钮区域 -->
-        <div class="table-operator"  style="margin-top: 5px">
+        <div class="table-operator" style="margin-top: 5px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="myHandleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="quickBtn.saleBack.indexOf(1)>-1 && btnEnableList.indexOf(1)>-1" icon="share-alt" @click="transferBill('转销售退货', quickBtn.saleBack)">转销售退货</a-button>
@@ -148,6 +148,18 @@
           <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
+          <!-- CLodop -->
+          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
+            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
+            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
+            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
+              style="width:180px;" size="small" placeholder="默认打印机">
+              <a-select-option value="">默认打印机</a-select-option>
+              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
+            </a-select>
+            <a-button icon="eye" :disabled="!clodopReady || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
+            <a-button type="primary" icon="printer" :disabled="!clodopReady || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
+          </span>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -251,6 +263,10 @@
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { BillListMixin } from './mixins/BillListMixin'
+  import { render } from '@/utils/printTemplateEngine'
+  import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
+  import { listPrintTemplate } from '@/api/api'
+  import { getAction } from '@/api/manage'
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
@@ -373,7 +389,12 @@
           deleteBatch: "/depotHead/deleteBatch",
           forceCloseBatch: "/depotHead/forceCloseBatch",
           batchSetStatusUrl: "/depotHead/batchSetStatus"
-        }
+        },
+        // CLodop
+        clodopReady: false,
+        printerList: [],
+        selectedPrinter: '',
+        printTemplate: null
       }
     },
     computed: {
@@ -395,6 +416,10 @@
       this.initAccount()
       this.initQuickBtn()
       this.getDepotByCurrentUser()
+    },
+    mounted() {
+      this.initClodop()
+      this.loadPrintTemplate()
     },
     methods: {
       getQueryParams() {
@@ -438,6 +463,55 @@
         // 物流单号可能包含多个（逗号分隔），取第一个
         let no = billNo.split(',')[0].trim()
         this.$refs.freightDetailModal.detailByBillNo(no)
+      },
+
+      // ─── CLodop ───────────────────────────────────────────────
+      async initClodop() {
+        try {
+          const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
+          resetCLodop()
+          await loadCLodop()
+          this.clodopReady = isAvailable()
+          if (this.clodopReady) this.printerList = getPrinterList()
+        } catch (e) {
+          this.clodopReady = false
+        }
+      },
+      loadPrintTemplate() {
+        listPrintTemplate({ billType: 'saleOut' }).then(res => {
+          if (res && res.code === 200 && Array.isArray(res.data)) {
+            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
+            this.printTemplate = def || null
+          }
+        })
+      },
+
+      // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
+      async doPrint(preview) {
+        if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
+        if (!this.printTemplate) { this.$message.warning('未找到打印模板'); return }
+        if (this.selectedRowKeys.length === 0) { this.$message.warning('请先勾选单据'); return }
+        const ids = preview ? [this.selectedRowKeys[0]] : this.selectedRowKeys
+        const rowMap = {}
+        this.selectedRows.forEach(r => { rowMap[r.id] = r })
+        let successCount = 0, failCount = 0
+        for (const id of ids) {
+          try {
+            const res = await getAction('/depotItem/getDetailList', { headerId: id })
+            const items = (res && res.code === 200) ? (res.data.rows || []) : []
+            const header = rowMap[id] || {}
+            const rendered = render(this.printTemplate.templateHtml, header, items, {})
+            const opts = { preview, printer: this.selectedPrinter || undefined, title: header.number || '销售出库' }
+            const ok = isCLodopCode(this.printTemplate.templateHtml)
+              ? execPrintCode(rendered, opts)
+              : printHtml(rendered, opts)
+            if (ok) successCount++; else failCount++
+          } catch (e) { failCount++ }
+        }
+        if (!preview) {
+          if (failCount === 0) this.$message.success(`已发送 ${successCount} 张到打印机`)
+          else this.$message.warning(`打印完成：成功 ${successCount} 张，失败 ${failCount} 张`)
+        }
       }
     }
   }

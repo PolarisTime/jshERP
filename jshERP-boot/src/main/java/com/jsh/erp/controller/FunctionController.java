@@ -263,8 +263,7 @@ public class FunctionController extends BaseController {
                 //根据条件从列表里面移除"系统管理"
                 List<Function> dataList = new ArrayList<>();
                 for (Function fun : dataListFun) {
-                    String token = request.getHeader("X-Access-Token");
-                    Long tenantId = Tools.getTenantIdByToken(token);
+                    Long tenantId = JwtUtil.getTenantIdFromRequest(request);
                     if (tenantId!=0L) {
                         if(!("系统管理").equals(fun.getName())) {
                             dataList.add(fun);

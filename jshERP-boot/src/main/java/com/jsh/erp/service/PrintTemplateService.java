@@ -93,6 +93,7 @@ public class PrintTemplateService {
         BILL_TYPE_DIR_MAP.put("purchaseBack", "采购管理");
         BILL_TYPE_DIR_MAP.put("purchaseApply", "采购管理");
         BILL_TYPE_DIR_MAP.put("freightBill", "物流单模版");
+        BILL_TYPE_DIR_MAP.put("customerStatement", "对账单模版");
         BILL_TYPE_DIR_MAP.put("otherIn", "仓库管理");
         BILL_TYPE_DIR_MAP.put("otherOut", "仓库管理");
         BILL_TYPE_DIR_MAP.put("allocationOut", "仓库管理");

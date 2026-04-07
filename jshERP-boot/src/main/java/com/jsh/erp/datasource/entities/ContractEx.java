@@ -1,27 +1,26 @@
 package com.jsh.erp.datasource.entities;
 
+import java.math.BigDecimal;
+
 /**
- * 合同扩展实体（列表查询用，包含关联的客户名称和项目名称）
+ * 合同扩展实体（列表查询用）
  */
 public class ContractEx extends Contract {
 
     private String organName;
 
-    private String projectName;
+    /** 已送货金额（统计自销售出库） */
+    private BigDecimal deliveredAmount;
 
-    public String getOrganName() {
-        return organName;
-    }
+    /** 已送货吨位（统计自销售出库） */
+    private BigDecimal deliveredTonnage;
 
-    public void setOrganName(String organName) {
-        this.organName = organName;
-    }
+    public String getOrganName() { return organName; }
+    public void setOrganName(String organName) { this.organName = organName; }
 
-    public String getProjectName() {
-        return projectName;
-    }
+    public BigDecimal getDeliveredAmount() { return deliveredAmount; }
+    public void setDeliveredAmount(BigDecimal deliveredAmount) { this.deliveredAmount = deliveredAmount; }
 
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
+    public BigDecimal getDeliveredTonnage() { return deliveredTonnage; }
+    public void setDeliveredTonnage(BigDecimal deliveredTonnage) { this.deliveredTonnage = deliveredTonnage; }
 }

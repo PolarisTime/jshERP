@@ -1,6 +1,8 @@
 package com.jsh.erp.filter;
 
 import com.jsh.erp.service.RedisService;
+import com.jsh.erp.utils.JwtUtil;
+import io.jsonwebtoken.Claims;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -38,17 +40,41 @@ public class LogCostFilter implements Filter {
         HttpServletRequest servletRequest = (HttpServletRequest) request;
         HttpServletResponse servletResponse = (HttpServletResponse) response;
         String requestUrl = servletRequest.getRequestURI();
+        // 路径穿越检测
         if(requestUrl.contains("..") || requestUrl.contains("%2e") || requestUrl.contains("%2E")) {
-            servletResponse.setStatus(500);
+            servletResponse.setStatus(400);
             servletResponse.getWriter().write("loginOut");
             return;
         }
-        //具体，比如：处理若用户未登录，则跳转到登录页
-        Object userId = redisService.getObjectFromSessionByKey(servletRequest,"userId");
-        if(userId!=null) { //如果已登录，不阻止
-            chain.doFilter(request, response);
-            return;
+
+        // 提取 token：优先 Authorization: Bearer，兼容 X-Access-Token
+        String token = JwtUtil.extractToken(servletRequest);
+
+        if(token != null) {
+            // JWT 格式 token（新前端）
+            if(!JwtUtil.isLegacyToken(token)) {
+                // 检查黑名单
+                if(redisService.hasKey(JwtUtil.getBlacklistKey(token))) {
+                    sendUnauthorized(servletResponse);
+                    return;
+                }
+                // 验证 JWT 签名和有效期（一次解析，复用 Claims）
+                Claims claims = JwtUtil.parseToken(token);
+                if(claims != null && claims.get("userId") != null) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+            } else {
+                // 旧格式 token（UUID_tenantId，兼容旧前端）
+                Object userId = redisService.getObjectFromSessionByKey(servletRequest, "userId");
+                if(userId != null) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+            }
         }
+
+        // 白名单 URL 放行
         if (requestUrl.equals("/jshERP-boot/doc.html") || requestUrl.equals("/jshERP-boot/user/login")
                 || requestUrl.equals("/jshERP-boot/user/register") || requestUrl.equals("/jshERP-boot/user/weixinLogin")
                 || requestUrl.equals("/jshERP-boot/user/weixinBind") || requestUrl.equals("/jshERP-boot/user/registerUser")
@@ -64,14 +90,21 @@ public class LogCostFilter implements Filter {
                 }
             }
         }
-        servletResponse.setStatus(500);
-        if(!requestUrl.equals("/jshERP-boot/user/logout") && !requestUrl.equals("/jshERP-boot/function/findMenuByPNumber")) {
-            servletResponse.getWriter().write("loginOut");
-        }
+
+        // 未认证
+        sendUnauthorized(servletResponse);
+    }
+
+    /**
+     * 返回 401 未授权响应
+     */
+    private void sendUnauthorized(HttpServletResponse response) throws IOException {
+        response.setStatus(401);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"code\":401,\"message\":\"loginOut\"}");
     }
 
     @Override
     public void destroy() {
-
     }
 }

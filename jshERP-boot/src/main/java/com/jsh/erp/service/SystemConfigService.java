@@ -241,8 +241,7 @@ public class SystemConfigService {
             if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
-            String token = request.getHeader("X-Access-Token");
-            Long tenantId = Tools.getTenantIdByToken(token);
+            Long tenantId = JwtUtil.getTenantIdFromRequest(request);
             bizPath = bizPath + File.separator + tenantId;
             String ctxPath = filePath;
             String fileName = null;
@@ -327,8 +326,7 @@ public class SystemConfigService {
         if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
             throw new IllegalArgumentException("Invalid bizPath");
         }
-        String token = request.getHeader("X-Access-Token");
-        Long tenantId = Tools.getTenantIdByToken(token);
+        Long tenantId = JwtUtil.getTenantIdFromRequest(request);
         bizPath = bizPath + "/" + tenantId;
         String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
         String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
@@ -780,6 +778,21 @@ public class SystemConfigService {
             }
         }
         return priceByWeightFlag;
+    }
+
+    /**
+     * 销售出库是否强制关联采购入库单
+     */
+    public boolean getForceLinkPurchaseFlag() throws Exception {
+        boolean forceLinkPurchaseFlag = false;
+        List<SystemConfig> list = getSystemConfig();
+        if(list.size()>0) {
+            String flag = list.get(0).getForceLinkPurchaseFlag();
+            if(("1").equals(flag)) {
+                forceLinkPurchaseFlag = true;
+            }
+        }
+        return forceLinkPurchaseFlag;
     }
 
     /**
