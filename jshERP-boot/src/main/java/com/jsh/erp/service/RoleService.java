@@ -77,22 +77,6 @@ public class RoleService {
         return list;
     }
 
-    public List<Role> tenantRoleList() {
-        List<Role> list=null;
-        try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
-                RoleExample example = new RoleExample();
-                example.createCriteria().andEnabledEqualTo(true).andTenantIdIsNull().andIdNotEqualTo(MANAGE_ROLE_ID)
-                        .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-                example.setOrderByClause("sort asc, id asc");
-                list=roleMapper.selectByExample(example);
-            }
-        }catch(Exception e){
-            JshException.readFail(logger, e);
-        }
-        return list;
-    }
-
     public List<RoleEx> select(String name, String description)throws Exception {
         List<RoleEx> list=null;
         try{
@@ -206,10 +190,6 @@ public class RoleService {
             JshException.writeFail(logger, e);
         }
         return result;
-    }
-
-    public Role getRoleWithoutTenant(Long roleId) {
-        return roleMapperEx.getRoleWithoutTenant(roleId);
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)

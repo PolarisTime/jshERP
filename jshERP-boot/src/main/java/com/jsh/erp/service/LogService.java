@@ -59,15 +59,14 @@ public class LogService {
         return list;
     }
 
-    public List<LogVo4List> select(String operation, String userInfo, String clientIp, String tenantLoginName, String tenantType,
+    public List<LogVo4List> select(String operation, String userInfo, String clientIp,
                                    String beginTime, String endTime, String content)throws Exception {
         List<LogVo4List> list=null;
         try{
             beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
-            list=logMapperEx.selectByConditionLog(operation, userInfo, clientIp, tenantLoginName, tenantType, beginTime, endTime,
-                    content);
+            list=logMapperEx.selectByConditionLog(operation, userInfo, clientIp, beginTime, endTime, content);
             if (null != list) {
                 for (LogVo4List log : list) {
                     log.setCreateTimeStr(Tools.getCenternTime(log.getCreateTime()));

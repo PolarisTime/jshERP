@@ -38,10 +38,8 @@ public class FreightCarrierService {
     public List<FreightCarrier> select(String name) throws Exception {
         List<FreightCarrier> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo == null ? null : userInfo.getTenantId();
             PageUtils.startPage();
-            list = freightCarrierMapperEx.selectByCondition(name, null, null, tenantId);
+            list = freightCarrierMapperEx.selectByCondition(name, null, null);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -54,9 +52,7 @@ public class FreightCarrierService {
     public List<FreightCarrier> selectAll() throws Exception {
         List<FreightCarrier> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo == null ? null : userInfo.getTenantId();
-            list = freightCarrierMapperEx.selectAll(tenantId);
+            list = freightCarrierMapperEx.selectAll();
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }

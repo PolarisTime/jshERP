@@ -13,12 +13,10 @@ public interface FreightCarrierMapperEx {
     List<FreightCarrier> selectByCondition(
             @Param("name") String name,
             @Param("offset") Integer offset,
-            @Param("rows") Integer rows,
-            @Param("tenantId") Long tenantId);
+            @Param("rows") Integer rows);
 
     int countByCondition(
-            @Param("name") String name,
-            @Param("tenantId") Long tenantId);
+            @Param("name") String name);
 
-    List<FreightCarrier> selectAll(@Param("tenantId") Long tenantId);
+    List<FreightCarrier> selectAll();
 }

@@ -242,6 +242,12 @@
           },3000)
         }
         if(res.data && res.data.user) {
+          // isystem=1 为系统管理员（当前为 steel）
+          if(res.data.user.isystem === 1){
+            Vue.ls.set('isAdmin', true, 7 * 24 * 60 * 60 * 1000)
+          } else {
+            Vue.ls.set('isAdmin', false, 7 * 24 * 60 * 60 * 1000)
+          }
           if(res.data.user.loginName === 'admin'){
             let desc = 'admin只是平台运维用户，真正的管理员是租户(测试账号为jsh），admin不能编辑任何业务数据，只能配置平台菜单和创建租户'
             this.$message.info(desc,30)

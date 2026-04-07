@@ -30,10 +30,9 @@ public class FreightItemService {
      * 批量保存运费单明细
      * @param headerId 运费单主表id
      * @param itemsJson 明细JSON数组字符串
-     * @param tenantId 租户id
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void saveItems(Long headerId, String itemsJson, Long tenantId) throws Exception {
+    public void saveItems(Long headerId, String itemsJson) throws Exception {
         //先物理删除历史软删除记录（防止唯一索引冲突），再软删除当前明细
         freightItemMapperEx.purgeDeletedByHeaderId(headerId);
         freightItemMapperEx.deleteByHeaderId(headerId);

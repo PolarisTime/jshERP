@@ -58,12 +58,10 @@ public class LogController extends BaseController {
         String operation = StringUtil.getInfo(search, "operation");
         String userInfo = StringUtil.getInfo(search, "userInfo");
         String clientIp = StringUtil.getInfo(search, "clientIp");
-        String tenantLoginName = StringUtil.getInfo(search, "tenantLoginName");
-        String tenantType = StringUtil.getInfo(search, "tenantType");
         String beginTime = StringUtil.getInfo(search, "beginTime");
         String endTime = StringUtil.getInfo(search, "endTime");
         String content = StringUtil.getInfo(search, "content");
-        List<LogVo4List> list = logService.select(operation, userInfo, clientIp, tenantLoginName, tenantType, beginTime, endTime, content);
+        List<LogVo4List> list = logService.select(operation, userInfo, clientIp, beginTime, endTime, content);
         return getDataTable(list);
     }
 

@@ -107,7 +107,7 @@ public class SystemConfigService {
         try{
             result=systemConfigMapper.insertSelective(systemConfig);
             String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(), null, "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(logInfo).toString(), request);
         }catch(Exception e){
             JshException.writeFail(logger, e);
@@ -122,7 +122,7 @@ public class SystemConfigService {
         try{
             result = systemConfigMapper.updateByPrimaryKeySelective(systemConfig);
             String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(), null, "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(logInfo).toString(), request);
         }catch(Exception e){
             JshException.writeFail(logger, e);
@@ -241,8 +241,7 @@ public class SystemConfigService {
             if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
-            Long tenantId = JwtUtil.getTenantIdFromRequest(request);
-            bizPath = bizPath + File.separator + tenantId;
+            bizPath = bizPath + File.separator + "default";
             String ctxPath = filePath;
             String fileName = null;
             File file = new File(ctxPath + File.separator + bizPath + File.separator );
@@ -326,8 +325,7 @@ public class SystemConfigService {
         if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
             throw new IllegalArgumentException("Invalid bizPath");
         }
-        Long tenantId = JwtUtil.getTenantIdFromRequest(request);
-        bizPath = bizPath + "/" + tenantId;
+        bizPath = bizPath + "/default";
         String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
         String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
         String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret").getPlatformValue();

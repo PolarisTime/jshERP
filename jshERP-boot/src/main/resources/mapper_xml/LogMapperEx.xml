@@ -10,7 +10,6 @@
         select l.*,u.login_name,u.username userName
         FROM jsh_log l
         left join jsh_user u on l.user_id = u.id
-        left join jsh_tenant t on l.tenant_id=t.tenant_id
         where 1=1
         <if test="operation != null">
             <bind name="bindOperation" value="'%'+operation+'%'"/>
@@ -23,12 +22,6 @@
         <if test="clientIp != null">
             <bind name="bindClientIp" value="'%'+clientIp+'%'"/>
             and l.client_ip like #{bindClientIp}
-        </if>
-        <if test="tenantLoginName != null">
-            and t.login_name = #{tenantLoginName}
-        </if>
-        <if test="tenantType != null">
-            and t.type = #{tenantType}
         </if>
         <if test="beginTime != null">
             and l.create_time &gt;= #{beginTime}

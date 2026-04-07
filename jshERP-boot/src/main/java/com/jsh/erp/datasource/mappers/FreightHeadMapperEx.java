@@ -23,8 +23,7 @@ public interface FreightHeadMapperEx {
             @Param("paymentStatus") String paymentStatus,
             @Param("deliveryStatus") String deliveryStatus,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     /**
      * 批量设置送达状态
@@ -52,8 +51,7 @@ public interface FreightHeadMapperEx {
     List<Map<String, Object>> selectReconciliation(
             @Param("carrierId") Long carrierId,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     /**
      * 对账明细查询（带付款状态）
@@ -62,8 +60,7 @@ public interface FreightHeadMapperEx {
             @Param("carrierId") Long carrierId,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("paymentStatus") String paymentStatus,
-            @Param("tenantId") Long tenantId);
+            @Param("paymentStatus") String paymentStatus);
 
     /**
      * 批量标记付款状态

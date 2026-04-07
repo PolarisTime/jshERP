@@ -7,11 +7,9 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.constants.ExceptionConstants;
-import com.jsh.erp.datasource.entities.Tenant;
 import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.entities.UserEx;
 import com.jsh.erp.datasource.vo.TreeNodeEx;
-import com.jsh.erp.exception.BusinessParamCheckingException;
 import com.jsh.erp.exception.BusinessRunTimeException;
 import com.jsh.erp.service.*;
 import com.jsh.erp.utils.*;
@@ -29,6 +27,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 
@@ -49,9 +48,6 @@ public class UserController extends BaseController {
 
     @Resource
     private RoleService roleService;
-
-    @Resource
-    private TenantService tenantService;
 
     @Resource
     private UserBusinessService userBusinessService;
@@ -89,6 +85,9 @@ public class UserController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = userService.insertUser(obj, request);
         return returnStr(objectMap, insert);
@@ -97,6 +96,9 @@ public class UserController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = userService.updateUser(obj, request);
         return returnStr(objectMap, update);
@@ -105,6 +107,9 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.deleteUser(id, request);
         return returnStr(objectMap, delete);
@@ -113,6 +118,9 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.batchDeleteUser(ids, request);
         return returnStr(objectMap, delete);
@@ -327,19 +335,12 @@ public class UserController extends BaseController {
     @ApiOperation(value = "新增用户")
     @ResponseBody
     public Object addUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
-        JSONObject result = ExceptionConstants.standardSuccess();
-        User userInfo = userService.getCurrentUser();
-        Tenant tenant = tenantService.getTenantByTenantId(userInfo.getTenantId());
-        Long count = userService.countUser(null,null);
-        if(tenant!=null) {
-            if(count>= tenant.getUserNumLimit()) {
-                throw new BusinessParamCheckingException(ExceptionConstants.USER_OVER_LIMIT_FAILED_CODE,
-                        ExceptionConstants.USER_OVER_LIMIT_FAILED_MSG);
-            } else {
-                UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
-                userService.addUserAndOrgUserRel(ue, request);
-            }
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
         }
+        JSONObject result = ExceptionConstants.standardSuccess();
+        UserEx ue = JSONObject.parseObject(obj.toJSONString(), UserEx.class);
+        userService.addUserAndOrgUserRel(ue, request);
         return result;
     }
 
@@ -355,6 +356,9 @@ public class UserController extends BaseController {
     @ApiOperation(value = "修改用户")
     @ResponseBody
     public Object updateUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         JSONObject result = ExceptionConstants.standardSuccess();
         UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
         userService.updateUserAndOrgUserRel(ue, request);
@@ -453,9 +457,8 @@ public class UserController extends BaseController {
         try {
             Map<String, Object> data = new HashMap<>();
             Long userId = userService.getUserId(request);
-            String loginName = userService.getUser(userId).getLoginName();
             JSONArray btnStrArr = userService.getBtnStrArrById(userId);
-            if(!"admin".equals(loginName)) {
+            if(!userService.isCurrentUserAdmin()) {
                 data.put("userBtn", btnStrArr);
             }
             res.code = 200;
@@ -554,6 +557,9 @@ public class UserController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Byte status = jsonObject.getByte("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
@@ -576,21 +582,13 @@ public class UserController extends BaseController {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             Map<String, Object> data = new HashMap<>();
-            Long userId = Long.parseLong(redisService.getObjectFromSessionByKey(request,"userId").toString());
-            User user = userService.getUser(userId);
-            //获取当前用户数
+            // 单企业模式：无租户限制，返回固定信息
             int userCurrentNum = userService.getUser(request).size();
-            Tenant tenant = tenantService.getTenantByTenantId(user.getTenantId());
-            if(tenant.getExpireTime()!=null && tenant.getExpireTime().getTime()<System.currentTimeMillis()){
-                //租户已经过期，移除token
-                redisService.deleteObjectBySession(request,"userId");
-                redisService.deleteObjectBySession(request,"clientIp");
-            }
-            data.put("type", tenant.getType()); //租户类型，0免费租户，1付费租户
-            data.put("expireTime", Tools.parseDateToStr(tenant.getExpireTime()));
+            data.put("type", 1);           // 付费类型
+            data.put("expireTime", null);  // 永不过期
             data.put("userCurrentNum", userCurrentNum);
-            data.put("userNumLimit", tenant.getUserNumLimit());
-            data.put("tenantId", tenant.getTenantId());
+            data.put("userNumLimit", Integer.MAX_VALUE);
+            data.put("tenantId", null);
             res.code = 200;
             res.data = data;
         } catch (Exception e) {

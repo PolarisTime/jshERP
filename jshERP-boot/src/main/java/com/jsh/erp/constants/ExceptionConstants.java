@@ -62,18 +62,9 @@ public class ExceptionConstants {
     //登录名已存在
     public static final int USER_LOGIN_NAME_ALREADY_EXISTS_CODE = 500003;
     public static final String USER_LOGIN_NAME_ALREADY_EXISTS_MSG = "登录名在本系统已存在";
-    //用户录入数量超出限制
-    public static final int USER_OVER_LIMIT_FAILED_CODE = 500004;
-    public static final String USER_OVER_LIMIT_FAILED_MSG = "用户录入数量超出限制，请联系平台管理员";
     //此用户名限制使用
     public static final int USER_NAME_LIMIT_USE_CODE = 500005;
     public static final String USER_NAME_LIMIT_USE_MSG = "此用户名限制使用";
-    //启用的用户数量超出限制
-    public static final int USER_ENABLE_OVER_LIMIT_FAILED_CODE = 500006;
-    public static final String USER_ENABLE_OVER_LIMIT_FAILED_MSG = "启用的用户数量超出限制，请联系平台管理员";
-    //租户不能被删除
-    public static final int USER_LIMIT_TENANT_DELETE_CODE = 500008;
-    public static final String USER_LIMIT_TENANT_DELETE_MSG = "抱歉，租户不能被删除";
     //当前机构已经存在经理
     public static final int USER_LEADER_IS_EXIST_CODE = 500009;
     public static final String USER_LEADER_IS_EXIST_MSG = "抱歉，当前机构已经存在经理";

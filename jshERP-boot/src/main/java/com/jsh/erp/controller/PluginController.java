@@ -59,7 +59,7 @@ public class PluginController {
         try {
             List<PluginInfo> resList = new ArrayList<>();
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 List<PluginInfo> list = pluginOperator.getPluginInfo();
                 if (StringUtil.isEmpty(name)) {
                     resList = list;
@@ -93,7 +93,7 @@ public class PluginController {
     public Set<String> getPluginFilePaths(){
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 return pluginOperator.getPluginFilePaths();
             } else {
                 return null;
@@ -118,7 +118,7 @@ public class PluginController {
         String message = "";
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.stop(id)) {
                     message = "plugin '" + id + "' stop success";
                 } else {
@@ -152,7 +152,7 @@ public class PluginController {
         String message = "";
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.start(id)) {
                     message = "plugin '" + id + "' start success";
                 } else {
@@ -187,7 +187,7 @@ public class PluginController {
         String message = "";
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.uninstall(id, true)) {
                     message = "plugin '" + id + "' uninstall success";
                 } else {
@@ -219,7 +219,7 @@ public class PluginController {
     public String install(@RequestParam("path") String path){
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.install(Paths.get(path))) {
                     return "installByPath success";
                 } else {
@@ -246,7 +246,7 @@ public class PluginController {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 pluginOperator.uploadPluginAndStart(file);
                 res.code = 200;
                 res.data = "导入成功";
@@ -272,7 +272,7 @@ public class PluginController {
     public String uploadConfig(@RequestParam("configFile") MultipartFile multipartFile){
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.uploadConfigFile(multipartFile)) {
                     return "uploadConfig success";
                 } else {
@@ -298,7 +298,7 @@ public class PluginController {
     public String backupPlugin(@PathVariable("pluginId") String pluginId){
         try {
             User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(UserService.isAdmin(userInfo)) {
                 if (pluginOperator.backupPlugin(pluginId, "testBack")) {
                     return "backupPlugin success";
                 } else {

@@ -51,9 +51,6 @@
       group by dh.organ_id
     ) dh on dh.organ_id = c.organ_id
     where ifnull(c.delete_flag,'0') != '1'
-    <if test="tenantId != null">
-      and c.tenant_id = #{tenantId}
-    </if>
     <if test="contractNo != null and contractNo != ''">
       and c.contract_no like concat('%', #{contractNo}, '%')
     </if>
@@ -97,7 +94,6 @@
     ) dh on dh.organ_id = c.organ_id
     where ifnull(c.delete_flag,'0') != '1'
       and c.organ_id = #{organId}
-      and c.tenant_id = #{tenantId}
   </select>
 
 </mapper>

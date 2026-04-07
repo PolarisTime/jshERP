@@ -23,6 +23,7 @@ import java.util.*;;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji-sheng-hua  jshERP
@@ -72,6 +73,9 @@ public class FunctionController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = functionService.insertFunction(obj, request);
         return returnStr(objectMap, insert);
@@ -80,6 +84,9 @@ public class FunctionController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = functionService.updateFunction(obj, request);
         return returnStr(objectMap, update);
@@ -88,6 +95,9 @@ public class FunctionController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = functionService.deleteFunction(id, request);
         return returnStr(objectMap, delete);
@@ -96,6 +106,9 @@ public class FunctionController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = functionService.batchDeleteFunction(ids, request);
         return returnStr(objectMap, delete);
@@ -171,8 +184,8 @@ public class FunctionController extends BaseController {
             List<Function> dataList = functionService.getRoleFunction(pNumber);
             if (dataList.size() != 0) {
                 User userInfo = userService.getCurrentUser();
-                //获取当前用户所属的租户所拥有的功能id的map
-                Map<Long, Long> funIdMap = functionService.getCurrentTenantFunIdMap();
+                // 单企业模式：按当前用户角色权限过滤
+                Map<Long, Long> funIdMap = functionService.getCurrentUserFunIdMap();
                 dataArray = getMenuByFunction(dataList, fc, approvalFlag, funIdMap, userInfo);
                 //增加首页菜单项
                 JSONObject homeItem = new JSONObject();
@@ -190,21 +203,22 @@ public class FunctionController extends BaseController {
     }
 
     /**
-     * admin专属功能ID集合：功能管理(16)、租户管理(18)、插件管理(245)、平台配置(258)
-     * 这些功能仅admin可见，租户用户即使角色中分配了也不显示
+     * admin专属功能ID集合：功能管理(16)、插件管理(245)、平台配置(258)
+     * 这些功能仅admin可见，普通用户即使角色中分配了也不显示
+     * 注：原 18L 租户管理已在单企业重构中移除
      */
-    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, 18L, 245L, 258L));
+    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, 245L, 258L));
 
     public JSONArray getMenuByFunction(List<Function> dataList, String fc, String approvalFlag, Map<Long, Long> funIdMap, User userInfo) throws Exception {
         JSONArray dataArray = new JSONArray();
-        boolean isAdmin = "admin".equals(userInfo.getLoginName());
+        boolean isAdmin = UserService.isAdmin(userInfo);
         for (Function function : dataList) {
             //非admin用户跳过平台管理专属功能
             if(!isAdmin && ADMIN_ONLY_FUN_IDS.contains(function.getId())) {
                 continue;
             }
-            //如果不是超管也不是租户就需要校验，防止分配下级用户的功能权限，大于租户的权限
-            if(isAdmin || userInfo.getId().equals(userInfo.getTenantId()) || funIdMap.get(function.getId())!=null) {
+            // 单企业：admin 可见所有菜单，其他用户按角色权限过滤
+            if(isAdmin || funIdMap.get(function.getId())!=null) {
                 //如果关闭多级审核，遇到任务审核菜单直接跳过
                 if("0".equals(approvalFlag) && "/workflow".equals(function.getUrl())) {
                     continue;
@@ -241,14 +255,12 @@ public class FunctionController extends BaseController {
     @ApiOperation(value = "角色对应功能显示")
     public JSONArray findRoleFunction(@RequestParam("UBType") String type, @RequestParam("UBKeyId") String keyId,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return new JSONArray();
+        }
         JSONArray arr = new JSONArray();
         try {
-            User userInfo = userService.getCurrentUser();
-            //获取当前用户所拥有的功能id列表
-            List<Long> funIdList = functionService.getCurrentUserFunIdList();
-            if("admin".equals(userInfo.getLoginName())) {
-                funIdList = null;
-            }
+            // admin 专属接口：funIdList 不限制（传 null 表示显示全部）
             List<Function> dataListFun = functionService.findRoleFunction("0", null);
             //开始拼接json数据
             JSONObject outer = new JSONObject();
@@ -260,20 +272,7 @@ public class FunctionController extends BaseController {
             //存放数据json数组
             JSONArray dataArray = new JSONArray();
             if (null != dataListFun) {
-                //根据条件从列表里面移除"系统管理"
-                List<Function> dataList = new ArrayList<>();
-                for (Function fun : dataListFun) {
-                    Long tenantId = JwtUtil.getTenantIdFromRequest(request);
-                    if (tenantId!=0L) {
-                        if(!("系统管理").equals(fun.getName())) {
-                            dataList.add(fun);
-                        }
-                    } else {
-                        //超管
-                        dataList.add(fun);
-                    }
-                }
-                dataArray = getFunctionList(dataList, type, keyId, funIdList);
+                dataArray = getFunctionList(dataListFun, type, keyId, null);
                 outer.put("children", dataArray);
             }
             arr.add(outer);
@@ -322,6 +321,12 @@ public class FunctionController extends BaseController {
                                       HttpServletRequest request)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
+            // 防止普通用户探测权限体系
+            if (!userService.isCurrentUserAdmin()) {
+                res.code = 403;
+                res.data = "无权限";
+                return res;
+            }
             List<UserBusiness> list = userBusinessService.getBasicData(roleId.toString(), "RoleFunctions");
             if(null!=list && list.size()>0) {
                 //按钮
@@ -349,7 +354,7 @@ public class FunctionController extends BaseController {
                 if (null != dataList) {
                     for (Function function : dataList) {
                         //如果不是超管需要校验，防止分配下级用户的按钮权限，大于自身的权限
-                        if("admin".equals(userInfo.getLoginName()) || funIdMap.get(function.getId())!=null) {
+                        if(UserService.isAdmin(userInfo) || funIdMap.get(function.getId())!=null) {
                             JSONObject item = new JSONObject();
                             item.put("id", function.getId());
                             item.put("name", function.getName());

@@ -35,6 +35,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji-sheng-hua 752*718*920
@@ -113,6 +114,9 @@ public class DepotHeadController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = depotHeadService.deleteDepotHead(id, request);
         return returnStr(objectMap, delete);
@@ -121,6 +125,9 @@ public class DepotHeadController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = depotHeadService.batchDeleteDepotHead(ids, request);
         return returnStr(objectMap, delete);
@@ -129,6 +136,9 @@ public class DepotHeadController extends BaseController {
     @PostMapping(value = "/forceCloseBatch")
     @ApiOperation(value = "强制结单")
     public String forceCloseBatch(@RequestBody JSONObject jsonObject, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         String ids = jsonObject.getString("ids");
         int res = depotHeadService.batchForceClose(ids, request);
@@ -142,6 +152,9 @@ public class DepotHeadController extends BaseController {
     @PostMapping(value = "/forceClosePurchaseBatch")
     @ApiOperation(value = "强制结单-以销定购")
     public String forceClosePurchaseBatch(@RequestBody JSONObject jsonObject, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         String ids = jsonObject.getString("ids");
         int res = depotHeadService.batchForceClosePurchase(ids, request);
@@ -162,6 +175,9 @@ public class DepotHeadController extends BaseController {
     @ApiOperation(value = "批量设置状态-审核或者反审核")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         String status = jsonObject.getString("status");
         String ids = jsonObject.getString("ids");
@@ -180,6 +196,9 @@ public class DepotHeadController extends BaseController {
     @ApiOperation(value = "批量设置价格核准状态")
     public String batchSetPriceApproved(@RequestBody JSONObject jsonObject,
                                         HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         String priceApproved = jsonObject.getString("priceApproved");
         String ids = jsonObject.getString("ids");
@@ -689,8 +708,7 @@ public class DepotHeadController extends BaseController {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             Map<String, Object> map = new HashMap<>();
-            String loginName = userService.getCurrentUser().getLoginName();
-            if(!"admin".equals(loginName)) {
+            if(!userService.isCurrentUserAdmin()) {
                 String today = Tools.getNow() + BusinessConstants.DAY_FIRST_TIME;
                 String monthFirstDay = Tools.firstDayOfMonth(Tools.getCurrentMonth()) + BusinessConstants.DAY_FIRST_TIME;
                 String yesterdayBegin = Tools.getYesterday() + BusinessConstants.DAY_FIRST_TIME;

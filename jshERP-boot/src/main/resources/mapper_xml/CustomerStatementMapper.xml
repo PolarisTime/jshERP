@@ -36,7 +36,6 @@
     SELECT count(1)
     FROM jsh_customer_statement
     WHERE statement_no LIKE concat('DZ', #{datePrefix}, '%')
-      AND tenant_id = #{tenantId}
   </select>
 
   <!-- ═══ 未对账明细 ═══ -->
@@ -49,7 +48,6 @@
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE dh.type = '出库' AND dh.sub_type = '销售'
       AND ifnull(di.delete_flag,'0') != '1'
-      AND dh.tenant_id = #{tenantId}
       <if test="organId != null">
         AND dh.organ_id = #{organId}
       </if>
@@ -65,7 +63,6 @@
         JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
         WHERE ifnull(cs.delete_flag,'0') != '1'
           AND ifnull(csi.delete_flag,'0') != '1'
-          AND cs.tenant_id = #{tenantId}
       )
   </sql>
 
@@ -111,7 +108,6 @@
     FROM jsh_customer_statement cs
     LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
     WHERE ifnull(cs.delete_flag,'0') != '1'
-      AND cs.tenant_id = #{tenantId}
       <if test="organId != null">
         AND cs.organ_id = #{organId}
       </if>
@@ -137,7 +133,6 @@
     SELECT count(1)
     FROM jsh_customer_statement cs
     WHERE ifnull(cs.delete_flag,'0') != '1'
-      AND cs.tenant_id = #{tenantId}
       <if test="organId != null">
         AND cs.organ_id = #{organId}
       </if>

@@ -79,7 +79,7 @@ public class FunctionService {
     public List<FunctionEx> select(String name, String type)throws Exception {
         List<FunctionEx> list=null;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 PageUtils.startPage();
                 list = functionMapperEx.selectByConditionFunction(name, type);
             }
@@ -94,7 +94,7 @@ public class FunctionService {
         Function functions = JSONObject.parseObject(obj.toJSONString(), Function.class);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 functions.setState(false);
                 functions.setType("电脑版");
                 result = functionsMapper.insertSelective(functions);
@@ -112,7 +112,7 @@ public class FunctionService {
         Function functions = JSONObject.parseObject(obj.toJSONString(), Function.class);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = functionsMapper.updateByPrimaryKeySelective(functions);
                 logService.insertLog("功能",
                         new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(functions.getName()).toString(), request);
@@ -145,7 +145,7 @@ public class FunctionService {
         String [] idArray=ids.split(",");
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = functionMapperEx.batchDeleteFunctionByIds(new Date(), userInfo == null ? null : userInfo.getId(), idArray);
                 logService.insertLog("功能", sb.toString(),
                         ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
@@ -234,59 +234,6 @@ public class FunctionService {
     }
 
     /**
-     * 获取当前用户所属的租户所拥有的功能id列表
-     * @return
-     */
-    public List<Long> getCurrentTenantFunIdList() throws Exception {
-        List<Long> funIdList = new ArrayList<>();
-        Long roleId = 0L;
-        String fc = "";
-        User userInfo = userService.getCurrentUser();
-        //获取当前用户所有的角色id
-        List<UserBusiness> roleList = userBusinessService.getBasicData(userInfo.getTenantId().toString(), "UserRole");
-        if(roleList!=null && roleList.size()>0){
-            String value = roleList.get(0).getValue();
-            if(StringUtil.isNotEmpty(value)){
-                String roleIdStr = value.replace("[", "").replace("]", "");
-                roleId = Long.parseLong(roleIdStr);
-            }
-        }
-        //当前用户所拥有的功能列表，格式如：[1][2][5]
-        List<UserBusiness> funList = userBusinessService.getBasicData(roleId.toString(), "RoleFunctions");
-        if(funList!=null && funList.size()>0){
-            fc = funList.get(0).getValue();
-        }
-        if(StringUtil.isNotEmpty(fc)) {
-            fc = fc.substring(1, fc.length() - 1);
-            fc = fc.replace("][",",");
-            funIdList = StringUtil.strToLongList(fc);
-        }
-        return funIdList;
-    }
-
-    /**
-     * 获取当前用户所属的租户所拥有的功能id的map
-     * @return
-     */
-    public Map<Long, Long> getCurrentTenantFunIdMap() throws Exception {
-        Map<Long, Long> funIdMap = new HashMap<>();
-        List<Long> list = getCurrentTenantFunIdList();
-        if(list.size()>0) {
-            for (Long funId : list) {
-                funIdMap.put(funId, funId);
-            }
-            //把一级菜单的id全都赋值给租户,解决漏掉枝干id的问题
-            List<Long> firstNodeIdList = functionMapperEx.getFirstNodeIdList();
-            for (Long firstNodeId : firstNodeIdList) {
-                funIdMap.put(firstNodeId, firstNodeId);
-            }
-            return funIdMap;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * 获取当前用户所拥有的功能id列表
      * @return
      */
@@ -324,13 +271,10 @@ public class FunctionService {
     public Map<Long, Long> getCurrentUserFunIdMap() throws Exception {
         Map<Long, Long> funIdMap = new HashMap<>();
         List<Long> list = getCurrentUserFunIdList();
-        if(list.size()>0) {
-            for(Long funId: list) {
-                funIdMap.put(funId, funId);
-            }
-            return funIdMap;
-        } else {
-            return null;
+        for(Long funId: list) {
+            funIdMap.put(funId, funId);
         }
+        // 返回空 Map 而非 null，避免调用方 .get() 抛 NPE；admin 用户 list 为空时返回空 Map
+        return funIdMap;
     }
 }

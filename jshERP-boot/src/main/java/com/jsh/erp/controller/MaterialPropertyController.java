@@ -5,6 +5,7 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.MaterialProperty;
 import com.jsh.erp.service.MaterialPropertyService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 
@@ -39,6 +41,8 @@ public class MaterialPropertyController extends BaseController {
 
     @Resource
     private MaterialPropertyService materialPropertyService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @ApiOperation(value = "根据id获取信息")
@@ -66,6 +70,7 @@ public class MaterialPropertyController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = materialPropertyService.insertMaterialProperty(obj, request);
         return returnStr(objectMap, insert);
@@ -74,6 +79,7 @@ public class MaterialPropertyController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int update = materialPropertyService.updateMaterialProperty(obj, request);
         return returnStr(objectMap, update);
@@ -82,6 +88,7 @@ public class MaterialPropertyController extends BaseController {
     @PostMapping(value = "/addOrUpdate")
     @ApiOperation(value = "新增或修改")
     public String addOrUpdate(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         String nativeName = obj.getString("nativeName");
         String anotherName = obj.getString("anotherName");
@@ -99,6 +106,7 @@ public class MaterialPropertyController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialPropertyService.deleteMaterialProperty(id, request);
         return returnStr(objectMap, delete);
@@ -107,6 +115,7 @@ public class MaterialPropertyController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) return returnForbidden();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialPropertyService.batchDeleteMaterialProperty(ids, request);
         return returnStr(objectMap, delete);

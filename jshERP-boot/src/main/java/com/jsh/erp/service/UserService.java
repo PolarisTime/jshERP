@@ -1,7 +1,6 @@
 package com.jsh.erp.service;
 
 import com.jsh.erp.datasource.entities.*;
-import com.jsh.erp.datasource.mappers.TenantMapper;
 import com.jsh.erp.exception.BusinessParamCheckingException;
 import com.jsh.erp.utils.*;
 import org.springframework.util.StringUtils;
@@ -16,7 +15,6 @@ import com.jsh.erp.exception.BusinessRunTimeException;
 import com.jsh.erp.exception.JshException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -34,17 +32,11 @@ public class UserService {
     @Resource
     private UserMapper userMapper;
     @Resource
-    private TenantMapper tenantMapper;
-    @Resource
     private UserMapperEx userMapperEx;
     @Resource
     private OrgaUserRelService orgaUserRelService;
     @Resource
     private LogService logService;
-    @Resource
-    private UserService userService;
-    @Resource
-    private TenantService tenantService;
     @Resource
     private UserBusinessService userBusinessService;
     @Resource
@@ -55,12 +47,6 @@ public class UserService {
     private PlatformConfigService platformConfigService;
     @Resource
     private RedisService redisService;
-
-    @Value("${tenant.userNumLimit}")
-    private Integer userNumLimit;
-
-    @Value("${tenant.tryDayLimit}")
-    private Integer tryDayLimit;
 
     public User getUser(long id)throws Exception {
         User result=null;
@@ -116,14 +102,7 @@ public class UserService {
                 PageUtils.startPage();
                 list = userMapperEx.selectByConditionUser(userName, loginName);
                 for (UserEx ue : list) {
-                    String userType = "";
-                    if (ue.getId().equals(ue.getTenantId())) {
-                        userType = "租户";
-                    } else if (ue.getTenantId() == null) {
-                        userType = "超管";
-                    } else {
-                        userType = "普通";
-                    }
+                    String userType = isAdmin(ue) ? "管理员" : "普通";
                     ue.setUserType(userType);
                     //是否经理
                     String leaderFlagStr = "";
@@ -213,8 +192,7 @@ public class UserService {
     public int resetPwd(String md5Pwd, Long id, HttpServletRequest request) throws Exception{
         int result=0;
         User u = getUser(id);
-        String loginName = u.getLoginName();
-        if("admin".equals(loginName)){
+        if(isAdmin(u)){
             logger.info("禁止重置超管密码");
         } else {
             User user = new User();
@@ -253,12 +231,6 @@ public class UserService {
         sb.append(BusinessConstants.LOG_OPERATION_TYPE_DELETE);
         List<User> list = getUserListByIds(ids);
         for(User user: list){
-            if(user.getId().equals(user.getTenantId())) {
-                logger.error("异常码[{}],异常提示[{}],参数,ids:[{}]",
-                        ExceptionConstants.USER_LIMIT_TENANT_DELETE_CODE,ExceptionConstants.USER_LIMIT_TENANT_DELETE_MSG,ids);
-                throw new BusinessRunTimeException(ExceptionConstants.USER_LIMIT_TENANT_DELETE_CODE,
-                        ExceptionConstants.USER_LIMIT_TENANT_DELETE_MSG);
-            }
             sb.append("[").append(user.getLoginName()).append("]");
         }
         String[] idsArray =ids.split(",");
@@ -360,19 +332,10 @@ public class UserService {
             case ExceptionCodeConstants.UserExceptionCode.USER_ACCESS_EXCEPTION:
                 msgTip = "access service error";
                 break;
-            case ExceptionCodeConstants.UserExceptionCode.BLACK_TENANT:
-                msgTip = "tenant is black";
-                break;
-            case ExceptionCodeConstants.UserExceptionCode.EXPIRE_TENANT:
-                msgTip = "tenant is expire";
-                break;
             case ExceptionCodeConstants.UserExceptionCode.USER_CONDITION_FIT:
                 msgTip = "user can login";
                 //验证通过 ，可以登录，放入session，记录登录日志
                 user = getUserByLoginName(loginName);
-                if(user.getTenantId()!=null) {
-                    legacyToken = legacyToken + "_" + user.getTenantId();
-                }
                 redisService.storageObjectBySession(legacyToken,"userId",user.getId());
                 break;
             default:
@@ -386,16 +349,16 @@ public class UserService {
                 pwdSimple = true;
             }
             user.setPassword(null);
-            if(BusinessConstants.DEFAULT_MANAGER.equals(user.getLoginName())) {
+            if(isAdmin(user)) {
                 //如果是管理员，则发送登录邮件
                 sendEmailToCurrentUser(request, user);
             }
             redisService.storageObjectBySession(legacyToken,"clientIp", Tools.getLocalIp(request));
-            logService.insertLogWithUserId(user.getId(), user.getTenantId(), "用户",
+            logService.insertLogWithUserId(user.getId(), null, "用户",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_LOGIN).append(user.getLoginName()).toString(),
                     ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
             // 生成 JWT token（新前端使用）
-            String jwtToken = JwtUtil.generateAccessToken(user.getId(), user.getTenantId());
+            String jwtToken = JwtUtil.generateAccessToken(user.getId());
             data.put("token", jwtToken);
             // 旧格式 token 也返回（兼容旧前端）
             data.put("legacyToken", legacyToken);
@@ -418,16 +381,7 @@ public class UserService {
                 if(list.get(0).getStatus()!=0) {
                     return ExceptionCodeConstants.UserExceptionCode.BLACK_USER;
                 }
-                Long tenantId = list.get(0).getTenantId();
-                Tenant tenant = tenantService.getTenantByTenantId(tenantId);
-                if(tenant!=null) {
-                    if(tenant.getEnabled()!=null && !tenant.getEnabled()) {
-                        return ExceptionCodeConstants.UserExceptionCode.BLACK_TENANT;
-                    }
-                    if(tenant.getExpireTime()!=null && tenant.getExpireTime().getTime()<System.currentTimeMillis()){
-                        return ExceptionCodeConstants.UserExceptionCode.EXPIRE_TENANT;
-                    }
-                }
+                // 单企业模式：无租户试用期/禁用校验
             }
         } catch (Exception e) {
             logger.error(">>>>>>>>访问验证用户姓名是否存在后台信息异常", e);
@@ -509,8 +463,23 @@ public class UserService {
      */
     public User getCurrentUser()throws Exception{
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        Long userId = Long.parseLong(redisService.getObjectFromSessionByKey(request,"userId").toString());
+        Object userIdObj = redisService.getObjectFromSessionByKey(request, "userId");
+        if (userIdObj == null) {
+            throw new com.jsh.erp.exception.BusinessRunTimeException(
+                    ExceptionConstants.SERVICE_SYSTEM_ERROR_CODE, "用户未登录或会话已过期");
+        }
+        Long userId = Long.parseLong(userIdObj.toString());
         return getUser(userId);
+    }
+
+    /** 基于 isystem 字段判断系统管理员，与 loginName 解耦 */
+    public boolean isCurrentUserAdmin() throws Exception {
+        return isAdmin(getCurrentUser());
+    }
+
+    /** 静态工具：判断任意 User 对象是否为系统管理员 */
+    public static boolean isAdmin(User user) {
+        return user != null && user.getIsystem() != null && user.getIsystem() == 1;
     }
 
     /**
@@ -532,7 +501,7 @@ public class UserService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void addUserAndOrgUserRel(UserEx ue, HttpServletRequest request) throws Exception{
-        if(BusinessConstants.DEFAULT_MANAGER.equals(ue.getLoginName())) {
+        if(isAdmin(ue)) {
             throw new BusinessRunTimeException(ExceptionConstants.USER_NAME_LIMIT_USE_CODE,
                     ExceptionConstants.USER_NAME_LIMIT_USE_MSG);
         } else {
@@ -612,7 +581,7 @@ public class UserService {
         /**
          * 多次创建事务，事物之间无法协同，应该在入口处创建一个事务以做协调
          */
-        if(BusinessConstants.DEFAULT_MANAGER.equals(ue.getLoginName())) {
+        if(isAdmin(ue)) {
             throw new BusinessRunTimeException(ExceptionConstants.USER_NAME_LIMIT_USE_CODE,
                     ExceptionConstants.USER_NAME_LIMIT_USE_MSG);
         } else {
@@ -629,54 +598,21 @@ public class UserService {
             }catch(Exception e){
                 JshException.writeFail(logger, e);
             }
-            //更新租户id
-            User user = new User();
-            user.setId(ue.getId());
-            user.setTenantId(ue.getId());
-            userService.updateUserTenant(user);
-            //新增用户与角色的关系
+            // 单企业模式：不再设置 tenantId，不再创建 jsh_tenant 记录
+            // 新增用户与角色的关系
             JSONObject ubObj = new JSONObject();
             ubObj.put("type", "UserRole");
             ubObj.put("keyid", ue.getId());
             JSONArray ubArr = new JSONArray();
             ubArr.add(manageRoleId);
             ubObj.put("value", ubArr.toString());
-            ubObj.put("tenantId", ue.getId());
             userBusinessService.insertUserBusiness(ubObj, null);
-            //创建租户信息
-            JSONObject tenantObj = new JSONObject();
-            tenantObj.put("tenantId", ue.getId());
-            tenantObj.put("loginName",ue.getLoginName());
-            tenantObj.put("userNumLimit", ue.getUserNumLimit());
-            tenantObj.put("expireTime", ue.getExpireTime());
-            tenantObj.put("remark", ue.getRemark());
-            Tenant tenant = JSONObject.parseObject(tenantObj.toJSONString(), Tenant.class);
-            tenant.setCreateTime(new Date());
-            if(tenant.getUserNumLimit()==null) {
-                tenant.setUserNumLimit(userNumLimit); //默认用户限制数量
-            }
-            if(tenant.getExpireTime()==null) {
-                tenant.setExpireTime(Tools.addDays(new Date(), tryDayLimit)); //租户允许试用的天数
-            }
-            tenantMapper.insertSelective(tenant);
-            logger.info("===============创建租户信息完成===============");
-        }
-    }
-
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateUserTenant(User user) throws Exception{
-        UserExample example = new UserExample();
-        example.createCriteria().andIdEqualTo(user.getId());
-        try{
-            userMapper.updateByPrimaryKeySelective(user);
-        }catch(Exception e){
-            JshException.writeFail(logger, e);
         }
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void updateUserAndOrgUserRel(UserEx ue, HttpServletRequest request) throws Exception{
-        if(BusinessConstants.DEFAULT_MANAGER.equals(ue.getLoginName())) {
+        if(isAdmin(ue)) {
             throw new BusinessRunTimeException(ExceptionConstants.USER_NAME_LIMIT_USE_CODE,
                     ExceptionConstants.USER_NAME_LIMIT_USE_MSG);
         } else {
@@ -832,7 +768,7 @@ public class UserService {
             if(valueArray.length>0) {
                 roleId = valueArray[0];
             }
-            role = roleService.getRoleWithoutTenant(Long.parseLong(roleId));
+            role = roleService.getRole(Long.parseLong(roleId));
         }
         return role;
     }
@@ -897,27 +833,12 @@ public class UserService {
     public int batchSetStatus(Byte status, String ids, HttpServletRequest request)throws Exception {
         int result=0;
         List<User> list = getUserListByIds(ids);
-        //选中的用户的数量
-        int selectUserSize = list.size();
-        //查询启用状态的用户的数量
-        int enableUserSize = getUser(request).size();
-        User userInfo = userService.getCurrentUser();
-        Tenant tenant = tenantService.getTenantByTenantId(userInfo.getTenantId());
-        if(tenant!=null) {
-            if (selectUserSize + enableUserSize > tenant.getUserNumLimit() && status == 0) {
-                throw new BusinessParamCheckingException(ExceptionConstants.USER_ENABLE_OVER_LIMIT_FAILED_CODE,
-                        ExceptionConstants.USER_ENABLE_OVER_LIMIT_FAILED_MSG);
-            }
-        }
+        // 单企业模式：无用户数上限校验
         StringBuilder userStr = new StringBuilder();
         List<Long> idList = new ArrayList<>();
         for(User user: list) {
-            if(user.getId().equals(user.getTenantId())) {
-                //租户不能进行禁用
-            } else {
-                idList.add(user.getId());
-                userStr.append(user.getLoginName()).append(" ");
-            }
+            idList.add(user.getId());
+            userStr.append(user.getLoginName()).append(" ");
         }
         String statusStr ="";
         if(status == 0) {

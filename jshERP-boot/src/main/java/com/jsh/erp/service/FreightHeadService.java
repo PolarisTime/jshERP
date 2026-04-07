@@ -127,13 +127,11 @@ public class FreightHeadService {
                                        String beginTime, String endTime) throws Exception {
         List<FreightHeadVo> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
             list = freightHeadMapperEx.selectByConditionFreightHead(billNo, carrierId, status,
-                    paymentStatus, deliveryStatus, beginTime, endTime, tenantId);
+                    paymentStatus, deliveryStatus, beginTime, endTime);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -167,12 +165,10 @@ public class FreightHeadService {
                                                 String beginTime, String endTime) throws Exception {
         List<FreightHeadVo> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             list = freightHeadMapperEx.selectByConditionFreightHead(billNo, carrierId, status,
-                    paymentStatus, deliveryStatus, beginTime, endTime, tenantId);
+                    paymentStatus, deliveryStatus, beginTime, endTime);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -186,7 +182,6 @@ public class FreightHeadService {
     public String addFreightBill(String beanJson, String itemsJson, HttpServletRequest request) throws Exception {
         FreightHead freightHead = JSONObject.parseObject(beanJson, FreightHead.class);
         User userInfo = userService.getCurrentUser();
-        Long tenantId = userInfo == null ? null : userInfo.getTenantId();
         freightHead.setCreator(userInfo == null ? null : userInfo.getId());
         freightHead.setCreateTime(new Date());
         if (StringUtil.isEmpty(freightHead.getStatus())) {
@@ -213,7 +208,7 @@ public class FreightHeadService {
         }
         Long headId = freightHead.getId();
         //保存明细
-        freightItemService.saveItems(headId, itemsJson, tenantId);
+        freightItemService.saveItems(headId, itemsJson);
         //重新计算并更新主表的总重量和总运费
         recalcHeadTotal(headId, freightHead.getUnitPrice());
         logService.insertLog("运费单",
@@ -236,9 +231,7 @@ public class FreightHeadService {
             JshException.writeFail(logger, e);
         }
         //先删除原明细，再保存新明细
-        User userInfo = userService.getCurrentUser();
-        Long tenantId = userInfo == null ? null : userInfo.getTenantId();
-        freightItemService.saveItems(freightHead.getId(), itemsJson, tenantId);
+        freightItemService.saveItems(freightHead.getId(), itemsJson);
         //重新计算并更新主表的总重量和总运费
         recalcHeadTotal(freightHead.getId(), freightHead.getUnitPrice());
         logService.insertLog("运费单",
@@ -392,10 +385,8 @@ public class FreightHeadService {
     public List<Map<String, Object>> getAvailableSaleOut(String billNo, HttpServletRequest request) throws Exception {
         List<Map<String, Object>> resultList = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             PageUtils.startPage();
-            resultList = freightItemMapperEx.selectAvailableSaleOut(billNo, tenantId);
+            resultList = freightItemMapperEx.selectAvailableSaleOut(billNo);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -439,12 +430,10 @@ public class FreightHeadService {
     public List<Map<String, Object>> selectReconciliation(Long carrierId, String beginTime, String endTime) throws Exception {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
-            list = freightHeadMapperEx.selectReconciliation(carrierId, beginTime, endTime, tenantId);
+            list = freightHeadMapperEx.selectReconciliation(carrierId, beginTime, endTime);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -573,12 +562,10 @@ public class FreightHeadService {
     public List<Map<String, Object>> selectReconciliationDetail(Long carrierId, String beginTime, String endTime, String paymentStatus) throws Exception {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
-            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus, tenantId);
+            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -593,8 +580,9 @@ public class FreightHeadService {
         int result = 0;
         try {
             User userInfo = userService.getCurrentUser();
+            Long operatorId = userInfo == null ? null : userInfo.getId();
             String[] idArray = ids.split(",");
-            result = freightHeadMapperEx.batchSetPaymentStatus(paymentStatus, paidAmount, new Date(), userInfo.getId(), idArray);
+            result = freightHeadMapperEx.batchSetPaymentStatus(paymentStatus, paidAmount, new Date(), operatorId, idArray);
             String statusStr = "1".equals(paymentStatus) ? "标记已付款" : "2".equals(paymentStatus) ? "标记部分付款" : "标记未付款";
             logService.insertLog("运费单", statusStr + ":" + ids,
                     ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
@@ -627,12 +615,10 @@ public class FreightHeadService {
     public List<Map<String, Object>> getReconciliationDetailForExport(Long carrierId, String beginTime, String endTime, String paymentStatus) throws Exception {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo.getTenantId();
             beginTime = Tools.parseDayToTime(beginTime, BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime, BusinessConstants.DAY_LAST_TIME);
             // 不调用 PageUtils.startPage()，全量查询
-            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus, tenantId);
+            list = freightHeadMapperEx.selectReconciliationDetail(carrierId, beginTime, endTime, paymentStatus);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }

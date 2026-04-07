@@ -132,11 +132,6 @@
         order by sort asc
     </select>
 
-    <update id="disableUserByLimit">
-        update jsh_user set status='2'
-        where tenant_id=#{tenantId} and id!=#{tenantId}
-    </update>
-
     <select id="getListByOrgaId" resultType="com.jsh.erp.datasource.entities.User">
         select u.*,our.orga_id from jsh_user u
         left join jsh_orga_user_rel our on u.id=our.user_id

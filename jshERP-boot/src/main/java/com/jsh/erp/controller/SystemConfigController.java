@@ -2,10 +2,12 @@ package com.jsh.erp.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.SystemConfig;
 import com.jsh.erp.service.SystemConfigService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,6 +36,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * Description
@@ -48,6 +51,8 @@ public class SystemConfigController extends BaseController {
 
     @Resource
     private SystemConfigService systemConfigService;
+    @Resource
+    private UserService userService;
 
     @Value(value="${file.uploadType}")
     private Long fileUploadType;
@@ -87,6 +92,9 @@ public class SystemConfigController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = systemConfigService.insertSystemConfig(obj, request);
         return returnStr(objectMap, insert);
@@ -95,6 +103,9 @@ public class SystemConfigController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = systemConfigService.updateSystemConfig(obj, request);
         return returnStr(objectMap, update);
@@ -103,6 +114,9 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.deleteSystemConfig(id, request);
         return returnStr(objectMap, delete);
@@ -111,6 +125,9 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.batchDeleteSystemConfig(ids, request);
         return returnStr(objectMap, delete);

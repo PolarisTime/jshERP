@@ -20,9 +20,6 @@
     select fc.*
     from jsh_freight_carrier fc
     where fc.delete_flag = '0'
-    <if test="tenantId != null">
-      and fc.tenant_id = #{tenantId}
-    </if>
     <if test="name != null and name != ''">
       and fc.name like concat('%', #{name}, '%')
     </if>
@@ -36,9 +33,6 @@
     select count(1)
     from jsh_freight_carrier fc
     where fc.delete_flag = '0'
-    <if test="tenantId != null">
-      and fc.tenant_id = #{tenantId}
-    </if>
     <if test="name != null and name != ''">
       and fc.name like concat('%', #{name}, '%')
     </if>
@@ -49,9 +43,6 @@
     from jsh_freight_carrier fc
     where fc.enabled = 1
     and fc.delete_flag = '0'
-    <if test="tenantId != null">
-      and fc.tenant_id = #{tenantId}
-    </if>
     order by fc.sort asc, fc.id desc
   </select>
 </mapper>

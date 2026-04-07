@@ -23,7 +23,7 @@ public interface CustomerStatementMapper {
     /**
      * 今日已生成的对账单数量（用于生成序号）
      */
-    int countTodayStatement(@Param("datePrefix") String datePrefix, @Param("tenantId") Long tenantId);
+    int countTodayStatement(@Param("datePrefix") String datePrefix);
 
     // ─── 未对账明细（depot_item 行） ─────────────────────────────
 
@@ -31,15 +31,13 @@ public interface CustomerStatementMapper {
             @Param("organId") Long organId,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
     int countUnreconciledItems(
             @Param("organId") Long organId,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     // ─── 对账单列表 ──────────────────────────────────────────────
 
@@ -49,7 +47,6 @@ public interface CustomerStatementMapper {
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
@@ -58,8 +55,7 @@ public interface CustomerStatementMapper {
             @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     // ─── 对账单明细 ──────────────────────────────────────────────
 

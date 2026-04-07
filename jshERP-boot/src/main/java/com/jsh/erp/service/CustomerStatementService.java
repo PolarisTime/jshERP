@@ -37,13 +37,11 @@ public class CustomerStatementService {
 
     public List<CustomerStatementItemVo> listUnreconciledItems(Long organId, String beginTime, String endTime,
                                                                Integer offset, Integer rows) throws Exception {
-        Long tenantId = getTenantId();
-        return customerStatementMapper.listUnreconciledItems(organId, beginTime, endTime, tenantId, offset, rows);
+        return customerStatementMapper.listUnreconciledItems(organId, beginTime, endTime, offset, rows);
     }
 
     public int countUnreconciledItems(Long organId, String beginTime, String endTime) throws Exception {
-        Long tenantId = getTenantId();
-        return customerStatementMapper.countUnreconciledItems(organId, beginTime, endTime, tenantId);
+        return customerStatementMapper.countUnreconciledItems(organId, beginTime, endTime);
     }
 
     // ─── 生成对账单 ──────────────────────────────────────────────
@@ -56,11 +54,10 @@ public class CustomerStatementService {
                     "请至少选择一条明细");
         }
         User user = userService.getCurrentUser();
-        Long tenantId = user.getTenantId();
 
         // 生成单号 DZ+yyyyMMdd+4位序
         String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        int todayCount = customerStatementMapper.countTodayStatement(dateStr, tenantId);
+        int todayCount = customerStatementMapper.countTodayStatement(dateStr);
         String statementNo = "DZ" + dateStr + String.format("%04d", todayCount + 1);
 
         // 汇总明细数据获取重量/金额（从已勾选的 unreconciledItems 中无法直接拿，需查 depot_item）
@@ -76,7 +73,6 @@ public class CustomerStatementService {
         statement.setStatus("0");
         statement.setSignStatus("0");
         statement.setRemark(remark);
-        statement.setTenantId(tenantId);
         statement.setDeleteFlag("0");
         statement.setCreateTime(new Date());
         statement.setCreator(user.getId());
@@ -107,16 +103,14 @@ public class CustomerStatementService {
     public List<Map<String, Object>> listStatements(Long organId, String status, String signStatus,
                                                     String beginTime, String endTime,
                                                     Integer offset, Integer rows) throws Exception {
-        Long tenantId = getTenantId();
         return customerStatementMapper.listStatements(organId, status, signStatus,
-                beginTime, endTime, tenantId, offset, rows);
+                beginTime, endTime, offset, rows);
     }
 
     public int countStatements(Long organId, String status, String signStatus,
                                String beginTime, String endTime) throws Exception {
-        Long tenantId = getTenantId();
         return customerStatementMapper.countStatements(organId, status, signStatus,
-                beginTime, endTime, tenantId);
+                beginTime, endTime);
     }
 
     // ─── 对账单详情 ──────────────────────────────────────────────
@@ -185,12 +179,6 @@ public class CustomerStatementService {
         customerStatementMapper.updateByPrimaryKey(cs);
     }
 
-    // ─── 工具方法 ────────────────────────────────────────────────
-
-    private Long getTenantId() throws Exception {
-        User user = userService.getCurrentUser();
-        return user == null ? null : user.getTenantId();
-    }
 
     private Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) return null;

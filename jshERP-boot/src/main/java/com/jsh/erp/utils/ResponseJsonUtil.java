@@ -52,6 +52,13 @@ public class ResponseJsonUtil {
         return backJson(new ResponseCode(code, map));
     }
 
+    /**
+     * 返回 403 无权限响应
+     */
+    public static String returnForbidden() {
+        return returnJson(new HashMap<>(), ErpInfo.FORBIDDEN.name, ErpInfo.FORBIDDEN.code);
+    }
+
     public static String returnStr(Map<String, Object> objectMap, int res) {
         if(res > 0) {
             return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);

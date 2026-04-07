@@ -81,11 +81,11 @@
 			<artifactId>jul-to-slf4j</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		<!-- MyBatis-Plus 3.5.16（当前 Maven Central 最新稳定版） -->
+		<!-- MyBatis-Plus 3.5.3.2（Java 8 兼容的最后稳定版，TenantLine 在 extension 内无需单独 jsqlparser 模块） -->
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
-			<version>3.5.16</version>
+			<version>3.5.3.2</version>
 		</dependency>
 		<!-- Redis（Spring Boot 2.7 默认 Lettuce，无需显式版本） -->
 		<dependency>
@@ -142,16 +142,17 @@
 			<artifactId>pinyin4j</artifactId>
 			<version>2.5.1</version>
 		</dependency>
-		<!-- MyBatis-Plus JSQLParser 扩展（3.5.x 起 TenantLine/Pagination/BlockAttack 迁移到此模块） -->
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-jsqlparser</artifactId>
-			<version>3.5.16</version>
-		</dependency>
 		<!-- Bean Validation（javax.validation @NotBlank/@Size 等注解，Spring Boot 2.3+ 需显式引入） -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<!-- mybatis-spring-boot-autoconfigure: pagehelper @AutoConfigureAfter 引用 MybatisAutoConfiguration，
+		     需要此 jar 在 classpath 中供 Spring 注解解析，MBP 的 @ConditionalOnMissingBean 保证不冲突 -->
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-autoconfigure</artifactId>
+			<version>2.3.2</version>
 		</dependency>
 		<!-- PageHelper（排除 mybatis-spring-boot-starter，避免与 mybatis-plus 冲突） -->
 		<dependency>

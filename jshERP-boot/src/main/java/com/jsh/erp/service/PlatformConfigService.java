@@ -44,7 +44,7 @@ public class PlatformConfigService {
     public PlatformConfig getPlatformConfig(long id)throws Exception {
         PlatformConfig result=null;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = platformConfigMapper.selectByPrimaryKey(id);
             }
         }catch(Exception e){
@@ -58,7 +58,7 @@ public class PlatformConfigService {
         example.createCriteria();
         List<PlatformConfig> list=null;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 list = platformConfigMapper.selectByExample(example);
             }
         }catch(Exception e){
@@ -70,7 +70,7 @@ public class PlatformConfigService {
     public List<PlatformConfig> select(String platformKey)throws Exception {
         List<PlatformConfig> list=null;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 PageUtils.startPage();
                 list = platformConfigMapperEx.selectByConditionPlatformConfig(platformKey);
             }
@@ -85,7 +85,7 @@ public class PlatformConfigService {
         PlatformConfig platformConfig = JSONObject.parseObject(obj.toJSONString(), PlatformConfig.class);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = platformConfigMapper.insertSelective(platformConfig);
             }
         }catch(Exception e){
@@ -99,7 +99,7 @@ public class PlatformConfigService {
         PlatformConfig platformConfig = JSONObject.parseObject(obj.toJSONString(), PlatformConfig.class);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = platformConfigMapper.updateByPrimaryKeySelective(platformConfig);
             }
         }catch(Exception e){
@@ -112,7 +112,7 @@ public class PlatformConfigService {
     public int deletePlatformConfig(Long id, HttpServletRequest request)throws Exception {
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = platformConfigMapper.deleteByPrimaryKey(id);
             }
         }catch(Exception e){
@@ -128,7 +128,7 @@ public class PlatformConfigService {
         example.createCriteria().andIdIn(idList);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = platformConfigMapper.deleteByExample(example);
             }
         }catch(Exception e){
@@ -140,7 +140,7 @@ public class PlatformConfigService {
     public int updatePlatformConfigByKey(String platformKey, String platformValue)throws Exception {
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 PlatformConfig platformConfig = new PlatformConfig();
                 platformConfig.setPlatformValue(platformValue);
                 PlatformConfigExample example = new PlatformConfigExample();

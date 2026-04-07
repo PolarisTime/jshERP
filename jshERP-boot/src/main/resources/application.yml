@@ -10,11 +10,13 @@ server:
   tomcat:
     # 文件上传临时路径
     basedir: /instance/jsh_steel/uploads
+    # Spring Boot 2.7 / Tomcat 9 严格 RFC 3986：放宽 [ ] 字符检查
+    relaxed-query-chars: "[,]"
 
 spring:
   datasource:
     # 数据库连接
-    url: jdbc:mysql://127.0.0.1:3306/jsh_erp_steel?useUnicode=true&characterEncoding=utf8&useCursorFetch=true&defaultFetchSize=500&allowMultiQueries=true&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3306/jsh_erp_steel_dev?useUnicode=true&characterEncoding=utf8&useCursorFetch=true&defaultFetchSize=500&allowMultiQueries=true&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: jsh_steel
     password: jshM0mC6vU8mI4hA4ksteel
@@ -52,12 +54,6 @@ jwt:
 # 租户对应的角色 id
 manage:
   roleId: 10
-
-tenant:
-  # 租户允许创建的用户数
-  userNumLimit: 1000000
-  # 租户允许试用的天数
-  tryDayLimit: 3000
 
 # 插件配置
 plugin:

@@ -791,12 +791,8 @@ public class SupplierService {
             User user = userService.getCurrentUser();
             Supplier sInfo = supplierMapperEx.getSupplierByNameAndType(supplier.getSupplier(), supplier.getType());
             String ubKey = "[" + sInfo.getId() + "]";
-            //授权当前用户
+            //授权当前用户（单企业模式：仅授权当前用户，无租户概念）
             setPermissionByParam(user.getId(), ubKey);
-            if(!user.getId().equals(user.getTenantId())) {
-                //授权当前租户
-                setPermissionByParam(user.getTenantId(), ubKey);
-            }
         }
     }
 

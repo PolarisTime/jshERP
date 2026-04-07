@@ -76,7 +76,7 @@ public class TenantService {
     public List<TenantEx> select(String loginName, String type, String enabled, String remark)throws Exception {
         List<TenantEx> list = null;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 PageUtils.startPage();
                 list = tenantMapperEx.selectByConditionTenant(loginName, type, enabled, remark);
                 if (null != list) {
@@ -112,14 +112,10 @@ public class TenantService {
         Tenant tenant = JSONObject.parseObject(obj.toJSONString(), Tenant.class);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
-                //如果租户下的用户限制数量为1，则将该租户之外的用户全部禁用
-                if (1 == tenant.getUserNumLimit()) {
-                    userMapperEx.disableUserByLimit(tenant.getTenantId());
-                }
+            if(userService.isCurrentUserAdmin()) {
                 result = tenantMapper.updateByPrimaryKeySelective(tenant);
                 //更新租户对应的角色
-                if(obj.get("roleId")!=null) {
+                if(obj.get("roleId")!=null && tenant.getTenantId() != null) {
                     String ubValue = "[" + obj.getString("roleId") + "]";
                     userBusinessMapperEx.updateValueByTypeAndKeyId("UserRole", tenant.getTenantId().toString(), ubValue);
                 }
@@ -134,7 +130,7 @@ public class TenantService {
     public int deleteTenant(Long id, HttpServletRequest request)throws Exception {
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = tenantMapper.deleteByPrimaryKey(id);
             }
         }catch(Exception e){
@@ -150,7 +146,7 @@ public class TenantService {
         example.createCriteria().andIdIn(idList);
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 result = tenantMapper.deleteByExample(example);
             }
         }catch(Exception e){
@@ -185,7 +181,7 @@ public class TenantService {
     public int batchSetStatus(Boolean status, String ids)throws Exception {
         int result=0;
         try{
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
+            if(userService.isCurrentUserAdmin()) {
                 String statusStr = "";
                 if (status) {
                     statusStr = "批量启用";

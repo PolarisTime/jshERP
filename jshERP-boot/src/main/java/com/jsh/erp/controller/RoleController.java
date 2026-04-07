@@ -7,6 +7,7 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Role;
 import com.jsh.erp.datasource.entities.RoleEx;
 import com.jsh.erp.service.RoleService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.service.UserBusinessService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author ji sheng hua jshERP
@@ -37,6 +39,8 @@ public class RoleController extends BaseController {
 
     @Resource
     private RoleService roleService;
+    @Resource
+    private UserService userService;
 
     @Resource
     private UserBusinessService userBusinessService;
@@ -68,6 +72,9 @@ public class RoleController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = roleService.insertRole(obj, request);
         return returnStr(objectMap, insert);
@@ -76,6 +83,9 @@ public class RoleController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = roleService.updateRole(obj, request);
         return returnStr(objectMap, update);
@@ -84,6 +94,9 @@ public class RoleController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = roleService.deleteRole(id, request);
         return returnStr(objectMap, delete);
@@ -92,6 +105,9 @@ public class RoleController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = roleService.batchDeleteRole(ids, request);
         return returnStr(objectMap, delete);
@@ -120,6 +136,9 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "查询用户的角色")
     public JSONArray findUserRole(@RequestParam("UBType") String type, @RequestParam("UBKeyId") String keyId,
                                   HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return new JSONArray();
+        }
         JSONArray arr = new JSONArray();
         try {
             //获取权限信息
@@ -149,12 +168,6 @@ public class RoleController extends BaseController {
         return roleService.allList();
     }
 
-    @GetMapping(value = "/tenantRoleList")
-    @ApiOperation(value = "查询租户角色列表")
-    public List<Role> tenantRoleList(HttpServletRequest request)throws Exception {
-        return roleService.tenantRoleList();
-    }
-
     /**
      * 批量设置状态-启用或者禁用
      * @param jsonObject
@@ -165,6 +178,9 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

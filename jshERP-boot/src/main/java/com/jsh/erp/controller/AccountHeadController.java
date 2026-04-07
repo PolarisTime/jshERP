@@ -1,6 +1,7 @@
 package com.jsh.erp.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.constants.ExceptionConstants;
@@ -8,6 +9,7 @@ import com.jsh.erp.datasource.entities.AccountHead;
 import com.jsh.erp.datasource.entities.AccountHeadVo4Body;
 import com.jsh.erp.datasource.entities.AccountHeadVo4ListEx;
 import com.jsh.erp.service.AccountHeadService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -26,6 +28,7 @@ import java.util.Map;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 
 /**
  * @author jishenghua 752*718*920
@@ -38,6 +41,8 @@ public class AccountHeadController extends BaseController {
 
     @Resource
     private AccountHeadService accountHeadService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @ApiOperation(value = "根据id获取信息")
@@ -77,6 +82,9 @@ public class AccountHeadController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountHeadService.deleteAccountHead(id, request);
         return returnStr(objectMap, delete);
@@ -85,6 +93,9 @@ public class AccountHeadController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = accountHeadService.batchDeleteAccountHead(ids, request);
         return returnStr(objectMap, delete);
@@ -100,6 +111,9 @@ public class AccountHeadController extends BaseController {
     @ApiOperation(value = "批量设置状态-审核或者反审核")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         String status = jsonObject.getString("status");
         String ids = jsonObject.getString("ids");

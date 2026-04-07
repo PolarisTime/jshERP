@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * JWT 工具类
- * 签发 access_token，包含 userId 和 tenantId
+ * 签发 access_token
  */
 public class JwtUtil {
 
@@ -81,10 +81,9 @@ public class JwtUtil {
     /**
      * 生成 access_token
      */
-    public static String generateAccessToken(Long userId, Long tenantId) {
+    public static String generateAccessToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        claims.put("tenantId", tenantId != null ? tenantId : 0L);
         claims.put("type", "access");
         return Jwts.builder()
                 .claims(claims)
@@ -97,10 +96,9 @@ public class JwtUtil {
     /**
      * 生成 refresh_token
      */
-    public static String generateRefreshToken(Long userId, Long tenantId) {
+    public static String generateRefreshToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        claims.put("tenantId", tenantId != null ? tenantId : 0L);
         claims.put("type", "refresh");
         return Jwts.builder()
                 .claims(claims)
@@ -160,16 +158,6 @@ public class JwtUtil {
     }
 
     /**
-     * 从 token 中获取 tenantId
-     */
-    public static Long getTenantId(String token) {
-        Claims claims = parseToken(token);
-        if (claims == null) return 0L;
-        Object tenantId = claims.get("tenantId");
-        return tenantId != null ? Long.valueOf(tenantId.toString()) : 0L;
-    }
-
-    /**
      * 从 token 中获取过期时间
      */
     public static Date getExpiration(String token) {
@@ -204,15 +192,4 @@ public class JwtUtil {
         return BLACKLIST_PREFIX + hashToken(token);
     }
 
-    /**
-     * 从请求中提取 tenantId，支持 JWT 和旧格式 token
-     */
-    public static Long getTenantIdFromRequest(HttpServletRequest request) {
-        String token = extractToken(request);
-        if (token == null) return 0L;
-        if (!isLegacyToken(token)) {
-            return getTenantId(token);
-        }
-        return Tools.getTenantIdByToken(token);
-    }
 }

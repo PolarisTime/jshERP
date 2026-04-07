@@ -233,7 +233,7 @@ public class Tools {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
         Calendar c = Calendar.getInstance();
         c.setTime(new Date());
-        List<String> list = new ArrayList(size);
+        List<String> list = new ArrayList<>(size);
         for (int i=0;i<size;i++) {
             c.setTime(new Date());
             c.add(Calendar.MONTH, -i);
@@ -399,11 +399,11 @@ public class Tools {
      */
     public static String getIpAddr(HttpServletRequest request) {
         String ip = request.getHeader("X-Real-IP");
-        if (!StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip)) {
+        if (StringUtils.hasLength(ip) && !"unknown".equalsIgnoreCase(ip)) {
             return ip;
         }
         ip = request.getHeader("X-Forwarded-For");
-        if (!StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip)) {
+        if (StringUtils.hasLength(ip) && !"unknown".equalsIgnoreCase(ip)) {
             // 多次反向代理后会有多个IP值，第一个为真实IP。
             int index = ip.indexOf(',');
             if (index != -1) {
@@ -609,22 +609,6 @@ public class Tools {
         if (null == beforeStr || beforeStr.length() == 0)
             return "";
         return beforeStr;
-    }
-
-    /**
-     * 根据token截取租户id
-     * @param token
-     * @return
-     */
-    public static Long getTenantIdByToken(String token) {
-        Long tenantId = 0L;
-        if(StringUtil.isNotEmpty(token) && token.indexOf("_")>-1) {
-            String[] tokenArr = token.split("_");
-            if (tokenArr.length == 2) {
-                tenantId = Long.parseLong(tokenArr[1]);
-            }
-        }
-        return tenantId;
     }
 
     /**
