@@ -60,13 +60,13 @@
           <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
             <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
             <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
-            <a-select v-model="selectedTemplateId" style="width:200px;" size="small" placeholder="选择打印模板">
+            <a-select v-model="selectedTemplateId" style="width:200px;" placeholder="选择打印模板">
               <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
                 {{ t.templateName }}{{ t.isDefault === '1' ? '（默认）' : '' }}
               </a-select-option>
             </a-select>
             <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
-              style="width:180px;" size="small" placeholder="默认打印机">
+              style="width:180px;" placeholder="默认打印机">
               <a-select-option value="">默认打印机</a-select-option>
               <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
             </a-select>
