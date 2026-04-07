@@ -134,8 +134,16 @@ export const JeecgListMixin = {
         sqp['superQueryParams']=encodeURI(this.superQueryParams)
         sqp['superQueryMatchType'] = this.superQueryMatchType
       }
+      // 过滤掉 Array 类型字段（如 createTimeRange 是 moment[] 仅用于日期选择器 v-model 绑定，
+      // 不是真实查询参数；序列化后包含裸 [ ] 导致 Tomcat 9 严格模式 400 Bad Request）
+      let filteredParam = {}
+      Object.keys(this.queryParam).forEach(key => {
+        if (!Array.isArray(this.queryParam[key])) {
+          filteredParam[key] = this.queryParam[key]
+        }
+      })
       let searchObj = {}
-      searchObj.search = JSON.stringify(this.queryParam);
+      searchObj.search = JSON.stringify(filteredParam);
       var param = Object.assign(sqp, searchObj, this.isorter ,this.filters);
       param.field = this.getQueryField();
       param.currentPage = this.ipagination.current;

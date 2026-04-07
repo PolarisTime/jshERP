@@ -10,6 +10,8 @@ server:
   tomcat:
     # 文件上传临时路径
     basedir: /instance/jsh_steel/uploads
+    # Spring Boot 2.7 / Tomcat 9 严格 RFC 3986：放宽 [ ] 字符检查
+    relaxed-query-chars: "[,]"
 
 spring:
   datasource:
