@@ -138,7 +138,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'role\',
+        clodopBillType: 'role',
         description: '角色管理页面',
         roleModalVisible: false,
         roleFunctionModalVisible: false,

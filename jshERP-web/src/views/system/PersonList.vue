@@ -113,7 +113,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'person\',
+        clodopBillType: 'person',
         labelCol: {
           span: 5
         },

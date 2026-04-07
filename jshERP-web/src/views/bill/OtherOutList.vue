@@ -220,7 +220,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'otherOut\',
+        clodopBillType: 'otherOut',
         // 查询条件
         queryParam: {
           number: "",

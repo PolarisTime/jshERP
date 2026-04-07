@@ -244,7 +244,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'material\',
+        clodopBillType: 'material',
         categoryTree:[],
         mPropertyListShort: '',
         model: {},

@@ -69,7 +69,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'platformConfig\',
+        clodopBillType: 'platformConfig',
         currentRoleId: '',
         labelCol: {
           span: 5

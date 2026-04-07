@@ -193,7 +193,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'assemble\',
+        clodopBillType: 'assemble',
         // 查询条件
         queryParam: {
           number: "",

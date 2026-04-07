@@ -188,7 +188,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'advanceIn\',
+        clodopBillType: 'advanceIn',
         labelCol: {
           span: 5
         },

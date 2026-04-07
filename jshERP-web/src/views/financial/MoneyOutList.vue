@@ -204,7 +204,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'moneyOut\',
+        clodopBillType: 'moneyOut',
         labelCol: {
           span: 5
         },

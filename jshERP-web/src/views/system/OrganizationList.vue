@@ -111,7 +111,7 @@ export default {
   },
   data() {
     return {
-        clodopBillType: \'organization\',
+        clodopBillType: 'organization',
       iExpandedKeys: [],
       loading: false,
       currFlowId: '',

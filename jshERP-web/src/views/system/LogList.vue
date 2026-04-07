@@ -137,7 +137,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'log\',
+        clodopBillType: 'log',
         // 查询条件
         queryParam: {
           operation:'',

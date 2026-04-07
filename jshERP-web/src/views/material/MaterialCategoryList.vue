@@ -109,7 +109,7 @@ export default {
   },
   data() {
     return {
-        clodopBillType: \'materialCategory\',
+        clodopBillType: 'materialCategory',
       iExpandedKeys: [],
       loading: false,
       currFlowId: '',

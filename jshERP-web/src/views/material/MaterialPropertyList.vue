@@ -67,7 +67,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'materialProperty\',
+        clodopBillType: 'materialProperty',
         labelCol: {
           span: 5
         },

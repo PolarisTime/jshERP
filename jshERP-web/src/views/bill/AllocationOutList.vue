@@ -193,7 +193,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'allocationOut\',
+        clodopBillType: 'allocationOut',
         // 查询条件
         queryParam: {
           number: "",

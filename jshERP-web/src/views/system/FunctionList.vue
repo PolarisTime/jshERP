@@ -102,7 +102,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'function\',
+        clodopBillType: 'function',
         labelCol: {
           span: 5
         },

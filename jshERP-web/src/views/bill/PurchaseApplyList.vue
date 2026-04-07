@@ -196,7 +196,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'purchaseApply\',
+        clodopBillType: 'purchaseApply',
         // 查询条件
         queryParam: {
           number: "",

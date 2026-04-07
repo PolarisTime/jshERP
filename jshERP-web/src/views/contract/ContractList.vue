@@ -149,7 +149,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     components: { ColumnSettingPopover, ContractModal, JUpload },
     data() {
       return {
-        clodopBillType: \'contract\',
+        clodopBillType: 'contract',
         labelCol: { span: 5 },
         wrapperCol: { span: 18, offset: 1 },
         queryParam: { contractNo: '', contractName: '', auditStatus: undefined, signStatus: undefined },

@@ -91,7 +91,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data() {
       return {
-        clodopBillType: \'freightCarrier\',
+        clodopBillType: 'freightCarrier',
         labelCol: {
           span: 5
         },

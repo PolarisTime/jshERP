@@ -232,7 +232,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'purchaseBack\',
+        clodopBillType: 'purchaseBack',
         // 查询条件
         queryParam: {
           number: "",

@@ -131,7 +131,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data() {
       return {
-        clodopBillType: \'dict\',
+        clodopBillType: 'dict',
         labelCol: {
           span: 5
         },

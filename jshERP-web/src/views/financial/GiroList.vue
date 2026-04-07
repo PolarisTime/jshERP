@@ -179,7 +179,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'giro\',
+        clodopBillType: 'giro',
         labelCol: {
           span: 5
         },

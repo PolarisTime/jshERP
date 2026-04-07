@@ -104,7 +104,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'unit\',
+        clodopBillType: 'unit',
         labelCol: {
           span: 5
         },

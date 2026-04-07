@@ -100,7 +100,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'msg\',
+        clodopBillType: 'msg',
         title:"通知",
         modalWidth:800,
         visible: false,

@@ -133,7 +133,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'vendor\',
+        clodopBillType: 'vendor',
         labelCol: {
           span: 5
         },

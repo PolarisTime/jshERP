@@ -124,7 +124,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data() {
       return {
-        clodopBillType: \'freightReconciliation\',
+        clodopBillType: 'freightReconciliation',
         labelCol: {
           span: 5
         },

@@ -118,7 +118,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'inOutItem\',
+        clodopBillType: 'inOutItem',
         labelCol: {
           span: 5
         },

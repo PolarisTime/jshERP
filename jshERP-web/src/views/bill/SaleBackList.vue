@@ -241,7 +241,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'saleBack\',
+        clodopBillType: 'saleBack',
         // 查询条件
         queryParam: {
           number: "",

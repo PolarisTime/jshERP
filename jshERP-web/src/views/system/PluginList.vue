@@ -124,7 +124,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data () {
       return {
-        clodopBillType: \'plugin\',
+        clodopBillType: 'plugin',
         labelCol: {
           span: 5
         },

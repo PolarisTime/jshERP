@@ -156,7 +156,7 @@ import { ClodopMixin } from '@/mixins/ClodopMixin'
     },
     data() {
       return {
-        clodopBillType: \'freightView\',
+        clodopBillType: 'freightView',
         labelCol: {
           span: 5
         },
