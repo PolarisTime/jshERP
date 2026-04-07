@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +76,16 @@ public class RedisService {
     }
 
     /**
+     * 缓存基本的对象，Integer、String、实体类等
+     *
+     * @param key   缓存的键值
+     * @param value 缓存的值
+     */
+    public <T> void setCacheObject(final String key, final T value) {
+        redisTemplate.opsForValue().set(key, value);
+    }
+
+    /**
      * 获得缓存的基本对象。
      *
      * @param key 缓存键值
@@ -132,6 +143,16 @@ public class RedisService {
     public boolean deleteObject(final String key)
     {
         return redisTemplate.delete(key);
+    }
+
+    /**
+     * 删除集合对象
+     *
+     * @param collection 多个对象
+     * @return
+     */
+    public boolean deleteObject(final Collection collection) {
+        return redisTemplate.delete(collection) > 0;
     }
 
     /**
@@ -208,5 +229,15 @@ public class RedisService {
     public void addToBlacklist(String token, long expireSeconds) {
         String key = JwtUtil.getBlacklistKey(token);
         redisTemplate.opsForValue().set(key, "1", expireSeconds, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    /**
+     * 获得缓存的基本对象列表
+     *
+     * @param pattern 字符串前缀
+     * @return 对象列表
+     */
+    public Collection<String> keys(final String pattern) {
+        return redisTemplate.keys(pattern);
     }
 }
