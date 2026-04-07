@@ -271,15 +271,19 @@ public class PluginController {
     @ApiOperation(value = "上传插件的配置文件")
     public String uploadConfig(@RequestParam("configFile") MultipartFile multipartFile){
         try {
-            User userInfo = userService.getCurrentUser();
-            if(BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
-                if (pluginOperator.uploadConfigFile(multipartFile)) {
-                    return "uploadConfig success";
-                } else {
-                    return "uploadConfig failure";
-                }
+            if (!userService.isCurrentUserAdmin()) {
+                return "uploadConfig failure : no permission";
+            }
+            // 路径穿越防护：仅允许合法文件名（无目录分隔符和 ..）
+            String originalName = multipartFile.getOriginalFilename();
+            if (originalName == null || originalName.contains("..") ||
+                originalName.contains("/") || originalName.contains("\\")) {
+                return "uploadConfig failure : invalid filename";
+            }
+            if (pluginOperator.uploadConfigFile(multipartFile)) {
+                return "uploadConfig success";
             } else {
-                return "installByPath failure";
+                return "uploadConfig failure";
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

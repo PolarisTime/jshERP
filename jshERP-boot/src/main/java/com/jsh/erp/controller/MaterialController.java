@@ -768,7 +768,7 @@ public class MaterialController extends BaseController {
             }
             Boolean moveAvgPriceFlag = systemConfigService.getMoveAvgPriceFlag();
             List<MaterialVo4Unit> dataList = materialService.getListWithStock(depotList, idList, StringUtil.toNull(position), StringUtil.toNull(materialParam),
-                    moveAvgPriceFlag, zeroStock, StringUtil.safeSqlParse(column), StringUtil.safeSqlParse(order), (currentPage-1)*pageSize, pageSize);
+                    moveAvgPriceFlag, zeroStock, StringUtil.safeSortColumn(column, "createTime"), StringUtil.safeSortOrder(order), (currentPage-1)*pageSize, pageSize);
             int total = materialService.getListWithStockCount(depotList, idList, StringUtil.toNull(position), StringUtil.toNull(materialParam), zeroStock);
             MaterialVo4Unit materialVo4Unit= materialService.getTotalStockAndPrice(depotList, idList, StringUtil.toNull(position), StringUtil.toNull(materialParam));
             map.put("total", total);

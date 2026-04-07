@@ -523,4 +523,23 @@ public class StringUtil implements BeanFactoryPostProcessor {
         }
     }
 
+    /**
+     * 安全化 ORDER BY 列名：仅允许 [a-zA-Z][a-zA-Z0-9_]* 形式，防止 ${column} SQL 注入
+     * @param column    用户传入的列名
+     * @param defaultCol 不合法时的默认值（如 "createTime"）
+     */
+    public static String safeSortColumn(String column, String defaultCol) {
+        if (column != null && column.matches("[a-zA-Z][a-zA-Z0-9_]*")) {
+            return column;
+        }
+        return defaultCol;
+    }
+
+    /**
+     * 安全化排序方向：仅允许 asc / desc，防止 ${order} SQL 注入
+     */
+    public static String safeSortOrder(String order) {
+        return "asc".equalsIgnoreCase(order) ? "asc" : "desc";
+    }
+
 }

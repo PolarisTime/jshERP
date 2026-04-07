@@ -250,7 +250,7 @@ public class DepotHeadController extends BaseController {
             Boolean inOutManageFlag = systemConfigService.getInOutManageFlag();
             List<DepotHeadVo4InDetail> list = depotHeadService.findInOutDetail(beginTime, endTime, type, creatorArray, organArray, categoryList, forceFlag, inOutManageFlag,
                     StringUtil.toNull(materialParam), depotList, oId, StringUtil.toNull(number), creator, remark,
-                    StringUtil.safeSqlParse(column), StringUtil.safeSqlParse(order), (currentPage-1)*pageSize, pageSize);
+                    StringUtil.safeSortColumn(column, "createTime"), StringUtil.safeSortOrder(order), (currentPage-1)*pageSize, pageSize);
             int total = depotHeadService.findInOutDetailCount(beginTime, endTime, type, creatorArray, organArray, categoryList, forceFlag, inOutManageFlag,
                     StringUtil.toNull(materialParam), depotList, oId, StringUtil.toNull(number), creator, remark);
             map.put("total", total);
@@ -324,7 +324,7 @@ public class DepotHeadController extends BaseController {
             Boolean forceFlag = systemConfigService.getForceApprovalFlag();
             Boolean inOutManageFlag = systemConfigService.getInOutManageFlag();
             List<DepotHeadVo4InOutMCount> list = depotHeadService.findInOutMaterialCount(beginTime, endTime, type, categoryList, forceFlag, inOutManageFlag,
-                    StringUtil.toNull(materialParam), depotList, organizationId, oId, StringUtil.safeSqlParse(column), StringUtil.safeSqlParse(order),
+                    StringUtil.toNull(materialParam), depotList, organizationId, oId, StringUtil.safeSortColumn(column, "createTime"), StringUtil.safeSortOrder(order),
                     (currentPage-1)*pageSize, pageSize);
             int total = depotHeadService.findInOutMaterialCountTotal(beginTime, endTime, type, categoryList, forceFlag, inOutManageFlag,
                     StringUtil.toNull(materialParam), depotList, organizationId, oId);
@@ -413,7 +413,7 @@ public class DepotHeadController extends BaseController {
             Boolean forceFlag = systemConfigService.getForceApprovalFlag();
             List<DepotHeadVo4InDetail> list = depotHeadService.findAllocationDetail(beginTime, endTime, subType, StringUtil.toNull(number),
                     creatorArray, categoryList, forceFlag, StringUtil.toNull(materialParam), depotList, depotFList, remark,
-                    StringUtil.safeSqlParse(column), StringUtil.safeSqlParse(order), (currentPage-1)*pageSize, pageSize);
+                    StringUtil.safeSortColumn(column, "createTime"), StringUtil.safeSortOrder(order), (currentPage-1)*pageSize, pageSize);
             int total = depotHeadService.findAllocationDetailCount(beginTime, endTime, subType, StringUtil.toNull(number),
                     creatorArray, categoryList, forceFlag, StringUtil.toNull(materialParam), depotList, depotFList, remark);
             map.put("rows", list);

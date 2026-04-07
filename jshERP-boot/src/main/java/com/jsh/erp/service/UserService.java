@@ -513,6 +513,11 @@ public class UserService {
         return getUser(userId);
     }
 
+    public boolean isCurrentUserAdmin() throws Exception {
+        User u = getCurrentUser();
+        return u != null && BusinessConstants.DEFAULT_MANAGER.equals(u.getLoginName());
+    }
+
     /**
      * 根据用户名查询id
      * @param loginName
