@@ -21,42 +21,57 @@
   margin-top: 93px;
   margin-left: 154px;
 }
-/*列表页面弹出modal*/
+/*列表页面弹出modal（非全屏）*/
 .ant-modal-cust-warp {
   height: 100%
 }
-/*弹出modal - 非全屏时 body 滚动*/
-.ant-modal-cust-warp .ant-modal-body {
-  padding: 24px 24px 12px 24px;
-  overflow-y: auto
-}
-/*弹出modal content 高度*/
+/*弹出modal - 非全屏时 body 滚动（适配 ant-design-vue 1.7.x）*/
 .ant-modal-cust-warp .ant-modal-content {
   height: 90%;
   overflow-y: hidden
+}
+.ant-modal-cust-warp .ant-modal-body {
+  padding: 24px 24px 12px 24px;
+  height: calc(100% - 110px);
+  overflow-y: auto
 }
 /*文本框样式*/
 .ant-modal-cust-warp .ant-form-item {
   margin-bottom: 12px;
 }
-/*全屏模式：content 用 flex 布局，footer 固定底部*/
+
+/* ─── 全屏模式专用 wrap class（不含 depot-mask，无偏移）─── */
+.j-modal-fullscreen-wrap {
+  /* position:fixed，margin 无效，用 top/left 替代 */
+  overflow: hidden;
+}
+.j-modal-fullscreen-wrap .j-modal-box.fullscreen {
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+}
+/* 全屏 content：flex 布局保证 footer 固定底部 */
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content,
 .ant-modal-cust-warp .fullscreen >.ant-modal-content {
   height: 100vh !important;
   border-radius: 0;
   display: flex;
   flex-direction: column;
 }
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-header,
 .ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-header {
   flex-shrink: 0;
 }
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-body,
 .ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-body {
   padding: 24px 24px 12px 24px;
-  flex: 1;
+  flex: 1 1 0;
   overflow-y: auto;
-  height: auto !important;  /* 覆盖 calc 写法，由 flex:1 决定高度 */
+  height: 0 !important;  /* 配合 flex:1，让 flex 决定高度而非内容撑开 */
 }
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-footer,
 .ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-footer {
-  flex-shrink: 0;  /* footer 不压缩，固定在底部 */
+  flex-shrink: 0;
 }
 /*列表中有图片的加这个样式 参考用户管理*/
 .anty-img-wrap {

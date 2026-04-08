@@ -6,8 +6,8 @@
       :style="getStyle(modalStyle)"
       :visible="visible"
       :getContainer="() => $refs.container"
-      :maskStyle="{'top':'93px','left':'154px'}"
-      :wrapClassName="wrapClassNameInfo()"
+      :maskStyle="innerFullscreen ? {} : {'top':'93px','left':'154px'}"
+      :wrapClassName="innerFullscreen ? 'ant-modal-cust-warp j-modal-fullscreen-wrap' : wrapClassNameInfo()"
       :mask="isDesktop()"
       :maskClosable="false"
       v-bind="_attrs"
@@ -192,10 +192,10 @@
   .j-modal-box {
 
     &.fullscreen {
-      top: 0 !important;   /* 覆盖弹窗自身的 style="top:20px" */
+      top: 0 !important;
       left: 0;
       padding: 0;
-      margin: 0;
+      margin: 0 !important;
 
       height: 100vh;
 
@@ -205,32 +205,15 @@
         display: flex;
         flex-direction: column;
 
-         >.ant-modal-header {
-          flex-shrink: 0;
-        }
+         >.ant-modal-header { flex-shrink: 0; }
 
          >.ant-modal-body {
-          flex: 1;
+          flex: 1 1 0;
           overflow: auto;
-          /* 不再用 calc，flex 自动分配剩余高度 */
-          height: auto;
+          height: 0 !important;  /* flex:1 决定高度，防止内容撑开 */
         }
 
-         >.ant-modal-footer {
-          flex-shrink: 0;  /* footer 固定在底部，不会被内容撑走 */
-        }
-      }
-
-      >.no-title, &.no-footer {
-        .ant-modal-body {
-          height: calc(100% - 55px);
-        }
-      }
-
-      >.no-title.no-footer {
-        .ant-modal-body {
-          height: 100%;
-        }
+         >.ant-modal-footer { flex-shrink: 0; }
       }
 
     }
