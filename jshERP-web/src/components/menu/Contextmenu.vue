@@ -38,8 +38,14 @@ export default {
     }
   },
   created () {
-    window.addEventListener('mousedown', e => this.closeMenu(e))
-    window.addEventListener('contextmenu', e => this.setPosition(e))
+    this._mousedownHandler = e => this.closeMenu(e)
+    this._contextmenuHandler = e => this.setPosition(e)
+    window.addEventListener('mousedown', this._mousedownHandler)
+    window.addEventListener('contextmenu', this._contextmenuHandler)
+  },
+  beforeDestroy() {
+    window.removeEventListener('mousedown', this._mousedownHandler)
+    window.removeEventListener('contextmenu', this._contextmenuHandler)
   },
   methods: {
     closeMenu (e) {

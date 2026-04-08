@@ -223,19 +223,18 @@ public class FileUtils {
 			charsetName="gbk";
 		}
 		HashMap map = new HashMap();
-		InputStream is =null;
-		if(file.startsWith("file:"))
-			is=new FileInputStream(new File(file.substring(5)));
-		else
-			is=FileUtils.class.getClassLoader().getResourceAsStream(file);
-		Properties properties = new Properties();
-		properties.load(is);
-		Enumeration en = properties.propertyNames();
-		while (en.hasMoreElements()) {
-			String key = (String) en.nextElement();
-			String code = new String(properties.getProperty(key).getBytes(
-					"ISO-8859-1"), charsetName);
-			map.put(key, code);
+		InputStream is = file.startsWith("file:")
+				? new FileInputStream(new File(file.substring(5)))
+				: FileUtils.class.getClassLoader().getResourceAsStream(file);
+		try (InputStream closeableIs = is) {
+			Properties properties = new Properties();
+			properties.load(closeableIs);
+			Enumeration en = properties.propertyNames();
+			while (en.hasMoreElements()) {
+				String key = (String) en.nextElement();
+				String code = new String(properties.getProperty(key).getBytes("ISO-8859-1"), charsetName);
+				map.put(key, code);
+			}
 		}
 		return map;
 	}

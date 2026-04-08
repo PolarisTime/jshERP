@@ -120,6 +120,9 @@
         this.showJump()
       }
     },
+    beforeDestroy() {
+      window.removeEventListener('scroll', this.handleScroll)
+    },
     created () {
       this.initSystemConfig()
     },

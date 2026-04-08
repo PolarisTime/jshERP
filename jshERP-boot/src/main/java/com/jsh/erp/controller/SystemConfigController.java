@@ -362,12 +362,11 @@ public class SystemConfigController extends BaseController {
             response.setStatus(404);
             logger.error(e.getMessage(), e);
         } finally {
+            if (inputStream != null) {
+                try { inputStream.close(); } catch (IOException e) { logger.error(e.getMessage(), e); }
+            }
             if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
-                }
+                try { outputStream.close(); } catch (IOException e) { logger.error(e.getMessage(), e); }
             }
         }
     }

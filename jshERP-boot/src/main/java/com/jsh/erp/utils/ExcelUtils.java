@@ -231,16 +231,15 @@ public class ExcelUtils {
 		response.setContentType("application/octet-stream");
 		fileName = new String(fileName.getBytes("gbk"),"ISO8859_1");
 		response.setHeader("Content-Disposition", "attachment;filename=\"" + fileName + ".xls" + "\"");
-		FileInputStream fis = new FileInputStream(excelFile);
-		OutputStream out = response.getOutputStream();
-
-		int SIZE = 1024 * 1024;
-		byte[] bytes = new byte[SIZE];
-		int LENGTH = -1;
-		while((LENGTH = fis.read(bytes)) != -1){
-			out.write(bytes,0,LENGTH);
+		try (FileInputStream fis = new FileInputStream(excelFile)) {
+			OutputStream out = response.getOutputStream();
+			int SIZE = 1024 * 1024;
+			byte[] bytes = new byte[SIZE];
+			int LENGTH;
+			while ((LENGTH = fis.read(bytes)) != -1) {
+				out.write(bytes, 0, LENGTH);
+			}
+			out.flush();
 		}
-		out.flush();
-		fis.close();
 	}
 }

@@ -1,28 +1,27 @@
 const state = {
-  dict: new Array()
+  dict: []
 }
 const mutations = {
   SET_DICT: (state, { key, value }) => {
-    if (key !== null && key !== "") {
-      state.dict.push({
-        key: key,
-        value: value
-      })
+    if (key === null || key === '') return
+    // 已存在则更新，避免重复 push 导致无限增长
+    const idx = state.dict.findIndex(d => d.key === key)
+    if (idx >= 0) {
+      state.dict.splice(idx, 1, { key, value })
+    } else {
+      state.dict.push({ key, value })
     }
   },
   REMOVE_DICT: (state, key) => {
     try {
-      for (let i = 0; i < state.dict.length; i++) {
-        if (state.dict[i].key == key) {
-          state.dict.splice(i, i)
-          return true
-        }
+      const idx = state.dict.findIndex(d => d.key === key)
+      if (idx >= 0) {
+        state.dict.splice(idx, 1)  // 修复：原为 splice(i, i)，删除 0 个元素
       }
-    } catch (e) {
-    }
+    } catch (e) { /* ignore */ }
   },
   CLEAN_DICT: (state) => {
-    state.dict = new Array()
+    state.dict = []
   }
 }
 

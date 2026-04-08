@@ -86,15 +86,21 @@ export function loadCLodop() {
     }
     if (!window.WebSocket && window.MozWebSocket) window.WebSocket = window.MozWebSocket
     LoadJsState = 'loadingA'
+    // 辅助：收到消息后注入代码，然后关闭 WS 释放连接
+    function onMsg(ws, e) {
+      if (!window.getCLodop) { try { eval(e.data) } catch(ex){} } // eslint-disable-line no-eval
+      // 消息只需接收一次（CLodop JS 代码），收到后关闭
+      try { ws.close() } catch(_) {}
+    }
     try {
       const WSK1 = new WebSocket(URL_WS1)
       WSK1.onopen    = () => { setTimeout(() => checkOrTryHttp(resolve), 200) }
-      WSK1.onmessage = (e) => { if (!window.getCLodop) { try { eval(e.data) } catch(ex){} } } // eslint-disable-line no-eval
+      WSK1.onmessage = (e) => onMsg(WSK1, e)
       WSK1.onerror   = () => {
         try {
           const WSK2 = new WebSocket(URL_WS2)
           WSK2.onopen    = () => { setTimeout(() => checkOrTryHttp(resolve), 200) }
-          WSK2.onmessage = (e) => { if (!window.getCLodop) { try { eval(e.data) } catch(ex){} } } // eslint-disable-line no-eval
+          WSK2.onmessage = (e) => onMsg(WSK2, e)
           WSK2.onerror   = () => checkOrTryHttp(resolve)
         } catch (e2) { checkOrTryHttp(resolve) }
       }
