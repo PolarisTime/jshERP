@@ -15,23 +15,9 @@ const URL_HTTP3 = 'https://localhost.lodop.net:8443/' + MainJS
 let LoadJsState = ''   // '' | 'loadingA' | 'loadingB' | 'complete'
 let loadPromise = null
 
-/** 判断是否需要 CLodop（不支持插件的浏览器） */
+/** 当前所有主流浏览器均通过 CLodop 本地服务方式打印（无需 UA 判断） */
 function needCLodop() {
-  try {
-    const ua = navigator.userAgent
-    if (/Windows\sPhone|iPhone|iPod|iPad|Android|Edge\D?\d+/i.test(ua)) return true
-    const x64 = /x64/i.test(ua)
-    if (!/Trident/i.test(ua) && !/MSIE/i.test(ua) && x64) return true
-    const verFF = ua.match(/Firefox\D?(\d+)/i)
-    if (verFF && (parseInt(verFF[1]) >= 41 || x64)) return true
-    const verOPR = ua.match(/OPR\D?(\d+)/i)
-    if (verOPR && parseInt(verOPR[1]) >= 32) return true
-    if (!/Trident/i.test(ua) && !/MSIE/i.test(ua)) {
-      const verCh = ua.match(/Chrome\D?(\d+)/i)
-      if (verCh && parseInt(verCh[1]) >= 41) return true
-    }
-    return false
-  } catch (e) { return true }
+  return true
 }
 
 /** HTTP 兜底加载（低版本 CLodop 或 WS 失败时使用） */

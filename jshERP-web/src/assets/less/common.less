@@ -25,13 +25,12 @@
 .ant-modal-cust-warp {
   height: 100%
 }
-/*弹出modal Y轴滚动条*/
+/*弹出modal - 非全屏时 body 滚动*/
 .ant-modal-cust-warp .ant-modal-body {
   padding: 24px 24px 12px 24px;
-  height: calc(100% - 110px) !important;
   overflow-y: auto
 }
-/*弹出modal 先有content后有body 故滚动条控制在body上*/
+/*弹出modal content 高度*/
 .ant-modal-cust-warp .ant-modal-content {
   height: 90%;
   overflow-y: hidden
@@ -40,16 +39,24 @@
 .ant-modal-cust-warp .ant-form-item {
   margin-bottom: 12px;
 }
-/*全屏模式*/
+/*全屏模式：content 用 flex 布局，footer 固定底部*/
 .ant-modal-cust-warp .fullscreen >.ant-modal-content {
-  height: 100vh;
+  height: 100vh !important;
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
 }
-/*全屏模式*/
+.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-header {
+  flex-shrink: 0;
+}
 .ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-body {
   padding: 24px 24px 12px 24px;
-  height: calc(100% - 200px) !important;
-  overflow-y: auto
+  flex: 1;
+  overflow-y: auto;
+  height: auto !important;  /* 覆盖 calc 写法，由 flex:1 决定高度 */
+}
+.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-footer {
+  flex-shrink: 0;  /* footer 不压缩，固定在底部 */
 }
 /*列表中有图片的加这个样式 参考用户管理*/
 .anty-img-wrap {

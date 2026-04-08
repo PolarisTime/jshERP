@@ -32,14 +32,14 @@ export const ClodopMixin = {
     async initClodop() {
       try {
         const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
-        resetCLodop()
-        await loadCLodop()
-        // 与 CustomPrintModal 保持一致：直接调用 isAvailable() 而不用 loadCLodop 的返回值，
-        // 避免 WS eval 注入尚未完成导致误判 ok=false
+        // 仅在"重试"场景才 reset；首次挂载复用已有连接（避免每个页面都重建 WS）
+        if (!isAvailable()) {
+          resetCLodop()
+          await loadCLodop()
+        }
         this.clodopReady = isAvailable()
         if (this.clodopReady) {
           this.printerList = getPrinterList()
-          // CLodop 区域渲染后重新计算 scroll.y，避免 table-operator 高度变化导致截断
           this.$nextTick(() => {
             if (typeof this.initScroll === 'function') this.initScroll()
           })
