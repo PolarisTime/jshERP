@@ -117,7 +117,10 @@ public class PrintTemplateService {
         List<Map<String, String>> result = new ArrayList<>();
         String dirName = getDirForBillType(billType);
         Path dir = Paths.get(printTemplatePath, dirName);
+        logger.info("listFileTemplates billType={}, dirName={}, dir={}, exists={}, isDir={}",
+                billType, dirName, dir, Files.exists(dir), Files.isDirectory(dir));
         if (!Files.exists(dir) || !Files.isDirectory(dir)) {
+            logger.warn("打印模板目录不存在或非目录: {}", dir);
             return result;
         }
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.{lodop,html}")) {
@@ -132,9 +135,10 @@ public class PrintTemplateService {
                 item.put("fileName", fileName);
                 result.add(item);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("读取打印模板目录异常: {}", dir, e);
         }
+        logger.info("listFileTemplates billType={}, 找到 {} 个文件模板", billType, result.size());
         // 按文件名排序
         result.sort(Comparator.comparing(m -> m.get("name")));
         return result;
