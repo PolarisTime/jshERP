@@ -1,12 +1,12 @@
 /**
  * CLodop 打印 Mixin
- * 模板从本地文件加载（printTemplateDefaults.js），不依赖数据库。
+ * 模板从后端文件目录加载（/home/sakura/jshERP/printTemplates），不使用数据库。
  *
  * 使用方式：
  *   1. mixins: [ClodopMixin]
- *   2. data 中声明 clodopBillType: 'purchaseIn'（对应 billTypeTemplateMap 的 key）
+ *   2. data 中声明 clodopBillType: 'purchaseIn'
  */
-import { getTemplatesByBillType } from '@/utils/printTemplateDefaults'
+import { listPrintTemplate } from '@/api/api'
 import { render } from '@/utils/printTemplateEngine'
 import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
 
@@ -28,11 +28,9 @@ export const ClodopMixin = {
     }
   },
   methods: {
-    // ─── 初始化 CLodop ──────────────────────────────────────
     async initClodop() {
       try {
         const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
-        // 仅在"重试"场景才 reset；首次挂载复用已有连接（避免每个页面都重建 WS）
         if (!isAvailable()) {
           resetCLodop()
           await loadCLodop()
@@ -50,16 +48,24 @@ export const ClodopMixin = {
       }
     },
 
-    // ─── 从本地文件加载模板（不调用后端 API）────────────────
+    // 从后端文件目录加载模板（后端 listByBillType 同时返回 db+file，
+    // 但数据库已清空，只有 file 来源的模板）
     loadPrintTemplate() {
       if (!this.clodopBillType) return
-      const templates = getTemplatesByBillType(this.clodopBillType)
-      this.printTemplateList = templates
-      const def = templates.find(t => t.isDefault === '1') || templates[0]
-      this.selectedTemplateId = def ? def.id : null
+      listPrintTemplate({ billType: this.clodopBillType }).then(res => {
+        if (res && res.code === 200 && Array.isArray(res.data)) {
+          // 只使用文件来源的模板
+          const fileTemplates = res.data.filter(t => t.source === 'file' || !t.source)
+          const templates = fileTemplates.length > 0 ? fileTemplates : res.data
+          this.printTemplateList = templates
+          const def = templates.find(t => t.isDefault === '1') || templates[0]
+          this.selectedTemplateId = def ? def.id : null
+        }
+      }).catch(e => {
+        console.warn('[CLodop] 模板加载失败', e)
+      })
     },
 
-    // ─── 通用打印（子页面可重写以加载明细数据）───────────────
     async doPrint(preview) {
       if (!this.clodopReady) {
         this.$message.warning('CLodop 未连接，请先点击状态标签重试')
@@ -67,7 +73,7 @@ export const ClodopMixin = {
       }
       const tpl = this.printTemplateList.find(t => t.id === this.selectedTemplateId)
       if (!tpl) {
-        this.$message.warning('未配置打印模板')
+        this.$message.warning('未找到打印模板，请在 printTemplates 目录放置 .lodop 文件')
         return
       }
       const keys = this.selectedRowKeys || []

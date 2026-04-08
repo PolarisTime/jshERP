@@ -269,7 +269,7 @@
   import { BillListMixin } from './mixins/BillListMixin'
   import { render } from '@/utils/printTemplateEngine'
   import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
-  import { getTemplatesByBillType } from '@/utils/printTemplateDefaults'
+  import { listPrintTemplate } from '@/api/api'
   import { getAction } from '@/api/manage'
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import JDate from '@/components/jeecg/JDate'
@@ -484,11 +484,17 @@
         }
       },
       loadPrintTemplate() {
-        const templates = getTemplatesByBillType('saleOut')
-        this.printTemplateList = templates
-        const def = templates.find(t => t.isDefault === '1') || templates[0]
-        this.printTemplate = def || null
-        this.selectedTemplateId = def ? def.id : null
+        listPrintTemplate({ billType: 'saleOut' }).then(res => {
+          if (res && res.code === 200 && Array.isArray(res.data)) {
+            const templates = res.data.filter(t => t.source === 'file' || !t.source).length > 0
+              ? res.data.filter(t => t.source === 'file' || !t.source)
+              : res.data
+            this.printTemplateList = templates
+            const def = templates.find(t => t.isDefault === '1') || templates[0]
+            this.printTemplate = def || null
+            this.selectedTemplateId = def ? def.id : null
+          }
+        })
       },
 
       // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
