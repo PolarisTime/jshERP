@@ -192,28 +192,33 @@
   .j-modal-box {
 
     &.fullscreen {
-      top: 0 !important;
+      top: 0;
       left: 0;
       padding: 0;
-      margin: 0 !important;
 
       height: 100vh;
 
        >.ant-modal-content {
         height: 100vh;
         border-radius: 0;
-        display: flex;
-        flex-direction: column;
-
-         >.ant-modal-header { flex-shrink: 0; }
 
          >.ant-modal-body {
-          flex: 1 1 0;
+          /* title 和 footer 各占 55px */
+          height: calc(100% - 55px - 55px);
           overflow: auto;
-          height: 0 !important;  /* flex:1 决定高度，防止内容撑开 */
         }
+      }
 
-         >.ant-modal-footer { flex-shrink: 0; }
+      >.no-title, &.no-footer {
+        .ant-modal-body {
+          height: calc(100% - 55px);
+        }
+      }
+
+      >.no-title.no-footer {
+        .ant-modal-body {
+          height: 100%;
+        }
       }
 
     }

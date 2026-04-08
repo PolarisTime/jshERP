@@ -21,57 +21,35 @@
   margin-top: 93px;
   margin-left: 154px;
 }
-/*列表页面弹出modal（非全屏）*/
+/*列表页面弹出modal*/
 .ant-modal-cust-warp {
   height: 100%
 }
-/*弹出modal - 非全屏时 body 滚动（适配 ant-design-vue 1.7.x）*/
+/*弹出modal Y轴滚动条*/
+.ant-modal-cust-warp .ant-modal-body {
+  padding: 24px 24px 12px 24px;
+  height: calc(100% - 110px) !important;
+  overflow-y: auto
+}
+/*弹出modal 先有content后有body 故滚动条控制在body上*/
 .ant-modal-cust-warp .ant-modal-content {
   height: 90%;
   overflow-y: hidden
-}
-.ant-modal-cust-warp .ant-modal-body {
-  padding: 24px 24px 12px 24px;
-  height: calc(100% - 110px);
-  overflow-y: auto
 }
 /*文本框样式*/
 .ant-modal-cust-warp .ant-form-item {
   margin-bottom: 12px;
 }
-
-/* ─── 全屏模式专用 wrap class（不含 depot-mask，无偏移）─── */
-.j-modal-fullscreen-wrap {
-  /* position:fixed，margin 无效，用 top/left 替代 */
-  overflow: hidden;
-}
-.j-modal-fullscreen-wrap .j-modal-box.fullscreen {
-  top: 0 !important;
-  left: 0 !important;
-  margin: 0 !important;
-}
-/* 全屏 content：flex 布局保证 footer 固定底部 */
-.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content,
+/*全屏模式*/
 .ant-modal-cust-warp .fullscreen >.ant-modal-content {
-  height: 100vh !important;
+  height: 100vh;
   border-radius: 0;
-  display: flex;
-  flex-direction: column;
 }
-.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-header,
-.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-header {
-  flex-shrink: 0;
-}
-.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-body,
+/*全屏模式*/
 .ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-body {
   padding: 24px 24px 12px 24px;
-  flex: 1 1 0;
-  overflow-y: auto;
-  height: 0 !important;  /* 配合 flex:1，让 flex 决定高度而非内容撑开 */
-}
-.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-footer,
-.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-footer {
-  flex-shrink: 0;
+  height: calc(100% - 200px) !important;
+  overflow-y: auto
 }
 /*列表中有图片的加这个样式 参考用户管理*/
 .anty-img-wrap {
@@ -115,4 +93,39 @@
   float:left;
   padding: 4px 8px;
   cursor: pointer;
+}
+
+/* ─── ant-design-vue 1.7.x 全屏 modal 补丁 ───────────────────────────
+   上游基于 1.5.2 的 calc 计算在 1.7.x 中失效（modal wrap 变为 position:fixed）
+   通过专用 class j-modal-fullscreen-wrap 隔离全屏样式，使用 flex 布局确保 footer 可见
+   ──────────────────────────────────────────────────────────────────── */
+.j-modal-fullscreen-wrap {
+  overflow: hidden;
+}
+.j-modal-fullscreen-wrap .j-modal-box.fullscreen {
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+}
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content,
+.ant-modal-cust-warp .fullscreen >.ant-modal-content {
+  height: 100vh !important;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-header,
+.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-header {
+  flex-shrink: 0;
+}
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-body,
+.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-body {
+  padding: 24px 24px 12px 24px;
+  flex: 1 1 0;
+  overflow-y: auto;
+  height: 0 !important;
+}
+.j-modal-fullscreen-wrap .fullscreen >.ant-modal-content >.ant-modal-footer,
+.ant-modal-cust-warp .fullscreen >.ant-modal-content >.ant-modal-footer {
+  flex-shrink: 0;
 }
