@@ -192,20 +192,32 @@
   .j-modal-box {
 
     &.fullscreen {
-      top: 0;
+      top: 0 !important;   /* 覆盖弹窗自身的 style="top:20px" */
       left: 0;
       padding: 0;
+      margin: 0;
 
       height: 100vh;
 
        >.ant-modal-content {
         height: 100vh;
         border-radius: 0;
+        display: flex;
+        flex-direction: column;
+
+         >.ant-modal-header {
+          flex-shrink: 0;
+        }
 
          >.ant-modal-body {
-          /* title 和 footer 各占 55px */
-          height: calc(100% - 55px - 55px);
+          flex: 1;
           overflow: auto;
+          /* 不再用 calc，flex 自动分配剩余高度 */
+          height: auto;
+        }
+
+         >.ant-modal-footer {
+          flex-shrink: 0;  /* footer 固定在底部，不会被内容撑走 */
         }
       }
 
