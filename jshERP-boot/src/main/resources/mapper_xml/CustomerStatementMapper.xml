@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.CustomerStatementMapper">
+
+  <!-- ═══ 主表 ═══ -->
+
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.CustomerStatement" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO jsh_customer_statement
+      (statement_no, organ_id, begin_time, end_time, total_weight, total_amount,
+       status, sign_status, attachment, remark, delete_flag, create_time, creator)
+    VALUES
+      (#{statementNo}, #{organId}, #{beginTime}, #{endTime}, #{totalWeight}, #{totalAmount},
+       #{status}, #{signStatus}, #{attachment}, #{remark}, #{deleteFlag}, #{createTime}, #{creator})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.CustomerStatement">
+    UPDATE jsh_customer_statement
+    SET status=#{status}, sign_status=#{signStatus}, attachment=#{attachment},
+        remark=#{remark}, total_weight=#{totalWeight}, total_amount=#{totalAmount},
+        delete_flag=#{deleteFlag}
+    WHERE id=#{id}
+  </update>
+
+  <select id="selectByPrimaryKey" resultType="com.jsh.erp.datasource.entities.CustomerStatement">
+    SELECT id, statement_no as statementNo, organ_id as organId,
+           begin_time as beginTime, end_time as endTime,
+           total_weight as totalWeight, total_amount as totalAmount,
+           ifnull(received_amount,0) as receivedAmount,
+           status, sign_status as signStatus, attachment, remark,
+           tenant_id as tenantId, delete_flag as deleteFlag,
+           create_time as createTime, creator
+    FROM jsh_customer_statement
+    WHERE id=#{id} AND ifnull(delete_flag,'0') != '1'
+  </select>
+
+  <select id="countTodayStatement" resultType="java.lang.Integer">
+    SELECT count(1)
+    FROM jsh_customer_statement
+    WHERE statement_no LIKE concat('DZ', #{datePrefix}, '%')
+      AND tenant_id = #{tenantId}
+  </select>
+
+  <!-- ═══ 未对账明细 ═══ -->
+
+  <sql id="unreconciledItemsBody">
+    FROM jsh_depot_item di
+    JOIN jsh_depot_head dh ON dh.id = di.header_id AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m    ON m.id  = di.material_id
+    LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
+    LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
+    WHERE dh.type = '出库' AND dh.sub_type = '销售'
+      AND ifnull(di.delete_flag,'0') != '1'
+      AND dh.tenant_id = #{tenantId}
+      <if test="organId != null">
+        AND dh.organ_id = #{organId}
+      </if>
+      <if test="beginTime != null and beginTime != ''">
+        AND dh.oper_time >= #{beginTime}
+      </if>
+      <if test="endTime != null and endTime != ''">
+        AND dh.oper_time &lt;= #{endTime}
+      </if>
+      AND di.id NOT IN (
+        SELECT csi.depot_item_id
+        FROM jsh_customer_statement_item csi
+        JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
+        WHERE ifnull(cs.delete_flag,'0') != '1'
+          AND ifnull(csi.delete_flag,'0') != '1'
+          AND cs.tenant_id = #{tenantId}
+      )
+  </sql>
+
+  <select id="listUnreconciledItems" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
+    SELECT di.id, dh.id as depotHeadId,
+           dh.number as billNo,
+           dh.oper_time as billTime,
+           dh.remark as billRemark,
+           mc.name as categoryName,
+           m.name as brand,
+           m.model,
+           m.standard,
+           m.weight as unitWeight,
+           di.oper_number as operNumber,
+           di.weight as itemWeight,
+           di.unit_price as unitPrice,
+           di.all_price as allPrice,
+           s.supplier as customerName
+    <include refid="unreconciledItemsBody"/>
+    ORDER BY dh.oper_time, di.id
+    <if test="offset != null and rows != null">
+      LIMIT #{offset}, #{rows}
+    </if>
+  </select>
+
+  <select id="countUnreconciledItems" resultType="java.lang.Integer">
+    SELECT count(1)
+    <include refid="unreconciledItemsBody"/>
+  </select>
+
+  <!-- ═══ 对账单列表 ═══ -->
+
+  <select id="listStatements" resultType="java.util.Map">
+    SELECT cs.id, cs.statement_no as statementNo,
+           s.supplier as customerName,
+           DATE_FORMAT(cs.begin_time,'%Y-%m-%d') as beginTimeStr,
+           DATE_FORMAT(cs.end_time,'%Y-%m-%d') as endTimeStr,
+           cs.total_weight as totalWeight,
+           cs.total_amount as totalAmount,
+           cs.status, cs.sign_status as signStatus,
+           cs.attachment, cs.remark,
+           DATE_FORMAT(cs.create_time,'%Y-%m-%d %H:%i:%s') as createTimeStr
+    FROM jsh_customer_statement cs
+    LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
+    WHERE ifnull(cs.delete_flag,'0') != '1'
+      AND cs.tenant_id = #{tenantId}
+      <if test="organId != null">
+        AND cs.organ_id = #{organId}
+      </if>
+      <if test="status != null and status != ''">
+        AND cs.status = #{status}
+      </if>
+      <if test="signStatus != null and signStatus != ''">
+        AND cs.sign_status = #{signStatus}
+      </if>
+      <if test="beginTime != null and beginTime != ''">
+        AND cs.begin_time >= #{beginTime}
+      </if>
+      <if test="endTime != null and endTime != ''">
+        AND cs.end_time &lt;= #{endTime}
+      </if>
+    ORDER BY cs.create_time DESC
+    <if test="offset != null and rows != null">
+      LIMIT #{offset}, #{rows}
+    </if>
+  </select>
+
+  <select id="countStatements" resultType="java.lang.Integer">
+    SELECT count(1)
+    FROM jsh_customer_statement cs
+    WHERE ifnull(cs.delete_flag,'0') != '1'
+      AND cs.tenant_id = #{tenantId}
+      <if test="organId != null">
+        AND cs.organ_id = #{organId}
+      </if>
+      <if test="status != null and status != ''">
+        AND cs.status = #{status}
+      </if>
+      <if test="signStatus != null and signStatus != ''">
+        AND cs.sign_status = #{signStatus}
+      </if>
+      <if test="beginTime != null and beginTime != ''">
+        AND cs.begin_time >= #{beginTime}
+      </if>
+      <if test="endTime != null and endTime != ''">
+        AND cs.end_time &lt;= #{endTime}
+      </if>
+  </select>
+
+  <!-- ═══ 对账单明细 ═══ -->
+
+  <select id="getStatementDetail" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
+    SELECT di.id, dh.id as depotHeadId,
+           dh.number as billNo,
+           dh.oper_time as billTime,
+           dh.remark as billRemark,
+           mc.name as categoryName,
+           m.name as brand,
+           m.model,
+           m.standard,
+           m.weight as unitWeight,
+           di.oper_number as operNumber,
+           di.weight as itemWeight,
+           di.unit_price as unitPrice,
+           di.all_price as allPrice,
+           s.supplier as customerName
+    FROM jsh_customer_statement_item csi
+    JOIN jsh_depot_item di ON di.id = csi.depot_item_id AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_depot_head dh ON dh.id = di.header_id      AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m    ON m.id  = di.material_id
+    LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
+    LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
+    WHERE csi.statement_id = #{statementId}
+      AND ifnull(csi.delete_flag,'0') != '1'
+    ORDER BY dh.oper_time, di.id
+  </select>
+
+  <!-- ═══ 关联 item 表 ═══ -->
+
+  <insert id="insertStatementItems">
+    INSERT INTO jsh_customer_statement_item (statement_id, depot_item_id, delete_flag)
+    VALUES
+    <foreach collection="itemIds" item="itemId" separator=",">
+      (#{statementId}, #{itemId}, '0')
+    </foreach>
+  </insert>
+
+  <update id="deleteStatementItems">
+    UPDATE jsh_customer_statement_item
+    SET delete_flag = '1'
+    WHERE statement_id = #{statementId}
+  </update>
+
+  <!-- 查询未收完的对账单（已审核 且 已收金额 < 总金额） -->
+  <select id="listUnpaidStatements" resultType="java.util.Map">
+    SELECT cs.id, cs.organ_id as organId, cs.statement_no as statementNo,
+           s.supplier as customerName, s.project_name as projectName,
+           DATE_FORMAT(cs.begin_time,'%Y-%m-%d') as beginTime,
+           DATE_FORMAT(cs.end_time,'%Y-%m-%d') as endTime,
+           cs.total_weight as totalWeight,
+           cs.total_amount as totalAmount,
+           ifnull(cs.received_amount,0) as receivedAmount,
+           (cs.total_amount - ifnull(cs.received_amount,0)) as unpaidAmount
+    FROM jsh_customer_statement cs
+    LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
+    WHERE cs.status = '1'
+      AND ifnull(cs.delete_flag,'0') != '1'
+      AND (cs.total_amount - ifnull(cs.received_amount,0)) > 0
+    <if test="organId != null">
+      AND cs.organ_id = #{organId}
+    </if>
+    <if test="tenantId != null">
+      AND cs.tenant_id = #{tenantId}
+    </if>
+    ORDER BY cs.create_time DESC
+  </select>
+
+  <!-- 累加已收金额 -->
+  <update id="addReceivedAmount">
+    UPDATE jsh_customer_statement
+    SET received_amount = ifnull(received_amount,0) + #{amount}
+    WHERE id = #{id}
+  </update>
+
+</mapper>

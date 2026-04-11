@@ -124,6 +124,11 @@ const deleteFreightCarrier = (params)=>deleteAction('/freightCarrier/delete',par
 //合同管理
 const addContract = (params)=>postAction('/contract/add',params);
 const editContract = (params)=>putAction('/contract/update',params);
+const auditContract = (params)=>putAction('/contract/audit',params);
+const signContract = (params)=>putAction('/contract/sign',params);
+const updateContractAttachments = (params)=>putAction('/contract/updateAttachments',params);
+const getContractBalance = (params)=>getAction('/contract/balance',params);
+const getContractDetail = (params)=>getAction('/contract/detail',params);
 //运费单
 const getFreightHeadList = (params)=>getAction('/freightHead/list',params);
 const addFreightBill = (params)=>postAction('/freightHead/addFreightBill',params);
@@ -148,6 +153,25 @@ const savePrintTemplate = (params)=>postAction('/printTemplate/save',params);
 const deletePrintTemplate = (params)=>deleteAction('/printTemplate/delete',params);
 const listPrintTemplate = (params)=>getAction('/printTemplate/listByBillType',params);
 const getPrintFieldMeta = (params)=>getAction('/printTemplate/getFieldMeta',params);
+//客户对账单
+const listUnreconciledStatementItems = (params)=>getAction('/customerStatement/unreconciledItems',params);
+const listCustomerStatements = (params)=>getAction('/customerStatement/list',params);
+const getCustomerStatementDetail = (params)=>getAction('/customerStatement/detail',params);
+const generateCustomerStatement = (params)=>postAction('/customerStatement/generate',params);
+const auditCustomerStatement = (params)=>putAction('/customerStatement/audit',params);
+const signCustomerStatement = (params)=>putAction('/customerStatement/sign',params);
+const updateStatementAttachment = (params)=>putAction('/customerStatement/updateAttachment',params);
+const deleteCustomerStatement = (params)=>deleteAction('/customerStatement/delete',params);
+const listUnpaidStatements = (params)=>getAction('/customerStatement/unpaidList',params);
+//物流对账单
+const listUnreconciledFreight = (params)=>getAction('/freightStatement/unreconciledItems',params);
+const listFreightStatements = (params)=>getAction('/freightStatement/list',params);
+const getFreightStatementDetail = (params)=>getAction('/freightStatement/detail',params);
+const generateFreightStatement = (params)=>postAction('/freightStatement/generate',params);
+const auditFreightStatement = (params)=>putAction('/freightStatement/audit',params);
+const signFreightStatement = (params)=>putAction('/freightStatement/sign',params);
+const updateFreightStatementAttachment = (params)=>putAction('/freightStatement/updateAttachment',params);
+const deleteFreightStatement = (params)=>deleteAction('/freightStatement/delete',params);
 
 export {
   getBuyAndSaleStatistics,
@@ -251,6 +275,11 @@ export {
   deleteFreightCarrier,
   addContract,
   editContract,
+  auditContract,
+  signContract,
+  updateContractAttachments,
+  getContractBalance,
+  getContractDetail,
   getFreightHeadList,
   addFreightBill,
   editFreightBill,
@@ -270,7 +299,24 @@ export {
   savePrintTemplate,
   deletePrintTemplate,
   listPrintTemplate,
-  getPrintFieldMeta
+  getPrintFieldMeta,
+  listUnreconciledStatementItems,
+  listCustomerStatements,
+  getCustomerStatementDetail,
+  generateCustomerStatement,
+  auditCustomerStatement,
+  signCustomerStatement,
+  updateStatementAttachment,
+  deleteCustomerStatement,
+  listUnpaidStatements,
+  listUnreconciledFreight,
+  listFreightStatements,
+  getFreightStatementDetail,
+  generateFreightStatement,
+  auditFreightStatement,
+  signFreightStatement,
+  updateFreightStatementAttachment,
+  deleteFreightStatement
 }
 
 

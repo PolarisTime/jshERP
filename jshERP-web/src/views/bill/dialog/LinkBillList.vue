@@ -159,7 +159,9 @@
           materialParam: "",
           type: "",
           subType: "",
-          status: ""
+          status: "",
+          linkedFlag: "",
+          saleLinkFlag: ""
         },
         labelCol: {
           xs: { span: 24 },
@@ -231,12 +233,14 @@
       this.initColumnsSetting()
     },
     methods: {
-      show(type, subType, organType, status) {
+      show(type, subType, organType, status, linkedFlag, saleLinkFlag) {
         this.selectType = 'list'
         this.showType = 'basic'
         this.queryParam.type = type
         this.queryParam.subType = subType
         this.queryParam.status = status
+        this.queryParam.linkedFlag = linkedFlag || ''
+        this.queryParam.saleLinkFlag = saleLinkFlag || ''
         this.model = Object.assign({}, {});
         this.visible = true;
         //重置选中状态和明细数据，避免多次打开时累积上次的勾选

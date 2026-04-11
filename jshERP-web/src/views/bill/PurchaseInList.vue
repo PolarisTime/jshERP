@@ -163,6 +163,7 @@
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :expandedRowKeys="expandedRowKeys"
+            :rowClassName="billRowClassName"
             @expand="onExpand"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
@@ -175,7 +176,13 @@
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => myHandleDelete(record)">
                 <a>删除</a>
               </a-popconfirm>
-            </span>
+                          <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
+              </span>
             <template slot="customRenderDebt" slot-scope="value, record">
               <a-tooltip title="有付款单">
                 <span style="color:green" v-if="value>0 && value>record.lastDebt">{{value}}</span>
@@ -227,6 +234,7 @@
         <purchase-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-back-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
+        <attachment-modal ref="attachModal" bizPath="bill" @change="onAttachChange"></attachment-modal>
       </a-card>
     </a-col>
   </a-row>
@@ -244,10 +252,14 @@
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction } from '@/api/manage'
+
   export default {
     name: "PurchaseInList",
     mixins:[JeecgListMixin,BillListMixin],
     components: {
+      AttachmentModal,
       PurchaseInModal,
       PurchaseBackModal,
       BillDetail,
@@ -275,7 +287,7 @@
           accountId: undefined,
           hasDebt: undefined,
           status: undefined,
-          linkedFlag: '0',
+          linkedFlag: undefined,
           remark: ""
         },
         prefixNo: 'CGRK',
@@ -290,7 +302,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
           'changeAmount','debt','lastDebt','status'],
         // 默认列
         defColumns: [
@@ -301,6 +313,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '供应商', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
               text = record.linkNumber?text+"[订]":text
@@ -407,10 +420,26 @@
             this.$refs.modalDetail.title = res.data.subType + type + '-详情'
           }
         })
+      },
+      billRowClassName(record) {
+        // 未审核或未关联出库的入库单高亮
+        let notAudited = String(record.status || '0') !== '1'
+        let notLinked = String(record.linkedFlag || '0') !== '1'
+        return (notAudited || notLinked) ? 'bill-row-incomplete' : ''
+      },
+      onAttachChange({ id, attachments }) {
+        putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
+        })
       }
     }
   }
 </script>
 <style scoped>
   @import '~@assets/less/common.less'
+</style>
+<style>
+  .bill-row-incomplete td {
+    background-color: var(--erp-primary-light, #e6f7ff) !important;
+  }
 </style>

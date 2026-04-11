@@ -1,0 +1,20 @@
+2026/04/08-00:50:25 INFO  [main] com.jsh.erp.ErpApplication - Starting ErpApplication v3.6.2-release using Java 17.0.18 on PolarisTime with PID 78904 (/home/instance/jsh/jshERP/jshERP-boot/target/jshERP.jar started by sakura in /home/instance/jsh/jshERP)
+2026/04/08-00:50:25 DEBUG [main] com.jsh.erp.ErpApplication - Running with Spring Boot v2.7.18, Spring v5.3.31
+2026/04/08-00:50:25 INFO  [main] com.jsh.erp.ErpApplication - No active profile set, falling back to 1 default profile: "default"
+2026/04/08-00:50:30 DEBUG [main] com.jsh.erp.datasource.mappers.SysDictDataMapper.selectDictDataList - ==>  Preparing: select dict_code, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, status, create_by, create_time, remark from jsh_sys_dict_data WHERE ifnull(delete_flag,'0') !='1' AND status = ? order by dict_sort asc
+2026/04/08-00:50:30 DEBUG [main] com.jsh.erp.datasource.mappers.SysDictDataMapper.selectDictDataList - ==> Parameters: 0(String)
+2026/04/08-00:50:30 DEBUG [main] com.jsh.erp.datasource.mappers.SysDictDataMapper.selectDictDataList - <==      Total: 0
+2026/04/08-00:50:31 ERROR [main] org.springframework.boot.diagnostics.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 9999 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 9999 or configure this application to listen on another port.
+

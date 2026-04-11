@@ -104,9 +104,10 @@ public class DepotHeadController extends BaseController {
         String salesMan = StringUtil.getInfo(search, "salesMan");
         String remark = StringUtil.getInfo(search, "remark");
         String linkedFlag = StringUtil.getInfo(search, "linkedFlag");
+        String saleLinkFlag = StringUtil.getInfo(search, "saleLinkFlag");
         String priceApproved = StringUtil.getInfo(search, "priceApproved");
         List<DepotHeadVo4List> list = depotHeadService.select(type, subType, hasDebt, status, purchaseStatus, number, linkApply, linkNumber,
-                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, priceApproved);
+                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
         return getDataTable(list);
     }
 
@@ -875,5 +876,26 @@ public class DepotHeadController extends BaseController {
         String ids = jsonObject.getString("ids");
         depotHeadService.batchAddDepotHeadAndDetail(ids, request);
         return result;
+    }
+
+    @PutMapping(value = "/updateFileById")
+    @ApiOperation(value = "更新单据附件")
+    public BaseResponseInfo updateFileById(@RequestBody JSONObject params, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            Long id = params.getLong("id");
+            String fileName = params.getString("fileName");
+            DepotHead dh = new DepotHead();
+            dh.setId(id);
+            dh.setFileName(fileName);
+            depotHeadService.updateById(dh);
+            res.code = 200;
+            res.data = "操作成功";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
     }
 }

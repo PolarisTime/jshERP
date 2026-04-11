@@ -26,26 +26,59 @@
       <a-form :form="form">
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="客户" data-step="1" data-title="客户"
-                         data-intro="客户必须选择，如果发现需要选择的客户尚未录入，可以在下拉框中点击新增客户进行录入。
-                          特别注意，客户如果录入之后在下拉框中不显示，请检查是否给当前用户分配对应的客户权限">
-              <a-select placeholder="请选择客户" v-decorator="[ 'organId', validatorRules.organId ]" :disabled="!rowCanEdit"
-                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="handleOrganChange" @search="handleSearchCustomer">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="客户名称" data-step="1" data-title="客户名称"
+                         data-intro="先选择客户公司名称，再在项目名称中选择具体项目">
+              <a-select placeholder="请选择客户名称" v-model="selectedCustomerName" :disabled="!rowCanEdit"
+                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="handleCustomerNameChange" @search="handleSearchCustomer">
                 <div slot="dropdownRender" slot-scope="menu">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0;" />
                   <div v-if="quickBtn.customer" class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="addCustomer"><a-icon type="plus" /> 新增客户</div>
                   <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer(0)"><a-icon type="reload" /> 刷新列表</div>
                 </div>
-                <a-select-option v-for="(item,index) in cusList" :key="index" :value="item.id">
-                  {{ item.supplier }}
+                <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">
+                  {{ name }}
                 </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24" v-if="currentProjectName">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="项目名称">
-              <span>{{ currentProjectName }}</span>
+          <a-col :lg="12" :md="12" :sm="24">
+            <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="项目名称">
+              <a-select placeholder="请先选择客户名称" v-decorator="[ 'organId', validatorRules.organId ]" :disabled="!rowCanEdit || projectListForOrgan.length === 0"
+                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="handleOrganChange">
+                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                  {{ item.projectName || '(无项目名称)' }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
+          <a-col :lg="6" :md="12" :sm="24">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="合同状态">
+              <template v-if="contractBalance">
+                <span style="font-size:12px;">
+                  <!-- 无合同 -->
+                  <template v-if="!contractBalance.hasContract">
+                    <span style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
+                    <span style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
+                    <span style="color:#333">未签署合同</span>
+                  </template>
+                  <!-- 有合同但超限 -->
+                  <template v-else-if="contractBalance.remainAmount < 0 || contractBalance.remainTonnage < 0">
+                    <span v-if="contractBalance.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
+                    <span v-else>剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;</span>
+                    <span v-if="contractBalance.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
+                    <span v-else>剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;</span>
+                    <a-tag color="orange" style="margin-left:4px">已签署合同</a-tag>
+                  </template>
+                  <!-- 有合同且正常 -->
+                  <template v-else>
+                    剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;
+                    剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;
+                    <a-tag color="green" style="margin-left:4px">已签署合同</a-tag>
+                  </template>
+                </span>
+              </template>
+              <span v-else style="color:#999">请先选择客户</span>
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
@@ -60,11 +93,6 @@
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="关联订单" data-step="3" data-title="关联订单"
-              data-intro="销售出库单据可以通过关联订单来选择已录入的订单，选择之后会自动加载订单的内容，然后继续录入仓库等信息完成单据的提交，
-              提交之后原来的销售订单会对应的改变单据状态。另外本系统支持订单多次出库，只需选择订单之后修改对应的商品数量即可">
-              <a-input-search placeholder="请选择关联订单" v-decorator="[ 'linkNumber' ]" @search="onSearchLinkNumber" :readOnly="true"/>
-            </a-form-item>
           </a-col>
         </a-row>
         <j-editable-table id="billModal"
@@ -78,7 +106,7 @@
           :rowSelection="true"
           :actionButton="rowCanEdit"
           :actionDeleteButton="!rowCanEdit"
-          :dragSortAndNumber="rowCanEdit"
+          :dragSortAndNumber="true"
           @valueChange="onValueChange"
           @added="onAdded"
           @deleted="onDeleted">
@@ -102,8 +130,8 @@
             <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
               <a-button icon="import" @click="onImport(prefixNo)">导入明细</a-button>
             </a-row>
-            <a-row :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
-              <a-button icon="select" @click="onSearchPurchaseBill">选择采购入库</a-button>
+            <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
+              <a-button @click="onSearchLinkNumber"><a-icon type="link" />关联采购入库</a-button>
             </a-row>
           </template>
           <template #depotBatchSet>
@@ -213,7 +241,6 @@
     <many-account-modal ref="manyAccountModalForm" @ok="manyAccountModalFormOk"></many-account-modal>
     <import-item-modal ref="importItemModalForm" @ok="importItemModalFormOk"></import-item-modal>
     <link-bill-list ref="linkBillList" @ok="linkBillListOk"></link-bill-list>
-    <link-bill-list ref="purchaseBillList" @ok="purchaseBillListOk"></link-bill-list>
     <customer-modal ref="customerModalForm" @ok="customerModalFormOk"></customer-modal>
     <depot-modal ref="depotModalForm" @ok="depotModalFormOk"></depot-modal>
     <account-modal ref="accountModalForm" @ok="accountModalFormOk"></account-modal>
@@ -245,7 +272,7 @@
   import JUpload from '@/components/jeecg/JUpload'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
-  import { getCurrentSystemConfig, findBySelectCus } from '@/api/api'
+  import { getCurrentSystemConfig, findBySelectCus, getContractBalance } from '@/api/api'
   export default {
     name: "SaleOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
@@ -280,6 +307,7 @@
         operTimeStr: '',
         prefixNo: 'XSCK',
         depositStatus: false,
+        contractBalance: null,  // 当前客户的合同余额信息
         fileList:[],
         rowCanEdit: true,
         priceEditOnly: false,
@@ -382,6 +410,73 @@
       }
     },
     methods: {
+      // ─── 覆盖保存方法：超额提示（不阻拦）─────────────────────────
+      handleOkOnly() {
+        if (this.contractBalance) {
+          const cb = this.contractBalance
+          const warnings = []
+          if (parseFloat(cb.remainAmount) < 0) {
+            warnings.push(`已超出合同金额额度 ${Math.abs(cb.remainAmount)} 元`)
+          }
+          if (parseFloat(cb.remainTonnage) < 0) {
+            warnings.push(`已超出合同吨位额度 ${Math.abs(cb.remainTonnage)} 吨`)
+          }
+          if (warnings.length > 0) {
+            this.$notification.warning({
+              message: '超出合同限额提示',
+              description: warnings.join('；'),
+              duration: 6
+            })
+          }
+        }
+        this.billStatus = '0'
+        this.handleOk()
+      },
+      // ─── 覆盖父类 handleCustomerNameChange，切换客户时清除合同状态 ──
+      handleCustomerNameChange(supplierName) {
+        this.contractBalance = null
+        this.form.setFieldsValue({ organId: undefined })
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          if (this.projectListForOrgan.length === 1) {
+            this.$nextTick(() => {
+              this.form.setFieldsValue({ organId: this.projectListForOrgan[0].id })
+              // 自动触发合同查询
+              this.handleOrganChange(this.projectListForOrgan[0].id)
+            })
+          }
+        } else {
+          this.projectListForOrgan = []
+        }
+      },
+      // ─── 覆盖父类 handleOrganChange，追加合同余额查询 ──────────
+      handleOrganChange(value) {
+        // 调用父类逻辑（更新商品单价）
+        this.$options.mixins.forEach(mixin => {
+          if (mixin.methods && mixin.methods.handleOrganChange) {
+            mixin.methods.handleOrganChange.call(this, value)
+          }
+        })
+        // 查询合同余额
+        this.contractBalance = null
+        if (value) {
+          getContractBalance({ organId: value }).then(res => {
+            if (res && res.code === 200 && res.data) {
+              const d = res.data
+              let totalAmt = Number(d.totalAmount || 0)
+              let totalTon = Number(d.totalTonnage || 0)
+              let hasContract = totalAmt > 0 || totalTon > 0
+              this.contractBalance = {
+                hasContract: hasContract,
+                totalAmount:    totalAmt.toFixed(2),
+                totalTonnage:   totalTon.toFixed(3),
+                remainAmount:   Number(d.remainAmount   || 0).toFixed(2),
+                remainTonnage:  Number(d.remainTonnage  || 0).toFixed(3)
+              }
+            }
+          }).catch(() => {})
+        }
+      },
       //调用完edit()方法之后会自动调用此方法
       editAfter() {
         this.billStatus = '0'
@@ -395,6 +490,9 @@
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 0)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 0)
         if (this.action === 'add') {
+          this.selectedCustomerName = undefined
+          this.projectListForOrgan = []
+          this.contractBalance = null
           this.depositStatus = false
           this.addInit(this.prefixNo)
           this.personList.value = ''
@@ -410,6 +508,31 @@
           if(this.model.linkNumber) {
             this.rowCanEdit = false
             this.materialTable.columns[1].type = FormTypes.normal
+          }
+          // 初始化编辑时的公司名称、项目列表和合同状态
+          this.contractBalance = null
+          if(this.model.organId) {
+            let cus = this.cusList.find(c => c.id === this.model.organId)
+            if(cus) {
+              this.selectedCustomerName = cus.supplier
+              this.projectListForOrgan = this.cusList.filter(c => c.supplier === cus.supplier)
+            }
+            // 加载合同余额
+            getContractBalance({ organId: this.model.organId }).then(res => {
+              if (res && res.code === 200 && res.data) {
+                let d = res.data
+                let totalAmt = Number(d.totalAmount || 0)
+                let totalTon = Number(d.totalTonnage || 0)
+                let hasContract = totalAmt > 0 || totalTon > 0
+                this.contractBalance = {
+                  hasContract: hasContract,
+                  totalAmount: totalAmt.toFixed(2),
+                  totalTonnage: totalTon.toFixed(3),
+                  remainAmount: Number(d.remainAmount || 0).toFixed(2),
+                  remainTonnage: Number(d.remainTonnage || 0).toFixed(3)
+                }
+              }
+            }).catch(() => {})
           }
           this.model.operTime = this.model.operTimeStr
           if(this.model.deposit) {
@@ -511,160 +634,100 @@
         this.$refs.historyBillListModalForm.disableSubmit = false;
       },
       onSearchLinkNumber() {
-        this.$refs.linkBillList.show('其它', '销售订单', '客户', "1,3")
-        this.$refs.linkBillList.title = "请选择销售订单"
-      },
-      onSearchPurchaseBill() {
-        let organId = this.form.getFieldValue('organId')
-        if(!organId) {
-          this.$message.warning('请先选择客户')
-          return
-        }
-        this.$refs.purchaseBillList.show('入库', '采购', '供应商', "1")
-        this.$refs.purchaseBillList.title = "请选择采购入库单"
-        //隐藏已被关联的采购入库单
-        this.$refs.purchaseBillList.queryParam.linkedFlag = '0'
-      },
-      purchaseBillListOk(selectBillDetailRows, linkNumber, organId, discountMoney, deposit, remark, depotId, accountId, salesMan) {
-        let that = this
-        //不设置 rowCanEdit=false，保持客户等表单字段可编辑，仅锁定条码列
-        this.materialTable.columns[1].type = FormTypes.normal
-        this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
-        this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
-        if(selectBillDetailRows && selectBillDetailRows.length>0) {
-          //从JEditableTable获取当前实际行（用户删除的行不会出现在这里）
-          let currentRows = []
-          this.$refs.materialDataTable.getValues((error, values) => {
-            if(values) {
-              currentRows = values.filter(row => row.barCode)
-            }
-          })
-          //构建已有明细行的 linkId 集合，用于排重
-          let existLinkIdSet = new Set()
-          currentRows.forEach(row => {
-            if(row.linkId) existLinkIdSet.add(String(row.linkId))
-          })
-          let newRows = []
-          for(let j=0; j<selectBillDetailRows.length; j++) {
-            //深拷贝避免与 LinkBillList 共享对象引用
-            let info = JSON.parse(JSON.stringify(selectBillDetailRows[j]))
-            //跳过已存在的明细行（按 linkId 排重）
-            if(existLinkIdSet.has(String(info.id))) continue
-            info.preNumber = info.operNumber
-            info.finishNumber = 0
-            info.linkId = info.id
-            if(info.operNumber>0) {
-              newRows.push(info)
-            }
-          }
-          if(newRows.length === 0) {
-            this.$message.warning('所选单据的明细已全部添加')
-            return
-          }
-          //用当前实际行+新行替换整个dataSource（避免已删除行残留）
-          this.materialTable.dataSource = currentRows.concat(newRows)
-          //重置动态列，基于全部明细行重新计算列显示状态（避免多次选择后列只增不减）
-          this.changeColumnHide()
-          this.materialTable.dataSource.forEach(row => {
-            this.changeColumnShow(row)
-          })
-          //重新累计全部明细行的金额
-          let allTaxLastMoney = 0
-          this.materialTable.dataSource.forEach(row => {
-            allTaxLastMoney += (row.taxLastMoney-0) || 0
-          })
-          let discountLastMoney = (allTaxLastMoney).toFixed(2)-0
-          let changeAmount = discountLastMoney
-          //选择采购入库时直接设置linkNumber为当前选择的单号（替换旧值）
-          let newLinkNumber = linkNumber || ''
-          this.$nextTick(() => {
-            this.form.setFieldsValue({
-              'linkNumber': newLinkNumber,
-              'discount': 0,
-              'discountMoney': 0,
-              'discountLastMoney': discountLastMoney,
-              'deposit': 0,
-              'changeAmount': 0,
-              'debt': changeAmount,
-              'remark': remark || this.form.getFieldValue('remark') || ''
-            })
-          })
-          //判断后进行仓库的切换
-          if(depotId) {
-            setTimeout(function () {
-              that.batchSetDepotModalFormOk(depotId)
-            },1000)
-          }
-        }
+        //status: 0=未审核, 1=已审核, 2=完成入库, 3=部分入库，linkedFlag=0 只显示未被关联的
+        this.$refs.linkBillList.show('入库', '采购', '供应商', "0,1,2,3", '0')
+        this.$refs.linkBillList.title = "请选择采购入库单"
       },
       linkBillListOk(selectBillDetailRows, linkNumber, organId, discountMoney, deposit, remark, depotId, accountId, salesMan) {
         let that = this
-        this.rowCanEdit = false
+        // 销售出库关联采购入库：采购入库的 changeAmount 不是订金，organId 是供应商不是客户
+        deposit = 0
+        organId = null
         this.materialTable.columns[1].type = FormTypes.normal
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
-        if(selectBillDetailRows && selectBillDetailRows.length>0) {
-          let listEx = []
-          let allTaxLastMoney = 0
-          for(let j=0; j<selectBillDetailRows.length; j++) {
-            let info = selectBillDetailRows[j];
-            if(info.finishNumber>0) {
-              info.operNumber = info.preNumber - info.finishNumber
-              info.allPrice = info.operNumber * info.unitPrice-0
-              let taxRate = info.taxRate-0
-              if(this.materialPriceTaxFlag) {
-                let realAllPrice = (info.allPrice/(1+taxRate*0.01)).toFixed(2)-0
-                info.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
-                info.taxLastMoney = info.allPrice
-              } else {
-                info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
-                info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
-              }
-            }
-            info.linkId = info.id
-            allTaxLastMoney += info.taxLastMoney
-            if(info.operNumber>0) {
-              listEx.push(info)
-              this.changeColumnShow(info)
+        if(!selectBillDetailRows || selectBillDetailRows.length === 0) return
+        //同步读取 dataSource 构建已有 linkId 集合（物流单模式：不走异步 getValues）
+        let existLinkIdSet = new Set()
+        this.materialTable.dataSource.forEach(row => {
+          if(row.linkId) existLinkIdSet.add(String(row.linkId))
+        })
+        let newRows = []
+        for(let j=0; j<selectBillDetailRows.length; j++) {
+          let info = JSON.parse(JSON.stringify(selectBillDetailRows[j]))
+          if(existLinkIdSet.has(String(info.id))) continue
+          if(info.finishNumber>0) {
+            info.operNumber = info.preNumber - info.finishNumber
+            info.allPrice = info.operNumber * info.unitPrice-0
+            let taxRate = info.taxRate-0
+            if(this.materialPriceTaxFlag) {
+              let realAllPrice = (info.allPrice/(1+taxRate*0.01)).toFixed(2)-0
+              info.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
+              info.taxLastMoney = info.allPrice
+            } else {
+              info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
+              info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
             }
           }
-          this.materialTable.dataSource = listEx
-          ///给优惠后金额重新赋值
-          allTaxLastMoney = allTaxLastMoney?allTaxLastMoney:0
-          let discount = 0
-          if(allTaxLastMoney!==0) {
-            discount = (discountMoney/allTaxLastMoney*100).toFixed(2)-0
+          info.linkId = info.id
+          if(info.operNumber>0) {
+            newRows.push(info)
+            this.changeColumnShow(info)
           }
-          let discountLastMoney = (allTaxLastMoney - discountMoney).toFixed(2)-0
-          let changeAmount = discountLastMoney
-          if(deposit) {
-            this.depositStatus = true
-            changeAmount = (discountLastMoney - deposit).toFixed(2)-0
+        }
+        if(newRows.length === 0) {
+          this.$message.warning('所选单据的明细已全部添加')
+          return
+        }
+        //直接 push 追加（物流单模式），不覆盖已有行
+        newRows.forEach(row => this.materialTable.dataSource.push(row))
+        //重新累计全部明细行的金额
+        let allTaxLastMoney = 0
+        this.materialTable.dataSource.forEach(row => {
+          allTaxLastMoney += (row.taxLastMoney-0) || 0
+        })
+        let discount = 0
+        if(allTaxLastMoney!==0) {
+          discount = (discountMoney/allTaxLastMoney*100).toFixed(2)-0
+        }
+        let discountLastMoney = (allTaxLastMoney - discountMoney).toFixed(2)-0
+        let changeAmount = discountLastMoney
+        if(deposit) {
+          this.depositStatus = true
+          changeAmount = (discountLastMoney - deposit).toFixed(2)-0
+        }
+        //追加 linkNumber（多单逗号分隔）
+        let oldLinkNumber = this.form.getFieldValue('linkNumber') || ''
+        let mergedLinkNumber = oldLinkNumber ? oldLinkNumber + ',' + linkNumber : linkNumber
+        let currentOrganId = this.form.getFieldValue('organId')
+        this.$nextTick(() => {
+          let formValues = {
+            'linkNumber': mergedLinkNumber,
+            'discount': discount,
+            'discountMoney': discountMoney,
+            'discountLastMoney': discountLastMoney,
+            'deposit': deposit,
+            'changeAmount': 0,
+            'debt': changeAmount,
+            'accountId': accountId,
+            'remark': remark
           }
-          this.$nextTick(() => {
-            this.form.setFieldsValue({
-              'organId': organId,
-              'linkNumber': linkNumber,
-              'discount': discount,
-              'discountMoney': discountMoney,
-              'discountLastMoney': discountLastMoney,
-              'deposit': deposit,
-              'changeAmount': 0,
-              'debt': changeAmount,
-              'accountId': accountId,
-              'remark': remark
-            })
+          //已有客户时不覆盖，仅在首次关联时填入
+          if(!currentOrganId && organId) {
+            formValues['organId'] = organId
+          }
+          this.form.setFieldsValue(formValues)
+          if(!currentOrganId && organId) {
             findBySelectCus({organId: organId, limit:1}).then((res)=> {
-              this.cusList = res && Array.isArray(res) ? res : [];
+              that.cusList = res && Array.isArray(res) ? res : [];
             })
-            this.personList.value = salesMan
-          })
-          //判断后进行仓库的切换
-          if(depotId) {
-            setTimeout(function () {
-              that.batchSetDepotModalFormOk(depotId)
-            },1000)
           }
+          that.personList.value = salesMan
+        })
+        if(depotId) {
+          setTimeout(function () {
+            that.batchSetDepotModalFormOk(depotId)
+          },1000)
         }
       },
     }

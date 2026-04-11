@@ -32,7 +32,7 @@ export const JeecgListMixin = {
       /* 分页参数 */
       ipagination:{
         current: 1,
-        pageSize: 10,
+        pageSize: 50,
         pageSizeOptions: ['10', '20', '30', '50', '100'],
         showTotal: (total, range) => {
           return range[0] + "-" + range[1] + " 共" + total + "条"
@@ -175,28 +175,29 @@ export const JeecgListMixin = {
       if (this.selectedRowKeys.length <= 0) {
         this.$message.warning('请选择一条记录！');
         return;
-      } else {
-        var ids = "";
-        for (var a = 0; a < this.selectedRowKeys.length; a++) {
-          ids += this.selectedRowKeys[a] + ",";
-        }
-        var that = this;
-        this.$confirm({
-          title: "确认操作",
-          content: "是否操作选中数据?",
-          onOk: function () {
-            that.loading = true;
-            postAction(that.url.batchSetStatusUrl, {status: status, ids: ids}).then((res) => {
-              if(res.code === 200){
-                that.loadData()
-              } else {
-                that.$message.warning(res.data.message);
-              }
-            }).finally(() => {
-              that.loading = false;
-            });
+      }
+      var ids = "";
+      for (var a = 0; a < this.selectedRowKeys.length; a++) {
+        ids += this.selectedRowKeys[a] + ",";
+      }
+      var that = this;
+      var doAction = function() {
+        that.loading = true;
+        postAction(that.url.batchSetStatusUrl, {status: status, ids: ids}).then((res) => {
+          if(res.code === 200){
+            that.loadData()
+          } else {
+            that.$message.warning(res.data.message);
           }
+        }).finally(() => {
+          that.loading = false;
         });
+      };
+      // 审核需确认，反审核/反核准直接执行
+      if(status === 1 || status === '1') {
+        this.$confirm({ title: "确认操作", content: "是否审核选中数据?", onOk: doAction });
+      } else {
+        doAction();
       }
     },
     batchSetPriceApproved: function (priceApproved) {
@@ -206,24 +207,26 @@ export const JeecgListMixin = {
       }
       var ids = this.selectedRowKeys.join(',');
       var that = this;
-      var actionText = priceApproved === '1' ? '价格核准' : '取消核准';
-      this.$confirm({
-        title: "确认操作",
-        content: "是否对选中单据进行" + actionText + "?",
-        onOk: function () {
-          that.loading = true;
-          postAction('/depotHead/batchSetPriceApproved', {priceApproved: priceApproved, ids: ids}).then((res) => {
-            if(res.code === 200){
-              that.$message.success(actionText + '成功');
-              that.loadData()
-            } else {
-              that.$message.warning(res.data.message);
-            }
-          }).finally(() => {
-            that.loading = false;
-          });
-        }
-      });
+      var actionText = priceApproved === '1' ? '单据核准' : '取消核准';
+      var doAction = function() {
+        that.loading = true;
+        postAction('/depotHead/batchSetPriceApproved', {priceApproved: priceApproved, ids: ids}).then((res) => {
+          if(res.code === 200){
+            that.$message.success(actionText + '成功');
+            that.loadData()
+          } else {
+            that.$message.warning(res.data.message);
+          }
+        }).finally(() => {
+          that.loading = false;
+        });
+      };
+      // 核准需确认，取消核准直接执行
+      if(priceApproved === '1') {
+        this.$confirm({ title: "确认操作", content: "是否对选中单据进行" + actionText + "?", onOk: doAction });
+      } else {
+        doAction();
+      }
     },
     batchDel: function () {
       if(!this.url.deleteBatch){
@@ -305,11 +308,11 @@ export const JeecgListMixin = {
       return fields.split(',')[0]
     },
     modalFormOk() {
-      // 新增/修改 成功时，重载列表
+      // 新增/修改 成功时，刷新列表数据
       this.loadData()
     },
     modalFormClose() {
-      // 关闭页面时，重载列表
+      // 关闭弹窗时，刷新列表数据
       this.loadData()
     },
     handleDetail:function(record, type, prefixNo){
@@ -494,13 +497,12 @@ export const JeecgListMixin = {
         this.scroll.y = document.documentElement.clientHeight-searchWrapperDomLen-operatorDomLen-basicLength
       }
     },
-    //拖拽组件
+    //列宽拖拽——直接操作DOM宽度，避免Vue重渲染导致事件丢失
     handleDrag(column){
       return {
         header: {
           cell: (h, props, children) => {
             const { key, ...restProps } = props
-            // 父表格列宽拖拽逻辑
             const col = column.find((col) => {
               const k = col.dataIndex || col.key
               return k === key
@@ -508,26 +510,53 @@ export const JeecgListMixin = {
             if (!col || !col.width) {
               return h('th', { ...restProps }, children)
             }
-
-            const dragProps = {
-              key: col.dataIndex || col.key,
-              class: 'table-draggable-handle',
-              attrs: {
-                w: 10,
-                x: col.width,
-                z: 1,
-                axis: 'x',
-                draggable: true,
-                resizable: false,
-              },
+            const handle = h('div', {
+              class: 'resize-handle',
               on: {
-                dragging: (x, y) => {
-                  col.width = Math.max(x, 1)
-                },
-              },
-            }
-            const drag = h(VueDraggableResizable, { ...dragProps })
-            return h('th', { ...restProps, class: 'resize-table-th' }, [children, drag])
+                mousedown: function(e) {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  var th = e.target.parentNode
+                  var startX = e.clientX
+                  var startWidth = th.offsetWidth
+                  var colIndex = Array.prototype.indexOf.call(th.parentNode.children, th)
+                  // 找到表格所有同列的 col 元素
+                  var table = th.closest('table')
+                  var colgroup = table ? table.querySelector('colgroup') : null
+                  var colEl = colgroup ? colgroup.children[colIndex] : null
+                  var onMove = function(ev) {
+                    var newWidth = Math.max(startWidth + (ev.clientX - startX), 50)
+                    // ant-design-vue bordered 表格：header 和 body 是两个独立的 table
+                    // 需要同时修改两个 table 的 colgroup
+                    var wrapper = th.closest('.ant-table-scroll') || th.closest('.ant-table-content')
+                    if (wrapper) {
+                      var allColgroups = wrapper.querySelectorAll('colgroup')
+                      allColgroups.forEach(function(cg) {
+                        var targetCol = cg.children[colIndex]
+                        if (targetCol) {
+                          targetCol.style.width = newWidth + 'px'
+                          targetCol.style.minWidth = newWidth + 'px'
+                        }
+                      })
+                    }
+                    th.style.width = newWidth + 'px'
+                    th.style.minWidth = newWidth + 'px'
+                    col.width = newWidth
+                  }
+                  var onUp = function() {
+                    document.removeEventListener('mousemove', onMove)
+                    document.removeEventListener('mouseup', onUp)
+                    document.body.style.cursor = ''
+                    document.body.style.userSelect = ''
+                  }
+                  document.body.style.cursor = 'col-resize'
+                  document.body.style.userSelect = 'none'
+                  document.addEventListener('mousemove', onMove)
+                  document.addEventListener('mouseup', onUp)
+                }
+              }
+            })
+            return h('th', { ...restProps, class: 'resize-table-th' }, [children, handle])
           },
         }
       }

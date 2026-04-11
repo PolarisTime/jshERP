@@ -176,6 +176,9 @@
         <if test="linkedFlag != null and linkedFlag !=''">
             and ifnull(dh.linked_flag,'0') = #{linkedFlag}
         </if>
+        <if test="saleLinkFlag != null and saleLinkFlag !=''">
+            and ifnull(dh.sale_link_flag,'0') = #{saleLinkFlag}
+        </if>
         <if test="priceApproved != null and priceApproved !=''">
             and ifnull(dh.price_approved,'0') = #{priceApproved}
         </if>
@@ -1154,15 +1157,20 @@
     </select>
 
     <select id="getReferencedByNumbersMap" resultType="java.util.Map">
-        SELECT dh.link_number AS billNumber, GROUP_CONCAT(dh.number SEPARATOR ',') AS refNumbers
-        FROM jsh_depot_head dh
-        WHERE dh.link_number IN
-        <foreach collection="numberList" item="num" open="(" separator="," close=")">
-            #{num}
-        </foreach>
-        AND dh.sub_type = '销售' AND dh.type = '出库'
-        AND ifnull(dh.delete_flag,'0') != '1'
-        GROUP BY dh.link_number
+        SELECT t.billNumber, GROUP_CONCAT(DISTINCT t.refNumber ORDER BY t.refNumber SEPARATOR ',') AS refNumbers
+        FROM (
+            SELECT num.val AS billNumber, dh.number AS refNumber
+            FROM jsh_depot_head dh,
+            (
+                <foreach collection="numberList" item="num" separator=" UNION ALL ">
+                    SELECT #{num} AS val
+                </foreach>
+            ) num
+            WHERE FIND_IN_SET(num.val, dh.link_number) > 0
+              AND dh.sub_type = '销售' AND dh.type = '出库'
+              AND ifnull(dh.delete_flag,'0') != '1'
+        ) t
+        GROUP BY t.billNumber
     </select>
 
     <!-- 批量查询被采购入库引用的单号（用于采购订单列表） -->
@@ -1610,5 +1618,17 @@
         select count(1) from jsh_depot_head
         where FIND_IN_SET(#{singleLinkNo}, link_number) > 0
         and ifnull(delete_flag,'0') != '1'
+    </select>
+
+    <!-- 根据明细的 linkId 查询关联的源单据号（去重） -->
+    <select id="getDistinctLinkNumbersByHeaderId" resultType="java.lang.String">
+        SELECT DISTINCT dh.number
+        FROM jsh_depot_item di
+        JOIN jsh_depot_item src ON src.id = di.link_id AND ifnull(src.delete_flag,'0') != '1'
+        JOIN jsh_depot_head dh ON dh.id = src.header_id AND ifnull(dh.delete_flag,'0') != '1'
+        WHERE di.header_id = #{headerId}
+          AND ifnull(di.delete_flag,'0') != '1'
+          AND di.link_id IS NOT NULL
+        ORDER BY dh.number
     </select>
 </mapper>

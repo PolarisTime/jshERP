@@ -70,6 +70,11 @@ const app = {
     TOGGLE_COLOR: (state, color) => {
       Vue.ls.set(DEFAULT_COLOR, color)
       state.color = color
+      // 同步设置 CSS 变量，供行高亮等全局样式使用（15%透明度的主题色作为底色）
+      if (typeof document !== 'undefined') {
+        document.documentElement.style.setProperty('--erp-primary-color', color)
+        document.documentElement.style.setProperty('--erp-primary-light', color + '1A')
+      }
     },
     TOGGLE_WEAK: (state, flag) => {
       Vue.ls.set(DEFAULT_COLOR_WEAK, flag)

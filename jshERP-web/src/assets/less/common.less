@@ -73,20 +73,20 @@
   background-color: rgba(0, 0, 0, 0.1) !important;
 }
 /* 拖拽 */
-.table-draggable-handle {
-  /* width: 10px !important; */
-  height: 100% !important;
-  left: auto !important;
-  right: -5px;
-  cursor: col-resize;
-  touch-action: none;
-  border: none;
-  position: absolute;
-  transform: none !important;
-  bottom: 0;
-}
 .resize-table-th {
-  position: relative;
+  position: relative !important;
+}
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+.resize-handle:hover {
+  background-color: rgba(24, 144, 255, 0.2);
 }
 /* 单据下拉框-按钮 */
 .dropdown-btn {

@@ -20,11 +20,12 @@
     <result column="paid_amount" jdbcType="DECIMAL" property="paidAmount" />
     <result column="payment_time" jdbcType="TIMESTAMP" property="paymentTime" />
     <result column="payment_operator" jdbcType="BIGINT" property="paymentOperator" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
   </resultMap>
   <sql id="Base_Column_List">
     id, bill_no, bill_time, carrier_id, unit_price, total_weight, total_freight,
     remark, status, creator, create_time, tenant_id, delete_flag, delivery_status,
-    payment_status, paid_amount, payment_time, payment_operator
+    payment_status, paid_amount, payment_time, payment_operator, file_name
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
@@ -216,6 +217,9 @@
       </if>
       <if test="paymentOperator != null">
         payment_operator = #{paymentOperator,jdbcType=BIGINT},
+      </if>
+      <if test="fileName != null">
+        file_name = #{fileName,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}

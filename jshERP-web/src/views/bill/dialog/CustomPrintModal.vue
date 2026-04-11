@@ -74,7 +74,7 @@
         headerFields: [],
         detailFields: [],
         isDefault: false,
-        userInputFields: { carNo: '', extraText: '', sendDate: '' },
+        userInputFields: { carNo: '', extraText: '', sendDate: null },
         currentSource: '', // 当前选中模板的来源: 'db'/'file'/''
         printPreview: '' // 实时预览内容
       }
@@ -117,7 +117,10 @@
     methods: {
       // ═══ 生命周期 ═══
 
-      async show() {
+      async show(modelOverride, dataSourceOverride) {
+        // 支持直接传入数据（绕过 props 响应式延迟）
+        if (modelOverride) this._modelOverride = modelOverride
+        if (dataSourceOverride) this._dataSourceOverride = dataSourceOverride
         this.visible = true
         this.designing = false
         await this.loadTemplateList()
@@ -168,15 +171,22 @@
         this.isDefault = isDefault
         this.updatePreview()
       },
+      /** 获取实际的 model 和 dataSource（优先使用 override） */
+      getEffectiveModel() {
+        return this._modelOverride || this.model || {}
+      },
+      getEffectiveDataSource() {
+        return this._dataSourceOverride || this.dataSource || []
+      },
       /** 实时更新预览内容 */
       updatePreview() {
         try {
-          this.printPreview = render(this.templateHtml, this.model, this.dataSource, this.userInputFields)
+          this.printPreview = render(this.templateHtml, this.getEffectiveModel(), this.getEffectiveDataSource(), this.userInputFields)
         } catch (e) {
           this.printPreview = `<p style="color:red;">预览出错: ${e.message}</p>`
         }
       },
-      /** 选中默认模板，无则回退系统默认 */
+      /** 选中默认模板，无则选第一个可用模板，最后回退系统默认 */
       selectDefault() {
         const defaultTpl = this.templateList.find(t => t.isDefault === '1')
         if (defaultTpl) {
@@ -185,6 +195,15 @@
             name: defaultTpl.templateName,
             html: defaultTpl.templateHtml,
             isDefault: true
+          })
+        } else if (this.templateList.length > 0) {
+          const first = this.templateList[0]
+          this.currentSource = first.source || 'file'
+          this.applyTemplate({
+            id: first.id,
+            name: first.templateName,
+            html: first.templateHtml,
+            isDefault: false
           })
         } else {
           this.applyTemplate({ html: getDefaultTemplate(this.billType) })
@@ -365,7 +384,7 @@
         }
         let rendered
         try {
-          rendered = render(this.templateHtml, this.model, this.dataSource, this.userInputFields)
+          rendered = render(this.templateHtml, this.getEffectiveModel(), this.getEffectiveDataSource(), this.userInputFields)
         } catch (e) {
           this.$message.error('模板渲染出错：' + e.message)
           return

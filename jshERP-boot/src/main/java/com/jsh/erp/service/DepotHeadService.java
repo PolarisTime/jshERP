@@ -7,6 +7,7 @@ import com.jsh.erp.constants.ExceptionConstants;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.mappers.DepotHeadMapper;
 import com.jsh.erp.datasource.mappers.DepotHeadMapperEx;
+import com.jsh.erp.datasource.mappers.DepotItemMapper;
 import com.jsh.erp.datasource.mappers.DepotItemMapperEx;
 import com.jsh.erp.datasource.vo.*;
 import com.jsh.erp.exception.BusinessRunTimeException;
@@ -117,7 +118,7 @@ public class DepotHeadService {
 
     public List<DepotHeadVo4List> select(String type, String subType, String hasDebt, String status, String purchaseStatus, String number, String linkApply, String linkNumber,
            String beginTime, String endTime, String materialParam, Long organId, String[] organIdList, Long creator, Long depotId, Long accountId, String salesMan, String remark,
-           String linkedFlag, String priceApproved) throws Exception {
+           String linkedFlag, String saleLinkFlag, String priceApproved) throws Exception {
         List<DepotHeadVo4List> list = new ArrayList<>();
         try{
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -138,7 +139,7 @@ public class DepotHeadService {
             PageUtils.startPage();
             list = depotHeadMapperEx.selectByConditionDepotHead(type, subType, creatorArray, hasDebt,
                     statusArray, purchaseStatusArray, number, linkApply, linkNumber, beginTime, endTime,
-                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, priceApproved);
+                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
@@ -786,12 +787,21 @@ public class DepotHeadService {
                         throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_CODE,
                                 String.format(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_MSG));
                     }
-                } else if("2".equals(depotHead.getPurchaseStatus())) {
-                    throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_CODE,
-                            String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_MSG));
-                } else if("3".equals(depotHead.getPurchaseStatus())) {
-                    throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_THREE_CODE,
-                            String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_THREE_MSG));
+                } else if("2".equals(depotHead.getPurchaseStatus()) || "3".equals(depotHead.getPurchaseStatus())) {
+                    //完成采购/部分采购：检查下游单据是否已全部删除，若无引用则允许反审核
+                    if(!hasActiveDownstreamBills(depotHead.getNumber())) {
+                        dhIds.add(id);
+                        noList.add(depotHead.getNumber());
+                        //同时重置采购状态
+                        DepotHead resetUpdate = new DepotHead();
+                        resetUpdate.setId(id);
+                        resetUpdate.setPurchaseStatus("0");
+                        resetUpdate.setLinkedFlag("0");
+                        depotHeadMapper.updateByPrimaryKeySelective(resetUpdate);
+                    } else {
+                        throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_CODE,
+                                String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_MSG));
+                    }
                 } else {
                     throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_CODE,
                             String.format(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_MSG));
@@ -1377,6 +1387,13 @@ public class DepotHeadService {
 
     /**
      * 设置单据的关联标记（linked_flag），独立于status字段
+     * 按主键更新（selective，仅更新非null字段）
+     */
+    public void updateById(DepotHead dh) {
+        depotHeadMapper.updateByPrimaryKeySelective(dh);
+    }
+
+    /**
      * @param number 单据号
      * @param flag "0"=未关联, "1"=已关联
      */
@@ -1387,6 +1404,26 @@ public class DepotHeadService {
         List<String> numberList = StringUtil.strToStringList(number);
         example.createCriteria().andNumberIn(numberList);
         depotHeadMapper.updateByExampleSelective(dh, example);
+    }
+
+    /**
+     * 根据明细的 linkId 重新计算并同步单据头的 link_number，确保一致性
+     * @param headerId 单据主表ID
+     */
+    public void syncLinkNumberByDetail(Long headerId) {
+        try {
+            List<String> linkNumbers = depotHeadMapperEx.getDistinctLinkNumbersByHeaderId(headerId);
+            DepotHead update = new DepotHead();
+            update.setId(headerId);
+            if(linkNumbers != null && !linkNumbers.isEmpty()) {
+                update.setLinkNumber(String.join(",", linkNumbers));
+            } else {
+                update.setLinkNumber("");
+            }
+            depotHeadMapper.updateByPrimaryKeySelective(update);
+        } catch (Exception e) {
+            logger.error("同步link_number异常, headerId=" + headerId, e);
+        }
     }
 
     /**
@@ -1547,13 +1584,104 @@ public class DepotHeadService {
         List<DepotHead> list = depotHeadMapper.selectByExample(dhExample);
         if(list!=null) {
             Long headId = list.get(0).getId();
+            depotHead.setId(headId); //回填ID供后续使用
             /**入库和出库处理单据子表信息*/
             depotItemService.saveDetials(rows,headId, "add",request);
+            //根据明细实际关联的源单据，同步校验并修正 link_number
+            syncLinkNumberByDetail(headId);
         }
         String statusStr = depotHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("单据",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(depotHead.getNumber()).append(statusStr).toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
+        //采购订单：自动生成采购入库单
+        if("采购订单".equals(depotHead.getSubType())) {
+            JSONObject billJson = JSONObject.parseObject(beanJson);
+            if(billJson.getBooleanValue("autoGeneratePurchaseIn")) {
+                autoGeneratePurchaseIn(depotHead, request);
+            }
+        }
+    }
+
+    /**
+     * 根据采购订单自动生成采购入库单
+     * @param orderHead 采购订单主表（已保存，含id和number）
+     */
+    private void autoGeneratePurchaseIn(DepotHead orderHead, HttpServletRequest request) throws Exception {
+        //获取默认仓库
+        Long defaultDepotId = depotService.getDefaultDepotId();
+        //生成入库单编号
+        String year = String.valueOf(java.time.LocalDate.now().getYear());
+        String newNumber = year + "CGRK" + sequenceService.buildOnlyNumber();
+        //创建入库单主表
+        DepotHead purchaseIn = new DepotHead();
+        purchaseIn.setType("入库");
+        purchaseIn.setSubType("采购");
+        purchaseIn.setDefaultNumber(newNumber);
+        purchaseIn.setNumber(newNumber);
+        purchaseIn.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        purchaseIn.setOperTime(orderHead.getOperTime() != null ? orderHead.getOperTime() : new Timestamp(System.currentTimeMillis()));
+        purchaseIn.setOrganId(orderHead.getOrganId());
+        purchaseIn.setCreator(orderHead.getCreator());
+        purchaseIn.setLinkNumber(orderHead.getNumber());
+        purchaseIn.setStatus(orderHead.getStatus()); //跟随订单状态
+        purchaseIn.setPurchaseStatus(BusinessConstants.BILLS_STATUS_UN_AUDIT);
+        purchaseIn.setPayType("现付");
+        purchaseIn.setAccountId(orderHead.getAccountId());
+        purchaseIn.setDiscount(orderHead.getDiscount());
+        purchaseIn.setDiscountMoney(orderHead.getDiscountMoney() != null ? orderHead.getDiscountMoney().abs() : null);
+        purchaseIn.setDiscountLastMoney(orderHead.getDiscountLastMoney() != null ? orderHead.getDiscountLastMoney().abs() : null);
+        purchaseIn.setOtherMoney(orderHead.getOtherMoney());
+        purchaseIn.setChangeAmount(orderHead.getChangeAmount() != null ? orderHead.getChangeAmount().abs() : BigDecimal.ZERO);
+        purchaseIn.setTotalPrice(orderHead.getTotalPrice() != null ? orderHead.getTotalPrice().abs() : BigDecimal.ZERO);
+        purchaseIn.setTenantId(orderHead.getTenantId());
+        purchaseIn.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
+        depotHeadMapper.insertSelective(purchaseIn);
+        //通过编号查回自增ID
+        DepotHeadExample piExample = new DepotHeadExample();
+        piExample.createCriteria().andNumberEqualTo(newNumber).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<DepotHead> piList = depotHeadMapper.selectByExample(piExample);
+        Long purchaseInId = piList.get(0).getId();
+        //查询订单明细
+        DepotItemExample itemExample = new DepotItemExample();
+        itemExample.createCriteria().andHeaderIdEqualTo(orderHead.getId())
+                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<DepotItem> orderItems = depotItemMapper.selectByExample(itemExample);
+        //复制明细到入库单（自动填入批号和日期）
+        String todayBatch = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        java.util.Date today = new java.util.Date();
+        for(DepotItem orderItem : orderItems) {
+            DepotItem inItem = new DepotItem();
+            inItem.setHeaderId(purchaseInId);
+            inItem.setMaterialId(orderItem.getMaterialId());
+            inItem.setMaterialExtendId(orderItem.getMaterialExtendId());
+            inItem.setMaterialUnit(orderItem.getMaterialUnit());
+            inItem.setOperNumber(orderItem.getOperNumber());
+            inItem.setBasicNumber(orderItem.getBasicNumber());
+            inItem.setUnitPrice(orderItem.getUnitPrice());
+            inItem.setAllPrice(orderItem.getAllPrice());
+            inItem.setTaxRate(orderItem.getTaxRate());
+            inItem.setTaxMoney(orderItem.getTaxMoney());
+            inItem.setTaxLastMoney(orderItem.getTaxLastMoney());
+            inItem.setWeight(orderItem.getWeight());
+            inItem.setDepotId(defaultDepotId);
+            inItem.setBatchNumber(todayBatch);
+            inItem.setExpirationDate(today);
+            inItem.setLinkId(orderItem.getId()); //关联订单明细
+            inItem.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
+            inItem.setTenantId(orderHead.getTenantId());
+            depotItemMapper.insertSelective(inItem);
+        }
+        //更新入库单的 discount_last_money（从明细汇总）
+        syncLinkNumberByDetail(purchaseInId);
+        //更新订单状态为"完成采购"，并标记已被关联
+        DepotHead orderUpdate = new DepotHead();
+        orderUpdate.setId(orderHead.getId());
+        orderUpdate.setStatus("2");
+        orderUpdate.setPurchaseStatus("2");
+        orderUpdate.setLinkedFlag("1");
+        depotHeadMapper.updateByPrimaryKeySelective(orderUpdate);
+        logService.insertLog("单据", "自动生成采购入库单" + newNumber, request);
     }
 
     /**
@@ -1655,6 +1783,8 @@ public class DepotHeadService {
         }
         /**入库和出库处理单据子表信息*/
         depotItemService.saveDetials(rows,depotHead.getId(), "update",request);
+        //根据明细实际关联的源单据，同步校验并修正 link_number
+        syncLinkNumberByDetail(depotHead.getId());
         //销售出库单编辑后，同步更新关联物流单的重量和运费
         if("出库".equals(depotHead.getType()) && "销售".equals(depotHead.getSubType())) {
             List<Long> ids = new ArrayList<>();

@@ -253,7 +253,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
           'changeAmount','status','purchaseStatus'],
         // 默认列
         defColumns: [
@@ -264,6 +264,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '客户', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:140},
           { title: '商品信息', dataIndex: 'materialsList',width:220, ellipsis:true},
           { title: '单据日期', dataIndex: 'operTimeStr',width:145},

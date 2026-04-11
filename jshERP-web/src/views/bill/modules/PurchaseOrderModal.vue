@@ -160,7 +160,10 @@
               <a-input placeholder="请输入支付订金" v-decorator.trim="[ 'changeAmount', validatorRules.price ]" @change="onChangeChangeAmount"/>
             </a-form-item>
           </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
+          <a-col :lg="6" :md="12" :sm="24" v-if="action==='add'">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="">
+              <a-checkbox v-model="autoGeneratePurchaseIn">保存时自动生成采购入库单</a-checkbox>
+            </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
           </a-col>
@@ -236,6 +239,7 @@
         depotList: [],
         operTimeStr: '',
         prefixNo: 'CGDD',
+        autoGeneratePurchaseIn: true,
         fileList:[],
         rowCanEdit: true,
         //以销定购的场景开关
@@ -404,6 +408,7 @@
           billMain.id = this.model.id
         }
         billMain.status = this.billStatus
+        billMain.autoGeneratePurchaseIn = this.autoGeneratePurchaseIn && this.action === 'add'
         return {
           info: JSON.stringify(billMain),
           rows: JSON.stringify(detailArr),

@@ -144,7 +144,7 @@
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
-          <a-button icon="audit" @click="batchSetPriceApproved('1')" style="color:#52c41a">价格核准</a-button>
+          <a-button icon="audit" @click="batchSetPriceApproved('1')" style="color:#52c41a">单据核准</a-button>
           <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
@@ -175,6 +175,7 @@
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :expandedRowKeys="expandedRowKeys"
+            :rowClassName="billRowClassName"
             @expand="onExpand"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
@@ -187,6 +188,12 @@
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => myHandleDelete(record)">
                 <a>删除</a>
               </a-popconfirm>
+              <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
             </span>
             <template slot="customRenderDebt" slot-scope="value, record">
               <a-tooltip title="有收款单">
@@ -231,6 +238,26 @@
           <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
           <a-divider type="vertical" />
           <span>单据金额：<b style="color:red">{{ summary.totalAmount }}</b></span>
+          <template v-if="summary.contractInfo">
+            <a-divider type="vertical" />
+            <template v-if="!summary.contractInfo.hasContract">
+              <span style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+              <span style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+              <span style="color:#333">未签署合同</span>
+            </template>
+            <template v-else-if="summary.contractInfo.remainAmount < 0 || summary.contractInfo.remainTonnage < 0">
+              <span v-if="summary.contractInfo.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+              <span v-else>剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;</span>
+              <span v-if="summary.contractInfo.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+              <span v-else>剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;</span>
+              <a-tag color="orange" style="vertical-align:middle">已签署合同</a-tag>
+            </template>
+            <template v-else>
+              剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;
+              剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;
+              <a-tag color="green" style="vertical-align:middle">已签署合同</a-tag>
+            </template>
+          </template>
         </div>
         <!-- 表单区域 -->
         <sale-out-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></sale-out-modal>
@@ -238,6 +265,7 @@
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
         <freight-bill-modal ref="freightDetailModal"></freight-bill-modal>
+        <attachment-modal ref="attachModal" bizPath="bill" @change="onAttachChange"></attachment-modal>
       </a-card>
     </a-col>
   </a-row>
@@ -253,6 +281,9 @@
   import { BillListMixin } from './mixins/BillListMixin'
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import JDate from '@/components/jeecg/JDate'
+  import { getContractBalance } from '@/api/api'
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction } from '@/api/manage'
   import Vue from 'vue'
   export default {
     name: "SaleOutList",
@@ -263,6 +294,7 @@
       BillDetail,
       BillExcelIframe,
       FreightBillModal,
+      AttachmentModal,
       ColumnSettingPopover,
       JEllipsis,
       JDate,
@@ -302,8 +334,8 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
-          'changeAmount','debt','lastDebt','status'],
+        defDataIndex:['action','organName','projectName','number','linkNumber','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+          'changeAmount','debt','lastDebt','freightBillNo','totalWeight','status'],
         // 默认列
         defColumns: [
           {
@@ -365,7 +397,8 @@
         summary: {
           count: 0,
           totalWeight: '0.000',
-          totalAmount: '0.00'
+          totalAmount: '0.00',
+          contractInfo: null
         },
         url: {
           list: "/depotHead/list",
@@ -431,17 +464,52 @@
         this.summary = {
           count: rows.length,
           totalWeight: totalWeight.toFixed(3),
-          totalAmount: Math.abs(totalAmount).toFixed(2)
+          totalAmount: Math.abs(totalAmount).toFixed(2),
+          contractInfo: null
+        }
+        // 选中单据时查询合同余额（取第一条选中单据的客户）
+        if (rows.length > 0 && rows[0].organId) {
+          getContractBalance({ organId: rows[0].organId }).then(res => {
+            if (res && res.code === 200 && res.data) {
+              let d = res.data
+              let totalAmt = Number(d.totalAmount || 0)
+              let totalTon = Number(d.totalTonnage || 0)
+              this.summary.contractInfo = {
+                hasContract: totalAmt > 0 || totalTon > 0,
+                remainAmount: Number(d.remainAmount || 0).toFixed(2),
+                remainTonnage: Number(d.remainTonnage || 0).toFixed(3)
+              }
+            } else {
+              this.summary.contractInfo = { hasContract: false }
+            }
+          }).catch(() => {
+            this.summary.contractInfo = { hasContract: false }
+          })
         }
       },
       handleViewFreight(billNo) {
         // 物流单号可能包含多个（逗号分隔），取第一个
         let no = billNo.split(',')[0].trim()
         this.$refs.freightDetailModal.detailByBillNo(no)
+      },
+      billRowClassName(record) {
+        // 未审核的出库单高亮
+        let s = String(record.status || '0')
+        return (s !== '1' && s !== '2' && s !== '3') ? 'bill-row-incomplete' : ''
+      },
+      onAttachChange({ id, attachments }) {
+        putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
+        })
       }
     }
   }
 </script>
 <style scoped>
   @import '~@assets/less/common.less'
+</style>
+<style>
+  .bill-row-incomplete td {
+    background-color: var(--erp-primary-light, #e6f7ff) !important;
+  }
 </style>

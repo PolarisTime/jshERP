@@ -17,10 +17,15 @@
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="project_name" jdbcType="VARCHAR" property="projectName" />
+    <result column="tonnage" jdbcType="DECIMAL" property="tonnage" />
+    <result column="audit_status" jdbcType="VARCHAR" property="auditStatus" />
+    <result column="sign_status" jdbcType="VARCHAR" property="signStatus" />
   </resultMap>
   <sql id="Base_Column_List">
     id, contract_no, contract_name, organ_id, sign_date, effect_date, expire_date,
-    amount, status, attachments, remark, tenant_id, delete_flag, create_time, update_time
+    amount, status, attachments, remark, tenant_id, delete_flag, create_time, update_time,
+    project_name, tonnage, audit_status, sign_status
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
@@ -37,12 +42,14 @@
       organ_id, sign_date, effect_date,
       expire_date, amount, status,
       attachments, remark, tenant_id,
-      delete_flag, create_time, update_time)
+      delete_flag, create_time, update_time,
+      project_name, tonnage, audit_status, sign_status)
     values (#{id,jdbcType=BIGINT}, #{contractNo,jdbcType=VARCHAR}, #{contractName,jdbcType=VARCHAR},
       #{organId,jdbcType=BIGINT}, #{signDate,jdbcType=TIMESTAMP}, #{effectDate,jdbcType=TIMESTAMP},
       #{expireDate,jdbcType=TIMESTAMP}, #{amount,jdbcType=DECIMAL}, #{status,jdbcType=VARCHAR},
       #{attachments,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{tenantId,jdbcType=BIGINT},
-      #{deleteFlag,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{deleteFlag,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+      #{projectName,jdbcType=VARCHAR}, #{tonnage,jdbcType=DECIMAL}, #{auditStatus,jdbcType=VARCHAR}, #{signStatus,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.Contract">
     insert into jsh_contract
@@ -92,6 +99,18 @@
       <if test="updateTime != null">
         update_time,
       </if>
+      <if test="projectName != null">
+        project_name,
+      </if>
+      <if test="tonnage != null">
+        tonnage,
+      </if>
+      <if test="auditStatus != null">
+        audit_status,
+      </if>
+      <if test="signStatus != null">
+        sign_status,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -138,6 +157,18 @@
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="projectName != null">
+        #{projectName,jdbcType=VARCHAR},
+      </if>
+      <if test="tonnage != null">
+        #{tonnage,jdbcType=DECIMAL},
+      </if>
+      <if test="auditStatus != null">
+        #{auditStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="signStatus != null">
+        #{signStatus,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -186,6 +217,18 @@
       <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="projectName != null">
+        project_name = #{projectName,jdbcType=VARCHAR},
+      </if>
+      <if test="tonnage != null">
+        tonnage = #{tonnage,jdbcType=DECIMAL},
+      </if>
+      <if test="auditStatus != null">
+        audit_status = #{auditStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="signStatus != null">
+        sign_status = #{signStatus,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -204,7 +247,11 @@
       tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      project_name = #{projectName,jdbcType=VARCHAR},
+      tonnage = #{tonnage,jdbcType=DECIMAL},
+      audit_status = #{auditStatus,jdbcType=VARCHAR},
+      sign_status = #{signStatus,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

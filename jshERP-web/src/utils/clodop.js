@@ -169,8 +169,7 @@ function parseInitCall(code) {
  * @returns {string}
  */
 function cleanTemplateCode(code) {
-  // 修复字符串内换行（用户粘贴的代码可能含多行字符串，JS 不允许）
-  let cleaned = code.replace(/"([^"]*)"/g, (m) => m.replace(/\n\s*/g, ''))
+  let cleaned = code
   // 移除控制类调用，避免与外部调用重复
   cleaned = cleaned
     .replace(/LODOP\s*\.\s*PRINT_INITA?\s*\([^)]*\)\s*;?/g, '')

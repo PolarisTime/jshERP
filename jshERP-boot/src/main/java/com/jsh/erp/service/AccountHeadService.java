@@ -50,6 +50,8 @@ public class AccountHeadService {
     @Resource
     private LogService logService;
     @Resource
+    private CustomerStatementService customerStatementService;
+    @Resource
     private AccountItemMapperEx accountItemMapperEx;
     @Resource
     private AccountMapper accountMapper;
@@ -340,6 +342,10 @@ public class AccountHeadService {
             //更新会员预付款
             supplierService.updateAdvanceIn(accountHead.getOrganId());
         }
+        //收款单：如果明细关联了对账单（billNumber以DZ开头），更新对账单已收金额
+        if("收款".equals(accountHead.getType())) {
+            updateStatementReceivedAmount(rows);
+        }
         String statusStr = accountHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("财务单据",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(accountHead.getBillNo()).append(statusStr).toString(), request);
@@ -416,5 +422,32 @@ public class AccountHeadService {
 
     public List<AccountHead> getFinancialBillNoByBillId(Long billId) {
         return accountHeadMapperEx.getFinancialBillNoByBillId(billId);
+    }
+
+    /**
+     * 收款单保存时，更新关联对账单的已收金额
+     * 明细的 billNumber 以 DZ 开头表示关联的是对账单
+     */
+    private void updateStatementReceivedAmount(String rows) {
+        try {
+            JSONArray rowArr = JSONArray.parseArray(rows);
+            if (rowArr == null) return;
+            for (int i = 0; i < rowArr.size(); i++) {
+                JSONObject item = JSONObject.parseObject(rowArr.getString(i));
+                String billNumber = item.getString("billNumber");
+                if (billNumber != null && billNumber.startsWith("DZ")) {
+                    BigDecimal eachAmount = item.getBigDecimal("eachAmount");
+                    if (eachAmount != null && eachAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        // 通过对账单号查ID
+                        Long statementId = item.getLong("billId");
+                        if (statementId != null) {
+                            customerStatementService.addReceivedAmount(statementId, eachAmount);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("更新对账单已收金额异常", e);
+        }
     }
 }

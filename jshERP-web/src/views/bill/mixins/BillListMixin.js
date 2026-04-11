@@ -746,9 +746,6 @@ export const BillListMixin = {
             return
           }
           let c = Object.assign({}, colMap[di], { align: 'center' })
-          if (!fixedKeys.includes(c.dataIndex)) {
-            delete c.width
-          }
           result.push(c)
         }
       })

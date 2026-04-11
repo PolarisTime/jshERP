@@ -194,7 +194,8 @@ public class SystemConfigController extends BaseController {
             String savePath = "";
             String bizPath = request.getParameter("biz");
             String billId = request.getParameter("billId");
-            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath) || "contract".equals(bizPath)) {
+            if ("bill".equals(bizPath) || "financial".equals(bizPath) || "material".equals(bizPath)
+                    || "contract".equals(bizPath) || "statement".equals(bizPath) || "freightStatement".equals(bizPath) || "freight".equals(bizPath)) {
                 MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
                 MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
                 if(fileUploadType == 1) {

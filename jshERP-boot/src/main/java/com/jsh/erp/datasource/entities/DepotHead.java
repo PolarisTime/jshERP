@@ -73,6 +73,9 @@ public class DepotHead {
     /** 关联标记：0=未关联，1=已被下游单据关联（如采购入库被销售出库引用） */
     private String linkedFlag;
 
+    /** 供销售出库关联标志：0=否，1=是 */
+    private String saleLinkFlag;
+
     public Long getId() {
         return id;
     }
@@ -343,5 +346,13 @@ public class DepotHead {
 
     public void setLinkedFlag(String linkedFlag) {
         this.linkedFlag = linkedFlag == null ? null : linkedFlag.trim();
+    }
+
+    public String getSaleLinkFlag() {
+        return saleLinkFlag;
+    }
+
+    public void setSaleLinkFlag(String saleLinkFlag) {
+        this.saleLinkFlag = saleLinkFlag == null ? null : saleLinkFlag.trim();
     }
 }

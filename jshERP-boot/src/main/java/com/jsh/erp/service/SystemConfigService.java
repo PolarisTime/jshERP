@@ -174,50 +174,75 @@ public class SystemConfigService {
     @Resource
     private SupplierService supplierService;
 
+    @Resource
+    private ContractService contractService;
+
     /**
-     * 根据单据ID构建文件名前缀：单据日期_物流单号_项目名称_客户_单据编号
+     * 根据业务类型和ID构建文件名前缀
+     * 销售出库：单据号_物流单号_总重量_日期(yyyy.MM.dd)
+     * 采购订单/入库：单据号_总重量_日期(yyyy.MM.dd)
+     * 合同：合同编码_吨位_金额_签署日期(yyyy.MM.dd)_公司名称_项目名称
+     * 对账单/物流对账：对账单号_重量_金额_创建日期(yyyy.MM.dd)_公司名称_项目名称
      */
     private String buildBillFilePrefix(String billId) {
+        return buildBillFilePrefix(billId, null);
+    }
+
+    public String buildBillFilePrefix(String billId, String bizPath) {
         if(StringUtil.isEmpty(billId)) return null;
         try {
             Long id = Long.parseLong(billId);
-            com.jsh.erp.datasource.entities.DepotHead dh = depotHeadService.getDepotHead(id);
-            if(dh == null) return null;
             StringBuilder sb = new StringBuilder();
-            // 单据日期
-            if(dh.getOperTime() != null) {
-                sb.append(Tools.getCenternTime(dh.getOperTime()).replace("-",""));
-            }
-            // 物流单号（通过DepotHeadService的批量查询方法）
-            try {
-                java.util.List<Long> idList = new java.util.ArrayList<>();
-                idList.add(id);
-                java.util.Map<Long,String> freightMap = depotHeadService.getFreightBillNoMapByDepotHeadIdList(idList);
-                if(freightMap != null && freightMap.containsKey(id)) {
-                    sb.append("_").append(freightMap.get(id));
+            java.text.SimpleDateFormat dotFmt = new java.text.SimpleDateFormat("yyyy.MM.dd");
+
+            if("contract".equals(bizPath)) {
+                // 合同：合同编码_吨位_金额_签署日期_公司名称_项目名称
+                com.jsh.erp.datasource.entities.Contract c = contractService.getContractById(id);
+                if(c == null) return null;
+                sb.append(c.getContractNo());
+                if(c.getTonnage() != null) sb.append("_").append(c.getTonnage().stripTrailingZeros().toPlainString());
+                if(c.getAmount() != null) sb.append("_").append(c.getAmount().stripTrailingZeros().toPlainString());
+                if(c.getSignDate() != null) sb.append("_").append(dotFmt.format(c.getSignDate()));
+                if(c.getOrganId() != null) {
+                    com.jsh.erp.datasource.entities.Supplier sup = supplierService.getSupplier(c.getOrganId());
+                    if(sup != null) {
+                        if(StringUtil.isNotEmpty(sup.getSupplier())) sb.append("_").append(sup.getSupplier());
+                        if(StringUtil.isNotEmpty(sup.getProjectName())) sb.append("_").append(sup.getProjectName());
+                    }
                 }
-            } catch (Exception ignore) {}
-            // 项目名称和客户名称（从supplier获取）
-            if(dh.getOrganId() != null) {
+            } else if("statement".equals(bizPath) || "freightStatement".equals(bizPath)) {
+                // 对账单/物流对账：对账单号_重量_金额_创建日期_公司/物流方_项目名称
+                // 这里简单用 billId 不再深入查（不同表结构不同），返回 null 让默认逻辑处理
+                return null;
+            } else {
+                // 单据类（销售出库/采购订单/采购入库等）
+                com.jsh.erp.datasource.entities.DepotHead dh = depotHeadService.getDepotHead(id);
+                if(dh == null) return null;
+                // 单据号
+                sb.append(dh.getNumber());
+                // 销售出库：追加物流单号
+                if("出库".equals(dh.getType()) && "销售".equals(dh.getSubType())) {
+                    try {
+                        java.util.List<Long> idList = new java.util.ArrayList<>();
+                        idList.add(id);
+                        java.util.Map<Long,String> fMap = depotHeadService.getFreightBillNoMapByDepotHeadIdList(idList);
+                        if(fMap != null && fMap.containsKey(id)) sb.append("_").append(fMap.get(id));
+                    } catch (Exception ignore) {}
+                }
+                // 总重量
                 try {
-                    com.jsh.erp.datasource.entities.Supplier supplier = supplierService.getSupplier(dh.getOrganId());
-                    if(supplier != null) {
-                        if(StringUtil.isNotEmpty(supplier.getProjectName())) {
-                            sb.append("_").append(supplier.getProjectName());
-                        }
-                        if(StringUtil.isNotEmpty(supplier.getSupplier())) {
-                            sb.append("_").append(supplier.getSupplier());
-                        }
+                    java.util.List<Long> idList = new java.util.ArrayList<>();
+                    idList.add(id);
+                    java.util.Map<Long, java.math.BigDecimal> wMap = depotHeadService.getTotalWeightMapByHeaderIdList(idList);
+                    if(wMap != null && wMap.containsKey(id) && wMap.get(id) != null) {
+                        sb.append("_").append(wMap.get(id).stripTrailingZeros().toPlainString());
                     }
                 } catch (Exception ignore) {}
-            }
-            // 单据编号
-            if(StringUtil.isNotEmpty(dh.getNumber())) {
-                sb.append("_").append(dh.getNumber());
+                // 单据日期
+                if(dh.getOperTime() != null) sb.append("_").append(dotFmt.format(dh.getOperTime()));
             }
             String prefix = sb.toString();
-            // 清除文件名中的非法字符
-            prefix = prefix.replaceAll("[\\\\/:*?\"<>|]", "");
+            prefix = prefix.replaceAll("[\\\\/:*?\"<>|]", "_");
             return prefix.length() > 0 ? prefix : null;
         } catch (Exception e) {
             logger.error("构建文件名前缀异常", e);
@@ -237,6 +262,7 @@ public class SystemConfigService {
             if(StringUtil.isEmpty(bizPath)){
                 bizPath = "";
             }
+            String origBizPath = bizPath; // 保留原始业务类型用于文件命名
             // Validate bizPath to prevent directory traversal
             if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
@@ -283,8 +309,8 @@ public class SystemConfigService {
                 }
             }
 
-            // 根据单据ID构建文件名前缀
-            String billPrefix = buildBillFilePrefix(billId);
+            // 根据单据ID和业务类型构建文件名前缀
+            String billPrefix = buildBillFilePrefix(billId, origBizPath);
             if(billPrefix != null) {
                 fileName = billPrefix + fileExt;
             } else if(orgName.contains(".")){

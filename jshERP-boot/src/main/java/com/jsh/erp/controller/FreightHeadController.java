@@ -417,4 +417,22 @@ public class FreightHeadController extends BaseController {
             logger.error(e.getMessage(), e);
         }
     }
+
+    @PutMapping(value = "/updateFileById")
+    @ApiOperation(value = "更新物流单附件")
+    public BaseResponseInfo updateFileById(@RequestBody JSONObject params, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            Long id = params.getLong("id");
+            String fileName = params.getString("fileName");
+            freightHeadService.updateFileById(id, fileName);
+            res.code = 200;
+            res.data = "操作成功";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
+    }
 }

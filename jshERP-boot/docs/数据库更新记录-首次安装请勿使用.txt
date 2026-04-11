@@ -1812,3 +1812,6 @@ ALTER TABLE jsh_depot_head ADD COLUMN linked_flag VARCHAR(1) DEFAULT '0' COMMENT
 
 -- 物流单送达状态
 ALTER TABLE jsh_freight_head ADD COLUMN delivery_status VARCHAR(1) DEFAULT '0' COMMENT '送达状态：0=未送达，1=已送达' AFTER delete_flag;
+
+-- 供销售出库关联标志
+ALTER TABLE jsh_depot_head ADD COLUMN sale_link_flag VARCHAR(1) DEFAULT '0' COMMENT '供销售出库关联标志：0=否，1=是' AFTER linked_flag;

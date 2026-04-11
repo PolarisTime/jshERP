@@ -29,12 +29,6 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item label="送达状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="全部" allow-clear v-model="queryParam.deliveryStatus">
-                    <a-select-option value="0">未送达</a-select-option>
-                    <a-select-option value="1">已送达</a-select-option>
-                  </a-select>
-                </a-form-item>
               </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
                 <a-col :md="6" :sm="24">
@@ -88,11 +82,13 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :expandedRowKeys="expandedRowKeys"
+            :rowClassName="freightRowClassName"
             @expand="onExpandFreight"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
@@ -103,7 +99,13 @@
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => handleDeleteBill(record)">
                 <a>删除</a>
               </a-popconfirm>
-            </span>
+                          <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
+              </span>
             <template slot="customRenderStatus" slot-scope="text, record">
               <a-tag v-if="record.status === '0' || record.status === 0" color="red">未审核</a-tag>
               <a-tag v-if="record.status === '1' || record.status === 1" color="green">已审核</a-tag>
@@ -124,6 +126,7 @@
           </a-table>
         </div>
         <freight-bill-modal ref="modalForm" @ok="modalFormOk"></freight-bill-modal>
+        <attachment-modal ref="attachModal" bizPath="freight" @change="onAttachChange"></attachment-modal>
       </a-card>
     </a-col>
   </a-row>
@@ -135,10 +138,14 @@
   import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
   import { postAction } from '@/api/manage'
   import Vue from 'vue'
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction } from '@/api/manage'
+
   export default {
     name: "FreightBillList",
     mixins: [JeecgListMixin],
     components: {
+      AttachmentModal,
       FreightBillModal,
       ColumnSettingPopover
     },
@@ -155,7 +162,7 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
-          deliveryStatus: '0',
+          deliveryStatus: undefined,
           beginTime: '',
           endTime: ''
         },
@@ -220,6 +227,12 @@
       this.initColumnsSetting();
     },
     methods: {
+      freightRowClassName(record) {
+        // 审核或送达任一未完成，行底色染蓝
+        let notAudited = record.status === '0' || record.status === 0
+        let notDelivered = record.deliveryStatus !== '1'
+        return (notAudited || notDelivered) ? 'freight-row-incomplete' : ''
+      },
       initColumnsSetting() {
         this.settingDataIndex = [...this.defDataIndex]
         this.applyColumnsOrdered(this.settingDataIndex)
@@ -257,9 +270,6 @@
         orderedArr.forEach(di => {
           if(colMap[di]) {
             let c = Object.assign({}, colMap[di], { align: 'center' })
-            if (!fixedKeys.includes(c.dataIndex)) {
-              delete c.width
-            }
             result.push(c)
           }
         })
@@ -323,7 +333,7 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
-          deliveryStatus: '0',
+          deliveryStatus: undefined,
           beginTime: '',
           endTime: ''
         }
@@ -371,10 +381,20 @@
             that.$message.warning(res.data.message);
           }
         })
+      },
+      onAttachChange({ id, attachments }) {
+        putAction('/freightHead/updateFileById', { id, fileName: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
+        })
       }
     }
   }
 </script>
 <style scoped>
   @import '~@assets/less/common.less'
+</style>
+<style>
+  .freight-row-incomplete td {
+    background-color: var(--erp-primary-light, #e6f7ff) !important;
+  }
 </style>

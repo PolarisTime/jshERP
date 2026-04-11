@@ -14,7 +14,7 @@ import java.io.IOException;
 @WebFilter(filterName = "LogCostFilter", urlPatterns = {"/*"},
         initParams = {@WebInitParam(name = "filterPath",
                       value = "/jshERP-boot/platformConfig/getPlatform#/jshERP-boot/v2/api-docs#/jshERP-boot/webjars#" +
-                              "/jshERP-boot/systemConfig/static#/jshERP-boot/api/plugin/wechat/weChat/share#" +
+                              "/jshERP-boot/api/plugin/wechat/weChat/share#" +
                               "/jshERP-boot/api/plugin/general-ledger/pdf/voucher#/jshERP-boot/api/plugin/tenant-statistics/tenantClean")})
 public class LogCostFilter implements Filter {
 
@@ -48,6 +48,17 @@ public class LogCostFilter implements Filter {
         if(userId!=null) { //如果已登录，不阻止
             chain.doFilter(request, response);
             return;
+        }
+        // 文件访问支持URL参数token鉴权（用于图片/PDF预览）
+        if(requestUrl.startsWith("/jshERP-boot/systemConfig/static")) {
+            String tokenParam = servletRequest.getParameter("token");
+            if(tokenParam != null && !tokenParam.isEmpty()) {
+                Object tokenUser = redisService.getObjectFromSessionByToken(tokenParam, "userId");
+                if(tokenUser != null) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+            }
         }
         if (requestUrl.equals("/jshERP-boot/doc.html") || requestUrl.equals("/jshERP-boot/user/login")
                 || requestUrl.equals("/jshERP-boot/user/register") || requestUrl.equals("/jshERP-boot/user/weixinLogin")

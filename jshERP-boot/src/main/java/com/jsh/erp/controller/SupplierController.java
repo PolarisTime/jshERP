@@ -185,12 +185,7 @@ public class SupplierController extends BaseController {
                     Boolean flag = ubValue.contains("[" + supplier.getId().toString() + "]");
                     if (!customerFlag || flag) {
                         item.put("id", supplier.getId());
-                        // 客户下拉显示格式：项目名称（客户名称）
-                        String projectName = supplier.getProjectName();
-                        String displayName = (projectName != null && !projectName.isEmpty())
-                                ? projectName + "（" + supplier.getSupplier() + "）"
-                                : supplier.getSupplier();
-                        item.put("supplier", displayName);
+                        item.put("supplier", supplier.getSupplier());
                         item.put("projectName", supplier.getProjectName());
                         item.put("projectAddress", supplier.getProjectAddress());
                         dataArray.add(item);

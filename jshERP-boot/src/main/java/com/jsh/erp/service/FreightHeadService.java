@@ -638,4 +638,11 @@ public class FreightHeadService {
         }
         return list;
     }
+
+    public void updateFileById(Long id, String fileName) {
+        FreightHead fh = new FreightHead();
+        fh.setId(id);
+        fh.setFileName(fileName);
+        freightHeadMapper.updateByPrimaryKeySelective(fh);
+    }
 }

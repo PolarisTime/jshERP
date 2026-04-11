@@ -240,7 +240,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
           'needBackMoney','changeAmount','debt','status'],
         // 默认列
         defColumns: [
@@ -251,6 +251,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '供应商', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
               text = record.linkNumber?text+"[转]":text

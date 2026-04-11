@@ -221,6 +221,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '客户', dataIndex: 'organName',width:140, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'billNo',width:160},
           { title: '单据日期 ', dataIndex: 'billTimeStr',width:160},
           { title: '操作员', dataIndex: 'userName',width:100, ellipsis:true},

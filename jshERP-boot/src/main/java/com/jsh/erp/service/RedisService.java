@@ -66,6 +66,23 @@ public class RedisService {
     }
 
     /**
+     * 通过 token 字符串直接校验（用于URL参数鉴权）
+     */
+    public Object getObjectFromSessionByToken(String token, String key) {
+        if(token == null || token.isEmpty()) return null;
+        try {
+            if(redisTemplate.opsForHash().hasKey(token, key)) {
+                Object obj = redisTemplate.opsForHash().get(token, key);
+                redisTemplate.expire(token, BusinessConstants.MAX_SESSION_IN_SECONDS, TimeUnit.SECONDS);
+                return obj;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
+    }
+
+    /**
      * 获得缓存的基本对象。
      *
      * @param key 缓存键值
