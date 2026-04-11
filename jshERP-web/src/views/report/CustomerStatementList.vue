@@ -6,13 +6,22 @@
         <div class="table-page-search-wrapper">
           <a-form layout="inline" @keyup.enter.native="searchQuery">
             <a-row :gutter="24">
-              <a-col :md="6" :sm="24">
-                <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="请选择客户" v-model="queryParam.organId"
+              <a-col :md="4" :sm="24">
+                <a-form-item label="客户" :labelCol="{span:6}" :wrapperCol="{span:18}">
+                  <a-select placeholder="全部" v-model="selectedCustomerName"
                     showSearch allow-clear optionFilterProp="children"
-                    @search="handleSearchCustomer">
-                    <a-select-option v-for="item in cusList" :key="item.id" :value="item.id">
-                      {{ item.supplier }}
+                    @search="handleSearchCustomer" @change="onCustomerNameChange">
+                    <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">{{ name }}</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="项目" :labelCol="{span:4}" :wrapperCol="{span:20}">
+                  <a-select placeholder="全部" v-model="queryParam.organId"
+                    showSearch allow-clear optionFilterProp="children"
+                    :disabled="projectListForOrgan.length === 0" @change="loadData(1)">
+                    <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                      {{ item.projectName || '(无项目名称)' }}
                     </a-select-option>
                   </a-select>
                 </a-form-item>
@@ -146,6 +155,8 @@
           dateRange: []
         },
         cusList: [],
+        selectedCustomerName: undefined,
+        projectListForOrgan: [],
         searchTimer: null,
         // 行选择
         selectedRowKeys: [],
@@ -156,12 +167,12 @@
           { title: '客户', dataIndex: 'customerName', width: 140, ellipsis: true },
           { title: '账期开始', dataIndex: 'beginTimeStr', width: 110 },
           { title: '账期结束', dataIndex: 'endTimeStr', width: 110 },
-          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110 },
-          { title: '总金额(元)', dataIndex: 'totalAmount', width: 110 },
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110, customRender: t => t != null ? Number(t).toFixed(3) : '' },
+          { title: '总金额(元)', dataIndex: 'totalAmount', width: 110, customRender: t => t != null ? Number(t).toFixed(2) : '' },
           { title: '审核状态', dataIndex: 'status', width: 90, align: 'center', scopedSlots: { customRender: 'statusRender' } },
           { title: '签署状态', dataIndex: 'signStatus', width: 90, align: 'center', scopedSlots: { customRender: 'signRender' } },
           { title: '创建时间', dataIndex: 'createTimeStr', width: 160 },
-          { title: '备注', dataIndex: 'remark', ellipsis: true }
+          { title: '备注', dataIndex: 'remark', width: 150, ellipsis: true }
         ],
         printModel: {},
         printDataSource: [],
@@ -171,6 +182,14 @@
     computed: {
       hasSingleSelected() {
         return this.selectedRowKeys.length === 1
+      },
+      uniqueCustomerNames() {
+        let seen = new Set()
+        return this.cusList.map(c => c.supplier).filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
       }
     },
     created() {
@@ -200,8 +219,23 @@
       },
       searchQuery() { this.loadData(1) },
       searchReset() {
+        this.selectedCustomerName = undefined
+        this.projectListForOrgan = []
         this.queryParam = { organId: undefined, status: undefined, signStatus: undefined, beginTime: '', endTime: '', dateRange: [] }
         this.loadData(1)
+      },
+      onCustomerNameChange(supplierName) {
+        this.queryParam.organId = undefined
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          if (this.projectListForOrgan.length === 1) {
+            this.queryParam.organId = this.projectListForOrgan[0].id
+            this.loadData(1)
+          }
+        } else {
+          this.projectListForOrgan = []
+          this.loadData(1)
+        }
       },
       onDateChange(dates, dateStrings) {
         this.queryParam.beginTime = dateStrings[0] || ''
