@@ -94,6 +94,7 @@
           :columns="currentDetailColumns"
           :dataSource="selectedSaleOutList"
           :pagination="false"
+          :scroll="{ x: 1420 }"
           :components="detailDragComponents">
           <span slot="action" slot-scope="text, record, index">
             <a-popconfirm title="确定移除吗?" @confirm="() => removeSaleOut(index)">
@@ -138,7 +139,9 @@
         :dataSource="availableSaleOutList"
         :loading="saleOutLoading"
         :pagination="saleOutPagination"
+        :scroll="{ x: 1530 }"
         :rowSelection="{selectedRowKeys: saleOutSelectedKeys, onChange: onSaleOutSelectChange}"
+        :customRow="saleOutRowAction"
         :components="saleOutDragComponents"
         @change="handleSaleOutTableChange">
         <template slot="saleOutStatus" slot-scope="text">
@@ -284,7 +287,7 @@
               const dragProps = {
                 key: col.dataIndex || col.key,
                 class: 'table-draggable-handle',
-                attrs: { w: 10, x: col.width, z: 1, axis: 'x', draggable: true, resizable: false },
+                attrs: { w: 10, h: 10, x: col.width, z: 1, axis: 'x', draggable: true, resizable: false },
                 on: {
                   dragging: (x) => { col.width = Math.max(x, 1) }
                 }
@@ -495,6 +498,21 @@
         this.saleOutSelectedKeys = selectedRowKeys;
         this.saleOutSelectedRows = selectedRows;
       },
+      saleOutRowAction(record) {
+        return {
+          on: {
+            click: () => {
+              this.saleOutSelectedKeys = [record.id]
+              this.saleOutSelectedRows = [record]
+            },
+            dblclick: () => {
+              this.saleOutSelectedKeys = [record.id]
+              this.saleOutSelectedRows = [record]
+              this.confirmSelectSaleOut()
+            }
+          }
+        }
+      },
       confirmSelectSaleOut() {
         if (this.saleOutSelectedRows.length === 0) {
           this.$message.warning('请至少选择一条出库单！');
@@ -636,10 +654,13 @@
 <style scoped>
   .resize-table-th {
     position: relative;
+    overflow: hidden;
   }
   .table-draggable-handle {
     height: 100% !important;
+    width: 10px !important;
     bottom: 0;
+    top: 0;
     left: auto !important;
     right: -5px;
     cursor: col-resize;

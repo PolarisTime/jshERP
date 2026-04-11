@@ -53,39 +53,43 @@
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="合同状态">
-              <template v-if="contractBalance">
-                <span style="font-size:12px;">
-                  <!-- 无合同 -->
-                  <template v-if="!contractBalance.hasContract">
-                    <span style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
-                    <span style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
-                    <span style="color:#333">未签署合同</span>
-                  </template>
-                  <!-- 有合同但超限 -->
-                  <template v-else-if="contractBalance.remainAmount < 0 || contractBalance.remainTonnage < 0">
-                    <span v-if="contractBalance.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
-                    <span v-else>剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;</span>
-                    <span v-if="contractBalance.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
-                    <span v-else>剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;</span>
-                    <a-tag color="orange" style="margin-left:4px">已签署合同</a-tag>
-                  </template>
-                  <!-- 有合同且正常 -->
-                  <template v-else>
-                    剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;
-                    剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;
-                    <a-tag color="green" style="margin-left:4px">已签署合同</a-tag>
-                  </template>
-                </span>
-              </template>
-              <span v-else style="color:#999">请先选择客户</span>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
               <j-date v-decorator="['operTime', validatorRules.operTime]" :show-time="true"/>
             </a-form-item>
           </a-col>
+        </a-row>
+        <!-- 合同状态（独占一行） -->
+        <a-row class="form-row" :gutter="24">
+          <a-col :lg="24" :md="24" :sm="24">
+            <div style="padding:0 12px 8px;font-size:12px;">
+              <span style="font-weight:500;margin-right:8px;">合同状态：</span>
+              <template v-if="contractBalance">
+                <!-- 无合同 -->
+                <template v-if="!contractBalance.hasContract">
+                  <span style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
+                  <span style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
+                  <span style="color:#333">未签署合同</span>
+                </template>
+                <!-- 有合同但超限 -->
+                <template v-else-if="contractBalance.remainAmount < 0 || contractBalance.remainTonnage < 0">
+                  <span v-if="contractBalance.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
+                  <span v-else>剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;</span>
+                  <span v-if="contractBalance.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
+                  <span v-else>剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;</span>
+                  <a-tag color="orange" style="margin-left:4px">已签署合同</a-tag>
+                </template>
+                <!-- 有合同且正常 -->
+                <template v-else>
+                  剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;
+                  剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;
+                  <a-tag color="green" style="margin-left:4px">已签署合同</a-tag>
+                </template>
+              </template>
+              <span v-else style="color:#999">请先选择客户</span>
+            </div>
+          </a-col>
+        </a-row>
+        <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据编号" data-step="2" data-title="单据编号"
                          data-intro="单据编号自动生成、自动累加、开头是单据类型的首字母缩写，累加的规则是每次打开页面会自动占用一个新的编号">

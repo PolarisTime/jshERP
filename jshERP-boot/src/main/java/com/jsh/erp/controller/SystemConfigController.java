@@ -201,7 +201,7 @@ public class SystemConfigController extends BaseController {
                 if(fileUploadType == 1) {
                     savePath = systemConfigService.uploadLocal(file, bizPath, billId, request);
                 } else if(fileUploadType == 2) {
-                    savePath = systemConfigService.uploadAliOss(file, bizPath, request);
+                    savePath = systemConfigService.uploadAliOss(file, bizPath, billId, request);
                 }
                 if(StringUtil.isNotEmpty(savePath)){
                     res.code = 200;

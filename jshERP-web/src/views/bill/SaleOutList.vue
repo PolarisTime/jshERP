@@ -148,6 +148,7 @@
           <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
+          <a-button icon="printer" @click="handleClodopPrint">CLodop打印</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -501,6 +502,14 @@
         putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
           if (res && res.code === 200) this.$message.success('附件已保存')
         })
+      },
+      handleClodopPrint() {
+        if (this.selectedRowKeys.length !== 1) {
+          this.$message.warning('请选择一条单据进行打印')
+          return
+        }
+        let record = this.selectionRows[0]
+        this.$refs.modalDetail.show(record, '销售出库', this.prefixNo, true)
       }
     }
   }

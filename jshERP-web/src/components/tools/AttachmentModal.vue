@@ -1,6 +1,6 @@
 <template>
   <a-modal :title="title" :visible="visible" :footer="null" @cancel="visible=false" :width="680">
-    <j-upload v-model="attachments" :bizPath="bizPath" fileType="all" @change="onFileChange" />
+    <j-upload v-model="attachments" :bizPath="bizPath" :billId="recordId" fileType="all" @change="onFileChange" />
     <!-- 附件预览区 -->
     <div v-if="fileUrls.length > 0" style="margin-top:12px;border-top:1px solid #e8e8e8;padding-top:12px;">
       <div v-for="(file, idx) in fileUrls" :key="idx" style="margin-bottom:8px;">
@@ -32,6 +32,15 @@
   import Vue from 'vue'
   import { ACCESS_TOKEN } from '@/store/mutation-types'
 
+  const getAttachmentFileName = (path) => {
+    if (!path) return ''
+    let decodedPath = path
+    try {
+      decodedPath = decodeURIComponent(path)
+    } catch (e) {}
+    return decodedPath.split('/').pop()
+  }
+
   export default {
     name: 'AttachmentModal',
     components: { JUpload },
@@ -53,7 +62,7 @@
         if (!this.attachments) return []
         const token = Vue.ls.get(ACCESS_TOKEN) || ''
         return this.attachments.split(',').filter(f => f).map(f => ({
-          name: decodeURIComponent(f.split('/').pop()),
+          name: getAttachmentFileName(f),
           url: window._CONFIG['domianURL'] + '/systemConfig/static/' + f + '?token=' + encodeURIComponent(token)
         }))
       }

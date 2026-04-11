@@ -468,7 +468,9 @@
         this.queryParam = {
           type: this.queryParam.type,
           subType: this.queryParam.subType,
-          status: "1,3"
+          status: this.queryParam.status,
+          linkedFlag: this.queryParam.linkedFlag,
+          saleLinkFlag: this.queryParam.saleLinkFlag
         }
         this.loadData(1);
       },

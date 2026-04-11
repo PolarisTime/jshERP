@@ -174,7 +174,20 @@
             and (dh.remark like #{bindRemark} or di.remark like #{bindRemark})
         </if>
         <if test="linkedFlag != null and linkedFlag !=''">
-            and ifnull(dh.linked_flag,'0') = #{linkedFlag}
+            <choose>
+                <when test="linkedFlag == '0'.toString()">
+                    and ifnull(dh.linked_flag,'0') = '0'
+                    and NOT EXISTS (
+                        SELECT 1 FROM jsh_depot_head ds
+                        WHERE FIND_IN_SET(dh.number, ds.link_number) > 0
+                        AND ds.type = '出库' AND ds.sub_type = '销售'
+                        AND ifnull(ds.delete_flag,'0') != '1'
+                    )
+                </when>
+                <otherwise>
+                    and ifnull(dh.linked_flag,'0') = #{linkedFlag}
+                </otherwise>
+            </choose>
         </if>
         <if test="saleLinkFlag != null and saleLinkFlag !=''">
             and ifnull(dh.sale_link_flag,'0') = #{saleLinkFlag}
