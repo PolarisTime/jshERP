@@ -1681,7 +1681,9 @@ public class DepotHeadService {
         orderUpdate.setPurchaseStatus("2");
         orderUpdate.setLinkedFlag("1");
         depotHeadMapper.updateByPrimaryKeySelective(orderUpdate);
-        logService.insertLog("单据", "自动生成采购入库单" + newNumber, request);
+        //使用insertLogWithUserId避免与主单据日志在同一秒内触发防重检测导致用户被踢出
+        logService.insertLogWithUserId(orderHead.getCreator(), orderHead.getTenantId(),
+                "单据", "自动生成采购入库单" + newNumber, request);
     }
 
     /**
