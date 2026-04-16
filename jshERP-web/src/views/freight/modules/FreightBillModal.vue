@@ -36,6 +36,14 @@
                 format="YYYY-MM-DD" placeholder="请选择日期" />
             </a-form-item>
           </a-col>
+          <a-col v-if="isReadOnly" :span="6">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
+              <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
+              <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-row class="form-row" :gutter="24">
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算方">
               <span v-if="isReadOnly">{{ model.carrierName }}</span>
@@ -54,8 +62,6 @@
                 v-decorator="['unitPrice', validatorRules.unitPrice]" @change="onUnitPriceChange" />
             </a-form-item>
           </a-col>
-        </a-row>
-        <a-row class="form-row" :gutter="24">
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总重量(吨)">
               <span v-if="isReadOnly">{{ totalWeight }}</span>
@@ -66,12 +72,6 @@
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总运费(元)">
               <span v-if="isReadOnly">{{ totalFreight }}</span>
               <a-input v-else :readOnly="true" v-model="totalFreight" />
-            </a-form-item>
-          </a-col>
-          <a-col v-if="isReadOnly" :span="6">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
-              <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
-              <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
             </a-form-item>
           </a-col>
         </a-row>

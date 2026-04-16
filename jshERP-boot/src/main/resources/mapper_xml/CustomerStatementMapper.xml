@@ -42,14 +42,21 @@
 
   <!-- ═══ 未对账明细 ═══ -->
 
+  <!-- 数据源已切换为 price_approval_item，支持拆分行独立定价 -->
   <sql id="unreconciledItemsBody">
-    FROM jsh_depot_item di
-    JOIN jsh_depot_head dh ON dh.id = di.header_id AND ifnull(dh.delete_flag,'0') != '1'
-    JOIN jsh_material m    ON m.id  = di.material_id
+    FROM jsh_price_approval_item pai
+    JOIN jsh_price_approval pa     ON pa.id  = pai.approval_id
+                                   AND ifnull(pa.delete_flag,'0') != '1'
+                                   AND pa.status = '1'
+    JOIN jsh_depot_item di         ON di.id  = pai.depot_item_id
+                                   AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_depot_head dh         ON dh.id  = di.header_id
+                                   AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m            ON m.id   = pai.material_id
     LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE dh.type = '出库' AND dh.sub_type = '销售'
-      AND ifnull(di.delete_flag,'0') != '1'
+      AND ifnull(pai.delete_flag,'0') != '1'
       AND dh.tenant_id = #{tenantId}
       <if test="organId != null">
         AND dh.organ_id = #{organId}
@@ -60,7 +67,7 @@
       <if test="endTime != null and endTime != ''">
         AND dh.oper_time &lt;= #{endTime}
       </if>
-      AND di.id NOT IN (
+      AND pai.id NOT IN (
         SELECT csi.depot_item_id
         FROM jsh_customer_statement_item csi
         JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
@@ -71,22 +78,22 @@
   </sql>
 
   <select id="listUnreconciledItems" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT di.id, dh.id as depotHeadId,
+    SELECT pai.id, dh.id as depotHeadId,
            dh.number as billNo,
-           dh.oper_time as billTime,
+           pa.delivery_date as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
            m.model,
            m.standard,
            m.weight as unitWeight,
-           di.oper_number as operNumber,
-           di.weight as itemWeight,
-           di.unit_price as unitPrice,
-           di.all_price as allPrice,
+           pai.oper_number as operNumber,
+           pai.weight as itemWeight,
+           pai.unit_price as unitPrice,
+           pai.all_price as allPrice,
            s.supplier as customerName
     <include refid="unreconciledItemsBody"/>
-    ORDER BY dh.oper_time, di.id
+    ORDER BY pa.delivery_date, pai.id
     <if test="offset != null and rows != null">
       LIMIT #{offset}, #{rows}
     </if>
@@ -158,30 +165,33 @@
 
   <!-- ═══ 对账单明细 ═══ -->
 
+  <!-- depot_item_id 现在存储 price_approval_item.id -->
   <select id="getStatementDetail" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT di.id, dh.id as depotHeadId,
+    SELECT pai.id, dh.id as depotHeadId,
            dh.number as billNo,
-           dh.oper_time as billTime,
+           pa.delivery_date as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
            m.model,
            m.standard,
            m.weight as unitWeight,
-           di.oper_number as operNumber,
-           di.weight as itemWeight,
-           di.unit_price as unitPrice,
-           di.all_price as allPrice,
+           pai.oper_number as operNumber,
+           pai.weight as itemWeight,
+           pai.unit_price as unitPrice,
+           pai.all_price as allPrice,
            s.supplier as customerName
     FROM jsh_customer_statement_item csi
-    JOIN jsh_depot_item di ON di.id = csi.depot_item_id AND ifnull(di.delete_flag,'0') != '1'
-    JOIN jsh_depot_head dh ON dh.id = di.header_id      AND ifnull(dh.delete_flag,'0') != '1'
-    JOIN jsh_material m    ON m.id  = di.material_id
+    JOIN jsh_price_approval_item pai ON pai.id = csi.depot_item_id AND ifnull(pai.delete_flag,'0') != '1'
+    JOIN jsh_price_approval pa      ON pa.id  = pai.approval_id   AND ifnull(pa.delete_flag,'0') != '1'
+    JOIN jsh_depot_item di          ON di.id  = pai.depot_item_id AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_depot_head dh          ON dh.id  = di.header_id      AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m             ON m.id   = pai.material_id
     LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE csi.statement_id = #{statementId}
       AND ifnull(csi.delete_flag,'0') != '1'
-    ORDER BY dh.oper_time, di.id
+    ORDER BY pa.delivery_date, pai.id
   </select>
 
   <!-- ═══ 关联 item 表 ═══ -->

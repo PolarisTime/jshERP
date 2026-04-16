@@ -30,108 +30,59 @@
                   />
                 </a-form-item>
               </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="关联订单" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-input placeholder="请输入关联订单" v-model="queryParam.linkNumber"></a-input>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="请选择客户" showSearch allow-clear optionFilterProp="children"
+                    v-model="selectedCustomerName" @change="onCustomerNameChange" @search="handleSearchCustomer">
+                    <div slot="dropdownRender" slot-scope="menu">
+                      <v-nodes :vnodes="menu" />
+                      <a-divider style="margin: 4px 0;" />
+                      <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer(0)"><a-icon type="reload" /> 刷新列表</div>
+                    </div>
+                    <a-select-option v-for="(name,index) in uniqueCustomerNames" :key="index" :value="name">
+                      {{ name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="项目名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="全部" showSearch allow-clear optionFilterProp="children"
+                    v-model="queryParam.organId" :disabled="projectListForOrgan.length === 0" @change="onProjectChange">
+                    <a-select-option v-for="(item,index) in projectListForOrgan" :key="index" :value="item.id">
+                      {{ item.projectName || item.supplier }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
+                    <a-select-option value="0">未审核</a-select-option>
+                    <a-select-option value="9" v-if="!checkFlag">审核中</a-select-option>
+                    <a-select-option value="1">已审核</a-select-option>
+                    <a-select-option value="3">部分出库</a-select-option>
+                    <a-select-option value="2">完成出库</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="单据备注" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-input placeholder="请输入单据备注" v-model="queryParam.remark"></a-input>
+                </a-form-item>
+              </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
                 <a-col :md="6" :sm="24">
                   <a-button type="primary" @click="searchQuery">查询</a-button>
                   <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
-                  <a @click="handleToggleSearch" style="margin-left: 8px">
-                    {{ toggleSearchStatus ? '收起' : '展开' }}
-                    <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
-                  </a>
                 </a-col>
               </span>
             </a-row>
-            <template v-if="toggleSearchStatus">
-              <a-row :gutter="24">
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择客户" mode="multiple" showSearch allow-clear optionFilterProp="children" v-model="queryParam.organIdArray" @search="handleSearchCustomer" :maxTagCount="1" :maxTagTextLength="6">
-                      <div slot="dropdownRender" slot-scope="menu">
-                        <v-nodes :vnodes="menu" />
-                        <a-divider style="margin: 4px 0;" />
-                        <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer(0)"><a-icon type="reload" /> 刷新列表</div>
-                      </div>
-                      <a-select-option v-for="(item,index) in cusList" :key="index" :value="item.id">
-                        {{ item.supplier }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="仓库名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择仓库" showSearch allow-clear optionFilterProp="children" v-model="queryParam.depotId">
-                      <a-select-option v-for="(depot,index) in depotList" :key="index" :value="depot.id">
-                        {{ depot.depotName }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="操作员" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择操作员" showSearch allow-clear optionFilterProp="children" v-model="queryParam.creator">
-                      <a-select-option v-for="(item,index) in userList" :key="index" :value="item.id">
-                        {{ item.userName }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="关联订单" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入关联订单" v-model="queryParam.linkNumber"></a-input>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="结算账户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择结算账户" showSearch allow-clear optionFilterProp="children" v-model="queryParam.accountId">
-                      <a-select-option v-for="(item,index) in accountList" :key="index" :value="item.id">
-                        {{ item.name }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="有无欠款" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择有无欠款" allow-clear v-model="queryParam.hasDebt">
-                      <a-select-option value="1">有欠款</a-select-option>
-                      <a-select-option value="0">无欠款</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
-                      <a-select-option value="0">未审核</a-select-option>
-                      <a-select-option value="9" v-if="!checkFlag">审核中</a-select-option>
-                      <a-select-option value="1">已审核</a-select-option>
-                      <a-select-option value="3">部分出库</a-select-option>
-                      <a-select-option value="2">完成出库</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="核准状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="全部" allow-clear v-model="queryParam.priceApproved">
-                      <a-select-option value="0">未核准</a-select-option>
-                      <a-select-option value="1">已核准</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="销售人员" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择销售人员" showSearch allow-clear optionFilterProp="children" v-model="queryParam.salesMan">
-                      <a-select-option v-for="(item,index) in salesManList" :key="index" :value="item.value">
-                        {{ item.text }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="单据备注" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入单据备注" v-model="queryParam.remark"></a-input>
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </template>
           </a-form>
         </div>
         <!-- 操作按钮区域 -->
@@ -144,8 +95,7 @@
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
-          <a-button icon="audit" @click="batchSetPriceApproved('1')" style="color:#52c41a">单据核准</a-button>
-          <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
+          <!-- 价格核准已移至独立模块（销售管理 > 价格核准） -->
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
           <a-button icon="printer" @click="handleClodopPrint">CLodop打印</a-button>
@@ -285,6 +235,8 @@
   import { getContractBalance } from '@/api/api'
   import AttachmentModal from '@/components/tools/AttachmentModal'
   import { putAction } from '@/api/manage'
+  import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
+  import moment from 'moment'
   import Vue from 'vue'
   export default {
     name: "SaleOutList",
@@ -312,17 +264,13 @@
           materialParam: "",
           type: "出库",
           subType: "销售",
-          organIdArray: [],
-          depotId: undefined,
-          creator: undefined,
+          organId: undefined,
           linkNumber: "",
-          accountId: undefined,
-          hasDebt: undefined,
           status: undefined,
-          salesMan: undefined,
-          remark: "",
-          priceApproved: '0'
+          remark: ""
         },
+        selectedCustomerName: undefined,
+        projectListForOrgan: [],
         prefixNo: 'XSCK',
         urlPath: '/bill/sale_out',
         //出入库管理开关，适合独立仓管场景
@@ -349,7 +297,6 @@
           { title: '项目名称', dataIndex: 'projectName',width:120, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
-              text = record.linkNumber?text+"[订]":text
               text = record.hasBackFlag?text+"[退]":text
               return text
             }
@@ -411,6 +358,14 @@
       }
     },
     computed: {
+      uniqueCustomerNames() {
+        let seen = new Set()
+        return this.cusList.map(c => c.supplier).filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
+      }
     },
     watch: {
       dataSource() {
@@ -430,26 +385,66 @@
       this.initQuickBtn()
       this.getDepotByCurrentUser()
     },
+    activated() {
+      // keep-alive 组件重新激活时，刷新 endTime 到当天，避免跨日缓存导致新单据查不到
+      let today = getFormatDate()
+      if (this.queryParam.endTime && this.queryParam.endTime < today) {
+        this.queryParam.endTime = today
+        this.queryParam.createTimeRange = [
+          moment(this.queryParam.beginTime || getPrevMonthFormatDate(3)),
+          moment(today)
+        ]
+        this.loadData(1)
+      }
+    },
     methods: {
-      getQueryParams() {
-        // 覆盖父级方法，将客户多选数组转为逗号分隔字符串传给后端
-        let queryParamCopy = Object.assign({}, this.queryParam)
-        if (queryParamCopy.organIdArray && queryParamCopy.organIdArray.length > 0) {
-          queryParamCopy.organId = queryParamCopy.organIdArray.join(',')
+      // 保存成功后刷新列表：确保 endTime 包含当天，且回到第1页
+      modalFormOk() {
+        this._ensureEndDateCurrent()
+        this.loadData(1)
+      },
+      modalFormClose() {
+        this._ensureEndDateCurrent()
+        this.loadData(1)
+      },
+      _ensureEndDateCurrent() {
+        let today = getFormatDate()
+        if (!this.queryParam.endTime || this.queryParam.endTime < today) {
+          this.queryParam.endTime = today
+          this.queryParam.createTimeRange = [
+            moment(this.queryParam.beginTime || getPrevMonthFormatDate(3)),
+            moment(today)
+          ]
         }
-        delete queryParamCopy.organIdArray
-        let sqp = {}
-        if (this.superQueryParams) {
-          sqp['superQueryParams'] = encodeURI(this.superQueryParams)
-          sqp['superQueryMatchType'] = this.superQueryMatchType
+      },
+      searchReset() {
+        this.selectedCustomerName = undefined
+        this.projectListForOrgan = []
+        this.queryParam = {
+          type: '出库',
+          subType: '销售',
+          beginTime: getPrevMonthFormatDate(3),
+          endTime: getFormatDate(),
+          createTimeRange: [moment(getPrevMonthFormatDate(3)), moment(getFormatDate())]
         }
-        let searchObj = {}
-        searchObj.search = JSON.stringify(queryParamCopy)
-        var param = Object.assign(sqp, searchObj, this.isorter, this.filters)
-        param.field = this.getQueryField()
-        param.currentPage = this.ipagination.current
-        param.pageSize = this.ipagination.pageSize
-        return param
+        this.loadData(1)
+      },
+      onCustomerNameChange(supplierName) {
+        this.queryParam.organId = undefined
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          // 只有一个项目时自动选中并刷新
+          if (this.projectListForOrgan.length === 1) {
+            this.queryParam.organId = this.projectListForOrgan[0].id
+            this.searchQuery()
+          }
+        } else {
+          this.projectListForOrgan = []
+          this.searchQuery()
+        }
+      },
+      onProjectChange() {
+        this.searchQuery()
       },
       calcSummary() {
         let rows = this.dataSource || []

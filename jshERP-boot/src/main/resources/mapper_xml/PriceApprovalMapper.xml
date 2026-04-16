@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.PriceApprovalMapper">
+
+  <!-- ═══ 主表 ═══ -->
+
+  <!-- tenant_id 由多租户插件自动注入，不手动设置避免重复 -->
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.PriceApproval" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO jsh_price_approval
+      (approval_no, depot_head_id, organ_id, delivery_date, remark,
+       total_weight, total_amount, status,
+       create_time, creator, update_time, updater, delete_flag)
+    VALUES
+      (#{approvalNo}, #{depotHeadId}, #{organId}, #{deliveryDate}, #{remark},
+       #{totalWeight}, #{totalAmount}, #{status},
+       #{createTime}, #{creator}, #{updateTime}, #{updater}, #{deleteFlag})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.PriceApproval">
+    UPDATE jsh_price_approval
+    SET delivery_date=#{deliveryDate}, remark=#{remark},
+        total_weight=#{totalWeight}, total_amount=#{totalAmount},
+        status=#{status}, update_time=#{updateTime}, updater=#{updater},
+        delete_flag=#{deleteFlag}
+    WHERE id=#{id}
+  </update>
+
+  <select id="selectByPrimaryKey" resultType="com.jsh.erp.datasource.entities.PriceApproval">
+    SELECT id, approval_no as approvalNo, depot_head_id as depotHeadId,
+           organ_id as organId, delivery_date as deliveryDate, remark,
+           total_weight as totalWeight, total_amount as totalAmount,
+           status, tenant_id as tenantId, delete_flag as deleteFlag,
+           create_time as createTime, creator,
+           update_time as updateTime, updater
+    FROM jsh_price_approval
+    WHERE id=#{id} AND ifnull(delete_flag,'0') != '1'
+  </select>
+
+  <select id="selectByDepotHeadId" resultType="com.jsh.erp.datasource.entities.PriceApproval">
+    SELECT id, approval_no as approvalNo, depot_head_id as depotHeadId,
+           organ_id as organId, status, tenant_id as tenantId
+    FROM jsh_price_approval
+    WHERE depot_head_id=#{depotHeadId}
+      AND ifnull(delete_flag,'0') != '1'
+      AND tenant_id = #{tenantId}
+    LIMIT 1
+  </select>
+
+  <select id="countTodayApproval" resultType="java.lang.Integer">
+    SELECT count(1)
+    FROM jsh_price_approval
+    WHERE approval_no LIKE concat('HZ', #{datePrefix}, '%')
+      AND tenant_id = #{tenantId}
+  </select>
+
+  <!-- ═══ 核准单列表 ═══ -->
+
+  <sql id="approvalListConditions">
+    FROM jsh_price_approval pa
+    JOIN jsh_depot_head dh ON dh.id = pa.depot_head_id
+    LEFT JOIN jsh_supplier s ON s.id = pa.organ_id
+    WHERE ifnull(pa.delete_flag,'0') != '1'
+      AND pa.tenant_id = #{tenantId}
+      <if test="organId != null">
+        AND pa.organ_id = #{organId}
+      </if>
+      <if test="status != null and status != ''">
+        AND pa.status = #{status}
+      </if>
+      <if test="billNo != null and billNo != ''">
+        AND dh.number LIKE concat('%', #{billNo}, '%')
+      </if>
+      <if test="beginTime != null and beginTime != ''">
+        AND dh.oper_time &gt;= #{beginTime}
+      </if>
+      <if test="endTime != null and endTime != ''">
+        AND dh.oper_time &lt;= #{endTime}
+      </if>
+  </sql>
+
+  <select id="listApprovals" resultType="java.util.Map">
+    SELECT pa.id, pa.approval_no as approvalNo,
+           dh.number as billNo,
+           DATE_FORMAT(dh.oper_time,'%Y-%m-%d') as billTimeStr,
+           s.supplier as customerName,
+           s.project_name as projectName,
+           DATE_FORMAT(pa.delivery_date,'%Y-%m-%d') as deliveryDateStr,
+           pa.total_weight as totalWeight,
+           pa.total_amount as totalAmount,
+           pa.status, pa.remark,
+           DATE_FORMAT(pa.create_time,'%Y-%m-%d %H:%i:%s') as createTimeStr,
+           pa.depot_head_id as depotHeadId,
+           dh.file_name as fileName
+    <include refid="approvalListConditions"/>
+    ORDER BY pa.create_time DESC
+    <if test="offset != null and rows != null">
+      LIMIT #{offset}, #{rows}
+    </if>
+  </select>
+
+  <select id="countApprovals" resultType="java.lang.Integer">
+    SELECT count(1)
+    <include refid="approvalListConditions"/>
+  </select>
+
+  <!-- ═══ 核准单明细（含关联展示字段） ═══ -->
+
+  <select id="getApprovalItems" resultType="com.jsh.erp.datasource.vo.PriceApprovalItemVo">
+    SELECT pai.id, pai.approval_id as approvalId,
+           pai.depot_item_id as depotItemId,
+           pai.material_id as materialId,
+           pai.material_extend_id as materialExtendId,
+           pai.bar_code as barCode,
+           pai.name, pai.standard, pai.model, pai.color, pai.brand,
+           pai.oper_number as operNumber,
+           pai.weight, pai.unit_price as unitPrice,
+           pai.all_price as allPrice,
+           pai.tax_rate as taxRate, pai.tax_money as taxMoney,
+           pai.tax_last_money as taxLastMoney,
+           pai.remark,
+           dh.number as billNo,
+           DATE_FORMAT(dh.oper_time,'%Y-%m-%d') as billTimeStr,
+           dh.sales_man as salesMan,
+           mc.name as categoryName,
+           s.supplier as customerName,
+           s.project_name as projectName,
+           m.weight as unitWeight,
+           m.mfrs,
+           di.weight as originalWeight,
+           di.batch_number as batchNumber,
+           di.sku,
+           di.material_unit as materialUnit,
+           dp.name as depotName
+    FROM jsh_price_approval_item pai
+    JOIN jsh_price_approval pa ON pa.id = pai.approval_id
+    JOIN jsh_depot_item di     ON di.id = pai.depot_item_id
+    JOIN jsh_depot_head dh     ON dh.id = di.header_id
+    JOIN jsh_material m        ON m.id  = pai.material_id
+    LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
+    LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
+    LEFT JOIN jsh_depot dp             ON dp.id = di.depot_id
+    WHERE pai.approval_id = #{approvalId}
+      AND ifnull(pai.delete_flag,'0') != '1'
+    ORDER BY pai.depot_item_id, pai.id
+  </select>
+
+  <!-- ═══ 明细批量操作 ═══ -->
+
+  <insert id="batchInsertItems">
+    INSERT INTO jsh_price_approval_item
+      (approval_id, depot_item_id, material_id, material_extend_id,
+       bar_code, name, standard, model, color, brand,
+       oper_number, weight, unit_price, all_price,
+       tax_rate, tax_money, tax_last_money,
+       remark, delete_flag)
+    VALUES
+    <foreach collection="items" item="item" separator=",">
+      (#{item.approvalId}, #{item.depotItemId}, #{item.materialId}, #{item.materialExtendId},
+       #{item.barCode}, #{item.name}, #{item.standard}, #{item.model}, #{item.color}, #{item.brand},
+       #{item.operNumber}, #{item.weight}, #{item.unitPrice}, #{item.allPrice},
+       #{item.taxRate}, #{item.taxMoney}, #{item.taxLastMoney},
+       #{item.remark}, '0')
+    </foreach>
+  </insert>
+
+  <update id="deleteItemsByApprovalId">
+    DELETE FROM jsh_price_approval_item
+    WHERE approval_id = #{approvalId}
+  </update>
+
+  <!-- ═══ 可导入的出库单（已审核、无核准记录） ═══ -->
+
+  <sql id="availableSaleOutJoins">
+    FROM jsh_depot_head dh
+    LEFT JOIN jsh_supplier s ON s.id = dh.organ_id
+    LEFT JOIN jsh_user u ON u.id = dh.creator
+  </sql>
+
+  <sql id="availableSaleOutWhere">
+    WHERE dh.type = '出库' AND dh.sub_type = '销售'
+      AND dh.status = '1'
+      AND ifnull(dh.delete_flag,'0') != '1'
+      AND dh.tenant_id = #{tenantId}
+      AND dh.id NOT IN (
+        SELECT pa.depot_head_id FROM jsh_price_approval pa
+        WHERE ifnull(pa.delete_flag,'0') != '1' AND pa.tenant_id = #{tenantId}
+      )
+      <if test="organId != null">
+        AND dh.organ_id = #{organId}
+      </if>
+      <if test="billNo != null and billNo != ''">
+        AND dh.number LIKE concat('%', #{billNo}, '%')
+      </if>
+      <if test="beginTime != null and beginTime != ''">
+        AND dh.oper_time &gt;= #{beginTime}
+      </if>
+      <if test="endTime != null and endTime != ''">
+        AND dh.oper_time &lt;= #{endTime}
+      </if>
+  </sql>
+
+  <select id="listAvailableSaleOut" resultType="java.util.Map">
+    SELECT dh.id, dh.number as billNo,
+           DATE_FORMAT(dh.oper_time,'%Y-%m-%d') as operTimeStr,
+           s.supplier as customerName,
+           s.project_name as projectName,
+           dh.total_price as totalPrice,
+           dh.link_number as linkNumber,
+           dh.remark,
+           dh.sales_man as salesMan,
+           u.username as userName,
+           round(ifnull(tw.totalWeight, 0), 3) as totalWeight
+    <include refid="availableSaleOutJoins"/>
+    LEFT JOIN (
+      SELECT di.header_id,
+             sum(CASE WHEN di.weight IS NOT NULL AND di.weight > 0
+                      THEN di.weight ELSE di.basic_number * ifnull(m.weight, 0) END) as totalWeight
+      FROM jsh_depot_item di
+      LEFT JOIN jsh_material m ON m.id = di.material_id
+      WHERE ifnull(di.delete_flag,'0') != '1'
+      GROUP BY di.header_id
+    ) tw ON tw.header_id = dh.id
+    <include refid="availableSaleOutWhere"/>
+    ORDER BY dh.oper_time DESC
+    <if test="offset != null and rows != null">
+      LIMIT #{offset}, #{rows}
+    </if>
+  </select>
+
+  <select id="countAvailableSaleOut" resultType="java.lang.Integer">
+    SELECT count(1)
+    <include refid="availableSaleOutJoins"/>
+    <include refid="availableSaleOutWhere"/>
+  </select>
+
+  <!-- ═══ 校验：核准明细是否被对账单引用 ═══ -->
+
+  <select id="countStatementItemsByApprovalId" resultType="java.lang.Integer">
+    SELECT count(1)
+    FROM jsh_customer_statement_item csi
+    JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
+    JOIN jsh_price_approval_item pai ON pai.id = csi.depot_item_id
+    WHERE pai.approval_id = #{approvalId}
+      AND ifnull(cs.delete_flag,'0') != '1'
+      AND ifnull(csi.delete_flag,'0') != '1'
+  </select>
+
+</mapper>

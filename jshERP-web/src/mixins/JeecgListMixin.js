@@ -85,8 +85,30 @@ export const JeecgListMixin = {
   },
   mounted () {
     this.initScroll()
+    // 监听窗口缩放，动态重算卡片高度和表格滚动区域
+    this._resizeHandler = this._debounce(() => {
+      if (this.isDesktop()) {
+        this.cardStyle = 'height:' + (document.documentElement.clientHeight - 100) + 'px'
+      }
+      this.initScroll()
+    }, 200)
+    window.addEventListener('resize', this._resizeHandler)
+  },
+  beforeDestroy () {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler)
+      this._resizeHandler = null
+    }
   },
   methods:{
+    // 简易 debounce，避免 resize 频繁触发
+    _debounce(fn, delay) {
+      let timer = null
+      return function (...args) {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => { fn.apply(this, args) }, delay)
+      }
+    },
     loadData(arg) {
       if(!this.url.list){
         this.$message.error("请设置url.list属性!")

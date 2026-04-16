@@ -55,7 +55,8 @@ public class TenantConfig {
                 if (tenantId!=0L) {
                     // 这里可以判断是否过滤表
                     if ("jsh_sequence".equals(tableName) || "jsh_function".equals(tableName)
-                            || "jsh_platform_config".equals(tableName) || "jsh_tenant".equals(tableName)) {
+                            || "jsh_platform_config".equals(tableName) || "jsh_tenant".equals(tableName)
+                            || "jsh_contract_person".equals(tableName)) {
                         res = true;
                     } else {
                         res = false;

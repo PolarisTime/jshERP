@@ -933,13 +933,31 @@ public class DepotHeadService {
                 }
             }
         }
-        //同步更新主表合计金额
+        //同步更新主表合计金额、优惠、应收及日期备注
         DepotHead headUpd = new DepotHead();
         headUpd.setId(depotHead.getId());
         headUpd.setTotalPrice(totalPrice);
+        headUpd.setDiscount(depotHead.getDiscount());
+        headUpd.setDiscountMoney(depotHead.getDiscountMoney());
+        headUpd.setDiscountLastMoney(depotHead.getDiscountLastMoney());
+        headUpd.setChangeAmount(depotHead.getChangeAmount());
+        headUpd.setOperTime(depotHead.getOperTime());
+        headUpd.setRemark(depotHead.getRemark());
         depotHeadMapper.updateByPrimaryKeySelective(headUpd);
+        boolean dateChanged = depotHead.getOperTime() != null
+                && !depotHead.getOperTime().equals(existing.getOperTime());
+        boolean remarkChanged = depotHead.getRemark() != null
+                && !depotHead.getRemark().equals(existing.getRemark());
+        String logFlag = "价格修改:";
+        if (dateChanged && remarkChanged) {
+            logFlag = "价格/日期/备注修改:";
+        } else if (dateChanged) {
+            logFlag = "价格/日期修改:";
+        } else if (remarkChanged) {
+            logFlag = "价格/备注修改:";
+        }
         logService.insertLog("单据",
-                new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append("价格修改:").append(existing.getNumber()).toString(),
+                BusinessConstants.LOG_OPERATION_TYPE_EDIT + logFlag + existing.getNumber(),
                 request);
     }
 
@@ -1647,8 +1665,8 @@ public class DepotHeadService {
         itemExample.createCriteria().andHeaderIdEqualTo(orderHead.getId())
                 .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
         List<DepotItem> orderItems = depotItemMapper.selectByExample(itemExample);
-        //复制明细到入库单（自动填入批号和日期）
-        String todayBatch = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        //复制明细到入库单（自动填入批号和日期，格式：年份+MMdd+S+HHmmss）
+        String todayBatch = new java.text.SimpleDateFormat("yyyyMMdd'S'HHmmss").format(new java.util.Date());
         java.util.Date today = new java.util.Date();
         for(DepotItem orderItem : orderItems) {
             DepotItem inItem = new DepotItem();

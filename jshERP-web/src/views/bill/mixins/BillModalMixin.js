@@ -724,7 +724,10 @@ export const BillModalMixin = {
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
           }
           // 数量变更时始终同步更新重量
-          let opSetValues = {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}
+          // 销售出库不再计算价格（价格由独立的价格核准模块处理）
+          let opSetValues = that.prefixNo === 'XSCK'
+            ? { weight: newWeight }
+            : { allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight }
           //采购入库：确保批号和有效期已赋值（防止barCode异步回调未完成时缺失）
           if(that.prefixNo === 'CGRK') {
             if(!row.batchNumber) {
@@ -736,7 +739,9 @@ export const BillModalMixin = {
           }
           target.setValues([{rowKey: row.id, values: opSetValues}])
           target.recalcAllStatisticsColumns()
-          that.autoChangePrice(target)
+          if(that.prefixNo !== 'XSCK') {
+            that.autoChangePrice(target)
+          }
           //强制刷新确保JDate组件重新渲染
           target.$forceUpdate()
           break;
@@ -826,6 +831,8 @@ export const BillModalMixin = {
           that.autoChangePrice(target)
           break;
         case "weight":
+          // 销售出库不再由重量联动价格
+          if(that.prefixNo === 'XSCK') break;
           // weightEditable=1 或 priceByWeightFlag 时，按重量计价
           let editableWeightCategory = row.weightEditable === '1' || row.weightEditable === 1
           if(that.priceByWeightFlag || editableWeightCategory) {
@@ -971,14 +978,16 @@ export const BillModalMixin = {
         }
       })
     },
-    //生成自动批号：当前日期MMdd + 单据号后4位
+    //生成自动批号：年份+MMdd+S+HHmmss，确保不同时间入库的同一商品批号唯一
     buildAutoBatchNumber() {
       let now = new Date()
+      let yyyy = now.getFullYear()
       let mm = String(now.getMonth() + 1).padStart(2, '0')
       let dd = String(now.getDate()).padStart(2, '0')
-      let numberStr = this.form.getFieldValue('number') || ''
-      let last4 = numberStr.slice(-4)
-      return mm + dd + last4
+      let HH = String(now.getHours()).padStart(2, '0')
+      let mi = String(now.getMinutes()).padStart(2, '0')
+      let ss = String(now.getSeconds()).padStart(2, '0')
+      return yyyy + mm + dd + 'S' + HH + mi + ss
     },
     //生成当天日期字符串：YYYY-MM-DD
     buildTodayDate() {

@@ -18,6 +18,7 @@
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrintPro('销售出库')">三联打印-新版</a-button>
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrint('销售出库')">三联打印</a-button>
       <a-button v-if="checkFlag && isCanCheck" :loading="confirmLoading" @click="handleOkAndCheck">保存并审核</a-button>
+      <a-button v-if="priceEditOnly" type="danger" :loading="confirmLoading" @click="handleOkAndApprove">保存并核准</a-button>
       <a-button type="primary" :loading="confirmLoading" @click="handleOkOnly">保存（Ctrl+S）</a-button>
       <!--发起多级审核-->
       <a-button v-if="!checkFlag" @click="handleWorkflow()" type="primary">提交流程</a-button>
@@ -276,6 +277,7 @@
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
   import { getCurrentSystemConfig, findBySelectCus, getContractBalance } from '@/api/api'
+  import { postAction } from '@/api/manage'
   export default {
     name: "SaleOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
@@ -354,16 +356,16 @@
             { title: '数量', key: 'operNumber', width: '4%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber,
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, statistics: true, statisticsDecimals: 3,
               readonly: (row) => { return row.weightEditable !== '1' && row.weightEditable !== 1 }
             },
-            { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.inputNumber},
-            { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
+            { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.hidden},
+            { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.hidden },
             { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},
             { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.hidden },
             { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.hidden },
             { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
-            { title: '备注', key: 'remark', width: '6%', type: FormTypes.input },
+            { title: '备注', key: 'remark', width: '6%', type: FormTypes.hidden },
             { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.hidden },
           ]
         },
@@ -413,6 +415,29 @@
       }
     },
     methods: {
+      // ─── 保存并核准：复用 handleOk 保存，成功后自动核准 ───────────────
+      handleOkAndApprove() {
+        const billId = this.model.id
+        if (!billId) {
+          this.$message.warning('单据未保存，无法核准')
+          return
+        }
+        this.$once('ok', () => {
+          postAction('/depotHead/batchSetPriceApproved', {
+            priceApproved: '1',
+            ids: String(billId)
+          }).then(res => {
+            if (res && res.code === 200) {
+              this.$message.success('核准成功')
+              this.$emit('ok')
+            } else {
+              this.$message.warning('保存成功，但核准失败')
+            }
+          })
+        })
+        this.billStatus = '0'
+        this.handleOk()
+      },
       // ─── 覆盖保存方法：超额提示（不阻拦）─────────────────────────
       handleOkOnly() {
         if (this.contractBalance) {
@@ -513,13 +538,10 @@
             this.materialTable.columns[1].type = FormTypes.normal
           }
           // 初始化编辑时的公司名称、项目列表和合同状态
+          // 注意：客户名称和项目列表的解析延迟到 initCustomer 回调中执行，
+          // 避免使用旧的 cusList 导致概率性显示不正确
           this.contractBalance = null
           if(this.model.organId) {
-            let cus = this.cusList.find(c => c.id === this.model.organId)
-            if(cus) {
-              this.selectedCustomerName = cus.supplier
-              this.projectListForOrgan = this.cusList.filter(c => c.supplier === cus.supplier)
-            }
             // 加载合同余额
             getContractBalance({ organId: this.model.organId }).then(res => {
               if (res && res.code === 200 && res.data) {
@@ -570,8 +592,10 @@
           //价格修改模式：锁定除单价、金额外的所有明细列和表单字段
           if(this.priceEditOnly) {
             this.rowCanEdit = false
+            // 保留统计列的 inputNumber 类型，确保合计行正常显示
+            const keepInputNumberKeys = ['unitPrice', 'allPrice', 'operNumber', 'weight']
             this.materialTable.columns.forEach(col => {
-              if(col.key === 'unitPrice' || col.key === 'allPrice') {
+              if(keepInputNumberKeys.includes(col.key)) {
                 col.type = FormTypes.inputNumber
               } else if(col.type === FormTypes.inputNumber || col.type === FormTypes.input || col.type === FormTypes.popupJsh) {
                 col.type = FormTypes.normal
@@ -586,7 +610,20 @@
           this.copyAddInit(this.prefixNo)
         }
         this.initSystemConfig()
-        this.initCustomer(0)
+        // 覆盖 initCustomer：加载完客户列表后，再解析编辑单据的客户名称和项目列表
+        findBySelectCus({organId: this.model.organId, limit:1}).then((res) => {
+          if(res) {
+            this.cusList = res
+            // 编辑/查看模式下，从新加载的列表中匹配客户
+            if(this.action !== 'add' && this.model.organId) {
+              let cus = res.find(c => c.id === this.model.organId)
+              if(cus) {
+                this.selectedCustomerName = cus.supplier
+                this.projectListForOrgan = res.filter(c => c.supplier === cus.supplier)
+              }
+            }
+          }
+        })
         this.initSalesman()
         this.initDepot()
         this.initAccount(0)

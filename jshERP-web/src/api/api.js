@@ -163,6 +163,15 @@ const signCustomerStatement = (params)=>putAction('/customerStatement/sign',para
 const updateStatementAttachment = (params)=>putAction('/customerStatement/updateAttachment',params);
 const deleteCustomerStatement = (params)=>deleteAction('/customerStatement/delete',params);
 const listUnpaidStatements = (params)=>getAction('/customerStatement/unpaidList',params);
+//价格核准
+const listPriceApprovals = (params)=>getAction('/priceApproval/list',params);
+const getPriceApprovalDetail = (params)=>getAction('/priceApproval/detail',params);
+const listAvailableSaleOutForApproval = (params)=>getAction('/priceApproval/availableSaleOut',params);
+const createPriceApprovalFromSaleOut = (params)=>postAction('/priceApproval/createFromSaleOut',params);
+const savePriceApprovalItems = (params)=>putAction('/priceApproval/saveItems',params);
+const confirmPriceApproval = (params)=>putAction('/priceApproval/confirm',params);
+const cancelPriceApproval = (params)=>putAction('/priceApproval/cancel',params);
+const deletePriceApproval = (params)=>deleteAction('/priceApproval/delete',params);
 //物流对账单
 const listUnreconciledFreight = (params)=>getAction('/freightStatement/unreconciledItems',params);
 const listFreightStatements = (params)=>getAction('/freightStatement/list',params);
@@ -316,7 +325,15 @@ export {
   auditFreightStatement,
   signFreightStatement,
   updateFreightStatementAttachment,
-  deleteFreightStatement
+  deleteFreightStatement,
+  listPriceApprovals,
+  getPriceApprovalDetail,
+  listAvailableSaleOutForApproval,
+  createPriceApprovalFromSaleOut,
+  savePriceApprovalItems,
+  confirmPriceApproval,
+  cancelPriceApproval,
+  deletePriceApproval
 }
 
 

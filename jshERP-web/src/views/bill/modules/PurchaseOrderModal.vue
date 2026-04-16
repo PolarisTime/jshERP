@@ -280,7 +280,7 @@
             { title: '数量', key: 'operNumber', width: '5%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.normal },
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, readonly: true, statistics: true, statisticsDecimals: 3 },
             { title: '单价', key: 'unitPrice', width: '5%', type: FormTypes.inputNumber },
             { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
             { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},

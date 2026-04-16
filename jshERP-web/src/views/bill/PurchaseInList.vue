@@ -316,7 +316,6 @@
           { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
-              text = record.linkNumber?text+"[订]":text
               text = record.hasBackFlag?text+"[退]":text
               return text
             }
@@ -423,9 +422,11 @@
       },
       billRowClassName(record) {
         // 未审核或未关联出库的入库单高亮
-        let notAudited = String(record.status || '0') !== '1'
-        let notLinked = String(record.linkedFlag || '0') !== '1'
-        return (notAudited || notLinked) ? 'bill-row-incomplete' : ''
+        let s = String(record.status || '0')
+        let notProcessed = (s !== '1' && s !== '2' && s !== '3')
+        // 优先使用实时计算的 referencedByNumbers，兼容 linked_flag 数据库标记
+        let notLinked = !record.referencedByNumbers && String(record.linkedFlag || '0') !== '1'
+        return (notProcessed || notLinked) ? 'bill-row-incomplete' : ''
       },
       onAttachChange({ id, attachments }) {
         putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {

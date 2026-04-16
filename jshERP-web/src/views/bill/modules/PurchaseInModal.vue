@@ -307,7 +307,7 @@
             { title: '数量', key: 'operNumber', width: '4%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber,
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, statistics: true, statisticsDecimals: 3,
               readonly: (row) => {
                 // 类别标记 weight_editable=1 时可编辑重量，其他只读
                 return row.weightEditable !== '1' && row.weightEditable !== 1
@@ -490,13 +490,14 @@
         this.materialTable.dataSource.forEach(row => {
           if(row.linkId) existLinkIdSet.add(String(row.linkId))
         })
-        // 生成批号：当前日期MMdd + 单据号后4位
+        // 生成批号：年份+MMdd+S+HHmmss，确保不同时间入库的同一商品批号唯一
         let now = new Date()
         let mm = String(now.getMonth() + 1).padStart(2, '0')
         let dd = String(now.getDate()).padStart(2, '0')
-        let numberStr = this.form.getFieldValue('number') || ''
-        let last4 = numberStr.slice(-4)
-        let autoBatchNumber = mm + dd + last4
+        let HH = String(now.getHours()).padStart(2, '0')
+        let mi = String(now.getMinutes()).padStart(2, '0')
+        let ss = String(now.getSeconds()).padStart(2, '0')
+        let autoBatchNumber = now.getFullYear() + mm + dd + 'S' + HH + mi + ss
         let newRows = []
         for(let j=0; j<selectBillDetailRows.length; j++) {
           let info = JSON.parse(JSON.stringify(selectBillDetailRows[j]))
