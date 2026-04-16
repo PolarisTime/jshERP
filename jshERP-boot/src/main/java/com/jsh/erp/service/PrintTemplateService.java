@@ -101,6 +101,8 @@ public class PrintTemplateService {
         BILL_TYPE_DIR_MAP.put("disassemble", "仓库管理");
         BILL_TYPE_DIR_MAP.put("retailOut", "零售管理");
         BILL_TYPE_DIR_MAP.put("retailBack", "零售管理");
+        BILL_TYPE_DIR_MAP.put("customerStatement", "对账单模版");
+        BILL_TYPE_DIR_MAP.put("freightStatement", "物流对账模版");
     }
 
     private String getDirForBillType(String billType) {

@@ -91,6 +91,11 @@ public class DepotHeadVo4List extends DepotHead{
     private String freightBillNo;
 
     /**
+     * 关联物流单的运输车号
+     */
+    private String freightCarNo;
+
+    /**
      * 总重量(吨)
      */
     private BigDecimal totalWeight;
@@ -104,6 +109,11 @@ public class DepotHeadVo4List extends DepotHead{
      * 关联的采购入库单号（逗号分隔，用于采购订单列表）
      */
     private String purchaseInNumbers;
+
+    /**
+     * 价格核准单的送到日期（YYYYMMDD 格式，用于自定义打印默认送货日期）
+     */
+    private String priceApprovalDeliveryDate;
 
     public String getProjectName() {
         return projectName;
@@ -329,6 +339,14 @@ public class DepotHeadVo4List extends DepotHead{
         this.freightBillNo = freightBillNo;
     }
 
+    public String getFreightCarNo() {
+        return freightCarNo;
+    }
+
+    public void setFreightCarNo(String freightCarNo) {
+        this.freightCarNo = freightCarNo;
+    }
+
     public BigDecimal getTotalWeight() {
         return totalWeight;
     }
@@ -351,5 +369,13 @@ public class DepotHeadVo4List extends DepotHead{
 
     public void setPurchaseInNumbers(String purchaseInNumbers) {
         this.purchaseInNumbers = purchaseInNumbers;
+    }
+
+    public String getPriceApprovalDeliveryDate() {
+        return priceApprovalDeliveryDate;
+    }
+
+    public void setPriceApprovalDeliveryDate(String priceApprovalDeliveryDate) {
+        this.priceApprovalDeliveryDate = priceApprovalDeliveryDate;
     }
 }

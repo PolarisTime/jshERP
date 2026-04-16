@@ -109,12 +109,8 @@
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="myHandleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="quickBtn.saleOut.indexOf(1)>-1 && btnEnableList.indexOf(1)>-1" icon="share-alt" @click="transferBill('转销售出库', quickBtn.saleOut)">转销售出库</a-button>
-          <a-button v-if="quickBtn.purchaseOrder.indexOf(1)>-1 && purchaseBySaleFlag && btnEnableList.indexOf(1)>-1" icon="share-alt" @click="transferBill('转采购订单-以销定购', quickBtn.purchaseOrder)">转采购订单-以销定购</a-button>
           <a-tooltip title="可将状态是部分销售的单据强制完成">
             <a-button v-if="btnEnableList.indexOf(1)>-1" icon="issues-close" @click="batchForceClose">强制结单</a-button>
-          </a-tooltip>
-          <a-tooltip title="可将状态是部分采购的单据强制完成">
-            <a-button v-if="purchaseBySaleFlag && btnEnableList.indexOf(1)>-1" icon="issues-close" @click="batchForceClosePurchase">强制结单-以销定购</a-button>
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
@@ -188,7 +184,6 @@
         <!-- 表单区域 -->
         <sale-order-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></sale-order-modal>
         <sale-out-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-out-modal>
-        <purchase-order-modal ref="transferPurchaseModalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-order-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
       </a-card>
@@ -198,7 +193,6 @@
 <script>
   import SaleOrderModal from './modules/SaleOrderModal'
   import SaleOutModal from './modules/SaleOutModal'
-  import PurchaseOrderModal from './modules/PurchaseOrderModal'
   import BillDetail from './dialog/BillDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
@@ -214,7 +208,6 @@
     components: {
       SaleOrderModal,
       SaleOutModal,
-      PurchaseOrderModal,
       BillDetail,
       BillExcelIframe,
       ColumnSettingPopover,
@@ -253,7 +246,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
           'changeAmount','status','purchaseStatus'],
         // 默认列
         defColumns: [
@@ -264,6 +257,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '客户', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:140},
           { title: '商品信息', dataIndex: 'materialsList',width:220, ellipsis:true},
           { title: '单据日期', dataIndex: 'operTimeStr',width:145},

@@ -10,9 +10,13 @@ import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.CopyObjectResult;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.jsh.erp.constants.BusinessConstants;
+import com.jsh.erp.datasource.entities.CustomerStatement;
+import com.jsh.erp.datasource.entities.FreightStatement;
 import com.jsh.erp.datasource.entities.SystemConfig;
 import com.jsh.erp.datasource.entities.SystemConfigExample;
 import com.jsh.erp.datasource.entities.User;
+import com.jsh.erp.datasource.mappers.CustomerStatementMapper;
+import com.jsh.erp.datasource.mappers.FreightStatementMapper;
 import com.jsh.erp.datasource.mappers.SystemConfigMapper;
 import com.jsh.erp.datasource.mappers.SystemConfigMapperEx;
 import com.jsh.erp.exception.JshException;
@@ -174,54 +178,215 @@ public class SystemConfigService {
     @Resource
     private SupplierService supplierService;
 
+    @Resource
+    private ContractService contractService;
+    @Resource
+    private CustomerStatementMapper customerStatementMapper;
+    @Resource
+    private FreightStatementMapper freightStatementMapper;
+    @Resource
+    private com.jsh.erp.datasource.mappers.FreightHeadMapper freightHeadMapper;
+
     /**
-     * 根据单据ID构建文件名前缀：单据日期_物流单号_项目名称_客户_单据编号
+     * 根据业务类型和ID构建文件名前缀
+     * 销售出库：单据号_物流单号_总重量_日期(yyyy.MM.dd)
+     * 采购订单/采购入库：单据号_总重量_总金额_日期(yyyy.MM.dd)
+     * 合同：合同编码_吨位_金额_签署日期(yyyy.MM.dd)_公司名称_项目名称
+     * 对账单管理/物流对账：单据号_总重量_总金额_创建日期(yyyy.MM.dd)
      */
     private String buildBillFilePrefix(String billId) {
+        return buildBillFilePrefix(billId, null);
+    }
+
+    public String buildBillFilePrefix(String billId, String bizPath) {
         if(StringUtil.isEmpty(billId)) return null;
         try {
             Long id = Long.parseLong(billId);
-            com.jsh.erp.datasource.entities.DepotHead dh = depotHeadService.getDepotHead(id);
-            if(dh == null) return null;
             StringBuilder sb = new StringBuilder();
-            // 单据日期
-            if(dh.getOperTime() != null) {
-                sb.append(Tools.getCenternTime(dh.getOperTime()).replace("-",""));
-            }
-            // 物流单号（通过DepotHeadService的批量查询方法）
-            try {
-                java.util.List<Long> idList = new java.util.ArrayList<>();
-                idList.add(id);
-                java.util.Map<Long,String> freightMap = depotHeadService.getFreightBillNoMapByDepotHeadIdList(idList);
-                if(freightMap != null && freightMap.containsKey(id)) {
-                    sb.append("_").append(freightMap.get(id));
-                }
-            } catch (Exception ignore) {}
-            // 项目名称和客户名称（从supplier获取）
-            if(dh.getOrganId() != null) {
-                try {
-                    com.jsh.erp.datasource.entities.Supplier supplier = supplierService.getSupplier(dh.getOrganId());
-                    if(supplier != null) {
-                        if(StringUtil.isNotEmpty(supplier.getProjectName())) {
-                            sb.append("_").append(supplier.getProjectName());
-                        }
-                        if(StringUtil.isNotEmpty(supplier.getSupplier())) {
-                            sb.append("_").append(supplier.getSupplier());
-                        }
-                    }
-                } catch (Exception ignore) {}
-            }
-            // 单据编号
-            if(StringUtil.isNotEmpty(dh.getNumber())) {
-                sb.append("_").append(dh.getNumber());
+            java.text.SimpleDateFormat dotFmt = new java.text.SimpleDateFormat("yyyy.MM.dd");
+
+            if("contract".equals(bizPath)) {
+                appendContractPrefix(sb, id, dotFmt);
+            } else if("statement".equals(bizPath)) {
+                appendCustomerStatementPrefix(sb, id, dotFmt);
+            } else if("freightStatement".equals(bizPath)) {
+                appendFreightStatementPrefix(sb, id, dotFmt);
+            } else if("freight".equals(bizPath)) {
+                appendFreightBillPrefix(sb, id, dotFmt);
+            } else {
+                appendDepotHeadPrefix(sb, id, dotFmt);
             }
             String prefix = sb.toString();
-            // 清除文件名中的非法字符
-            prefix = prefix.replaceAll("[\\\\/:*?\"<>|]", "");
+            prefix = prefix.replaceAll("[\\\\/:*?\"<>|]", "_");
             return prefix.length() > 0 ? prefix : null;
         } catch (Exception e) {
             logger.error("构建文件名前缀异常", e);
             return null;
+        }
+    }
+
+    private void appendContractPrefix(StringBuilder sb, Long id, java.text.SimpleDateFormat dotFmt) throws Exception {
+        com.jsh.erp.datasource.entities.Contract c = contractService.getContractById(id);
+        if(c == null) return;
+        appendTextPart(sb, c.getContractNo());
+        appendDecimalPart(sb, c.getTonnage());
+        appendDecimalPart(sb, c.getAmount());
+        appendDatePart(sb, c.getSignDate(), dotFmt);
+        if(c.getOrganId() != null) {
+            com.jsh.erp.datasource.entities.Supplier sup = supplierService.getSupplier(c.getOrganId());
+            if(sup != null) {
+                appendTextPart(sb, sup.getSupplier());
+                appendTextPart(sb, sup.getProjectName());
+            }
+        }
+    }
+
+    private void appendCustomerStatementPrefix(StringBuilder sb, Long id, java.text.SimpleDateFormat dotFmt) {
+        CustomerStatement statement = customerStatementMapper.selectByPrimaryKey(id);
+        if(statement == null) return;
+        appendTextPart(sb, statement.getStatementNo());
+        appendDecimalPart(sb, statement.getTotalWeight());
+        appendDecimalPart(sb, statement.getTotalAmount());
+        appendDatePart(sb, statement.getCreateTime(), dotFmt);
+    }
+
+    private void appendFreightStatementPrefix(StringBuilder sb, Long id, java.text.SimpleDateFormat dotFmt) {
+        FreightStatement statement = freightStatementMapper.selectByPrimaryKey(id);
+        if(statement == null) return;
+        appendTextPart(sb, statement.getStatementNo());
+        appendDecimalPart(sb, statement.getTotalWeight());
+        appendDecimalPart(sb, statement.getTotalFreight());
+        appendDatePart(sb, statement.getCreateTime(), dotFmt);
+    }
+
+    private void appendFreightBillPrefix(StringBuilder sb, Long id, java.text.SimpleDateFormat dotFmt) {
+        com.jsh.erp.datasource.entities.FreightHead fh = freightHeadMapper.selectByPrimaryKey(id);
+        if(fh == null) return;
+        appendTextPart(sb, fh.getBillNo());
+        appendDecimalPart(sb, fh.getTotalWeight());
+        appendDecimalPart(sb, fh.getTotalFreight());
+        appendDatePart(sb, fh.getBillTime(), dotFmt);
+    }
+
+    private void appendDepotHeadPrefix(StringBuilder sb, Long id, java.text.SimpleDateFormat dotFmt) throws Exception {
+        com.jsh.erp.datasource.entities.DepotHead dh = depotHeadService.getDepotHead(id);
+        if(dh == null) return;
+        appendTextPart(sb, dh.getNumber());
+        if(isSaleOutBill(dh)) {
+            appendTextPart(sb, getFreightBillNo(id));
+            appendDecimalPart(sb, getTotalWeight(id));
+            appendDatePart(sb, dh.getOperTime(), dotFmt);
+            return;
+        }
+        if(isPurchaseOrderOrInBill(dh)) {
+            appendDecimalPart(sb, getTotalWeight(id));
+            appendDecimalPart(sb, getDepotAmount(dh));
+            appendDatePart(sb, dh.getOperTime(), dotFmt);
+            return;
+        }
+        appendDecimalPart(sb, getTotalWeight(id));
+        appendDatePart(sb, dh.getOperTime(), dotFmt);
+    }
+
+    private boolean isSaleOutBill(com.jsh.erp.datasource.entities.DepotHead dh) {
+        return "出库".equals(dh.getType()) && "销售".equals(dh.getSubType());
+    }
+
+    private boolean isPurchaseOrderOrInBill(com.jsh.erp.datasource.entities.DepotHead dh) {
+        return "采购订单".equals(dh.getSubType()) || ("入库".equals(dh.getType()) && "采购".equals(dh.getSubType()));
+    }
+
+    private String getFreightBillNo(Long id) {
+        try {
+            java.util.List<Long> idList = new java.util.ArrayList<>();
+            idList.add(id);
+            java.util.Map<Long, String> fMap = depotHeadService.getFreightBillNoMapByDepotHeadIdList(idList);
+            if(fMap != null) {
+                return fMap.get(id);
+            }
+        } catch (Exception ignore) {}
+        return null;
+    }
+
+    private BigDecimal getTotalWeight(Long id) {
+        try {
+            java.util.List<Long> idList = new java.util.ArrayList<>();
+            idList.add(id);
+            java.util.Map<Long, BigDecimal> wMap = depotHeadService.getTotalWeightMapByHeaderIdList(idList);
+            if(wMap != null) {
+                return wMap.get(id);
+            }
+        } catch (Exception ignore) {}
+        return null;
+    }
+
+    private BigDecimal getDepotAmount(com.jsh.erp.datasource.entities.DepotHead dh) {
+        if(dh.getChangeAmount() != null) {
+            return dh.getChangeAmount();
+        }
+        return dh.getTotalPrice();
+    }
+
+    private void appendTextPart(StringBuilder sb, String value) {
+        if(StringUtil.isNotEmpty(value)) {
+            if(sb.length() > 0) {
+                sb.append("_");
+            }
+            sb.append(value.trim());
+        }
+    }
+
+    private void appendDecimalPart(StringBuilder sb, BigDecimal value) {
+        if(value != null) {
+            appendTextPart(sb, value.stripTrailingZeros().toPlainString());
+        }
+    }
+
+    private void appendDatePart(StringBuilder sb, Date value, java.text.SimpleDateFormat dotFmt) {
+        if(value != null) {
+            appendTextPart(sb, dotFmt.format(value));
+        }
+    }
+
+    private String validateAndGetFileExt(String orgName, MultipartFile mf) throws Exception {
+        String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx",
+                ".ppt", ".pptx", ".zip", ".rar", ".mp3", ".mp4", ".avi"};
+        String fileExt = "";
+        int lastDot = orgName.lastIndexOf(".");
+        if (lastDot >= 0) {
+            fileExt = orgName.substring(lastDot).toLowerCase();
+        }
+        boolean isValidExtension = false;
+        for (String ext : allowedExtensions) {
+            if (ext.equals(fileExt)) {
+                isValidExtension = true;
+                break;
+            }
+        }
+        if (!isValidExtension) {
+            throw new IllegalArgumentException("Invalid file type");
+        }
+        if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
+            byte[] header = new byte[8];
+            try (InputStream is = mf.getInputStream()) {
+                int read = is.read(header);
+                if (read < 4 || !isValidImageMagic(header)) {
+                    throw new IllegalArgumentException("File content does not match image type");
+                }
+            }
+        }
+        return fileExt;
+    }
+
+    private String buildUploadFileName(String orgName, String billId, String bizPath, MultipartFile mf) throws Exception {
+        String fileExt = validateAndGetFileExt(orgName, mf);
+        String billPrefix = buildBillFilePrefix(billId, bizPath);
+        if(billPrefix != null) {
+            return billPrefix + fileExt;
+        } else if(orgName.contains(".")) {
+            return orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
+        } else {
+            return orgName + "_" + System.currentTimeMillis();
         }
     }
 
@@ -237,59 +402,20 @@ public class SystemConfigService {
             if(StringUtil.isEmpty(bizPath)){
                 bizPath = "";
             }
+            String origBizPath = bizPath; // 保留原始业务类型用于文件命名
             // Validate bizPath to prevent directory traversal
             if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
             bizPath = bizPath + File.separator + "default";
             String ctxPath = filePath;
-            String fileName = null;
             File file = new File(ctxPath + File.separator + bizPath + File.separator );
             if (!file.exists()) {
                 file.mkdirs();// 创建文件根目录
             }
             String orgName = mf.getOriginalFilename();// 获取文件名
             orgName = FileUtils.getFileName(orgName);
-
-            // 验证文件扩展名白名单
-            String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
-                    ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
-            // 取最后一个点之后的扩展名，防止双扩展名攻击（如 malicious.jsp.jpg）
-            String fileExt = "";
-            int lastDot = orgName.lastIndexOf(".");
-            if (lastDot >= 0) {
-                fileExt = orgName.substring(lastDot).toLowerCase();
-            }
-            boolean isValidExtension = false;
-            for (String ext : allowedExtensions) {
-                if (ext.equals(fileExt)) {
-                    isValidExtension = true;
-                    break;
-                }
-            }
-            if (!isValidExtension) {
-                throw new IllegalArgumentException("Invalid file type");
-            }
-            // 校验图片类文件的 magic bytes，防止 MIME 伪装
-            if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
-                byte[] header = new byte[8];
-                try (InputStream is = mf.getInputStream()) {
-                    int read = is.read(header);
-                    if (read < 4 || !isValidImageMagic(header)) {
-                        throw new IllegalArgumentException("File content does not match image type");
-                    }
-                }
-            }
-
-            // 根据单据ID构建文件名前缀
-            String billPrefix = buildBillFilePrefix(billId);
-            if(billPrefix != null) {
-                fileName = billPrefix + fileExt;
-            } else if(orgName.contains(".")){
-                fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
-            } else {
-                fileName = orgName + "_" + System.currentTimeMillis();
-            }
+            String fileName = buildUploadFileName(orgName, billId, origBizPath, mf);
             String savePath = file.getPath() + File.separator + fileName;
             File savefile = new File(savePath);
             FileCopyUtils.copy(mf.getBytes(), savefile);
@@ -317,10 +443,11 @@ public class SystemConfigService {
      * @param bizPath  自定义路径
      * @return
      */
-    public String uploadAliOss(MultipartFile mf, String bizPath, HttpServletRequest request) throws Exception {
+    public String uploadAliOss(MultipartFile mf, String bizPath, String billId, HttpServletRequest request) throws Exception {
         if(StringUtil.isEmpty(bizPath)){
             bizPath = "";
         }
+        String origBizPath = bizPath;
         // Validate bizPath to prevent directory traversal
         if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
             throw new IllegalArgumentException("Invalid bizPath");
@@ -330,45 +457,9 @@ public class SystemConfigService {
         String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
         String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret").getPlatformValue();
         String bucketName = platformConfigService.getPlatformConfigByKey("aliOss_bucketName").getPlatformValue();
-        // 填写Object完整路径，完整路径中不能包含Bucket名称，例如exampledir/exampleobject.txt。
-        String fileName = "";
         String orgName = mf.getOriginalFilename();// 获取文件名
         orgName = FileUtils.getFileName(orgName);
-
-        // 验证文件扩展名白名单
-        String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt",".doc",".docx",".xls",".xlsx",
-                ".ppt",".pptx",".zip",".rar",".mp3",".mp4",".avi"};
-        String fileExt = "";
-        int lastDot = orgName.lastIndexOf(".");
-        if (lastDot >= 0) {
-            fileExt = orgName.substring(lastDot).toLowerCase();
-        }
-        boolean isValidExtension = false;
-        for (String ext : allowedExtensions) {
-            if (ext.equals(fileExt)) {
-                isValidExtension = true;
-                break;
-            }
-        }
-        if (!isValidExtension) {
-            throw new IllegalArgumentException("Invalid file type");
-        }
-        // 校验图片类文件的 magic bytes
-        if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
-            byte[] header = new byte[8];
-            try (InputStream is = mf.getInputStream()) {
-                int read = is.read(header);
-                if (read < 4 || !isValidImageMagic(header)) {
-                    throw new IllegalArgumentException("File content does not match image type");
-                }
-            }
-        }
-
-        if(orgName.contains(".")){
-            fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.lastIndexOf("."));
-        }else{
-            fileName = orgName+ "_" + System.currentTimeMillis();
-        }
+        String fileName = buildUploadFileName(orgName, billId, origBizPath, mf);
         String filePathStr = StringUtil.isNotEmpty(filePath)? filePath.substring(1):"";
         String objectName = filePathStr + "/" + bizPath + "/" + fileName;
         String smallObjectName = filePathStr + "-small/" + bizPath + "/" + fileName;
@@ -423,6 +514,7 @@ public class SystemConfigService {
         }
         return "";
     }
+
 
     /**
      * 校验文件头魔数是否为合法图片格式

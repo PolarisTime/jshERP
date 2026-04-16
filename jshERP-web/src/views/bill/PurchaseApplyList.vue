@@ -75,7 +75,6 @@
         <div class="table-operator"  style="margin-top: 5px">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="myHandleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
-          <a-button v-if="quickBtn.purchaseOrder.indexOf(1)>-1 && btnEnableList.indexOf(1)>-1" icon="share-alt" @click="transferBill('转采购订单', quickBtn.purchaseOrder)">转采购订单</a-button>
           <a-tooltip title="可将状态是部分采购的单据强制完成">
             <a-button v-if="btnEnableList.indexOf(1)>-1" icon="issues-close" @click="batchForceClose">强制结单</a-button>
           </a-tooltip>
@@ -145,7 +144,6 @@
         <!-- table区域-end -->
         <!-- 表单区域 -->
         <purchase-apply-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-apply-modal>
-        <purchase-order-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></purchase-order-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
       </a-card>
@@ -155,7 +153,6 @@
 <!-- by  ji  sheng  hua-->
 <script>
   import PurchaseApplyModal from './modules/PurchaseApplyModal'
-  import PurchaseOrderModal from './modules/PurchaseOrderModal'
   import BillDetail from './dialog/BillDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
@@ -169,7 +166,6 @@
     mixins:[JeecgListMixin,BillListMixin],
     components: {
       PurchaseApplyModal,
-      PurchaseOrderModal,
       BillDetail,
       BillExcelIframe,
       ColumnSettingPopover,

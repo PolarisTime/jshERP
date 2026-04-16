@@ -13,6 +13,9 @@ public class FreightHead {
 
     private Date billTime;
 
+    /** 运输车号 */
+    private String carNo;
+
     private Long carrierId;
 
     private BigDecimal unitPrice;
@@ -44,6 +47,11 @@ public class FreightHead {
 
     private Long paymentOperator;
 
+    private String fileName;
+
+    public String getFileName() { return fileName; }
+    public void setFileName(String fileName) { this.fileName = fileName; }
+
     public Long getId() {
         return id;
     }
@@ -66,6 +74,14 @@ public class FreightHead {
 
     public void setBillTime(Date billTime) {
         this.billTime = billTime;
+    }
+
+    public String getCarNo() {
+        return carNo;
+    }
+
+    public void setCarNo(String carNo) {
+        this.carNo = carNo == null ? null : carNo.trim();
     }
 
     public Long getCarrierId() {

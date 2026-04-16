@@ -12,6 +12,7 @@
     <template slot="footer">
       <a-button @click="handleCancel">取消(ESC)</a-button>
       <template v-if="!isReadOnly">
+        <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOkAndCheck">保存并审核</a-button>
         <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOk">保存</a-button>
       </template>
       <template v-else>
@@ -36,6 +37,14 @@
                 format="YYYY-MM-DD" placeholder="请选择日期" />
             </a-form-item>
           </a-col>
+          <a-col v-if="isReadOnly" :span="6">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
+              <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
+              <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-row class="form-row" :gutter="24">
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算方">
               <span v-if="isReadOnly">{{ model.carrierName }}</span>
@@ -54,8 +63,6 @@
                 v-decorator="['unitPrice', validatorRules.unitPrice]" @change="onUnitPriceChange" />
             </a-form-item>
           </a-col>
-        </a-row>
-        <a-row class="form-row" :gutter="24">
           <a-col :span="6">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总重量(吨)">
               <span v-if="isReadOnly">{{ totalWeight }}</span>
@@ -66,12 +73,6 @@
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="总运费(元)">
               <span v-if="isReadOnly">{{ totalFreight }}</span>
               <a-input v-else :readOnly="true" v-model="totalFreight" />
-            </a-form-item>
-          </a-col>
-          <a-col v-if="isReadOnly" :span="6">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="状态">
-              <a-tag v-if="model.status === '0' || model.status === 0" color="red">未审核</a-tag>
-              <a-tag v-if="model.status === '1' || model.status === 1" color="green">已审核</a-tag>
             </a-form-item>
           </a-col>
         </a-row>
@@ -94,6 +95,7 @@
           :columns="currentDetailColumns"
           :dataSource="selectedSaleOutList"
           :pagination="false"
+          :scroll="{ x: 1420 }"
           :components="detailDragComponents">
           <span slot="action" slot-scope="text, record, index">
             <a-popconfirm title="确定移除吗?" @confirm="() => removeSaleOut(index)">
@@ -138,7 +140,9 @@
         :dataSource="availableSaleOutList"
         :loading="saleOutLoading"
         :pagination="saleOutPagination"
+        :scroll="{ x: 1530 }"
         :rowSelection="{selectedRowKeys: saleOutSelectedKeys, onChange: onSaleOutSelectChange}"
+        :customRow="saleOutRowAction"
         :components="saleOutDragComponents"
         @change="handleSaleOutTableChange">
         <template slot="saleOutStatus" slot-scope="text">
@@ -171,6 +175,7 @@
         confirmLoading: false,
         isReadOnly: false,
         isCanBackCheck: true,
+        submitStatus: '0',
         model: {},
         carrierList: [],
         totalWeight: '0.000',
@@ -284,7 +289,7 @@
               const dragProps = {
                 key: col.dataIndex || col.key,
                 class: 'table-draggable-handle',
-                attrs: { w: 10, x: col.width, z: 1, axis: 'x', draggable: true, resizable: false },
+                attrs: { w: 10, h: 10, x: col.width, z: 1, axis: 'x', draggable: true, resizable: false },
                 on: {
                   dragging: (x) => { col.width = Math.max(x, 1) }
                 }
@@ -385,6 +390,7 @@
         });
       },
       add() {
+        this.submitStatus = '0'
         this.edit({});
         // 自动生成运费单编号，格式: yyyyW0001
         getAction('/freightHead/buildBillNo').then((res) => {
@@ -399,6 +405,7 @@
         this.isReadOnly = false;
         this.form.resetFields();
         this.model = Object.assign({}, record);
+        this.submitStatus = this.model.status != null ? String(this.model.status) : '0';
         this.selectedSaleOutList = [];
         this.totalWeight = '0.00';
         this.totalFreight = '0.00';
@@ -495,6 +502,21 @@
         this.saleOutSelectedKeys = selectedRowKeys;
         this.saleOutSelectedRows = selectedRows;
       },
+      saleOutRowAction(record) {
+        return {
+          on: {
+            click: () => {
+              this.saleOutSelectedKeys = [record.id]
+              this.saleOutSelectedRows = [record]
+            },
+            dblclick: () => {
+              this.saleOutSelectedKeys = [record.id]
+              this.saleOutSelectedRows = [record]
+              this.confirmSelectSaleOut()
+            }
+          }
+        }
+      },
       confirmSelectSaleOut() {
         if (this.saleOutSelectedRows.length === 0) {
           this.$message.warning('请至少选择一条出库单！');
@@ -526,6 +548,14 @@
         this.visible = false;
       },
       handleOk() {
+        this.submitStatus = this.model.status != null ? String(this.model.status) : '0';
+        this.submitFreightBill()
+      },
+      handleOkAndCheck() {
+        this.submitStatus = '1';
+        this.submitFreightBill()
+      },
+      submitFreightBill() {
         const that = this;
         this.form.validateFields((err, values) => {
           if (!err) {
@@ -543,6 +573,7 @@
             delete billMain.totalWeight;
             delete billMain.totalFreight;
             billMain.remark = values.remark;
+            billMain.status = that.submitStatus;
             // 从明细行提取唯一出库单，按 depotHeadId 汇总重量
             let weightMap = {}
             that.selectedSaleOutList.forEach(item => {
@@ -636,10 +667,13 @@
 <style scoped>
   .resize-table-th {
     position: relative;
+    overflow: hidden;
   }
   .table-draggable-handle {
     height: 100% !important;
+    width: 10px !important;
     bottom: 0;
+    top: 0;
     left: auto !important;
     right: -5px;
     cursor: col-resize;

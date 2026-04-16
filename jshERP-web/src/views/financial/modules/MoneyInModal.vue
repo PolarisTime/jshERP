@@ -22,17 +22,28 @@
       <a-form :form="form">
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="客户">
-              <a-select placeholder="请选择客户" v-decorator="[ 'organId', validatorRules.organId ]"
-                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="onChangeOrgan" @search="handleSearchCustomer">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="客户名称">
+              <a-select placeholder="请选择客户名称" v-model="selectedCustomerName"
+                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="handleCustomerNameChange" @search="handleSearchCustomer">
                 <div slot="dropdownRender" slot-scope="menu">
                   <v-nodes :vnodes="menu" />
                   <a-divider style="margin: 4px 0;" />
                   <div v-if="quickBtn.customer" class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="addCustomer"><a-icon type="plus" /> 新增客户</div>
                   <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer"><a-icon type="reload" /> 刷新</div>
                 </div>
-                <a-select-option v-for="(item,index) in cusList" :key="index" :value="item.id">
-                  {{ item.supplier }}
+                <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">
+                  {{ name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
+          <a-col :lg="12" :md="12" :sm="24">
+            <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="项目名称">
+              <a-select placeholder="请先选择客户" v-decorator="[ 'organId', validatorRules.organId ]"
+                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children"
+                :disabled="projectListForOrgan.length === 0" @change="onChangeOrgan">
+                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                  {{ item.projectName || '(无项目名称)' }}
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -78,14 +89,11 @@
           @deleted="onDeleted"
           @valueChange="onValueChange">
           <template #buttonBefore>
-            <a-row :gutter="24" style="float:left;padding-bottom:8px;">
-              <a-col :md="12" :sm="24">
-                <a-button type="primary" icon="plus" @click="handleClickAdd">选择单据</a-button>
-              </a-col>
-              <a-col :md="12" :sm="24" style="padding-left:0">
-                <a-button type="primary" icon="plus" @click="selectBeginNeed('客户')">选择期初</a-button>
-              </a-col>
-            </a-row>
+            <div style="float:left;padding-bottom:8px;display:flex;gap:8px;">
+              <a-button type="primary" icon="plus" @click="handleSelectStatement">选择对账单</a-button>
+              <a-button type="primary" icon="plus" @click="handleClickAdd">选择单据</a-button>
+              <a-button type="primary" icon="plus" @click="selectBeginNeed('客户')">选择期初</a-button>
+            </div>
           </template>
           <template #buttonAfter>
             <a-row :gutter="24" style="float:left;padding-bottom:8px;">
@@ -145,6 +153,7 @@
       </a-form>
     </a-spin>
     <debt-bill-list ref="debtBillList" @ok="debtBillListOk"></debt-bill-list>
+    <statement-select-list ref="statementSelectList" @ok="statementSelectOk"></statement-select-list>
     <customer-modal ref="customerModalForm" @ok="customerModalFormOk"></customer-modal>
     <account-modal ref="accountModalForm" @ok="accountModalFormOk"></account-modal>
     <person-modal ref="personModalForm" @ok="personModalFormOk"></person-modal>
@@ -155,6 +164,7 @@
 <script>
   import pick from 'lodash.pick'
   import DebtBillList from '../dialog/DebtBillList'
+  import StatementSelectList from '../dialog/StatementSelectList'
   import CustomerModal from '../../system/modules/CustomerModal'
   import AccountModal from '../../system/modules/AccountModal'
   import PersonModal from '../../system/modules/PersonModal'
@@ -170,6 +180,7 @@
     mixins: [JEditableTableMixin, FinancialModalMixin],
     components: {
       DebtBillList,
+      StatementSelectList,
       CustomerModal,
       AccountModal,
       PersonModal,
@@ -244,10 +255,61 @@
     created () {
     },
     methods: {
+      handleSelectStatement() {
+        // 可以不选客户直接打开，已选客户则按客户筛选
+        let organId = this.form.getFieldValue('organId')
+        this.$refs.statementSelectList.show(organId || null)
+      },
+      statementSelectOk(selectRows) {
+        if (!selectRows || selectRows.length === 0) return
+        // 从对账单带入客户名称和项目名称
+        let firstRow = selectRows[0]
+        if (firstRow.organId && !this.form.getFieldValue('organId')) {
+          // 查找客户信息回填公司名称和项目名称
+          let cus = this.cusList.find(c => c.id === Number(firstRow.organId))
+          if (cus) {
+            this.selectedCustomerName = cus.supplier
+            this.projectListForOrgan = this.cusList.filter(c => c.supplier === cus.supplier)
+            this.$nextTick(() => {
+              this.form.setFieldsValue({ organId: Number(firstRow.organId) })
+            })
+          }
+        }
+        // 将对账单数据映射到收款单明细
+        let listEx = []
+        let changeAmount = 0
+        for (let i = 0; i < selectRows.length; i++) {
+          let row = selectRows[i]
+          let unpaid = parseFloat(row.unpaidAmount) || 0
+          if (unpaid > 0) {
+            listEx.push({
+              billNumber: row.statementNo,
+              needDebt: parseFloat(row.totalAmount) || 0,
+              finishDebt: parseFloat(row.receivedAmount) || 0,
+              eachAmount: unpaid,
+              remark: '',
+              billId: row.id
+            })
+            changeAmount += unpaid
+          }
+        }
+        // 追加到现有明细（不覆盖）
+        let existing = this.accountTable.dataSource || []
+        this.accountTable.dataSource = existing.concat(listEx)
+        // 重新计算合计
+        let total = 0
+        this.accountTable.dataSource.forEach(item => { total += parseFloat(item.eachAmount) || 0 })
+        this.form.setFieldsValue({
+          'totalPrice': total.toFixed(2),
+          'changeAmount': total.toFixed(2)
+        })
+      },
       //调用完edit()方法之后会自动调用此方法
       editAfter() {
         this.billStatus = '0'
         if (this.action === 'add') {
+          this.selectedCustomerName = undefined
+          this.projectListForOrgan = []
           this.addInit(this.prefixNo)
           this.fileList = []
           if(this.actionWithOrgan) {
@@ -258,6 +320,14 @@
             },1000)
           }
         } else {
+          // 编辑时初始化公司名称和项目列表
+          if(this.model.organId) {
+            let cus = this.cusList.find(c => c.id === this.model.organId)
+            if(cus) {
+              this.selectedCustomerName = cus.supplier
+              this.projectListForOrgan = this.cusList.filter(c => c.supplier === cus.supplier)
+            }
+          }
           this.model.billTime = this.model.billTimeStr
           this.$nextTick(() => {
             this.form.setFieldsValue(pick(this.model,'organId', 'handsPersonId', 'billTime', 'billNo', 'remark',

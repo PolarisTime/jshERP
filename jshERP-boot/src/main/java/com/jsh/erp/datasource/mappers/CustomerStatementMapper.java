@@ -23,7 +23,7 @@ public interface CustomerStatementMapper {
     /**
      * 今日已生成的对账单数量（用于生成序号）
      */
-    int countTodayStatement(@Param("datePrefix") String datePrefix);
+    int countTodayStatement(@Param("datePrefix") String datePrefix, @Param("tenantId") Long tenantId);
 
     // ─── 未对账明细（depot_item 行） ─────────────────────────────
 
@@ -31,31 +31,37 @@ public interface CustomerStatementMapper {
             @Param("organId") Long organId,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
+            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
     int countUnreconciledItems(
             @Param("organId") Long organId,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime);
+            @Param("endTime") String endTime,
+            @Param("tenantId") Long tenantId);
 
     // ─── 对账单列表 ──────────────────────────────────────────────
 
     List<Map<String, Object>> listStatements(
             @Param("organId") Long organId,
+            @Param("statementNo") String statementNo,
             @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
+            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
     int countStatements(
             @Param("organId") Long organId,
+            @Param("statementNo") String statementNo,
             @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime);
+            @Param("endTime") String endTime,
+            @Param("tenantId") Long tenantId);
 
     // ─── 对账单明细 ──────────────────────────────────────────────
 
@@ -72,4 +78,8 @@ public interface CustomerStatementMapper {
      * 软删关联 item（用于删除对账单时恢复明细为未对账状态）
      */
     int deleteStatementItems(@Param("statementId") Long statementId);
+
+    List<Map<String, Object>> listUnpaidStatements(@Param("organId") Long organId, @Param("tenantId") Long tenantId);
+
+    int addReceivedAmount(@Param("id") Long id, @Param("amount") java.math.BigDecimal amount);
 }

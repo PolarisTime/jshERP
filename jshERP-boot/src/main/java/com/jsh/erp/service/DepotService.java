@@ -354,6 +354,17 @@ public class DepotService {
     }
 
     /**
+     * 获取默认仓库ID（is_default=true的第一个仓库，无默认仓库则返回null）
+     */
+    public Long getDefaultDepotId() {
+        DepotExample example = new DepotExample();
+        example.createCriteria().andIsDefaultEqualTo(true)
+                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<Depot> list = depotMapper.selectByExample(example);
+        return (list != null && !list.isEmpty()) ? list.get(0).getId() : null;
+    }
+
+    /**
      * 当前用户有权限使用的仓库列表的id，用逗号隔开
      * @return
      * @throws Exception

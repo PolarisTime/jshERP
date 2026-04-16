@@ -25,14 +25,21 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.jsh.erp.utils.Tools.getCenternTime;
 
 @Service
 public class AccountHeadService {
     private Logger logger = LoggerFactory.getLogger(AccountHeadService.class);
+    private static final int FEATURE_DISABLED_CODE = 500;
+    private static final Set<String> DISABLED_ACCOUNT_TYPES = new HashSet<>(Arrays.asList(
+            "收入", "支出", "收预付款"
+    ));
     @Resource
     private AccountHeadMapper accountHeadMapper;
     @Resource
@@ -49,6 +56,8 @@ public class AccountHeadService {
     private SystemConfigService systemConfigService;
     @Resource
     private LogService logService;
+    @Resource
+    private CustomerStatementService customerStatementService;
     @Resource
     private AccountItemMapperEx accountItemMapperEx;
     @Resource
@@ -93,6 +102,7 @@ public class AccountHeadService {
                                              String remark, String number, Long inOutItemId) throws Exception{
         List<AccountHeadVo4ListEx> list = new ArrayList<>();
         try{
+            validateFinancialTypeEnabled(type);
             String [] creatorArray = getCreatorArray();
             beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
             endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
@@ -256,6 +266,7 @@ public class AccountHeadService {
         List<Long> ids = StringUtil.strToLongList(accountHeadIds);
         for(Long id: ids) {
             AccountHead accountHead = getAccountHead(id);
+            validateFinancialTypeEnabled(accountHead.getType());
             if("0".equals(status)){
                 //进行反审核操作
                 if("1".equals(accountHead.getStatus())) {
@@ -298,6 +309,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void addAccountHeadAndDetail(String beanJson, String rows, HttpServletRequest request) throws Exception {
         AccountHead accountHead = JSONObject.parseObject(beanJson, AccountHead.class);
+        validateFinancialTypeEnabled(accountHead.getType());
         //校验单号是否重复
         if(checkIsBillNoExist(0L, accountHead.getBillNo())>0) {
             throw new BusinessRunTimeException(ExceptionConstants.ACCOUNT_HEAD_BILL_NO_EXIST_CODE,
@@ -340,6 +352,10 @@ public class AccountHeadService {
             //更新会员预付款
             supplierService.updateAdvanceIn(accountHead.getOrganId());
         }
+        //收款单：如果明细关联了对账单（billNumber以DZ开头），更新对账单已收金额
+        if("收款".equals(accountHead.getType())) {
+            updateStatementReceivedAmount(rows);
+        }
         String statusStr = accountHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("财务单据",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(accountHead.getBillNo()).append(statusStr).toString(), request);
@@ -348,6 +364,7 @@ public class AccountHeadService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void updateAccountHeadAndDetail(String beanJson, String rows, HttpServletRequest request) throws Exception {
         AccountHead accountHead = JSONObject.parseObject(beanJson, AccountHead.class);
+        validateFinancialTypeEnabled(accountHead.getType());
         //校验单号是否重复
         if(checkIsBillNoExist(accountHead.getId(), accountHead.getBillNo())>0) {
             throw new BusinessRunTimeException(ExceptionConstants.ACCOUNT_HEAD_BILL_NO_EXIST_CODE,
@@ -378,6 +395,9 @@ public class AccountHeadService {
         List<AccountHeadVo4ListEx> list = null;
         try{
             list = accountHeadMapperEx.getDetailByNumber(billNo);
+            if (list != null && !list.isEmpty()) {
+                validateFinancialTypeEnabled(list.get(0).getType());
+            }
         }catch(Exception e){
             JshException.readFail(logger, e);
         }
@@ -416,5 +436,38 @@ public class AccountHeadService {
 
     public List<AccountHead> getFinancialBillNoByBillId(Long billId) {
         return accountHeadMapperEx.getFinancialBillNoByBillId(billId);
+    }
+
+    private void validateFinancialTypeEnabled(String type) {
+        if (StringUtil.isNotEmpty(type) && DISABLED_ACCOUNT_TYPES.contains(type)) {
+            throw new BusinessRunTimeException(FEATURE_DISABLED_CODE, String.format("功能已裁剪，禁止继续使用：%s", type));
+        }
+    }
+
+    /**
+     * 收款单保存时，更新关联对账单的已收金额
+     * 明细的 billNumber 以 DZ 开头表示关联的是对账单
+     */
+    private void updateStatementReceivedAmount(String rows) {
+        try {
+            JSONArray rowArr = JSONArray.parseArray(rows);
+            if (rowArr == null) return;
+            for (int i = 0; i < rowArr.size(); i++) {
+                JSONObject item = JSONObject.parseObject(rowArr.getString(i));
+                String billNumber = item.getString("billNumber");
+                if (billNumber != null && billNumber.startsWith("DZ")) {
+                    BigDecimal eachAmount = item.getBigDecimal("eachAmount");
+                    if (eachAmount != null && eachAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        // 通过对账单号查ID
+                        Long statementId = item.getLong("billId");
+                        if (statementId != null) {
+                            customerStatementService.addReceivedAmount(statementId, eachAmount);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("更新对账单已收金额异常", e);
+        }
     }
 }

@@ -6,6 +6,8 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.constants.ExceptionConstants;
 import com.jsh.erp.datasource.entities.AccountHeadVo4Body;
 import com.jsh.erp.datasource.entities.FreightHeadVo;
+import com.jsh.erp.rbac.RbacMode;
+import com.jsh.erp.rbac.RbacPermission;
 import com.jsh.erp.service.FreightHeadService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
@@ -32,6 +34,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 @RestController
 @RequestMapping(value = "/freightHead")
 @Api(tags = {"运费管理"})
+@RbacPermission(resource = "/freight/bill")
 public class FreightHeadController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(FreightHeadController.class);
 
@@ -135,6 +138,7 @@ public class FreightHeadController extends BaseController {
      */
     @PostMapping(value = "/batchSetStatus")
     @ApiOperation(value = "批量设置状态-审核或者反审核")
+    @RbacPermission(mode = RbacMode.AUDIT_STATUS, statusField = "status")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -416,5 +420,23 @@ public class FreightHeadController extends BaseController {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    @PutMapping(value = "/updateFileById")
+    @ApiOperation(value = "更新物流单附件")
+    public BaseResponseInfo updateFileById(@RequestBody JSONObject params, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            Long id = params.getLong("id");
+            String fileName = params.getString("fileName");
+            freightHeadService.updateFileById(id, fileName);
+            res.code = 200;
+            res.data = "操作成功";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
     }
 }

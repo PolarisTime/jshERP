@@ -227,7 +227,7 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','status'],
+        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','status'],
         // 默认列
         defColumns: [
           {
@@ -237,6 +237,7 @@
             scopedSlots: { customRender: 'action' },
           },
           { title: '供应商', dataIndex: 'organName',width:120, ellipsis:true},
+          { title: '项目名称', dataIndex: 'projectName', width:150, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
               text = record.linkNumber?text+"[转]":text
@@ -270,13 +271,13 @@
       this.initSupplier()
       this.getDepotData()
       this.initUser()
-      this.initWaitBillCount('入库', '采购,销售退货', '1,3')
+      this.initWaitBillCount('入库', '采购', '1,3')
     },
     methods: {
       searchQuery() {
         this.loadData(1)
         if(this.inOutManageFlag) {
-          this.initWaitBillCount('入库', '采购,销售退货', '1,3')
+          this.initWaitBillCount('入库', '采购', '1,3')
         }
       },
       searchReset() {
@@ -286,7 +287,7 @@
         }
         this.loadData(1)
         if(this.inOutManageFlag) {
-          this.initWaitBillCount('入库', '采购,销售退货', '1,3')
+          this.initWaitBillCount('入库', '采购', '1,3')
         }
       },
       myHandleDelete(record) {
@@ -296,7 +297,7 @@
             if(res.code === 200){
               that.loadData(1)
               if(that.inOutManageFlag) {
-                that.initWaitBillCount('入库', '采购,销售退货', '1,3')
+                that.initWaitBillCount('入库', '采购', '1,3')
               }
             } else {
               that.$message.warning(res.data.message);
@@ -325,7 +326,7 @@
                   that.loadData()
                   that.onClearSelected()
                   if(that.inOutManageFlag) {
-                    that.initWaitBillCount('入库', '采购,销售退货', '1,3')
+                    that.initWaitBillCount('入库', '采购', '1,3')
                   }
                 } else {
                   that.$message.warning(res.data.message)
@@ -339,12 +340,12 @@
       },
       //待入库
       handleWaitBill() {
-        this.$refs.batchWaitBill.show('入库', '采购,销售退货', "1,3")
-        this.$refs.batchWaitBill.title = "批量选择采购入库或销售退货"
+        this.$refs.batchWaitBill.show('入库', '采购', "1,3")
+        this.$refs.batchWaitBill.title = "批量选择采购入库"
       },
       waitModalFormClose() {
         this.loadData()
-        this.initWaitBillCount('入库', '采购,销售退货', '1,3')
+        this.initWaitBillCount('入库', '采购', '1,3')
       },
     }
   }

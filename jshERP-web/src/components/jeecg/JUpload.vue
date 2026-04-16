@@ -54,11 +54,27 @@
     return '-'+parseInt(Math.random()*10000+1,10);
   }
   const getFileName=(path)=>{
-    if(path.lastIndexOf("\\")>=0){
-      let reg=new RegExp("\\\\","g");
-      path = path.replace(reg,"/");
+    if(!path){
+      return '';
     }
-    return path.substring(path.lastIndexOf("/")+1);
+    let decodedPath = path;
+    try {
+      decodedPath = decodeURIComponent(path);
+    } catch (e) {}
+    if(decodedPath.lastIndexOf("\\")>=0){
+      let reg=new RegExp("\\\\","g");
+      decodedPath = decodedPath.replace(reg,"/");
+    }
+    return decodedPath.substring(decodedPath.lastIndexOf("/")+1);
+  }
+  const normalizeUploadFile=(file)=>{
+    const responsePath = file && file.response ? file.response.data : '';
+    const finalName = getFileName(responsePath) || file.name;
+    return {
+      ...file,
+      name: finalName,
+      url: responsePath ? getFileAccessHttpUrl(responsePath) : file.url
+    };
   }
   export default {
     name: 'JUpload',
@@ -279,13 +295,7 @@
             fileList = fileList.slice(-this.number);
           }
           if(info.file.response.code === 200){
-            fileList = fileList.map((file) => {
-              if (file.response) {
-                let reUrl = file.response.data;
-                file.url = getFileAccessHttpUrl(reUrl);
-              }
-              return file;
-            });
+            fileList = fileList.map((file) => normalizeUploadFile(file));
           }
           //this.$message.success(`${info.file.name} 上传成功!`);
         }else if (info.file.status === 'error') {
@@ -357,13 +367,13 @@
                 if (res.code === 200) {
                   const filePath = res.data
                   const url = getFileAccessHttpUrl(filePath)
-                  this.fileList = this.fileList.concat({
+                  this.fileList = this.fileList.concat(normalizeUploadFile({
                     uid: uidGenerator(),
                     name: fileName,
                     status: 'done',
                     url: url,
                     response: { code: 200, data: filePath }
-                  })
+                  }))
                   if (this.number > 0) {
                     this.fileList = this.fileList.slice(-this.number)
                   }

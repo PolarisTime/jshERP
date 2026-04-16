@@ -17,27 +17,30 @@
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item label="合同名称" :labelCol="{span:8}" :wrapperCol="{span:16}">
-              <a-input v-decorator="['contractName',{rules:[{required:true,message:'请输入合同名称'}]}]" placeholder="请输入合同名称" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="客户" :labelCol="{span:8}" :wrapperCol="{span:16}">
+            <a-form-item label="客户名称" :labelCol="{span:8}" :wrapperCol="{span:16}">
               <a-select
-                v-decorator="['organId',{rules:[{required:true,message:'请选择客户'}]}]"
-                placeholder="请选择客户"
+                v-model="selectedCustomerName"
+                placeholder="请选择客户名称"
                 showSearch allow-clear optionFilterProp="children"
                 @search="handleCustomerSearch"
-                @change="handleOrganChange">
-                <a-select-option v-for="item in cusList" :key="item.id" :value="item.id">
-                  {{ item.supplier }}
+                @change="handleCustomerNameChange">
+                <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">
+                  {{ name }}
                 </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :span="12">
-            <a-form-item label="项目名称" :labelCol="{span:8}" :wrapperCol="{span:16}">
-              <a-input v-decorator="['projectName']" placeholder="从客户信息导入，可修改" />
+          <a-col :span="24">
+            <a-form-item label="项目名称" :labelCol="{span:4}" :wrapperCol="{span:20}">
+              <a-select
+                v-decorator="['organId',{rules:[{required:true,message:'请选择项目名称'}]}]"
+                placeholder="请先选择客户名称"
+                showSearch allow-clear optionFilterProp="children"
+                :disabled="projectListForOrgan.length === 0">
+                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                  {{ item.projectName || '(无项目名称)' }}
+                </a-select-option>
+              </a-select>
             </a-form-item>
           </a-col>
           <a-col :span="12">
@@ -107,6 +110,8 @@
         model: {},
         form: this.$form.createForm(this),
         cusList: [],
+        projectListForOrgan: [],
+        selectedCustomerName: undefined,
         searchTimer: null,
         signPersons: [],
         reconcilePersons: [],
@@ -116,11 +121,25 @@
     created() {
       this.initCustomer()
     },
+    computed: {
+      uniqueCustomerNames() {
+        let seen = new Set()
+        return this.cusList
+          .map(c => c.supplier)
+          .filter(name => {
+            if (!name || seen.has(name)) return false
+            seen.add(name)
+            return true
+          })
+      }
+    },
     methods: {
       add() {
         this.title = '新增合同'
         this.isEdit = false
         this.model = {}
+        this.selectedCustomerName = undefined
+        this.projectListForOrgan = []
         this.signPersons = []
         this.reconcilePersons = []
         this.attachments = ''
@@ -133,12 +152,18 @@
         this.model = { ...record }
         this.attachments = record.attachments || ''
         this.visible = true
+        // 初始化编辑时的客户名称和项目列表
+        if (record.organId) {
+          const cus = this.cusList.find(c => c.id === record.organId)
+          if (cus) {
+            this.selectedCustomerName = cus.supplier
+            this.projectListForOrgan = this.cusList.filter(c => c.supplier === cus.supplier)
+          }
+        }
         this.$nextTick(() => {
           this.form.setFieldsValue({
             contractNo: record.contractNo,
-            contractName: record.contractName,
             organId: record.organId,
-            projectName: record.projectName,
             amount: record.amount,
             tonnage: record.tonnage,
             signDate: record.signDate ? moment(record.signDate) : null,
@@ -161,6 +186,7 @@
           this.confirmLoading = true
           const contract = {
             ...values,
+            contractName: values.contractName || values.contractNo || '',
             id: this.isEdit ? this.model.id : undefined,
             signDate: values.signDate ? values.signDate.format('YYYY-MM-DD') : null,
             attachments: this.attachments
@@ -182,10 +208,18 @@
           }).finally(() => { this.confirmLoading = false })
         })
       },
-      handleOrganChange(organId) {
-        const cus = this.cusList.find(c => c.id === organId)
-        if (cus && cus.projectName) {
-          this.form.setFieldsValue({ projectName: cus.projectName })
+      handleCustomerNameChange(supplierName) {
+        this.form.setFieldsValue({ organId: undefined })
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          // 如果只有一个项目，自动选中
+          if (this.projectListForOrgan.length === 1) {
+            this.$nextTick(() => {
+              this.form.setFieldsValue({ organId: this.projectListForOrgan[0].id })
+            })
+          }
+        } else {
+          this.projectListForOrgan = []
         }
       },
       initCustomer() {

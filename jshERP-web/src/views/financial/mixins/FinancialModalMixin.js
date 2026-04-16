@@ -12,6 +12,8 @@ export const FinancialModalMixin = {
       actionWithOrgan: false,
       supList: [],
       cusList: [],
+      selectedCustomerName: undefined,
+      projectListForOrgan: [],
       retailList: [],
       organList: [],
       personList: [],
@@ -57,6 +59,16 @@ export const FinancialModalMixin = {
   computed: {
     readOnly: function() {
       return this.action !== "add" && this.action !== "edit";
+    },
+    uniqueCustomerNames: function() {
+      let seen = new Set()
+      return this.cusList
+        .map(c => c.supplier)
+        .filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
     }
   },
   methods: {
@@ -214,6 +226,19 @@ export const FinancialModalMixin = {
           }
         })
       },500)
+    },
+    handleCustomerNameChange(supplierName) {
+      this.form.setFieldsValue({ organId: undefined })
+      if (supplierName) {
+        this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+        if (this.projectListForOrgan.length === 1) {
+          this.$nextTick(() => {
+            this.form.setFieldsValue({ organId: this.projectListForOrgan[0].id })
+          })
+        }
+      } else {
+        this.projectListForOrgan = []
+      }
     },
     handleSearchOrgan(value) {
       let that = this

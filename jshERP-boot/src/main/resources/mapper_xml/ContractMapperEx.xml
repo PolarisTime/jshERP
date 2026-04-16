@@ -30,7 +30,9 @@
   </resultMap>
 
   <select id="selectByCondition" resultMap="ContractExResultMap">
-    select c.*,
+    select c.id, c.contract_no, c.contract_name, c.organ_id, c.sign_date, c.effect_date,
+           c.expire_date, c.amount, c.status, c.attachments, c.remark, c.tenant_id,
+           c.delete_flag, c.create_time, c.update_time, c.tonnage, c.audit_status, c.sign_status,
            s.supplier as organ_name,
            COALESCE(c.project_name, s.project_name) as project_name,
            dh.delivered_amount,
@@ -51,6 +53,9 @@
       group by dh.organ_id
     ) dh on dh.organ_id = c.organ_id
     where ifnull(c.delete_flag,'0') != '1'
+    <if test="tenantId != null">
+      and c.tenant_id = #{tenantId}
+    </if>
     <if test="contractNo != null and contractNo != ''">
       and c.contract_no like concat('%', #{contractNo}, '%')
     </if>
@@ -69,31 +74,40 @@
     order by c.create_time desc
   </select>
 
-  <!-- 按客户汇总合同余额（多份合同累加） -->
+  <!-- 按客户汇总合同余额（合同和出库独立查询，无合同时也能返回出库数据） -->
   <select id="getContractBalance" resultType="java.util.Map">
     select
-      ifnull(SUM(c.amount),0) as totalAmount,
-      ifnull(SUM(c.tonnage),0) as totalTonnage,
-      ifnull(dh.delivered_amount,0) as deliveredAmount,
-      ifnull(dh.delivered_tonnage,0) as deliveredTonnage,
-      ifnull(SUM(c.amount),0) - ifnull(dh.delivered_amount,0) as remainAmount,
-      ifnull(SUM(c.tonnage),0) - ifnull(dh.delivered_tonnage,0) as remainTonnage
-    from jsh_contract c
+      ifnull(ct.totalAmount, 0) as totalAmount,
+      ifnull(ct.totalTonnage, 0) as totalTonnage,
+      ifnull(dv.deliveredAmount, 0) as deliveredAmount,
+      ifnull(dv.deliveredTonnage, 0) as deliveredTonnage,
+      ifnull(ct.totalAmount, 0) - ifnull(dv.deliveredAmount, 0) as remainAmount,
+      ifnull(ct.totalTonnage, 0) - ifnull(dv.deliveredTonnage, 0) as remainTonnage
+    from (select 1 as dummy) t
     left join (
-      select dh.organ_id,
-             SUM(ifnull(dh.discount_last_money,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as delivered_amount,
-             SUM(ifnull(di_sum.w,0)) as delivered_tonnage
+      select SUM(amount) as totalAmount, SUM(tonnage) as totalTonnage
+      from jsh_contract
+      where organ_id = #{organId} and ifnull(delete_flag,'0') != '1'
+      <if test="tenantId != null">
+        and tenant_id = #{tenantId}
+      </if>
+    ) ct on 1=1
+    left join (
+      select
+        SUM(ifnull(dh.discount_last_money,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as deliveredAmount,
+        SUM(ifnull(di_sum.w,0)) as deliveredTonnage
       from jsh_depot_head dh
       left join (
         select header_id, SUM(ifnull(weight,0)) as w
         from jsh_depot_item where ifnull(delete_flag,'0')!='1' group by header_id
       ) di_sum on di_sum.header_id = dh.id
-      where dh.type='出库' and dh.sub_type='销售'
+      where dh.organ_id = #{organId}
+      <if test="tenantId != null">
+        and dh.tenant_id = #{tenantId}
+      </if>
+        and dh.type='出库' and dh.sub_type='销售'
         and ifnull(dh.delete_flag,'0')!='1'
-      group by dh.organ_id
-    ) dh on dh.organ_id = c.organ_id
-    where ifnull(c.delete_flag,'0') != '1'
-      and c.organ_id = #{organId}
+    ) dv on 1=1
   </select>
 
 </mapper>

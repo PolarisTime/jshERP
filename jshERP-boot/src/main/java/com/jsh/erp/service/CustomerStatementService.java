@@ -37,11 +37,13 @@ public class CustomerStatementService {
 
     public List<CustomerStatementItemVo> listUnreconciledItems(Long organId, String beginTime, String endTime,
                                                                Integer offset, Integer rows) throws Exception {
-        return customerStatementMapper.listUnreconciledItems(organId, beginTime, endTime, offset, rows);
+        Long tenantId = getTenantId();
+        return customerStatementMapper.listUnreconciledItems(organId, beginTime, endTime, tenantId, offset, rows);
     }
 
     public int countUnreconciledItems(Long organId, String beginTime, String endTime) throws Exception {
-        return customerStatementMapper.countUnreconciledItems(organId, beginTime, endTime);
+        Long tenantId = getTenantId();
+        return customerStatementMapper.countUnreconciledItems(organId, beginTime, endTime, tenantId);
     }
 
     // ─── 生成对账单 ──────────────────────────────────────────────
@@ -54,10 +56,11 @@ public class CustomerStatementService {
                     "请至少选择一条明细");
         }
         User user = userService.getCurrentUser();
+        Long tenantId = user.getTenantId();
 
         // 生成单号 DZ+yyyyMMdd+4位序
         String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        int todayCount = customerStatementMapper.countTodayStatement(dateStr);
+        int todayCount = customerStatementMapper.countTodayStatement(dateStr, tenantId);
         String statementNo = "DZ" + dateStr + String.format("%04d", todayCount + 1);
 
         // 汇总明细数据获取重量/金额（从已勾选的 unreconciledItems 中无法直接拿，需查 depot_item）
@@ -73,6 +76,7 @@ public class CustomerStatementService {
         statement.setStatus("0");
         statement.setSignStatus("0");
         statement.setRemark(remark);
+        statement.setTenantId(tenantId);
         statement.setDeleteFlag("0");
         statement.setCreateTime(new Date());
         statement.setCreator(user.getId());
@@ -100,17 +104,19 @@ public class CustomerStatementService {
 
     // ─── 对账单列表 ──────────────────────────────────────────────
 
-    public List<Map<String, Object>> listStatements(Long organId, String status, String signStatus,
+    public List<Map<String, Object>> listStatements(Long organId, String statementNo, String status, String signStatus,
                                                     String beginTime, String endTime,
                                                     Integer offset, Integer rows) throws Exception {
-        return customerStatementMapper.listStatements(organId, status, signStatus,
-                beginTime, endTime, offset, rows);
+        Long tenantId = getTenantId();
+        return customerStatementMapper.listStatements(organId, statementNo, status, signStatus,
+                beginTime, endTime, tenantId, offset, rows);
     }
 
-    public int countStatements(Long organId, String status, String signStatus,
+    public int countStatements(Long organId, String statementNo, String status, String signStatus,
                                String beginTime, String endTime) throws Exception {
-        return customerStatementMapper.countStatements(organId, status, signStatus,
-                beginTime, endTime);
+        Long tenantId = getTenantId();
+        return customerStatementMapper.countStatements(organId, statementNo, status, signStatus,
+                beginTime, endTime, tenantId);
     }
 
     // ─── 对账单详情 ──────────────────────────────────────────────
@@ -179,6 +185,29 @@ public class CustomerStatementService {
         customerStatementMapper.updateByPrimaryKey(cs);
     }
 
+    // ─── 工具方法 ────────────────────────────────────────────────
+
+    private Long getTenantId() throws Exception {
+        User user = userService.getCurrentUser();
+        return user == null ? null : user.getTenantId();
+    }
+
+    /**
+     * 查询未收完的对账单（已审核、待收金额>0）
+     */
+    public List<Map<String, Object>> listUnpaidStatements(Long organId) throws Exception {
+        User userInfo = userService.getCurrentUser();
+        Long tenantId = userInfo == null ? null : userInfo.getTenantId();
+        return customerStatementMapper.listUnpaidStatements(organId, tenantId);
+    }
+
+    /**
+     * 累加对账单已收金额
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void addReceivedAmount(Long statementId, BigDecimal amount) {
+        customerStatementMapper.addReceivedAmount(statementId, amount);
+    }
 
     private Date parseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) return null;

@@ -97,6 +97,9 @@ public class TenantService {
         UserEx ue = JSONObject.parseObject(obj.toJSONString(), UserEx.class);
         int result = 0;
         try{
+            if(!userService.isCurrentUserAdmin()) {
+                return 0;
+            }
             ue.setUsername(ue.getLoginName());
             userService.checkLoginName(ue); //检查登录名
             userService.registerUser(ue,manageRoleId,request);

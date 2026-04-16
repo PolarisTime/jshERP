@@ -28,6 +28,9 @@ public class CustomerStatement {
     /** 总金额(元) */
     private BigDecimal totalAmount;
 
+    /** 已收金额(元) */
+    private BigDecimal receivedAmount;
+
     /** 审核状态：0未审核 1已审核 */
     private String status;
 
@@ -69,6 +72,9 @@ public class CustomerStatement {
 
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+    public BigDecimal getReceivedAmount() { return receivedAmount; }
+    public void setReceivedAmount(BigDecimal receivedAmount) { this.receivedAmount = receivedAmount; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

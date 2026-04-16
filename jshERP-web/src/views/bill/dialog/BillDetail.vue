@@ -1947,7 +1947,7 @@
           }
         })
       },
-      show(record, type, prefixNo) {
+      show(record, type, prefixNo, autoCustomPrint) {
         //查询单条单据信息
         findBillDetailByNumber({ number: record.number }).then((res) => {
           if (res && res.code === 200) {
@@ -2001,7 +2001,9 @@
               isReadOnly: isReadOnly
             }
             let url = this.readOnly ? this.url.detailList : this.url.detailList;
-            this.requestSubTableData(item, type, url, params);
+            this.requestSubTableData(item, type, url, params, autoCustomPrint ? () => {
+              this.$nextTick(() => this.handleCustomPrint())
+            } : undefined);
             this.initPlatform()
             this.getSystemConfig()
             this.getBillListByLinkNumber(this.model.number)

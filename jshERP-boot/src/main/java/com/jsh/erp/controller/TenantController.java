@@ -6,6 +6,7 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Tenant;
 import com.jsh.erp.datasource.entities.TenantEx;
 import com.jsh.erp.service.TenantService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
@@ -15,10 +16,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.jsh.erp.utils.ResponseJsonUtil.returnForbidden;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 
@@ -33,10 +36,16 @@ public class TenantController extends BaseController {
     @Resource
     private TenantService tenantService;
 
+    @Resource
+    private UserService userService;
+
     @GetMapping(value = "/info")
     @ApiOperation(value = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Tenant tenant = tenantService.getTenant(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(tenant != null) {
@@ -51,6 +60,9 @@ public class TenantController extends BaseController {
     @ApiOperation(value = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return getDataTable(Collections.emptyList());
+        }
         String loginName = StringUtil.getInfo(search, "loginName");
         String type = StringUtil.getInfo(search, "type");
         String enabled = StringUtil.getInfo(search, "enabled");
@@ -62,6 +74,9 @@ public class TenantController extends BaseController {
     @PostMapping(value = "/add")
     @ApiOperation(value = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = tenantService.insertTenant(obj, request);
         return returnStr(objectMap, insert);
@@ -70,6 +85,9 @@ public class TenantController extends BaseController {
     @PutMapping(value = "/update")
     @ApiOperation(value = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = tenantService.updateTenant(obj, request);
         return returnStr(objectMap, update);
@@ -78,6 +96,9 @@ public class TenantController extends BaseController {
     @DeleteMapping(value = "/delete")
     @ApiOperation(value = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = tenantService.deleteTenant(id, request);
         return returnStr(objectMap, delete);
@@ -86,6 +107,9 @@ public class TenantController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @ApiOperation(value = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = tenantService.batchDeleteTenant(ids, request);
         return returnStr(objectMap, delete);
@@ -95,6 +119,9 @@ public class TenantController extends BaseController {
     @ApiOperation(value = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Map<String, Object> objectMap = new HashMap<>();
         int exist = tenantService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -115,6 +142,9 @@ public class TenantController extends BaseController {
     @ApiOperation(value = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

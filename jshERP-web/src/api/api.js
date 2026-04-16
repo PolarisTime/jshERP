@@ -116,6 +116,7 @@ const findBySelectRetail = (params)=>postAction("/supplier/findBySelect_retail",
 const findBySelectOrgan = (params)=>postAction("/supplier/findBySelect_organ",params);
 //单据相关
 const findBillDetailByNumber = (params)=>getAction("/depotHead/getDetailByNumber",params);
+const getDepotItemDetailList = (params)=>getAction("/depotItem/getDetailList",params);
 const waitBillCount = (params)=>getAction("/depotHead/waitBillCount",params);
 const getNeedCount = (params)=>getAction("/depotHead/getNeedCount",params);
 const batchAddDepotHeadAndDetail = (params)=>postAction("/depotHead/batchAddDepotHeadAndDetail",params);
@@ -169,6 +170,25 @@ const auditCustomerStatement = (params)=>putAction('/customerStatement/audit',pa
 const signCustomerStatement = (params)=>putAction('/customerStatement/sign',params);
 const updateStatementAttachment = (params)=>putAction('/customerStatement/updateAttachment',params);
 const deleteCustomerStatement = (params)=>deleteAction('/customerStatement/delete',params);
+const listUnpaidStatements = (params)=>getAction('/customerStatement/unpaidList',params);
+//价格核准
+const listPriceApprovals = (params)=>getAction('/priceApproval/list',params);
+const getPriceApprovalDetail = (params)=>getAction('/priceApproval/detail',params);
+const listAvailableSaleOutForApproval = (params)=>getAction('/priceApproval/availableSaleOut',params);
+const createPriceApprovalFromSaleOut = (params)=>postAction('/priceApproval/createFromSaleOut',params);
+const savePriceApprovalItems = (params)=>putAction('/priceApproval/saveItems',params);
+const confirmPriceApproval = (params)=>putAction('/priceApproval/confirm',params);
+const cancelPriceApproval = (params)=>putAction('/priceApproval/cancel',params);
+const deletePriceApproval = (params)=>deleteAction('/priceApproval/delete',params);
+//物流对账单
+const listUnreconciledFreight = (params)=>getAction('/freightStatement/unreconciledItems',params);
+const listFreightStatements = (params)=>getAction('/freightStatement/list',params);
+const getFreightStatementDetail = (params)=>getAction('/freightStatement/detail',params);
+const generateFreightStatement = (params)=>postAction('/freightStatement/generate',params);
+const auditFreightStatement = (params)=>putAction('/freightStatement/audit',params);
+const signFreightStatement = (params)=>putAction('/freightStatement/sign',params);
+const updateFreightStatementAttachment = (params)=>putAction('/freightStatement/updateAttachment',params);
+const deleteFreightStatement = (params)=>deleteAction('/freightStatement/delete',params);
 
 export {
   getBuyAndSaleStatistics,
@@ -265,6 +285,7 @@ export {
   findBySelectRetail,
   findBySelectOrgan,
   findBillDetailByNumber,
+  getDepotItemDetailList,
   waitBillCount,
   getNeedCount,
   batchAddDepotHeadAndDetail,
@@ -310,7 +331,24 @@ export {
   auditCustomerStatement,
   signCustomerStatement,
   updateStatementAttachment,
-  deleteCustomerStatement
+  deleteCustomerStatement,
+  listUnpaidStatements,
+  listUnreconciledFreight,
+  listFreightStatements,
+  getFreightStatementDetail,
+  generateFreightStatement,
+  auditFreightStatement,
+  signFreightStatement,
+  updateFreightStatementAttachment,
+  deleteFreightStatement,
+  listPriceApprovals,
+  getPriceApprovalDetail,
+  listAvailableSaleOutForApproval,
+  createPriceApprovalFromSaleOut,
+  savePriceApprovalItems,
+  confirmPriceApproval,
+  cancelPriceApproval,
+  deletePriceApproval
 }
 
 

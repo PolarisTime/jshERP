@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.jsh</groupId>
 	<artifactId>jshERP-boot</artifactId>
-	<version>3.6.2-release</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>jshERP-boot</name>
@@ -146,6 +146,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 		<!-- mybatis-spring-boot-autoconfigure: pagehelper @AutoConfigureAfter 引用 MybatisAutoConfiguration，
 		     需要此 jar 在 classpath 中供 Spring 注解解析，MBP 的 @ConditionalOnMissingBean 保证不冲突 -->

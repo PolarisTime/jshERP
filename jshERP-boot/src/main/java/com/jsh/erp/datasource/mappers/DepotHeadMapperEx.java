@@ -39,6 +39,7 @@ public interface DepotHeadMapperEx {
             @Param("salesMan") String salesMan,
             @Param("remark") String remark,
             @Param("linkedFlag") String linkedFlag,
+            @Param("saleLinkFlag") String saleLinkFlag,
             @Param("priceApproved") String priceApproved);
 
     List<Map<String, Object>> getDashboardPurchaseInList();
@@ -336,4 +337,9 @@ public interface DepotHeadMapperEx {
      */
     int countActiveDownstreamBillsByLinkNumber(
             @Param("singleLinkNo") String singleLinkNo);
+
+    /**
+     * 根据明细的 linkId 查询关联的源单据号（去重）
+     */
+    List<String> getDistinctLinkNumbersByHeaderId(@Param("headerId") Long headerId);
 }

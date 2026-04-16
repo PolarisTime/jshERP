@@ -7,6 +7,8 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Contract;
 import com.jsh.erp.datasource.entities.ContractEx;
 import com.jsh.erp.datasource.entities.ContractPerson;
+import com.jsh.erp.rbac.RbacMode;
+import com.jsh.erp.rbac.RbacPermission;
 import com.jsh.erp.service.ContractService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
@@ -30,6 +32,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 @RestController
 @RequestMapping(value = "/contract")
 @Api(tags = {"合同管理"})
+@RbacPermission(resource = "/contract/contract_list")
 public class ContractController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(ContractController.class);
 
@@ -97,6 +100,7 @@ public class ContractController extends BaseController {
     // ─── 审核 / 反审核 ────────────────────────────────────────────
     @PutMapping(value = "/audit")
     @ApiOperation(value = "审核/反审核")
+    @RbacPermission(mode = RbacMode.AUDIT_STATUS, statusField = "auditStatus")
     public BaseResponseInfo audit(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {

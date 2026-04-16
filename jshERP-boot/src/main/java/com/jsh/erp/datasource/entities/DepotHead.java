@@ -58,6 +58,9 @@ public class DepotHead {
 
     private String priceApproved;
 
+    /** 重量核准标记：0=未核准，1=已核准 */
+    private String weightApproved;
+
     private String purchaseStatus;
 
     private String source;
@@ -72,6 +75,9 @@ public class DepotHead {
 
     /** 关联标记：0=未关联，1=已被下游单据关联（如采购入库被销售出库引用） */
     private String linkedFlag;
+
+    /** 供销售出库关联标志：0=否，1=是 */
+    private String saleLinkFlag;
 
     public Long getId() {
         return id;
@@ -289,6 +295,14 @@ public class DepotHead {
         this.priceApproved = priceApproved == null ? null : priceApproved.trim();
     }
 
+    public String getWeightApproved() {
+        return weightApproved;
+    }
+
+    public void setWeightApproved(String weightApproved) {
+        this.weightApproved = weightApproved == null ? null : weightApproved.trim();
+    }
+
     public String getPurchaseStatus() {
         return purchaseStatus;
     }
@@ -343,5 +357,13 @@ public class DepotHead {
 
     public void setLinkedFlag(String linkedFlag) {
         this.linkedFlag = linkedFlag == null ? null : linkedFlag.trim();
+    }
+
+    public String getSaleLinkFlag() {
+        return saleLinkFlag;
+    }
+
+    public void setSaleLinkFlag(String saleLinkFlag) {
+        this.saleLinkFlag = saleLinkFlag == null ? null : saleLinkFlag.trim();
     }
 }

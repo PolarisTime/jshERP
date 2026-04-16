@@ -435,8 +435,24 @@ export const BillListMixin = {
   created() {
     this.initColumnsSetting()
     this.isShowExcel = Vue.ls.get('isShowExcel');
+    // 全局搜索跳转：设值并重新加载（JeecgListMixin.created 先执行 loadData 时 number 还为空）
+    this._applyGlobalSearchNumber(true)
+  },
+  activated() {
+    // keep-alive 缓存页面重新激活时，检查是否有全局搜索跳转
+    this._applyGlobalSearchNumber(true)
   },
   methods: {
+    _applyGlobalSearchNumber(reload) {
+      const pendingNumber = sessionStorage.getItem('globalSearchNumber')
+      if (pendingNumber) {
+        sessionStorage.removeItem('globalSearchNumber')
+        this.queryParam.number = pendingNumber
+        if (reload) {
+          this.$nextTick(() => { this.loadData(1) })
+        }
+      }
+    },
     loadData(arg) {
       // 重置展开状态
       this.expandedRowKeys = []
@@ -487,7 +503,7 @@ export const BillListMixin = {
       //未审核：正常编辑
       if(record.status === '0') {
         this.$refs.modalForm.action = "edit";
-        this.$refs.modalForm.priceEditOnly = false;
+        this.$refs.modalForm.weightEditMode = false;
         if(this.btnEnableList.indexOf(2)===-1) {
           this.$refs.modalForm.isCanCheck = false
         }
@@ -497,10 +513,10 @@ export const BillListMixin = {
             this.handleEdit(item)
           }
         })
-      //已审核+未核准（销售出库）：仅允许修改单价
-      } else if(record.status === '1' && record.priceApproved !== '1' && this.prefixNo === 'XSCK') {
+      //已审核+重量未核准（销售出库）：允许编辑重量
+      } else if(record.status === '1' && record.weightApproved !== '1' && this.prefixNo === 'XSCK') {
         this.$refs.modalForm.action = "edit";
-        this.$refs.modalForm.priceEditOnly = true;
+        this.$refs.modalForm.weightEditMode = true;
         if(this.btnEnableList.indexOf(2)===-1) {
           this.$refs.modalForm.isCanCheck = false
         }
@@ -746,9 +762,6 @@ export const BillListMixin = {
             return
           }
           let c = Object.assign({}, colMap[di], { align: 'center' })
-          if (!fixedKeys.includes(c.dataIndex)) {
-            delete c.width
-          }
           result.push(c)
         }
       })

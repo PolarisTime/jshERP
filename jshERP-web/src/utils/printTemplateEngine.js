@@ -105,6 +105,12 @@ function preProcess(model, dataSource, extraFields) {
     dataSource.forEach(item => {
       const num = parseFloat(item.operNumber)
       if (!isNaN(num)) totalPiece += num
+      // 派生 displayName：备注有文字时用备注替换名称，否则保持原名称
+      if (item.remark && String(item.remark).trim()) {
+        item.displayName = String(item.remark).trim()
+      } else {
+        item.displayName = item.name || ''
+      }
       // 派生 length 字段（优先条码，其次规格，在去除*12之前）
       if (item.length == null || item.length === '') {
         item.length = deriveLength(item.barCode, item.standard)
@@ -160,9 +166,9 @@ export function render(templateHtml, model, dataSource, extraFields) {
     }
   }
 
-  // 0b. 过滤空明细行（无商品名称的行不打印）+ 预处理
+  // 0b. 过滤空明细行（无任何业务字段的行不打印）+ 预处理
   if (dataSource) {
-    dataSource = dataSource.filter(item => item.name || item.barCode || item.materialName)
+    dataSource = dataSource.filter(item => item.name || item.barCode || item.materialName || item.brand || item.billNo || item.billTime)
   }
   preProcess(model || {}, dataSource || [], extraFields)
 
@@ -176,7 +182,10 @@ export function render(templateHtml, model, dataSource, extraFields) {
       // {{xxx}} 在 each 块内映射到 detail item 字段
       row = row.replace(/\{\{(\w+)\}\}/g, (m, key) => {
         if (key === '_index') return String(index + 1)
-        return item[key] != null ? String(item[key]) : ''
+        let val = item[key] != null ? String(item[key]) : ''
+        // JSON 字段转义双引号，防止破坏 JS 字符串
+        if (key.endsWith('Json') && val) val = val.replace(/"/g, '&quot;')
+        return val
       })
       return row
     }).join('')

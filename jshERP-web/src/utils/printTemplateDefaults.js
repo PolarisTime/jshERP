@@ -34,7 +34,7 @@ ${extraHeaderHtml || ''}
 <tbody>
 <!--DETAIL_ROW_START-->
 <tr>
-  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.name}}</td><td>{{detail.standard}}</td><td>{{detail.model}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td><td>{{detail.remark}}</td>
+  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.displayName}}</td><td>{{detail.standard}}</td><td>{{detail.model}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td><td>{{detail.remark}}</td>
 </tr>
 <!--DETAIL_ROW_END-->
 </tbody>
@@ -68,7 +68,7 @@ function buildTaxTemplate(title) {
 <tbody>
 <!--DETAIL_ROW_START-->
 <tr>
-  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.name}}</td><td>{{detail.standard}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td><td>{{detail.taxRate}}</td><td>{{detail.taxMoney}}</td><td>{{detail.taxLastMoney}}</td><td>{{detail.remark}}</td>
+  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.displayName}}</td><td>{{detail.standard}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td><td>{{detail.taxRate}}</td><td>{{detail.taxMoney}}</td><td>{{detail.taxLastMoney}}</td><td>{{detail.remark}}</td>
 </tr>
 <!--DETAIL_ROW_END-->
 </tbody>
@@ -101,7 +101,7 @@ function buildRetailTemplate(title) {
 <tbody>
 <!--DETAIL_ROW_START-->
 <tr>
-  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.name}}</td><td>{{detail.standard}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td>
+  <td>{{_index}}</td><td>{{detail.depotName}}</td><td>{{detail.barCode}}</td><td>{{detail.displayName}}</td><td>{{detail.standard}}</td><td>{{detail.unit}}</td><td>{{detail.operNumber}}</td><td>{{detail.unitPrice}}</td><td>{{detail.allPrice}}</td>
 </tr>
 <!--DETAIL_ROW_END-->
 </tbody>
@@ -188,7 +188,7 @@ LODOP.SET_PRINT_STYLEA(0,"FontSize",9);
 // ═══ 明细数据 ═══
 var DetailList = [
 {{#each details}}
-  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",len:"{{length}}",piece:"{{operNumber}}",weight:"{{weight}}"},
+  {brand:"{{displayName}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",len:"{{length}}",piece:"{{operNumber}}",weight:"{{weight}}"},
 {{/each}}
 ];
 
@@ -318,7 +318,7 @@ LODOP.SET_PRINT_STYLEA(0,"Alignment",2);
 // ═══ 明细数据（填入预印表格单元格内） ═══
 var DetailList = [
 {{#each details}}
-  {brand:"{{name}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",piece:"{{operNumber}}",weight:"{{weight}}"},
+  {brand:"{{displayName}}",pname:"{{categoryName}}",material:"{{model}}",spec:"{{standard}}",piece:"{{operNumber}}",weight:"{{weight}}"},
 {{/each}}
 ];
 

@@ -60,6 +60,14 @@
               <a-input-search placeholder="请选择关联订单" v-decorator="[ 'linkNumber' ]" @search="onSearchLinkNumber" :readOnly="true"/>
             </a-form-item>
           </a-col>
+          <a-col :lg="6" :md="12" :sm="24">
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="供销售出库关联">
+              <a-checkbox :checked="saleLinkFlagChecked"
+                @change="e => saleLinkFlagChecked = e.target.checked">
+                勾选后可供销售出库关联
+              </a-checkbox>
+            </a-form-item>
+          </a-col>
         </a-row>
         <j-editable-table id="billModal"
           :ref="refKeys[0]"
@@ -256,6 +264,7 @@
         operTimeStr: '',
         prefixNo: 'CGRK',
         depositStatus: false,
+        saleLinkFlagChecked: false,
         fileList:[],
         rowCanEdit: true,
         model: {},
@@ -298,7 +307,7 @@
             { title: '数量', key: 'operNumber', width: '4%', type: FormTypes.inputNumber, statistics: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber,
+            { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, statistics: true, statisticsDecimals: 3,
               readonly: (row) => {
                 // 类别标记 weight_editable=1 时可编辑重量，其他只读
                 return row.weightEditable !== '1' && row.weightEditable !== 1
@@ -367,6 +376,7 @@
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 0)
         if (this.action === 'add') {
           this.depositStatus = false
+          this.saleLinkFlagChecked = false
           this.addInit(this.prefixNo)
           this.fileList = []
           this.$nextTick(() => {
@@ -381,6 +391,7 @@
             this.rowCanEdit = false
             this.materialTable.columns[1].type = FormTypes.normal
           }
+          this.saleLinkFlagChecked = this.model.saleLinkFlag === '1'
           this.model.operTime = this.model.operTimeStr
           if(this.model.deposit) {
             this.depositStatus = true
@@ -452,6 +463,7 @@
           billMain.id = this.model.id
         }
         billMain.status = this.billStatus
+        billMain.saleLinkFlag = this.saleLinkFlagChecked ? '1' : '0'
         return {
           info: JSON.stringify(billMain),
           rows: JSON.stringify(detailArr),
@@ -472,76 +484,89 @@
         this.materialTable.columns[1].type = FormTypes.normal
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
-        if(selectBillDetailRows && selectBillDetailRows.length>0) {
-          let listEx = []
-          let allTaxLastMoney = 0
-          // 生成批号：当前日期MMdd + 单据号后4位
-          let now = new Date()
-          let mm = String(now.getMonth() + 1).padStart(2, '0')
-          let dd = String(now.getDate()).padStart(2, '0')
-          let numberStr = this.form.getFieldValue('number') || ''
-          let last4 = numberStr.slice(-4)
-          let autoBatchNumber = mm + dd + last4
-          for(let j=0; j<selectBillDetailRows.length; j++) {
-            let info = selectBillDetailRows[j];
-            if(info.finishNumber>0) {
-              info.operNumber = info.preNumber - info.finishNumber
-              info.allPrice = info.operNumber * info.unitPrice-0
-              let taxRate = info.taxRate-0
-              if(this.materialPriceTaxFlag) {
-                let realAllPrice = (info.allPrice/(1+taxRate*0.01)).toFixed(2)-0
-                info.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
-                info.taxLastMoney = info.allPrice
-              } else {
-                info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
-                info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
-              }
-            }
-            info.linkId = info.id
-            allTaxLastMoney += info.taxLastMoney
-            if(info.operNumber>0) {
-              // 自动填入批号和有效期
-              info.batchNumber = autoBatchNumber
-              info.expirationDate = now.getFullYear() + '-' + mm + '-' + dd
-              listEx.push(info)
-              this.changeColumnShow(info)
+        if(!selectBillDetailRows || selectBillDetailRows.length === 0) return
+        //同步读取 dataSource 构建已有 linkId 集合（物流单模式：不走异步 getValues）
+        let existLinkIdSet = new Set()
+        this.materialTable.dataSource.forEach(row => {
+          if(row.linkId) existLinkIdSet.add(String(row.linkId))
+        })
+        // 生成批号：年份+MMdd+S+HHmmss，确保不同时间入库的同一商品批号唯一
+        let now = new Date()
+        let mm = String(now.getMonth() + 1).padStart(2, '0')
+        let dd = String(now.getDate()).padStart(2, '0')
+        let HH = String(now.getHours()).padStart(2, '0')
+        let mi = String(now.getMinutes()).padStart(2, '0')
+        let ss = String(now.getSeconds()).padStart(2, '0')
+        let autoBatchNumber = now.getFullYear() + mm + dd + 'S' + HH + mi + ss
+        let newRows = []
+        for(let j=0; j<selectBillDetailRows.length; j++) {
+          let info = JSON.parse(JSON.stringify(selectBillDetailRows[j]))
+          if(existLinkIdSet.has(String(info.id))) continue
+          if(info.finishNumber>0) {
+            info.operNumber = info.preNumber - info.finishNumber
+            info.allPrice = info.operNumber * info.unitPrice-0
+            let taxRate = info.taxRate-0
+            if(this.materialPriceTaxFlag) {
+              let realAllPrice = (info.allPrice/(1+taxRate*0.01)).toFixed(2)-0
+              info.taxMoney = (realAllPrice*taxRate*0.01).toFixed(2)-0
+              info.taxLastMoney = info.allPrice
+            } else {
+              info.taxMoney = (info.allPrice*taxRate/100).toFixed(2)-0
+              info.taxLastMoney = (info.allPrice + info.taxMoney).toFixed(2)-0
             }
           }
-          this.materialTable.dataSource = listEx
-          ///给优惠后金额重新赋值
-          allTaxLastMoney = allTaxLastMoney?allTaxLastMoney:0
-          let discount = 0
-          if(allTaxLastMoney!==0) {
-            discount = (discountMoney / allTaxLastMoney * 100).toFixed(2) - 0
+          info.linkId = info.id
+          if(info.operNumber>0) {
+            info.batchNumber = autoBatchNumber
+            info.expirationDate = now.getFullYear() + '-' + mm + '-' + dd
+            newRows.push(info)
+            this.changeColumnShow(info)
           }
-          let discountLastMoney = (allTaxLastMoney - discountMoney).toFixed(2)-0
-          let changeAmount = discountLastMoney
-          if(deposit) {
-            this.depositStatus = true
-            changeAmount = (discountLastMoney - deposit).toFixed(2)-0
-          }
-          this.$nextTick(() => {
-            this.form.setFieldsValue({
-              'organId': organId,
-              'linkNumber': linkNumber,
-              'discount': discount,
-              'discountMoney': discountMoney,
-              'discountLastMoney': discountLastMoney,
-              'deposit': deposit,
-              'changeAmount': changeAmount,
-              'accountId': accountId,
-              'remark': remark
-            })
-            findBySelectSup({organId: organId, limit:1}).then((res)=> {
-              this.supList = res && Array.isArray(res) ? res : [];
-            })
+        }
+        if(newRows.length === 0) {
+          this.$message.warning('所选单据的明细已全部添加')
+          return
+        }
+        //直接 push 追加（物流单模式），不覆盖已有行
+        newRows.forEach(row => this.materialTable.dataSource.push(row))
+        //重新累计全部明细行的金额
+        let allTaxLastMoney = 0
+        this.materialTable.dataSource.forEach(row => {
+          allTaxLastMoney += (row.taxLastMoney-0) || 0
+        })
+        let discount = 0
+        if(allTaxLastMoney!==0) {
+          discount = (discountMoney / allTaxLastMoney * 100).toFixed(2) - 0
+        }
+        let discountLastMoney = (allTaxLastMoney - discountMoney).toFixed(2)-0
+        let changeAmount = discountLastMoney
+        if(deposit) {
+          this.depositStatus = true
+          changeAmount = (discountLastMoney - deposit).toFixed(2)-0
+        }
+        //追加 linkNumber（多单逗号分隔）
+        let oldLinkNumber = this.form.getFieldValue('linkNumber') || ''
+        let mergedLinkNumber = oldLinkNumber ? oldLinkNumber + ',' + linkNumber : linkNumber
+        this.$nextTick(() => {
+          this.form.setFieldsValue({
+            'organId': organId,
+            'linkNumber': mergedLinkNumber,
+            'discount': discount,
+            'discountMoney': discountMoney,
+            'discountLastMoney': discountLastMoney,
+            'deposit': deposit,
+            'changeAmount': changeAmount,
+            'accountId': accountId,
+            'remark': remark
           })
-          //判断后进行仓库的切换
-          if(depotId) {
-            setTimeout(function () {
-              that.batchSetDepotModalFormOk(depotId)
-            },1000)
-          }
+          findBySelectSup({organId: organId, limit:1}).then((res)=> {
+            that.supList = res && Array.isArray(res) ? res : [];
+          })
+        })
+        if(depotId) {
+          setTimeout(function () {
+            that.batchSetDepotModalFormOk(depotId)
+          },1000)
         }
       },
     }

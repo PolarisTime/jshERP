@@ -51,6 +51,9 @@ export const BillModalMixin = {
       //按重量计价开关
       priceByWeightFlag: false,
       setTimeFlag: null,
+      // 公司名称→项目名称两级联动
+      selectedCustomerName: undefined,
+      projectListForOrgan: [],
       // 商品单位重量映射表（barCode → 单位重量），用于数量变化时重新计算总重量
       unitWeightMap: {},
       validatorRules:{
@@ -95,6 +98,16 @@ export const BillModalMixin = {
   computed: {
     readOnly: function() {
       return this.action !== "add" && this.action !== "edit";
+    },
+    uniqueCustomerNames: function() {
+      let seen = new Set()
+      return this.cusList
+        .map(c => c.supplier)
+        .filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
     }
   },
   methods: {
@@ -112,11 +125,13 @@ export const BillModalMixin = {
       if(this.materialTable) {
         this.materialTable.dataSource = []
       }
-      // 编号在保存时由后端生成，前端仅显示占位符，避免打开窗口就消耗序列号
-      const year = new Date().getFullYear()
-      const placeholder = year + amountNum + '(自动)'
-      this.model.defaultNumber = placeholder
-      this.form.setFieldsValue({'number': placeholder})
+      getAction('/sequence/buildNumber').then((res) => {
+        if (res && res.code === 200) {
+          let year = new Date().getFullYear()
+          this.model.defaultNumber = year + amountNum + res.data.defaultNumber
+          this.form.setFieldsValue({'number': year + amountNum + res.data.defaultNumber})
+        }
+      })
       this.$nextTick(() => {
         this.form.setFieldsValue({'operTime':getNowFormatDateTime(), 'discount': 0,
           'discountMoney': 0, 'discountLastMoney': 0, 'otherMoney': 0, 'changeAmount': 0, 'debt': 0})
@@ -143,7 +158,7 @@ export const BillModalMixin = {
     copyAddInit(amountNum) {
       getAction('/sequence/buildNumber').then((res) => {
         if (res && res.code === 200) {
-          const year = new Date().getFullYear()
+          let year = new Date().getFullYear()
           this.form.setFieldsValue({'number': year + amountNum + res.data.defaultNumber})
         }
       })
@@ -332,6 +347,20 @@ export const BillModalMixin = {
           }
         })
       },500)
+    },
+    //公司名称→项目名称联动
+    handleCustomerNameChange(supplierName) {
+      this.form.setFieldsValue({ organId: undefined })
+      if (supplierName) {
+        this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+        if (this.projectListForOrgan.length === 1) {
+          this.$nextTick(() => {
+            this.form.setFieldsValue({ organId: this.projectListForOrgan[0].id })
+          })
+        }
+      } else {
+        this.projectListForOrgan = []
+      }
     },
     handleSearchRetail(value) {
       let that = this
@@ -695,7 +724,10 @@ export const BillModalMixin = {
             taxLastMoney = (allPrice + taxMoney).toFixed(2)-0
           }
           // 数量变更时始终同步更新重量
-          let opSetValues = {allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight}
+          // 销售出库不再计算价格（价格由独立的价格核准模块处理）
+          let opSetValues = that.prefixNo === 'XSCK'
+            ? { weight: newWeight }
+            : { allPrice: allPrice, taxMoney: taxMoney, taxLastMoney: taxLastMoney, weight: newWeight }
           //采购入库：确保批号和有效期已赋值（防止barCode异步回调未完成时缺失）
           if(that.prefixNo === 'CGRK') {
             if(!row.batchNumber) {
@@ -707,7 +739,9 @@ export const BillModalMixin = {
           }
           target.setValues([{rowKey: row.id, values: opSetValues}])
           target.recalcAllStatisticsColumns()
-          that.autoChangePrice(target)
+          if(that.prefixNo !== 'XSCK') {
+            that.autoChangePrice(target)
+          }
           //强制刷新确保JDate组件重新渲染
           target.$forceUpdate()
           break;
@@ -797,6 +831,8 @@ export const BillModalMixin = {
           that.autoChangePrice(target)
           break;
         case "weight":
+          // 销售出库不再由重量联动价格
+          if(that.prefixNo === 'XSCK') break;
           // weightEditable=1 或 priceByWeightFlag 时，按重量计价
           let editableWeightCategory = row.weightEditable === '1' || row.weightEditable === 1
           if(that.priceByWeightFlag || editableWeightCategory) {
@@ -942,14 +978,16 @@ export const BillModalMixin = {
         }
       })
     },
-    //生成自动批号：当前日期MMdd + 单据号后4位
+    //生成自动批号：年份+MMdd+S+HHmmss，确保不同时间入库的同一商品批号唯一
     buildAutoBatchNumber() {
       let now = new Date()
+      let yyyy = now.getFullYear()
       let mm = String(now.getMonth() + 1).padStart(2, '0')
       let dd = String(now.getDate()).padStart(2, '0')
-      let numberStr = this.form.getFieldValue('number') || ''
-      let last4 = numberStr.slice(-4)
-      return mm + dd + last4
+      let HH = String(now.getHours()).padStart(2, '0')
+      let mi = String(now.getMinutes()).padStart(2, '0')
+      let ss = String(now.getSeconds()).padStart(2, '0')
+      return yyyy + mm + dd + 'S' + HH + mi + ss
     },
     //生成当天日期字符串：YYYY-MM-DD
     buildTodayDate() {
@@ -961,17 +999,24 @@ export const BillModalMixin = {
     },
     //改变优惠、本次付款、欠款的值
     autoChangePrice(target) {
-      let allTaxLastMoney = parseFloat(target.statisticsColumns.taxLastMoney) || 0
-      let discount = parseFloat(this.form.getFieldValue('discount')) || 0
-      let otherMoney = this.form.getFieldValue('otherMoney')?(parseFloat(this.form.getFieldValue('otherMoney')) || 0):0
-      let deposit = this.form.getFieldValue('deposit')
-      let discountMoney = (discount*0.01*allTaxLastMoney).toFixed(2)-0
-      let discountLastMoney = (allTaxLastMoney-discountMoney).toFixed(2)-0
-      let changeAmountNew = (discountLastMoney + otherMoney).toFixed(2)-0
-      if(deposit) {
-        changeAmountNew = (changeAmountNew - deposit).toFixed(2)-0
-      }
       this.$nextTick(() => {
+        // 在 $nextTick 内重新计算统计列，确保 setValues 的响应式更新已传播
+        target.recalcAllStatisticsColumns()
+        let allTaxLastMoney = parseFloat(target.statisticsColumns.taxLastMoney) || 0
+        // 统计列未同步时（如通过 linkBillListOk 直接 push 行），从表单读取已有值
+        if(allTaxLastMoney === 0) {
+          let formDiscountLastMoney = parseFloat(this.form.getFieldValue('discountLastMoney')) || 0
+          let formDiscountMoney = parseFloat(this.form.getFieldValue('discountMoney')) || 0
+          if(formDiscountLastMoney > 0) {
+            allTaxLastMoney = formDiscountLastMoney + formDiscountMoney
+          }
+        }
+        let discount = parseFloat(this.form.getFieldValue('discount')) || 0
+        let otherMoney = parseFloat(this.form.getFieldValue('otherMoney')) || 0
+        let deposit = parseFloat(this.form.getFieldValue('deposit')) || 0
+        let discountMoney = (discount*0.01*allTaxLastMoney).toFixed(2)-0
+        let discountLastMoney = (allTaxLastMoney-discountMoney).toFixed(2)-0
+        let changeAmountNew = (discountLastMoney + otherMoney - deposit).toFixed(2)-0
         changeAmountNew = this.prefixNo === 'CGDD' || this.prefixNo === 'XSDD'?0:changeAmountNew
         // 销售出库：本次收款默认置为0，欠款为总金额
         if(this.prefixNo === 'XSCK') {
@@ -1074,17 +1119,13 @@ export const BillModalMixin = {
     },
     //改变本次付款
     onChangeChangeAmount(e) {
-      const value = e.target.value-0
-      let discountLastMoney = this.form.getFieldValue('discountLastMoney')-0
-      let otherMoney = this.form.getFieldValue('otherMoney')?this.form.getFieldValue('otherMoney')-0:0
-      let deposit = this.form.getFieldValue('deposit')
-      let debtNew = (discountLastMoney + otherMoney - value).toFixed(2)-0
-      if(deposit) {
-        debtNew = (debtNew - deposit).toFixed(2)-0
-      }
-      this.$nextTick(() => {
-        this.form.setFieldsValue({'debt':debtNew})
-      });
+      const value = parseFloat(e.target.value) || 0
+      let discountLastMoney = parseFloat(this.form.getFieldValue('discountLastMoney')) || 0
+      let otherMoney = parseFloat(this.form.getFieldValue('otherMoney')) || 0
+      let deposit = parseFloat(this.form.getFieldValue('deposit')) || 0
+      let debtNew = (discountLastMoney + otherMoney - value - deposit).toFixed(2)-0
+      this.form.setFieldsValue({'debt':debtNew})
+      this.$forceUpdate()
     },
     //切换客户信息改变商品单价
     handleOrganChange(value) {

@@ -5,6 +5,7 @@
  */
 
 let loadPromise = null
+let licenseApplied = false
 
 /**
  * 动态加载 CLodop JS 脚本
@@ -47,6 +48,27 @@ export function loadCLodop() {
  */
 export function resetCLodop() {
   loadPromise = null
+  licenseApplied = false
+}
+
+/**
+ * 从 window._CONFIG.clodopLicense 读取注册信息并注入到 CLodop 实例
+ * 仅在首次获取实例时执行一次
+ * @param {object} LODOP - CLodop 实例
+ */
+function applyLicense(LODOP) {
+  if (licenseApplied) return
+  licenseApplied = true
+  try {
+    const cfg = (window._CONFIG || {}).clodopLicense
+    if (!cfg) return
+    const { companyName, licenseA, companyNameB, licenseB } = cfg
+    if (companyName && licenseA) {
+      LODOP.SET_LICENSES(companyName, licenseA, companyNameB || '', licenseB || '')
+    }
+  } catch (e) {
+    console.warn('CLodop 注册号注入失败', e)
+  }
 }
 
 /**
@@ -54,17 +76,20 @@ export function resetCLodop() {
  * @returns {object|null} CLodop 控件实例，不可用时返回 null
  */
 export function getCLodopInstance() {
+  let instance = null
   try {
     if (typeof CLODOP !== 'undefined') {
-      return CLODOP
-    }
-    if (typeof window.getCLodop === 'function') {
-      return window.getCLodop()
+      instance = CLODOP
+    } else if (typeof window.getCLodop === 'function') {
+      instance = window.getCLodop()
     }
   } catch (e) {
     // ignore
   }
-  return null
+  if (instance) {
+    applyLicense(instance)
+  }
+  return instance
 }
 
 /**
@@ -169,8 +194,7 @@ function parseInitCall(code) {
  * @returns {string}
  */
 function cleanTemplateCode(code) {
-  // 修复字符串内换行（用户粘贴的代码可能含多行字符串，JS 不允许）
-  let cleaned = code.replace(/"([^"]*)"/g, (m) => m.replace(/\n\s*/g, ''))
+  let cleaned = code
   // 移除控制类调用，避免与外部调用重复
   cleaned = cleaned
     .replace(/LODOP\s*\.\s*PRINT_INITA?\s*\([^)]*\)\s*;?/g, '')

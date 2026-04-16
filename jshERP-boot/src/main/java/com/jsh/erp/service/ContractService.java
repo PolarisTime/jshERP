@@ -4,6 +4,7 @@ import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.datasource.entities.Contract;
 import com.jsh.erp.datasource.entities.ContractEx;
 import com.jsh.erp.datasource.entities.ContractPerson;
+import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.mappers.ContractMapper;
 import com.jsh.erp.datasource.mappers.ContractMapperEx;
 import com.jsh.erp.datasource.mappers.ContractPersonMapper;
@@ -31,6 +32,7 @@ public class ContractService {
     @Resource private ContractMapper contractMapper;
     @Resource private ContractMapperEx contractMapperEx;
     @Resource private ContractPersonMapper contractPersonMapper;
+    @Resource private UserService userService;
     @Resource private LogService logService;
 
     /** 分页条件查询 */
@@ -38,8 +40,10 @@ public class ContractService {
                                    Long organId, String auditStatus, String signStatus) throws Exception {
         List<ContractEx> list = new ArrayList<>();
         try {
+            User userInfo = userService.getCurrentUser();
+            Long tenantId = userInfo == null ? null : userInfo.getTenantId();
             PageUtils.startPage();
-            list = contractMapperEx.selectByCondition(contractNo, contractName, organId, auditStatus, signStatus);
+            list = contractMapperEx.selectByCondition(contractNo, contractName, organId, auditStatus, signStatus, tenantId);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -56,6 +60,7 @@ public class ContractService {
     public int add(Contract contract, List<ContractPerson> persons) throws Exception {
         int result = 0;
         try {
+            //tenant_id 由多租户插件自动注入，不手动设置避免重复
             contract.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
             contract.setAuditStatus("0");
             contract.setSignStatus("0");
@@ -91,6 +96,10 @@ public class ContractService {
             JshException.writeFail(logger, e);
         }
         return result;
+    }
+
+    public Contract getContractById(Long id) {
+        return contractMapper.selectByPrimaryKey(id);
     }
 
     /** 审核 / 反审核 */
@@ -135,7 +144,9 @@ public class ContractService {
 
     /** 获取客户合同余额（多份合同累加） */
     public Map<String, Object> getContractBalance(Long organId) throws Exception {
-        return contractMapperEx.getContractBalance(organId);
+        User userInfo = userService.getCurrentUser();
+        Long tenantId = userInfo == null ? null : userInfo.getTenantId();
+        return contractMapperEx.getContractBalance(organId, tenantId);
     }
 
     /** 逻辑删除 */

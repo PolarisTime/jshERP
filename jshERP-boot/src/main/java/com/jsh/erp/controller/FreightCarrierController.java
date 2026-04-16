@@ -3,6 +3,7 @@ package com.jsh.erp.controller;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.FreightCarrier;
+import com.jsh.erp.rbac.RbacPermission;
 import com.jsh.erp.service.FreightCarrierService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
@@ -28,6 +29,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 @RestController
 @RequestMapping(value = "/freightCarrier")
 @Api(tags = {"运费结算方"})
+@RbacPermission(resource = "/systemA/freight_carrier")
 public class FreightCarrierController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(FreightCarrierController.class);
 

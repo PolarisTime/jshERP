@@ -7,6 +7,7 @@ import com.jsh.erp.constants.ExceptionConstants;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.mappers.DepotHeadMapper;
 import com.jsh.erp.datasource.mappers.DepotHeadMapperEx;
+import com.jsh.erp.datasource.mappers.DepotItemMapper;
 import com.jsh.erp.datasource.mappers.DepotItemMapperEx;
 import com.jsh.erp.datasource.vo.*;
 import com.jsh.erp.exception.BusinessRunTimeException;
@@ -44,6 +45,10 @@ import static com.jsh.erp.utils.Tools.getNow3;
 @Service
 public class DepotHeadService {
     private Logger logger = LoggerFactory.getLogger(DepotHeadService.class);
+    private static final int FEATURE_DISABLED_CODE = 500;
+    private static final Set<String> DISABLED_SUB_TYPES = new HashSet<>(Arrays.asList(
+            "零售", "零售退货", "采购订单", "采购退货", "销售退货", "组装单", "拆卸单"
+    ));
 
     @Resource
     private DepotHeadMapper depotHeadMapper;
@@ -89,6 +94,10 @@ public class DepotHeadService {
     private FreightHeadService freightHeadService;
     @Resource
     private LogService logService;
+    @Resource
+    private com.jsh.erp.datasource.mappers.PriceApprovalMapper priceApprovalMapper;
+    @Resource
+    private PriceApprovalService priceApprovalService;
 
     @Value(value="${file.exportTmp}")
     private String fileExportTmp;
@@ -117,9 +126,10 @@ public class DepotHeadService {
 
     public List<DepotHeadVo4List> select(String type, String subType, String hasDebt, String status, String purchaseStatus, String number, String linkApply, String linkNumber,
            String beginTime, String endTime, String materialParam, Long organId, String[] organIdList, Long creator, Long depotId, Long accountId, String salesMan, String remark,
-           String linkedFlag, String priceApproved) throws Exception {
+           String linkedFlag, String saleLinkFlag, String priceApproved) throws Exception {
         List<DepotHeadVo4List> list = new ArrayList<>();
         try{
+            validateFeatureEnabled(subType);
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             Long userId = userService.getUserId(request);
             String priceLimit = userService.getRoleTypeByUserId(userId).getPriceLimit();
@@ -138,7 +148,7 @@ public class DepotHeadService {
             PageUtils.startPage();
             list = depotHeadMapperEx.selectByConditionDepotHead(type, subType, creatorArray, hasDebt,
                     statusArray, purchaseStatusArray, number, linkApply, linkNumber, beginTime, endTime,
-                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, priceApproved);
+                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
@@ -153,6 +163,7 @@ public class DepotHeadService {
                 Map<Long,String> materialsListMap = findMaterialsListMapByHeaderIdList(idList);
                 Map<Long,BigDecimal> materialCountListMap = getMaterialCountListMapByHeaderIdList(idList);
                 Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
+                Map<Long,String> freightCarNoMap = getFreightCarNoMapByDepotHeadIdList(idList);
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 //被销售出库引用的单号（仅采购入库场景）
                 Map<String,String> referencedByMap = null;
@@ -235,6 +246,10 @@ public class DepotHeadService {
                     //关联物流单号
                     if(freightBillNoMap!=null) {
                         dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
+                    }
+                    //关联物流单的运输车号
+                    if(freightCarNoMap!=null) {
+                        dh.setFreightCarNo(freightCarNoMap.get(dh.getId()));
                     }
                     //总重量(吨)
                     if(totalWeightMap!=null) {
@@ -697,6 +712,7 @@ public class DepotHeadService {
         List<Long> idList = StringUtil.strToLongList(ids);
         for(Long id: idList) {
             DepotHead depotHead = getDepotHead(id);
+            validateFeatureEnabled(depotHead);
             //状态里面不包含部分不能强制结单
             if(!"3".equals(depotHead.getStatus())) {
                 throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_FORCE_CLOSE_FAILED_CODE,
@@ -732,6 +748,7 @@ public class DepotHeadService {
         List<Long> idList = StringUtil.strToLongList(ids);
         for(Long id: idList) {
             DepotHead depotHead = getDepotHead(id);
+            validateFeatureEnabled(depotHead);
             //状态里面不包含部分不能强制结单
             if(!"3".equals(depotHead.getPurchaseStatus())) {
                 throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_FORCE_CLOSE_FAILED_CODE,
@@ -771,6 +788,7 @@ public class DepotHeadService {
         List<Long> ids = StringUtil.strToLongList(depotHeadIDs);
         for(Long id: ids) {
             DepotHead depotHead = getDepotHead(id);
+            validateFeatureEnabled(depotHead);
             if("0".equals(status)){
                 //进行反审核操作
                 if("1".equals(depotHead.getStatus()) && "0".equals(depotHead.getPurchaseStatus())) {
@@ -786,12 +804,21 @@ public class DepotHeadService {
                         throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_CODE,
                                 String.format(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_MSG));
                     }
-                } else if("2".equals(depotHead.getPurchaseStatus())) {
-                    throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_CODE,
-                            String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_MSG));
-                } else if("3".equals(depotHead.getPurchaseStatus())) {
-                    throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_THREE_CODE,
-                            String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_THREE_MSG));
+                } else if("2".equals(depotHead.getPurchaseStatus()) || "3".equals(depotHead.getPurchaseStatus())) {
+                    //完成采购/部分采购：检查下游单据是否已全部删除，若无引用则允许反审核
+                    if(!hasActiveDownstreamBills(depotHead.getNumber())) {
+                        dhIds.add(id);
+                        noList.add(depotHead.getNumber());
+                        //同时重置采购状态
+                        DepotHead resetUpdate = new DepotHead();
+                        resetUpdate.setId(id);
+                        resetUpdate.setPurchaseStatus("0");
+                        resetUpdate.setLinkedFlag("0");
+                        depotHeadMapper.updateByPrimaryKeySelective(resetUpdate);
+                    } else {
+                        throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_CODE,
+                                String.format(ExceptionConstants.DEPOT_HEAD_PURCHASE_STATUS_TWO_MSG));
+                    }
                 } else {
                     throw new BusinessRunTimeException(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_CODE,
                             String.format(ExceptionConstants.DEPOT_HEAD_AUDIT_TO_UN_AUDIT_FAILED_MSG));
@@ -853,6 +880,25 @@ public class DepotHeadService {
                 if(!saleOutIds.isEmpty()) {
                     freightHeadService.recalcByDepotHeadIds(saleOutIds);
                 }
+                //审核销售出库单时，自动核准非过磅类别（全部明细均无 weightEditable）的单据
+                for(Long saleOutId: saleOutIds) {
+                    List<DepotItemVo4WithInfoEx> detailList = depotItemService.getDetailList(saleOutId);
+                    boolean hasWeightEditable = false;
+                    if(detailList != null) {
+                        for(DepotItemVo4WithInfoEx item: detailList) {
+                            if("1".equals(item.getWeightEditable())) {
+                                hasWeightEditable = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(!hasWeightEditable) {
+                        DepotHead waUpdate = new DepotHead();
+                        waUpdate.setId(saleOutId);
+                        waUpdate.setWeightApproved("1");
+                        depotHeadMapper.updateByPrimaryKeySelective(waUpdate);
+                    }
+                }
             }
             //记录日志
             if(!noList.isEmpty() && ("0".equals(status) || "1".equals(status))) {
@@ -882,6 +928,52 @@ public class DepotHeadService {
                 JshException.writeFail(logger, e);
             }
         }
+    }
+
+    /**
+     * 批量设置重量核准状态（纯标记，不影响业务流程）
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public int batchSetWeightApproved(String weightApproved, String ids) throws Exception {
+        if (!"0".equals(weightApproved) && !"1".equals(weightApproved)) {
+            throw new BusinessRunTimeException(0, "重量核准状态不合法");
+        }
+        if (StringUtil.isEmpty(ids)) {
+            throw new BusinessRunTimeException(0, "缺少单据ID");
+        }
+        String[] idArr = ids.split(",");
+        int updateCount = 0;
+        for (String idStr : idArr) {
+            if (StringUtil.isEmpty(idStr)) {
+                continue;
+            }
+            Long id = Long.parseLong(idStr.trim());
+            DepotHead existing = getDepotHead(id);
+            if (existing == null) {
+                throw new BusinessRunTimeException(0, "单据不存在");
+            }
+            if (!"出库".equals(existing.getType()) || !"销售".equals(existing.getSubType())) {
+                throw new BusinessRunTimeException(0, "仅销售出库单支持重量核准");
+            }
+            if (!"1".equals(existing.getStatus())) {
+                throw new BusinessRunTimeException(0, "仅已审核的销售出库单支持重量核准");
+            }
+            if ("1".equals(weightApproved) && "1".equals(existing.getWeightApproved())) {
+                throw new BusinessRunTimeException(0, "所选单据已完成重量核准");
+            }
+            if ("0".equals(weightApproved) && !"1".equals(existing.getWeightApproved())) {
+                throw new BusinessRunTimeException(0, "仅已重量核准的单据可以取消核准");
+            }
+            DepotHead update = new DepotHead();
+            update.setId(id);
+            update.setWeightApproved(weightApproved);
+            int rows = depotHeadMapper.updateByPrimaryKeySelective(update);
+            if (rows <= 0) {
+                throw new BusinessRunTimeException(0, "重量核准状态更新失败");
+            }
+            updateCount += rows;
+        }
+        return updateCount;
     }
 
     /**
@@ -923,13 +1015,75 @@ public class DepotHeadService {
                 }
             }
         }
-        //同步更新主表合计金额
+        //同步更新主表合计金额、优惠、应收及日期备注
         DepotHead headUpd = new DepotHead();
         headUpd.setId(depotHead.getId());
         headUpd.setTotalPrice(totalPrice);
+        headUpd.setDiscount(depotHead.getDiscount());
+        headUpd.setDiscountMoney(depotHead.getDiscountMoney());
+        headUpd.setDiscountLastMoney(depotHead.getDiscountLastMoney());
+        headUpd.setChangeAmount(depotHead.getChangeAmount());
+        headUpd.setOperTime(depotHead.getOperTime());
+        headUpd.setRemark(depotHead.getRemark());
         depotHeadMapper.updateByPrimaryKeySelective(headUpd);
+        boolean dateChanged = depotHead.getOperTime() != null
+                && !depotHead.getOperTime().equals(existing.getOperTime());
+        boolean remarkChanged = depotHead.getRemark() != null
+                && !depotHead.getRemark().equals(existing.getRemark());
+        String logFlag = "价格修改:";
+        if (dateChanged && remarkChanged) {
+            logFlag = "价格/日期/备注修改:";
+        } else if (dateChanged) {
+            logFlag = "价格/日期修改:";
+        } else if (remarkChanged) {
+            logFlag = "价格/备注修改:";
+        }
         logService.insertLog("单据",
-                new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append("价格修改:").append(existing.getNumber()).toString(),
+                BusinessConstants.LOG_OPERATION_TYPE_EDIT + logFlag + existing.getNumber(),
+                request);
+    }
+
+    /**
+     * 更新已审核单据的明细重量（重量编辑模式）
+     * 仅更新明细行的 weight、remark 字段，不改主表状态
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void updateItemWeights(String beanJson, String rows, HttpServletRequest request) throws Exception {
+        DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
+        DepotHead existing = getDepotHead(depotHead.getId());
+        if (existing == null) {
+            throw new BusinessRunTimeException(0, "单据不存在");
+        }
+        //仅允许已审核+重量未核准的单据
+        if (!"1".equals(existing.getStatus()) || "1".equals(existing.getWeightApproved())) {
+            throw new BusinessRunTimeException(0, "仅重量未核准的已审核单据可以修改重量");
+        }
+        //更新明细行的重量、备注字段
+        JSONArray itemArr = JSONArray.parseArray(rows);
+        if (itemArr != null) {
+            for (int i = 0; i < itemArr.size(); i++) {
+                JSONObject item = itemArr.getJSONObject(i);
+                if (item.getLong("id") != null) {
+                    com.jsh.erp.datasource.entities.DepotItem upd = new com.jsh.erp.datasource.entities.DepotItem();
+                    upd.setId(item.getLong("id"));
+                    if (item.getBigDecimal("weight") != null) {
+                        upd.setWeight(item.getBigDecimal("weight"));
+                    }
+                    if (item.containsKey("remark")) {
+                        upd.setRemark(item.getString("remark"));
+                    }
+                    depotItemMapper.updateByPrimaryKeySelective(upd);
+                }
+            }
+        }
+        //同步刷新关联价格核准单及已核准销售出库金额
+        priceApprovalService.syncByDepotHeadAfterWeightChange(depotHead.getId());
+        //同步更新关联物流单的重量
+        List<Long> ids = new ArrayList<>();
+        ids.add(depotHead.getId());
+        freightHeadService.recalcByDepotHeadIds(ids);
+        logService.insertLog("单据",
+                BusinessConstants.LOG_OPERATION_TYPE_EDIT + "重量修改:" + existing.getNumber(),
                 request);
     }
 
@@ -968,6 +1122,28 @@ public class DepotHeadService {
             }
         }
         return freightBillNoMap;
+    }
+
+    /**
+     * 根据出库单ID列表批量查询关联物流单的运输车号
+     */
+    public Map<Long,String> getFreightCarNoMapByDepotHeadIdList(List<Long> idList) {
+        Map<Long,String> carNoMap = new HashMap<>();
+        if(idList != null && idList.size() > 0) {
+            try {
+                List<Map<String, Object>> list = freightItemMapperEx.selectFreightBillNoByDepotHeadIds(idList);
+                if(list != null) {
+                    for(Map<String, Object> map : list) {
+                        Long depotHeadId = Long.parseLong(map.get("depotHeadId").toString());
+                        String carNo = map.get("carNo") != null ? map.get("carNo").toString() : "";
+                        carNoMap.put(depotHeadId, carNo);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("查询物流单车号信息异常", e);
+            }
+        }
+        return carNoMap;
     }
 
     /**
@@ -1275,6 +1451,7 @@ public class DepotHeadService {
             Map<Long,String> accountMap = accountService.getAccountMap();
             List<DepotHeadVo4List> list = depotHeadMapperEx.getDetailByNumber(number);
             if (null != list) {
+                validateFeatureEnabled(list.get(0).getSubType());
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
                 for (DepotHeadVo4List dh : list) {
@@ -1350,10 +1527,27 @@ public class DepotHeadService {
                 if(freightBillNoMap!=null && freightBillNoMap.containsKey(dh.getId())) {
                     dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
                 }
+                //物流单运输车号
+                Map<Long,String> freightCarNoMap = getFreightCarNoMapByDepotHeadIdList(idList);
+                if(freightCarNoMap!=null && freightCarNoMap.containsKey(dh.getId())) {
+                    dh.setFreightCarNo(freightCarNoMap.get(dh.getId()));
+                }
                 //总重量
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 if(totalWeightMap!=null && totalWeightMap.containsKey(dh.getId())) {
                     dh.setTotalWeight(totalWeightMap.get(dh.getId()));
+                }
+                //价格核准送到日期（用于自定义打印默认送货日期）
+                try {
+                    Long tenantId = userService.getCurrentUser() != null ? userService.getCurrentUser().getTenantId() : null;
+                    com.jsh.erp.datasource.entities.PriceApproval pa =
+                            priceApprovalMapper.selectByDepotHeadId(dh.getId(), tenantId);
+                    if (pa != null && pa.getDeliveryDate() != null) {
+                        dh.setPriceApprovalDeliveryDate(
+                                new java.text.SimpleDateFormat("yyyyMMdd").format(pa.getDeliveryDate()));
+                    }
+                } catch (Exception ex) {
+                    logger.warn("查询价格核准送到日期失败: {}", ex.getMessage());
                 }
                 resList.add(dh);
             }
@@ -1377,6 +1571,13 @@ public class DepotHeadService {
 
     /**
      * 设置单据的关联标记（linked_flag），独立于status字段
+     * 按主键更新（selective，仅更新非null字段）
+     */
+    public void updateById(DepotHead dh) {
+        depotHeadMapper.updateByPrimaryKeySelective(dh);
+    }
+
+    /**
      * @param number 单据号
      * @param flag "0"=未关联, "1"=已关联
      */
@@ -1387,6 +1588,26 @@ public class DepotHeadService {
         List<String> numberList = StringUtil.strToStringList(number);
         example.createCriteria().andNumberIn(numberList);
         depotHeadMapper.updateByExampleSelective(dh, example);
+    }
+
+    /**
+     * 根据明细的 linkId 重新计算并同步单据头的 link_number，确保一致性
+     * @param headerId 单据主表ID
+     */
+    public void syncLinkNumberByDetail(Long headerId) {
+        try {
+            List<String> linkNumbers = depotHeadMapperEx.getDistinctLinkNumbersByHeaderId(headerId);
+            DepotHead update = new DepotHead();
+            update.setId(headerId);
+            if(linkNumbers != null && !linkNumbers.isEmpty()) {
+                update.setLinkNumber(String.join(",", linkNumbers));
+            } else {
+                update.setLinkNumber("");
+            }
+            depotHeadMapper.updateByPrimaryKeySelective(update);
+        } catch (Exception e) {
+            logger.error("同步link_number异常, headerId=" + headerId, e);
+        }
     }
 
     /**
@@ -1442,7 +1663,10 @@ public class DepotHeadService {
     public List<DepotHead> getBillListByLinkNumber(String linkNumber)throws Exception {
         DepotHeadExample example = new DepotHeadExample();
         example.createCriteria().andLinkNumberEqualTo(linkNumber).andSubTypeLike("退货").andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
-        return depotHeadMapper.selectByExample(example);
+        List<DepotHead> list = depotHeadMapper.selectByExample(example);
+        return list.stream()
+                .filter(item -> !isDisabledSubType(item.getSubType()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -1457,6 +1681,7 @@ public class DepotHeadService {
                                       HttpServletRequest request) throws Exception {
         /**处理单据主表数据*/
         DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
+        validateFeatureEnabled(depotHead);
         //判断用户是否已经登录过，登录过不再处理
         User userInfo=userService.getCurrentUser();
         //通过redis去校验重复
@@ -1554,13 +1779,106 @@ public class DepotHeadService {
         List<DepotHead> list = depotHeadMapper.selectByExample(dhExample);
         if(list!=null) {
             Long headId = list.get(0).getId();
+            depotHead.setId(headId); //回填ID供后续使用
             /**入库和出库处理单据子表信息*/
             depotItemService.saveDetials(rows,headId, "add",request);
+            //根据明细实际关联的源单据，同步校验并修正 link_number
+            syncLinkNumberByDetail(headId);
         }
         String statusStr = depotHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("单据",
                 new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(depotHead.getNumber()).append(statusStr).toString(),
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
+        //采购订单：自动生成采购入库单
+        if("采购订单".equals(depotHead.getSubType())) {
+            JSONObject billJson = JSONObject.parseObject(beanJson);
+            if(billJson.getBooleanValue("autoGeneratePurchaseIn")) {
+                autoGeneratePurchaseIn(depotHead, request);
+            }
+        }
+    }
+
+    /**
+     * 根据采购订单自动生成采购入库单
+     * @param orderHead 采购订单主表（已保存，含id和number）
+     */
+    private void autoGeneratePurchaseIn(DepotHead orderHead, HttpServletRequest request) throws Exception {
+        //获取默认仓库
+        Long defaultDepotId = depotService.getDefaultDepotId();
+        //生成入库单编号
+        String year = String.valueOf(java.time.LocalDate.now().getYear());
+        String newNumber = year + "CGRK" + sequenceService.buildOnlyNumber();
+        //创建入库单主表
+        DepotHead purchaseIn = new DepotHead();
+        purchaseIn.setType("入库");
+        purchaseIn.setSubType("采购");
+        purchaseIn.setDefaultNumber(newNumber);
+        purchaseIn.setNumber(newNumber);
+        purchaseIn.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        purchaseIn.setOperTime(orderHead.getOperTime() != null ? orderHead.getOperTime() : new Timestamp(System.currentTimeMillis()));
+        purchaseIn.setOrganId(orderHead.getOrganId());
+        purchaseIn.setCreator(orderHead.getCreator());
+        purchaseIn.setLinkNumber(orderHead.getNumber());
+        purchaseIn.setStatus(orderHead.getStatus()); //跟随订单状态
+        purchaseIn.setPurchaseStatus(BusinessConstants.BILLS_STATUS_UN_AUDIT);
+        purchaseIn.setPayType("现付");
+        purchaseIn.setAccountId(orderHead.getAccountId());
+        purchaseIn.setDiscount(orderHead.getDiscount());
+        purchaseIn.setDiscountMoney(orderHead.getDiscountMoney() != null ? orderHead.getDiscountMoney().abs() : null);
+        purchaseIn.setDiscountLastMoney(orderHead.getDiscountLastMoney() != null ? orderHead.getDiscountLastMoney().abs() : null);
+        purchaseIn.setOtherMoney(orderHead.getOtherMoney());
+        purchaseIn.setChangeAmount(orderHead.getChangeAmount() != null ? orderHead.getChangeAmount().abs() : BigDecimal.ZERO);
+        purchaseIn.setTotalPrice(orderHead.getTotalPrice() != null ? orderHead.getTotalPrice().abs() : BigDecimal.ZERO);
+        purchaseIn.setTenantId(orderHead.getTenantId());
+        purchaseIn.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
+        depotHeadMapper.insertSelective(purchaseIn);
+        //通过编号查回自增ID
+        DepotHeadExample piExample = new DepotHeadExample();
+        piExample.createCriteria().andNumberEqualTo(newNumber).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<DepotHead> piList = depotHeadMapper.selectByExample(piExample);
+        Long purchaseInId = piList.get(0).getId();
+        //查询订单明细
+        DepotItemExample itemExample = new DepotItemExample();
+        itemExample.createCriteria().andHeaderIdEqualTo(orderHead.getId())
+                .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+        List<DepotItem> orderItems = depotItemMapper.selectByExample(itemExample);
+        //复制明细到入库单（自动填入批号和日期，格式：年份+MMdd+S+HHmmss）
+        String todayBatch = new java.text.SimpleDateFormat("yyyyMMdd'S'HHmmss").format(new java.util.Date());
+        java.util.Date today = new java.util.Date();
+        for(DepotItem orderItem : orderItems) {
+            DepotItem inItem = new DepotItem();
+            inItem.setHeaderId(purchaseInId);
+            inItem.setMaterialId(orderItem.getMaterialId());
+            inItem.setMaterialExtendId(orderItem.getMaterialExtendId());
+            inItem.setMaterialUnit(orderItem.getMaterialUnit());
+            inItem.setOperNumber(orderItem.getOperNumber());
+            inItem.setBasicNumber(orderItem.getBasicNumber());
+            inItem.setUnitPrice(orderItem.getUnitPrice());
+            inItem.setAllPrice(orderItem.getAllPrice());
+            inItem.setTaxRate(orderItem.getTaxRate());
+            inItem.setTaxMoney(orderItem.getTaxMoney());
+            inItem.setTaxLastMoney(orderItem.getTaxLastMoney());
+            inItem.setWeight(orderItem.getWeight());
+            inItem.setDepotId(defaultDepotId);
+            inItem.setBatchNumber(todayBatch);
+            inItem.setExpirationDate(today);
+            inItem.setLinkId(orderItem.getId()); //关联订单明细
+            inItem.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
+            inItem.setTenantId(orderHead.getTenantId());
+            depotItemMapper.insertSelective(inItem);
+        }
+        //更新入库单的 discount_last_money（从明细汇总）
+        syncLinkNumberByDetail(purchaseInId);
+        //更新订单状态为"完成采购"，并标记已被关联
+        DepotHead orderUpdate = new DepotHead();
+        orderUpdate.setId(orderHead.getId());
+        orderUpdate.setStatus("2");
+        orderUpdate.setPurchaseStatus("2");
+        orderUpdate.setLinkedFlag("1");
+        depotHeadMapper.updateByPrimaryKeySelective(orderUpdate);
+        //使用insertLogWithUserId避免与主单据日志在同一秒内触发防重检测导致用户被踢出
+        logService.insertLogWithUserId(orderHead.getCreator(), orderHead.getTenantId(),
+                "单据", "自动生成采购入库单" + newNumber, request);
     }
 
     /**
@@ -1574,6 +1892,7 @@ public class DepotHeadService {
     public void updateDepotHeadAndDetail(String beanJson, String rows,HttpServletRequest request)throws Exception {
         /**更新单据主表信息*/
         DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
+        validateFeatureEnabled(depotHead);
         //判断用户是否已经登录过，登录过不再处理
         User userInfo=userService.getCurrentUser();
         //通过redis去校验重复
@@ -1662,6 +1981,8 @@ public class DepotHeadService {
         }
         /**入库和出库处理单据子表信息*/
         depotItemService.saveDetials(rows,depotHead.getId(), "update",request);
+        //根据明细实际关联的源单据，同步校验并修正 link_number
+        syncLinkNumberByDetail(depotHead.getId());
         //销售出库单编辑后，同步更新关联物流单的重量和运费
         if("出库".equals(depotHead.getType()) && "销售".equals(depotHead.getSubType())) {
             List<Long> ids = new ArrayList<>();
@@ -1782,6 +2103,22 @@ public class DepotHeadService {
                 }
                 break;
         }
+    }
+
+    private void validateFeatureEnabled(DepotHead depotHead) {
+        if (depotHead != null) {
+            validateFeatureEnabled(depotHead.getSubType());
+        }
+    }
+
+    private void validateFeatureEnabled(String subType) {
+        if (isDisabledSubType(subType)) {
+            throw new BusinessRunTimeException(FEATURE_DISABLED_CODE, String.format("功能已裁剪，禁止继续使用：%s", subType));
+        }
+    }
+
+    private boolean isDisabledSubType(String subType) {
+        return StringUtil.isNotEmpty(subType) && DISABLED_SUB_TYPES.contains(subType);
     }
 
 

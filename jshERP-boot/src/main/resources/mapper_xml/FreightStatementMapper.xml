@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsh.erp.datasource.mappers.FreightStatementMapper">
+
+  <insert id="insert" parameterType="com.jsh.erp.datasource.entities.FreightStatement" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO jsh_freight_statement
+      (statement_no, carrier_id, begin_time, end_time, total_weight, total_freight,
+       paid_amount, status, sign_status, attachment, remark, delete_flag, create_time, creator)
+    VALUES
+      (#{statementNo}, #{carrierId}, #{beginTime}, #{endTime}, #{totalWeight}, #{totalFreight},
+       #{paidAmount}, #{status}, #{signStatus}, #{attachment}, #{remark}, #{deleteFlag}, #{createTime}, #{creator})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.jsh.erp.datasource.entities.FreightStatement">
+    UPDATE jsh_freight_statement
+    SET status=#{status}, sign_status=#{signStatus}, attachment=#{attachment},
+        remark=#{remark}, total_weight=#{totalWeight}, total_freight=#{totalFreight},
+        paid_amount=#{paidAmount}, delete_flag=#{deleteFlag}
+    WHERE id=#{id}
+  </update>
+
+  <select id="selectByPrimaryKey" resultType="com.jsh.erp.datasource.entities.FreightStatement">
+    SELECT id, statement_no as statementNo, carrier_id as carrierId,
+           begin_time as beginTime, end_time as endTime,
+           total_weight as totalWeight, total_freight as totalFreight,
+           ifnull(paid_amount,0) as paidAmount,
+           status, sign_status as signStatus, attachment, remark,
+           tenant_id as tenantId, delete_flag as deleteFlag,
+           create_time as createTime, creator
+    FROM jsh_freight_statement
+    WHERE id=#{id} AND ifnull(delete_flag,'0') != '1'
+  </select>
+
+  <select id="countTodayStatement" resultType="java.lang.Integer">
+    SELECT count(1) FROM jsh_freight_statement
+    WHERE statement_no LIKE concat('WDZ', #{datePrefix}, '%')
+    <if test="tenantId != null">
+      AND tenant_id = #{tenantId}
+    </if>
+  </select>
+
+  <!-- 未对账的物流单（已审核且未关联对账单） -->
+  <sql id="unreconciledBody">
+    FROM jsh_freight_head fh
+    LEFT JOIN jsh_freight_carrier fc ON fc.id = fh.carrier_id
+    WHERE fh.status = '1'
+      AND ifnull(fh.delete_flag,'0') != '1'
+      AND fh.id NOT IN (
+        SELECT fsi.freight_head_id FROM jsh_freight_statement_item fsi
+        JOIN jsh_freight_statement fs ON fs.id = fsi.statement_id AND ifnull(fs.delete_flag,'0') != '1'
+        WHERE ifnull(fsi.delete_flag,'0') != '1'
+      )
+    <if test="carrierId != null">
+      AND fh.carrier_id = #{carrierId}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      AND fh.bill_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      AND fh.bill_time &lt;= concat(#{endTime}, ' 23:59:59')
+    </if>
+    <if test="tenantId != null">
+      AND fh.tenant_id = #{tenantId}
+    </if>
+  </sql>
+
+  <select id="listUnreconciledItems" resultType="java.util.Map">
+    SELECT fh.id, fh.bill_no as billNo,
+           DATE_FORMAT(fh.bill_time,'%Y-%m-%d') as billTime,
+           fc.name as carrierName,
+           fh.total_weight as totalWeight,
+           fh.unit_price as unitPrice,
+           fh.total_freight as totalFreight,
+           fh.remark
+    <include refid="unreconciledBody"/>
+    ORDER BY fh.bill_time DESC
+    LIMIT #{offset}, #{rows}
+  </select>
+
+  <select id="countUnreconciledItems" resultType="java.lang.Integer">
+    SELECT count(1)
+    <include refid="unreconciledBody"/>
+  </select>
+
+  <!-- 对账单列表 -->
+  <select id="listStatements" resultType="java.util.Map">
+    SELECT fs.id, fs.statement_no as statementNo,
+           fc.name as carrierName,
+           DATE_FORMAT(fs.begin_time,'%Y-%m-%d') as beginTimeStr,
+           DATE_FORMAT(fs.end_time,'%Y-%m-%d') as endTimeStr,
+           fs.total_weight as totalWeight,
+           fs.total_freight as totalFreight,
+           ifnull(fs.paid_amount,0) as paidAmount,
+           fs.status, fs.sign_status as signStatus,
+           DATE_FORMAT(fs.create_time,'%Y-%m-%d %H:%i:%s') as createTimeStr,
+           fs.remark, fs.attachment
+    FROM jsh_freight_statement fs
+    LEFT JOIN jsh_freight_carrier fc ON fc.id = fs.carrier_id
+    WHERE ifnull(fs.delete_flag,'0') != '1'
+    <if test="carrierId != null">
+      AND fs.carrier_id = #{carrierId}
+    </if>
+    <if test="status != null and status != ''">
+      AND fs.status = #{status}
+    </if>
+    <if test="signStatus != null and signStatus != ''">
+      AND fs.sign_status = #{signStatus}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      AND fs.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      AND fs.end_time &lt;= concat(#{endTime}, ' 23:59:59')
+    </if>
+    <if test="tenantId != null">
+      AND fs.tenant_id = #{tenantId}
+    </if>
+    ORDER BY fs.create_time DESC
+    LIMIT #{offset}, #{rows}
+  </select>
+
+  <select id="countStatements" resultType="java.lang.Integer">
+    SELECT count(1)
+    FROM jsh_freight_statement fs
+    WHERE ifnull(fs.delete_flag,'0') != '1'
+    <if test="carrierId != null">
+      AND fs.carrier_id = #{carrierId}
+    </if>
+    <if test="status != null and status != ''">
+      AND fs.status = #{status}
+    </if>
+    <if test="signStatus != null and signStatus != ''">
+      AND fs.sign_status = #{signStatus}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      AND fs.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      AND fs.end_time &lt;= concat(#{endTime}, ' 23:59:59')
+    </if>
+    <if test="tenantId != null">
+      AND fs.tenant_id = #{tenantId}
+    </if>
+  </select>
+
+  <!-- 对账单详情 -->
+  <select id="getStatementDetail" resultType="java.util.Map">
+    SELECT fh.id, fh.bill_no as billNo,
+           DATE_FORMAT(fh.bill_time,'%Y-%m-%d') as billTime,
+           fc.name as carrierName,
+           fh.total_weight as totalWeight,
+           fh.unit_price as unitPrice,
+           fh.total_freight as totalFreight,
+           fh.remark
+    FROM jsh_freight_statement_item fsi
+    JOIN jsh_freight_head fh ON fh.id = fsi.freight_head_id AND ifnull(fh.delete_flag,'0') != '1'
+    LEFT JOIN jsh_freight_carrier fc ON fc.id = fh.carrier_id
+    WHERE fsi.statement_id = #{statementId} AND ifnull(fsi.delete_flag,'0') != '1'
+    ORDER BY fh.bill_time
+  </select>
+
+  <insert id="insertStatementItems">
+    INSERT INTO jsh_freight_statement_item (statement_id, freight_head_id, delete_flag)
+    VALUES
+    <foreach collection="freightHeadIds" item="fhId" separator=",">
+      (#{statementId}, #{fhId}, '0')
+    </foreach>
+  </insert>
+
+  <update id="deleteStatementItems">
+    UPDATE jsh_freight_statement_item SET delete_flag = '1' WHERE statement_id = #{statementId}
+  </update>
+
+  <update id="addPaidAmount">
+    UPDATE jsh_freight_statement SET paid_amount = ifnull(paid_amount,0) + #{amount} WHERE id = #{id}
+  </update>
+
+  <!-- 物流单关联的出库明细 -->
+  <select id="getFreightSubItems" resultType="java.util.Map">
+    SELECT di.id, dh.number as billNo,
+           s.supplier as customerName, s.project_name as projectName,
+           m.name as brand, m.model, m.standard,
+           m.weight as unitWeight, di.oper_number as operNumber,
+           di.weight as itemWeight
+    FROM jsh_freight_item fi
+    JOIN jsh_depot_head dh ON dh.id = fi.depot_head_id AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_depot_item di ON di.header_id = dh.id AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_material m ON m.id = di.material_id
+    LEFT JOIN jsh_supplier s ON s.id = dh.organ_id
+    WHERE fi.header_id = #{freightHeadId} AND ifnull(fi.delete_flag,'0') != '1'
+    ORDER BY dh.number, di.id
+  </select>
+
+</mapper>

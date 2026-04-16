@@ -105,9 +105,10 @@ public class DepotHeadController extends BaseController {
         String salesMan = StringUtil.getInfo(search, "salesMan");
         String remark = StringUtil.getInfo(search, "remark");
         String linkedFlag = StringUtil.getInfo(search, "linkedFlag");
+        String saleLinkFlag = StringUtil.getInfo(search, "saleLinkFlag");
         String priceApproved = StringUtil.getInfo(search, "priceApproved");
         List<DepotHeadVo4List> list = depotHeadService.select(type, subType, hasDebt, status, purchaseStatus, number, linkApply, linkNumber,
-                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, priceApproved);
+                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
         return getDataTable(list);
     }
 
@@ -204,6 +205,27 @@ public class DepotHeadController extends BaseController {
         String ids = jsonObject.getString("ids");
         depotHeadService.batchSetPriceApproved(priceApproved, ids);
         return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
+    /**
+     * 批量设置重量核准状态
+     */
+    @PostMapping(value = "/batchSetWeightApproved")
+    @ApiOperation(value = "批量设置重量核准状态")
+    public String batchSetWeightApproved(@RequestBody JSONObject jsonObject,
+                                         HttpServletRequest request) throws Exception{
+        if (!userService.isCurrentUserAdmin()) {
+            return returnForbidden();
+        }
+        Map<String, Object> objectMap = new HashMap<>();
+        String weightApproved = jsonObject.getString("weightApproved");
+        String ids = jsonObject.getString("ids");
+        int res = depotHeadService.batchSetWeightApproved(weightApproved, ids);
+        if(res > 0) {
+            return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+        } else {
+            return returnJson(objectMap, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
+        }
     }
 
     /**
@@ -698,6 +720,19 @@ public class DepotHeadController extends BaseController {
     }
 
     /**
+     * 更新已审核单据的明细重量（重量编辑模式，仅限重量未核准单据）
+     */
+    @PutMapping(value = "/updateItemWeights")
+    @ApiOperation(value = "更新已审核单据的明细重量")
+    public Object updateItemWeights(@RequestBody DepotHeadVo4Body body, HttpServletRequest request) throws Exception{
+        JSONObject result = ExceptionConstants.standardSuccess();
+        String beanJson = body.getInfo();
+        String rows = body.getRows();
+        depotHeadService.updateItemWeights(beanJson, rows, request);
+        return result;
+    }
+
+    /**
      * 统计今日采购额、昨日采购额、本月采购额、今年采购额|销售额|零售额
      * @param request
      * @return
@@ -893,5 +928,26 @@ public class DepotHeadController extends BaseController {
         String ids = jsonObject.getString("ids");
         depotHeadService.batchAddDepotHeadAndDetail(ids, request);
         return result;
+    }
+
+    @PutMapping(value = "/updateFileById")
+    @ApiOperation(value = "更新单据附件")
+    public BaseResponseInfo updateFileById(@RequestBody JSONObject params, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            Long id = params.getLong("id");
+            String fileName = params.getString("fileName");
+            DepotHead dh = new DepotHead();
+            dh.setId(id);
+            dh.setFileName(fileName);
+            depotHeadService.updateById(dh);
+            res.code = 200;
+            res.data = "操作成功";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
     }
 }

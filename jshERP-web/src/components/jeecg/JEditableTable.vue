@@ -2161,7 +2161,13 @@
                 }
               }
             })
-            this.statisticsColumns[key] = count.toFixed(2)
+            // 支持列级小数位配置 statisticsDecimals，默认2位
+            let decimals = 2
+            let col = this.columns.find(c => c.key === key)
+            if (col && col.statisticsDecimals !== undefined) {
+              decimals = col.statisticsDecimals
+            }
+            this.statisticsColumns[key] = count.toFixed(decimals)
           }
         }
       },

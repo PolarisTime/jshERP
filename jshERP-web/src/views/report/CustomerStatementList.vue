@@ -6,13 +6,27 @@
         <div class="table-page-search-wrapper">
           <a-form layout="inline" @keyup.enter.native="searchQuery">
             <a-row :gutter="24">
-              <a-col :md="6" :sm="24">
-                <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="请选择客户" v-model="queryParam.organId"
+              <a-col :md="4" :sm="24">
+                <a-form-item label="单号" :labelCol="{span:6}" :wrapperCol="{span:18}">
+                  <a-input placeholder="对账单号" v-model="queryParam.statementNo" allow-clear></a-input>
+                </a-form-item>
+              </a-col>
+              <a-col :md="4" :sm="24">
+                <a-form-item label="客户" :labelCol="{span:6}" :wrapperCol="{span:18}">
+                  <a-select placeholder="全部" v-model="selectedCustomerName"
                     showSearch allow-clear optionFilterProp="children"
-                    @search="handleSearchCustomer">
-                    <a-select-option v-for="item in cusList" :key="item.id" :value="item.id">
-                      {{ item.supplier }}
+                    @search="handleSearchCustomer" @change="onCustomerNameChange">
+                    <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">{{ name }}</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="5" :sm="24">
+                <a-form-item label="项目" :labelCol="{span:4}" :wrapperCol="{span:20}">
+                  <a-select placeholder="全部" v-model="queryParam.organId"
+                    showSearch allow-clear optionFilterProp="children"
+                    :disabled="projectListForOrgan.length === 0" @change="loadData(1)">
+                    <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                      {{ item.projectName || '(无项目名称)' }}
                     </a-select-option>
                   </a-select>
                 </a-form-item>
@@ -56,23 +70,8 @@
           <a-button icon="rollback" @click="handleAudit('0')" :disabled="!hasSingleSelected">反审核</a-button>
           <a-button icon="edit" @click="handleSign('1')" :disabled="!hasSingleSelected">签署</a-button>
           <a-button icon="close-circle" @click="handleSign('0')" :disabled="!hasSingleSelected">取消签署</a-button>
-          <!-- CLodop -->
-          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
-            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
-            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
-            <a-select v-model="selectedTemplateId" style="width:200px;" size="small" placeholder="选择打印模板">
-              <a-select-option v-for="t in templateList" :key="t.id" :value="t.id">
-                {{ t.templateName }}{{ t.isDefault === '1' ? '（默认）' : '' }}
-              </a-select-option>
-            </a-select>
-            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
-              style="width:180px;" size="small" placeholder="默认打印机">
-              <a-select-option value="">默认打印机</a-select-option>
-              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
-            </a-select>
-            <a-button icon="eye" :disabled="!clodopReady || !hasSingleSelected" @click="doPrint(true)">预览</a-button>
-            <a-button type="primary" icon="printer" :disabled="!clodopReady || !hasSingleSelected" @click="doPrint(false)">打印</a-button>
-          </span>
+          <a-button icon="printer" @click="handleCustomPrint" :disabled="!hasSingleSelected">打印</a-button>
+          <a-button icon="download" @click="handleExportCsv">导出</a-button>
         </div>
 
         <!-- 表格 -->
@@ -82,6 +81,7 @@
           rowKey="id"
           :columns="columns"
           :dataSource="dataSource"
+          :components="handleDrag(columns)"
           :loading="loading"
           :pagination="false"
           :scroll="scroll"
@@ -92,7 +92,13 @@
             <a-popconfirm title="确定删除该对账单？" @confirm="handleDelete(record)">
               <a style="color:#ff4d4f">删除</a>
             </a-popconfirm>
-          </span>
+                        <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'attachment')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.attachment" :count="record.attachment.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
+              </span>
           <template slot="statusRender" slot-scope="text, record">
             <a-tag :color="record.status === '1' ? 'green' : 'red'">
               {{ record.status === '1' ? '已审核' : '未审核' }}
@@ -117,6 +123,8 @@
         <!-- 子组件 -->
         <customer-statement-generate-modal ref="generateModal" @ok="loadData(1)" />
         <customer-statement-detail-modal ref="detailModal" @refresh="loadData" />
+        <attachment-modal ref="attachModal" bizPath="statement" @change="onAttachChange"></attachment-modal>
+        <custom-print-modal ref="customPrintModal" billType="customerStatement" :model="printModel" :dataSource="printDataSource" />
       </a-card>
     </a-col>
   </a-row>
@@ -125,22 +133,26 @@
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { findBySelectCus, deleteCustomerStatement, getCustomerStatementDetail,
-           auditCustomerStatement, signCustomerStatement, listPrintTemplate } from '@/api/api'
+           auditCustomerStatement, signCustomerStatement } from '@/api/api'
   import { getAction } from '@/api/manage'
-  import { render } from '@/utils/printTemplateEngine'
-  import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
   import CustomerStatementGenerateModal from './modules/CustomerStatementGenerateModal'
   import CustomerStatementDetailModal from './modules/CustomerStatementDetailModal'
+  import CustomPrintModal from '../bill/dialog/CustomPrintModal'
+
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction } from '@/api/manage'
 
   export default {
     name: 'CustomerStatementList',
     mixins: [JeecgListMixin],
-    components: { CustomerStatementGenerateModal, CustomerStatementDetailModal },
+    components: {
+      AttachmentModal, CustomerStatementGenerateModal, CustomerStatementDetailModal, CustomPrintModal },
     data() {
       return {
         labelCol: { span: 5 },
         wrapperCol: { span: 18, offset: 1 },
         queryParam: {
+          statementNo: '',
           organId: undefined,
           status: undefined,
           signStatus: undefined,
@@ -149,13 +161,9 @@
           dateRange: []
         },
         cusList: [],
+        selectedCustomerName: undefined,
+        projectListForOrgan: [],
         searchTimer: null,
-        // CLodop
-        clodopReady: false,
-        printerList: [],
-        selectedPrinter: '',
-        templateList: [],
-        selectedTemplateId: null,
         // 行选择
         selectedRowKeys: [],
         selectedRows: [],
@@ -165,29 +173,50 @@
           { title: '客户', dataIndex: 'customerName', width: 140, ellipsis: true },
           { title: '账期开始', dataIndex: 'beginTimeStr', width: 110 },
           { title: '账期结束', dataIndex: 'endTimeStr', width: 110 },
-          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110 },
-          { title: '总金额(元)', dataIndex: 'totalAmount', width: 110 },
+          { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110, customRender: t => t != null ? Number(t).toFixed(3) : '' },
+          { title: '总金额(元)', dataIndex: 'totalAmount', width: 110, customRender: t => t != null ? Number(t).toFixed(2) : '' },
           { title: '审核状态', dataIndex: 'status', width: 90, align: 'center', scopedSlots: { customRender: 'statusRender' } },
           { title: '签署状态', dataIndex: 'signStatus', width: 90, align: 'center', scopedSlots: { customRender: 'signRender' } },
           { title: '创建时间', dataIndex: 'createTimeStr', width: 160 },
-          { title: '备注', dataIndex: 'remark', ellipsis: true }
+          { title: '备注', dataIndex: 'remark', width: 150, ellipsis: true }
         ],
+        printModel: {},
+        printDataSource: [],
         url: { list: '/customerStatement/list' }
       }
     },
     computed: {
       hasSingleSelected() {
         return this.selectedRowKeys.length === 1
+      },
+      uniqueCustomerNames() {
+        let seen = new Set()
+        return this.cusList.map(c => c.supplier).filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
       }
     },
     created() {
       this.initCustomer()
+      this._applyGlobalSearchStatementNo(true)
     },
-    mounted() {
-      this.initClodop()
-      this.loadPrintTemplate()
+    activated() {
+      this._applyGlobalSearchStatementNo(true)
     },
+    mounted() {},
     methods: {
+      _applyGlobalSearchStatementNo(reload) {
+        const pending = sessionStorage.getItem('globalSearch_statementNo')
+        if (pending) {
+          sessionStorage.removeItem('globalSearch_statementNo')
+          this.queryParam.statementNo = pending
+          if (reload) {
+            this.$nextTick(() => { this.loadData(1) })
+          }
+        }
+      },
       // ─── 数据加载 ───────────────────────────────────────────────
       getQueryParams() {
         const p = Object.assign({}, this.queryParam)
@@ -210,8 +239,23 @@
       },
       searchQuery() { this.loadData(1) },
       searchReset() {
-        this.queryParam = { organId: undefined, status: undefined, signStatus: undefined, beginTime: '', endTime: '', dateRange: [] }
+        this.selectedCustomerName = undefined
+        this.projectListForOrgan = []
+        this.queryParam = { statementNo: '', organId: undefined, status: undefined, signStatus: undefined, beginTime: '', endTime: '', dateRange: [] }
         this.loadData(1)
+      },
+      onCustomerNameChange(supplierName) {
+        this.queryParam.organId = undefined
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          if (this.projectListForOrgan.length === 1) {
+            this.queryParam.organId = this.projectListForOrgan[0].id
+            this.loadData(1)
+          }
+        } else {
+          this.projectListForOrgan = []
+          this.loadData(1)
+        }
       },
       onDateChange(dates, dateStrings) {
         this.queryParam.beginTime = dateStrings[0] || ''
@@ -268,6 +312,8 @@
         auditCustomerStatement({ id, status }).then(res => {
           if (res && res.code === 200) {
             this.$message.success(status === '1' ? '审核成功' : '反审核成功')
+            this.selectedRowKeys = []
+            this.selectedRows = []
             this.loadData()
           } else {
             this.$message.error(res.data || '操作失败')
@@ -277,8 +323,9 @@
       handleSign(signStatus) {
         if (!this.hasSingleSelected) return
         const id = this.selectedRowKeys[0]
-        const row = this.selectedRows[0]
-        if (signStatus === '1' && row.status !== '1') {
+        // 从最新的 dataSource 中获取行数据（避免使用过时的 selectedRows）
+        const row = this.dataSource.find(r => r.id === id) || this.selectedRows[0] || {}
+        if (signStatus === '1' && String(row.status || '0') !== '1') {
           this.$message.warning('请先审核再签署')
           return
         }
@@ -292,59 +339,60 @@
         })
       },
 
-      // ─── CLodop ──────────────────────────────────────────────────
-      async initClodop() {
-        try {
-          const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
-          resetCLodop()
-          await loadCLodop()
-          this.clodopReady = isAvailable()
-          if (this.clodopReady) this.printerList = getPrinterList()
-        } catch (e) {
-          this.clodopReady = false
-        }
-      },
-      loadPrintTemplate() {
-        listPrintTemplate({ billType: 'customerStatement' }).then(res => {
-          if (res && res.code === 200 && Array.isArray(res.data)) {
-            this.templateList = res.data
-            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
-            this.selectedTemplateId = def ? def.id : null
-          }
+      // ─── 打印 ──────────────────────────────────────────────────
+      async handleCustomPrint() {
+        if (!this.hasSingleSelected) return
+        const id = this.selectedRowKeys[0]
+        const row = this.selectedRows[0]
+        const res = await getCustomerStatementDetail({ id })
+        if (!res || res.code !== 200) { this.$message.error('获取详情失败'); return }
+        const rawItems = res.data.items || []
+        // 格式化日期：billTime 可能是时间戳数字或字符串
+        const items = rawItems.map((it, idx) => {
+          let bt = it.billTime
+          if (typeof bt === 'number') bt = new Date(bt).toISOString().substring(0, 10)
+          else if (typeof bt === 'string' && bt.length > 10) bt = bt.substring(0, 10)
+          return { ...it, _index: idx + 1, billTime: bt || '' }
         })
+        const model = { ...row, ...(res.data.header || {}), details: items }
+        this.printModel = model
+        this.printDataSource = items
+        this.$nextTick(() => { this.$refs.customPrintModal.show(model, items) })
       },
-
-      // ─── 预览 / 打印 ─────────────────────────────────────────────
-      async doPrint(preview) {
-        if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
-        const tpl = this.templateList.find(t => t.id === this.selectedTemplateId)
-        if (!tpl) { this.$message.warning('请选择打印模板'); return }
+      // ─── 导出（含明细） ──────────────────────────────────────────
+      async handleExportCsv() {
         if (!this.hasSingleSelected) { this.$message.warning('请选中一条对账单'); return }
         const id = this.selectedRowKeys[0]
         const row = this.selectedRows[0]
         const res = await getCustomerStatementDetail({ id })
         if (!res || res.code !== 200) { this.$message.error('获取详情失败'); return }
         const items = res.data.items || []
-        const modelData = {
-          ...row,
-          ...(res.data.header || {}),
-          details: items.map((it, idx) => ({
-            ...it,
-            _index: idx + 1,
-            billTime: it.billTime ? it.billTime.substring(0, 10) : ''
-          }))
-        }
-        try {
-          const rendered = render(tpl.templateHtml, modelData, items, {})
-          const opts = { preview, printer: this.selectedPrinter || undefined, title: row.statementNo || '对账单' }
-          if (isCLodopCode(tpl.templateHtml)) {
-            execPrintCode(rendered, opts)
-          } else {
-            printHtml(rendered, opts)
-          }
-        } catch (e) {
-          this.$message.error('打印失败：' + e.message)
-        }
+        // 表头行
+        const headers = ['对账单号','客户','账期','日期','出库单号','商品类别','品牌','材质','规格','件重(吨)','件数','重量(吨)','单价(元/吨)','金额(元)']
+        let csv = '\uFEFF' + headers.join(',') + '\n'
+        const statementNo = row.statementNo || ''
+        const customerName = row.customerName || ''
+        const period = (row.beginTimeStr || '') + '~' + (row.endTimeStr || '')
+        items.forEach(it => {
+          let vals = [statementNo, customerName, period,
+            it.billTime ? it.billTime.substring(0,10) : '', it.billNo || '',
+            it.categoryName || '', it.brand || '', it.model || '', it.standard || '',
+            it.unitWeight || '', it.operNumber || '', it.itemWeight || '',
+            it.unitPrice || '', it.allPrice || '']
+          csv += vals.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',') + '\n'
+        })
+        // 合计行
+        csv += '"","","","","","","","","","","","' + (row.totalWeight || '') + '","","' + (row.totalAmount || '') + '"\n'
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = (statementNo || '对账单') + '.csv'
+        link.click()
+      },
+      onAttachChange({ id, attachments }) {
+        putAction('/customerStatement/updateAttachment', { id, attachment: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
+        })
       }
     }
   }

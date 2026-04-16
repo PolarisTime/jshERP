@@ -11,6 +11,7 @@ import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.entities.UserEx;
 import com.jsh.erp.datasource.vo.TreeNodeEx;
 import com.jsh.erp.exception.BusinessRunTimeException;
+import com.jsh.erp.rbac.RbacPermission;
 import com.jsh.erp.service.*;
 import com.jsh.erp.utils.*;
 import io.swagger.annotations.Api;
@@ -142,6 +143,7 @@ public class UserController extends BaseController {
 
     @PostMapping(value = "/login")
     @ApiOperation(value = "登录")
+    @RbacPermission(publicAccess = true)
     public BaseResponseInfo login(@RequestBody UserEx userParam, HttpServletRequest request)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -161,6 +163,7 @@ public class UserController extends BaseController {
 
     @PostMapping(value = "/weixinLogin")
     @ApiOperation(value = "微信登录")
+    @RbacPermission(publicAccess = true)
     public BaseResponseInfo weixinLogin(@RequestBody JSONObject jsonObject,
                                   HttpServletRequest request)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -186,6 +189,7 @@ public class UserController extends BaseController {
 
     @PostMapping(value = "/weixinBind")
     @ApiOperation(value = "绑定微信")
+    @RbacPermission(publicAccess = true)
     public String weixinBind(@RequestBody JSONObject jsonObject,
                              HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -373,6 +377,7 @@ public class UserController extends BaseController {
      */
     @PostMapping(value = "/registerUser")
     @ApiOperation(value = "注册用户")
+    @RbacPermission(publicAccess = true)
     public Object registerUser(@RequestBody UserEx ue,
                                HttpServletRequest request)throws Exception{
         JSONObject result = ExceptionConstants.standardSuccess();
@@ -526,6 +531,7 @@ public class UserController extends BaseController {
      */
     @GetMapping(value = "/randomImage")
     @ApiOperation(value = "获取随机校验码")
+    @RbacPermission(publicAccess = true)
     public BaseResponseInfo randomImage(HttpServletResponse response){
         BaseResponseInfo res = new BaseResponseInfo();
         try {

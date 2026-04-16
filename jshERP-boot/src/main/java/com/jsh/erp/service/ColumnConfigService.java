@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 
 /**
- * 列配置Service
+ * 列配置Service（租户级同步，tenant_id 由 TenantSqlParser 自动注入）
  */
 @Service
 public class ColumnConfigService {

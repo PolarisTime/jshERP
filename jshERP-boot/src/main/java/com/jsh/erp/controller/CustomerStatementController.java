@@ -1,6 +1,8 @@
 package com.jsh.erp.controller;
 
 import com.jsh.erp.base.BaseController;
+import com.jsh.erp.rbac.RbacMode;
+import com.jsh.erp.rbac.RbacPermission;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.datasource.vo.CustomerStatementItemVo;
 import com.jsh.erp.service.CustomerStatementService;
@@ -22,6 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/customerStatement")
 @Api(tags = {"客户对账单"})
+@RbacPermission(resource = "/report/customer_statement")
 public class CustomerStatementController extends BaseController {
 
     private final Logger logger = LoggerFactory.getLogger(CustomerStatementController.class);
@@ -92,6 +95,7 @@ public class CustomerStatementController extends BaseController {
     @ApiOperation(value = "对账单列表")
     public BaseResponseInfo list(
             @RequestParam(value = "organId", required = false) Long organId,
+            @RequestParam(value = "statementNo", required = false) String statementNo,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "signStatus", required = false) String signStatus,
             @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -103,8 +107,8 @@ public class CustomerStatementController extends BaseController {
         try {
             int offset = (currentPage - 1) * pageSize;
             List<Map<String, Object>> rows = customerStatementService.listStatements(
-                    organId, status, signStatus, beginTime, endTime, offset, pageSize);
-            int total = customerStatementService.countStatements(organId, status, signStatus, beginTime, endTime);
+                    organId, statementNo, status, signStatus, beginTime, endTime, offset, pageSize);
+            int total = customerStatementService.countStatements(organId, statementNo, status, signStatus, beginTime, endTime);
             Map<String, Object> data = new HashMap<>();
             data.put("rows", rows);
             data.put("total", total);
@@ -141,6 +145,7 @@ public class CustomerStatementController extends BaseController {
      */
     @PutMapping("/audit")
     @ApiOperation(value = "审核/反审核")
+    @RbacPermission(mode = RbacMode.AUDIT_STATUS, statusField = "status")
     public BaseResponseInfo audit(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -210,6 +215,21 @@ public class CustomerStatementController extends BaseController {
             customerStatementService.deleteStatement(id);
             res.code = 200;
             res.data = "删除成功";
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
+    }
+
+    @GetMapping(value = "/unpaidList")
+    @ApiOperation(value = "未收完的对账单列表")
+    public BaseResponseInfo unpaidList(@RequestParam(value = "organId", required = false) Long organId, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            res.code = 200;
+            res.data = customerStatementService.listUnpaidStatements(organId);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;

@@ -29,12 +29,6 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item label="送达状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-select placeholder="全部" allow-clear v-model="queryParam.deliveryStatus">
-                    <a-select-option value="0">未送达</a-select-option>
-                    <a-select-option value="1">已送达</a-select-option>
-                  </a-select>
-                </a-form-item>
               </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
                 <a-col :md="6" :sm="24">
@@ -65,25 +59,13 @@
           </a-form>
         </div>
         <!-- 操作按钮区域 -->
-        <div class="table-operator" style="margin-top: 5px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+        <div class="table-operator" style="margin-top: 5px">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="handleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
           <a-button v-if="btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
           <a-button icon="car" style="color:#52c41a" @click="batchSetDeliveryStatus('1')">标记送达</a-button>
           <a-button icon="undo" @click="batchSetDeliveryStatus('0')">取消送达</a-button>
-          <!-- CLodop -->
-          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
-            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
-            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
-            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
-              style="width:180px;" size="small" placeholder="默认打印机">
-              <a-select-option value="">默认打印机</a-select-option>
-              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
-            </a-select>
-            <a-button icon="eye" :disabled="!clodopReady || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
-            <a-button type="primary" icon="printer" :disabled="!clodopReady || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
-          </span>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -100,11 +82,13 @@
             rowKey="id"
             :columns="columns"
             :dataSource="dataSource"
+            :components="handleDrag(columns)"
             :pagination="ipagination"
             :scroll="scroll"
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :expandedRowKeys="expandedRowKeys"
+            :rowClassName="freightRowClassName"
             @expand="onExpandFreight"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
@@ -115,7 +99,13 @@
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => handleDeleteBill(record)">
                 <a>删除</a>
               </a-popconfirm>
-            </span>
+                          <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
+              </span>
             <template slot="customRenderStatus" slot-scope="text, record">
               <a-tag v-if="record.status === '0' || record.status === 0" color="red">未审核</a-tag>
               <a-tag v-if="record.status === '1' || record.status === 1" color="green">已审核</a-tag>
@@ -136,6 +126,7 @@
           </a-table>
         </div>
         <freight-bill-modal ref="modalForm" @ok="modalFormOk"></freight-bill-modal>
+        <attachment-modal ref="attachModal" bizPath="freight" @change="onAttachChange"></attachment-modal>
       </a-card>
     </a-col>
   </a-row>
@@ -144,15 +135,17 @@
   import FreightBillModal from './modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail, listPrintTemplate } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
   import { postAction } from '@/api/manage'
-  import { render } from '@/utils/printTemplateEngine'
-  import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
   import Vue from 'vue'
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction } from '@/api/manage'
+
   export default {
     name: "FreightBillList",
     mixins: [JeecgListMixin],
     components: {
+      AttachmentModal,
       FreightBillModal,
       ColumnSettingPopover
     },
@@ -169,7 +162,7 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
-          deliveryStatus: '0',
+          deliveryStatus: undefined,
           beginTime: '',
           endTime: ''
         },
@@ -221,12 +214,7 @@
           delete: "/freightHead/deleteFreightBill",
           deleteBatch: "/freightHead/deleteBatchFreightBill",
           batchSetStatusUrl: "/freightHead/batchSetStatus"
-        },
-        // CLodop
-        clodopReady: false,
-        printerList: [],
-        selectedPrinter: '',
-        printTemplate: null
+        }
       }
     },
     watch: {
@@ -237,12 +225,28 @@
     created() {
       this.initCarrierList();
       this.initColumnsSetting();
+      this._applyGlobalSearchBillNo(true)
     },
-    mounted() {
-      this.initClodop()
-      this.loadPrintTemplate()
+    activated() {
+      this._applyGlobalSearchBillNo(true)
     },
     methods: {
+      _applyGlobalSearchBillNo(reload) {
+        const pending = sessionStorage.getItem('globalSearch_billNo')
+        if (pending) {
+          sessionStorage.removeItem('globalSearch_billNo')
+          this.queryParam.billNo = pending
+          if (reload) {
+            this.$nextTick(() => { this.loadData(1) })
+          }
+        }
+      },
+      freightRowClassName(record) {
+        // 审核或送达任一未完成，行底色染蓝
+        let notAudited = record.status === '0' || record.status === 0
+        let notDelivered = record.deliveryStatus !== '1'
+        return (notAudited || notDelivered) ? 'freight-row-incomplete' : ''
+      },
       initColumnsSetting() {
         this.settingDataIndex = [...this.defDataIndex]
         this.applyColumnsOrdered(this.settingDataIndex)
@@ -280,9 +284,6 @@
         orderedArr.forEach(di => {
           if(colMap[di]) {
             let c = Object.assign({}, colMap[di], { align: 'center' })
-            if (!fixedKeys.includes(c.dataIndex)) {
-              delete c.width
-            }
             result.push(c)
           }
         })
@@ -346,7 +347,7 @@
           billNo: '',
           carrierId: undefined,
           status: undefined,
-          deliveryStatus: '0',
+          deliveryStatus: undefined,
           beginTime: '',
           endTime: ''
         }
@@ -395,68 +396,19 @@
           }
         })
       },
-
-      // ─── CLodop ───────────────────────────────────────────────
-      async initClodop() {
-        try {
-          const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
-          resetCLodop()
-          await loadCLodop()
-          this.clodopReady = isAvailable()
-          if (this.clodopReady) this.printerList = getPrinterList()
-        } catch (e) {
-          this.clodopReady = false
-        }
-      },
-      loadPrintTemplate() {
-        listPrintTemplate({ billType: 'freightBill' }).then(res => {
-          if (res && res.code === 200 && Array.isArray(res.data)) {
-            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
-            this.printTemplate = def || null
-          }
+      onAttachChange({ id, attachments }) {
+        putAction('/freightHead/updateFileById', { id, fileName: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
         })
-      },
-
-      // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
-      async doPrint(preview) {
-        if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
-        if (!this.printTemplate) { this.$message.warning('未找到打印模板'); return }
-        if (this.selectedRowKeys.length === 0) { this.$message.warning('请先勾选物流单'); return }
-        const ids = preview ? [this.selectedRowKeys[0]] : this.selectedRowKeys
-        let successCount = 0, failCount = 0
-        for (const id of ids) {
-          try {
-            const res = await getFreightDetail({ id })
-            if (!res || res.code !== 200 || !res.data) { failCount++; continue }
-            const detail = res.data
-            const detailList = detail.detailList || []
-            const customers = [...new Set(detailList.map(i => i.customerName).filter(Boolean))]
-            const projects  = [...new Set(detailList.map(i => i.projectName).filter(Boolean))]
-            const addresses = [...new Set(detailList.map(i => i.projectAddress).filter(Boolean))]
-            const saleRemarks = [...new Set(detailList.map(i => i.remark).filter(Boolean))]
-            const model = {
-              ...detail,
-              customerName: customers.join('、'),
-              projectName:  projects.join('、'),
-              projectAddress: addresses.join('、'),
-              saleRemark: saleRemarks.join('、')
-            }
-            const rendered = render(this.printTemplate.templateHtml, model, detailList, {})
-            const opts = { preview, printer: this.selectedPrinter || undefined, title: model.billNo || '物流单' }
-            const ok = isCLodopCode(this.printTemplate.templateHtml)
-              ? execPrintCode(rendered, opts)
-              : printHtml(rendered, opts)
-            if (ok) successCount++; else failCount++
-          } catch (e) { failCount++ }
-        }
-        if (!preview) {
-          if (failCount === 0) this.$message.success(`已发送 ${successCount} 张到打印机`)
-          else this.$message.warning(`打印完成：成功 ${successCount} 张，失败 ${failCount} 张`)
-        }
       }
     }
   }
 </script>
 <style scoped>
   @import '~@assets/less/common.less'
+</style>
+<style>
+  .freight-row-incomplete td {
+    background-color: var(--erp-primary-light, #e6f7ff) !important;
+  }
 </style>

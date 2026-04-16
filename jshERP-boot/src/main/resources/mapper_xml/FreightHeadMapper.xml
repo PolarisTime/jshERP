@@ -5,6 +5,7 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="bill_no" jdbcType="VARCHAR" property="billNo" />
     <result column="bill_time" jdbcType="TIMESTAMP" property="billTime" />
+    <result column="car_no" jdbcType="VARCHAR" property="carNo" />
     <result column="carrier_id" jdbcType="BIGINT" property="carrierId" />
     <result column="unit_price" jdbcType="DECIMAL" property="unitPrice" />
     <result column="total_weight" jdbcType="DECIMAL" property="totalWeight" />
@@ -20,11 +21,12 @@
     <result column="paid_amount" jdbcType="DECIMAL" property="paidAmount" />
     <result column="payment_time" jdbcType="TIMESTAMP" property="paymentTime" />
     <result column="payment_operator" jdbcType="BIGINT" property="paymentOperator" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, bill_no, bill_time, carrier_id, unit_price, total_weight, total_freight,
+    id, bill_no, bill_time, car_no, carrier_id, unit_price, total_weight, total_freight,
     remark, status, creator, create_time, tenant_id, delete_flag, delivery_status,
-    payment_status, paid_amount, payment_time, payment_operator
+    payment_status, paid_amount, payment_time, payment_operator, file_name
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
@@ -59,6 +61,9 @@
       </if>
       <if test="billTime != null">
         bill_time,
+      </if>
+      <if test="carNo != null">
+        car_no,
       </if>
       <if test="carrierId != null">
         carrier_id,
@@ -116,6 +121,9 @@
       <if test="billTime != null">
         #{billTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="carNo != null">
+        #{carNo,jdbcType=VARCHAR},
+      </if>
       <if test="carrierId != null">
         #{carrierId,jdbcType=BIGINT},
       </if>
@@ -172,6 +180,9 @@
       <if test="billTime != null">
         bill_time = #{billTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="carNo != null">
+        car_no = #{carNo,jdbcType=VARCHAR},
+      </if>
       <if test="carrierId != null">
         carrier_id = #{carrierId,jdbcType=BIGINT},
       </if>
@@ -217,6 +228,9 @@
       <if test="paymentOperator != null">
         payment_operator = #{paymentOperator,jdbcType=BIGINT},
       </if>
+      <if test="fileName != null">
+        file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -224,6 +238,7 @@
     update jsh_freight_head
     set bill_no = #{billNo,jdbcType=VARCHAR},
       bill_time = #{billTime,jdbcType=TIMESTAMP},
+      car_no = #{carNo,jdbcType=VARCHAR},
       carrier_id = #{carrierId,jdbcType=BIGINT},
       unit_price = #{unitPrice,jdbcType=DECIMAL},
       total_weight = #{totalWeight,jdbcType=DECIMAL},

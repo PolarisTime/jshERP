@@ -25,6 +25,7 @@
     SELECT id, statement_no as statementNo, organ_id as organId,
            begin_time as beginTime, end_time as endTime,
            total_weight as totalWeight, total_amount as totalAmount,
+           ifnull(received_amount,0) as receivedAmount,
            status, sign_status as signStatus, attachment, remark,
            tenant_id as tenantId, delete_flag as deleteFlag,
            create_time as createTime, creator
@@ -36,18 +37,31 @@
     SELECT count(1)
     FROM jsh_customer_statement
     WHERE statement_no LIKE concat('DZ', #{datePrefix}, '%')
+      <if test="tenantId != null">
+        AND tenant_id = #{tenantId}
+      </if>
   </select>
 
   <!-- ═══ 未对账明细 ═══ -->
 
+  <!-- 数据源已切换为 price_approval_item，支持拆分行独立定价 -->
   <sql id="unreconciledItemsBody">
-    FROM jsh_depot_item di
-    JOIN jsh_depot_head dh ON dh.id = di.header_id AND ifnull(dh.delete_flag,'0') != '1'
-    JOIN jsh_material m    ON m.id  = di.material_id
+    FROM jsh_price_approval_item pai
+    JOIN jsh_price_approval pa     ON pa.id  = pai.approval_id
+                                   AND ifnull(pa.delete_flag,'0') != '1'
+                                   AND pa.status = '1'
+    JOIN jsh_depot_item di         ON di.id  = pai.depot_item_id
+                                   AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_depot_head dh         ON dh.id  = di.header_id
+                                   AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m            ON m.id   = pai.material_id
     LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE dh.type = '出库' AND dh.sub_type = '销售'
-      AND ifnull(di.delete_flag,'0') != '1'
+      AND ifnull(pai.delete_flag,'0') != '1'
+      <if test="tenantId != null">
+        AND dh.tenant_id = #{tenantId}
+      </if>
       <if test="organId != null">
         AND dh.organ_id = #{organId}
       </if>
@@ -57,32 +71,35 @@
       <if test="endTime != null and endTime != ''">
         AND dh.oper_time &lt;= #{endTime}
       </if>
-      AND di.id NOT IN (
+      AND pai.id NOT IN (
         SELECT csi.depot_item_id
         FROM jsh_customer_statement_item csi
         JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
         WHERE ifnull(cs.delete_flag,'0') != '1'
           AND ifnull(csi.delete_flag,'0') != '1'
+          <if test="tenantId != null">
+            AND cs.tenant_id = #{tenantId}
+          </if>
       )
   </sql>
 
   <select id="listUnreconciledItems" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT di.id, dh.id as depotHeadId,
+    SELECT pai.id, dh.id as depotHeadId,
            dh.number as billNo,
-           dh.oper_time as billTime,
+           pa.delivery_date as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
            m.model,
            m.standard,
            m.weight as unitWeight,
-           di.oper_number as operNumber,
-           di.weight as itemWeight,
-           di.unit_price as unitPrice,
-           di.all_price as allPrice,
+           pai.oper_number as operNumber,
+           pai.weight as itemWeight,
+           pai.unit_price as unitPrice,
+           pai.all_price as allPrice,
            s.supplier as customerName
     <include refid="unreconciledItemsBody"/>
-    ORDER BY dh.oper_time, di.id
+    ORDER BY pa.delivery_date, pai.id
     <if test="offset != null and rows != null">
       LIMIT #{offset}, #{rows}
     </if>
@@ -108,8 +125,14 @@
     FROM jsh_customer_statement cs
     LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
     WHERE ifnull(cs.delete_flag,'0') != '1'
+      <if test="tenantId != null">
+        AND cs.tenant_id = #{tenantId}
+      </if>
       <if test="organId != null">
         AND cs.organ_id = #{organId}
+      </if>
+      <if test="statementNo != null and statementNo != ''">
+        AND cs.statement_no LIKE concat('%', #{statementNo}, '%')
       </if>
       <if test="status != null and status != ''">
         AND cs.status = #{status}
@@ -129,12 +152,18 @@
     </if>
   </select>
 
-  <select id="countStatements" resultType="java.lang.Integer">
+    <select id="countStatements" resultType="java.lang.Integer">
     SELECT count(1)
     FROM jsh_customer_statement cs
     WHERE ifnull(cs.delete_flag,'0') != '1'
+      <if test="tenantId != null">
+        AND cs.tenant_id = #{tenantId}
+      </if>
       <if test="organId != null">
         AND cs.organ_id = #{organId}
+      </if>
+      <if test="statementNo != null and statementNo != ''">
+        AND cs.statement_no LIKE concat('%', #{statementNo}, '%')
       </if>
       <if test="status != null and status != ''">
         AND cs.status = #{status}
@@ -152,30 +181,33 @@
 
   <!-- ═══ 对账单明细 ═══ -->
 
+  <!-- depot_item_id 现在存储 price_approval_item.id -->
   <select id="getStatementDetail" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT di.id, dh.id as depotHeadId,
+    SELECT pai.id, dh.id as depotHeadId,
            dh.number as billNo,
-           dh.oper_time as billTime,
+           pa.delivery_date as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
            m.model,
            m.standard,
            m.weight as unitWeight,
-           di.oper_number as operNumber,
-           di.weight as itemWeight,
-           di.unit_price as unitPrice,
-           di.all_price as allPrice,
+           pai.oper_number as operNumber,
+           pai.weight as itemWeight,
+           pai.unit_price as unitPrice,
+           pai.all_price as allPrice,
            s.supplier as customerName
     FROM jsh_customer_statement_item csi
-    JOIN jsh_depot_item di ON di.id = csi.depot_item_id AND ifnull(di.delete_flag,'0') != '1'
-    JOIN jsh_depot_head dh ON dh.id = di.header_id      AND ifnull(dh.delete_flag,'0') != '1'
-    JOIN jsh_material m    ON m.id  = di.material_id
+    JOIN jsh_price_approval_item pai ON pai.id = csi.depot_item_id AND ifnull(pai.delete_flag,'0') != '1'
+    JOIN jsh_price_approval pa      ON pa.id  = pai.approval_id   AND ifnull(pa.delete_flag,'0') != '1'
+    JOIN jsh_depot_item di          ON di.id  = pai.depot_item_id AND ifnull(di.delete_flag,'0') != '1'
+    JOIN jsh_depot_head dh          ON dh.id  = di.header_id      AND ifnull(dh.delete_flag,'0') != '1'
+    JOIN jsh_material m             ON m.id   = pai.material_id
     LEFT JOIN jsh_material_category mc ON mc.id = m.category_id
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE csi.statement_id = #{statementId}
       AND ifnull(csi.delete_flag,'0') != '1'
-    ORDER BY dh.oper_time, di.id
+    ORDER BY pa.delivery_date, pai.id
   </select>
 
   <!-- ═══ 关联 item 表 ═══ -->
@@ -192,6 +224,37 @@
     UPDATE jsh_customer_statement_item
     SET delete_flag = '1'
     WHERE statement_id = #{statementId}
+  </update>
+
+  <!-- 查询未收完的对账单（已审核 且 已收金额 < 总金额） -->
+  <select id="listUnpaidStatements" resultType="java.util.Map">
+    SELECT cs.id, cs.organ_id as organId, cs.statement_no as statementNo,
+           s.supplier as customerName, s.project_name as projectName,
+           DATE_FORMAT(cs.begin_time,'%Y-%m-%d') as beginTime,
+           DATE_FORMAT(cs.end_time,'%Y-%m-%d') as endTime,
+           cs.total_weight as totalWeight,
+           cs.total_amount as totalAmount,
+           ifnull(cs.received_amount,0) as receivedAmount,
+           (cs.total_amount - ifnull(cs.received_amount,0)) as unpaidAmount
+    FROM jsh_customer_statement cs
+    LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
+    WHERE cs.status = '1'
+      AND ifnull(cs.delete_flag,'0') != '1'
+      AND (cs.total_amount - ifnull(cs.received_amount,0)) > 0
+    <if test="organId != null">
+      AND cs.organ_id = #{organId}
+    </if>
+    <if test="tenantId != null">
+      AND cs.tenant_id = #{tenantId}
+    </if>
+    ORDER BY cs.create_time DESC
+  </select>
+
+  <!-- 累加已收金额 -->
+  <update id="addReceivedAmount">
+    UPDATE jsh_customer_statement
+    SET received_amount = ifnull(received_amount,0) + #{amount}
+    WHERE id = #{id}
   </update>
 
 </mapper>

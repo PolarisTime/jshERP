@@ -30,136 +30,75 @@
                   />
                 </a-form-item>
               </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="关联订单" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-input placeholder="请输入关联订单" v-model="queryParam.linkNumber"></a-input>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="请选择客户" showSearch allow-clear optionFilterProp="children"
+                    v-model="selectedCustomerName" @change="onCustomerNameChange" @search="handleSearchCustomer">
+                    <div slot="dropdownRender" slot-scope="menu">
+                      <v-nodes :vnodes="menu" />
+                      <a-divider style="margin: 4px 0;" />
+                      <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer(0)"><a-icon type="reload" /> 刷新列表</div>
+                    </div>
+                    <a-select-option v-for="(name,index) in uniqueCustomerNames" :key="index" :value="name">
+                      {{ name }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="项目名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="全部" showSearch allow-clear optionFilterProp="children"
+                    v-model="queryParam.organId" :disabled="projectListForOrgan.length === 0" @change="onProjectChange">
+                    <a-select-option v-for="(item,index) in projectListForOrgan" :key="index" :value="item.id">
+                      {{ item.projectName || item.supplier }}
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
+                    <a-select-option value="0">未审核</a-select-option>
+                    <a-select-option value="9" v-if="!checkFlag">审核中</a-select-option>
+                    <a-select-option value="1">已审核</a-select-option>
+                    <a-select-option value="3">部分出库</a-select-option>
+                    <a-select-option value="2">完成出库</a-select-option>
+                  </a-select>
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item label="单据备注" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-input placeholder="请输入单据备注" v-model="queryParam.remark"></a-input>
+                </a-form-item>
+              </a-col>
               <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
                 <a-col :md="6" :sm="24">
                   <a-button type="primary" @click="searchQuery">查询</a-button>
                   <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
-                  <a @click="handleToggleSearch" style="margin-left: 8px">
-                    {{ toggleSearchStatus ? '收起' : '展开' }}
-                    <a-icon :type="toggleSearchStatus ? 'up' : 'down'"/>
-                  </a>
                 </a-col>
               </span>
             </a-row>
-            <template v-if="toggleSearchStatus">
-              <a-row :gutter="24">
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择客户" mode="multiple" showSearch allow-clear optionFilterProp="children" v-model="queryParam.organIdArray" @search="handleSearchCustomer" :maxTagCount="1" :maxTagTextLength="6">
-                      <div slot="dropdownRender" slot-scope="menu">
-                        <v-nodes :vnodes="menu" />
-                        <a-divider style="margin: 4px 0;" />
-                        <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer(0)"><a-icon type="reload" /> 刷新列表</div>
-                      </div>
-                      <a-select-option v-for="(item,index) in cusList" :key="index" :value="item.id">
-                        {{ item.supplier }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="仓库名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择仓库" showSearch allow-clear optionFilterProp="children" v-model="queryParam.depotId">
-                      <a-select-option v-for="(depot,index) in depotList" :key="index" :value="depot.id">
-                        {{ depot.depotName }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="操作员" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择操作员" showSearch allow-clear optionFilterProp="children" v-model="queryParam.creator">
-                      <a-select-option v-for="(item,index) in userList" :key="index" :value="item.id">
-                        {{ item.userName }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="关联订单" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入关联订单" v-model="queryParam.linkNumber"></a-input>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="结算账户" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择结算账户" showSearch allow-clear optionFilterProp="children" v-model="queryParam.accountId">
-                      <a-select-option v-for="(item,index) in accountList" :key="index" :value="item.id">
-                        {{ item.name }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="有无欠款" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择有无欠款" allow-clear v-model="queryParam.hasDebt">
-                      <a-select-option value="1">有欠款</a-select-option>
-                      <a-select-option value="0">无欠款</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="单据状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择单据状态" allow-clear v-model="queryParam.status">
-                      <a-select-option value="0">未审核</a-select-option>
-                      <a-select-option value="9" v-if="!checkFlag">审核中</a-select-option>
-                      <a-select-option value="1">已审核</a-select-option>
-                      <a-select-option value="3">部分出库</a-select-option>
-                      <a-select-option value="2">完成出库</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="核准状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="全部" allow-clear v-model="queryParam.priceApproved">
-                      <a-select-option value="0">未核准</a-select-option>
-                      <a-select-option value="1">已核准</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="销售人员" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select placeholder="请选择销售人员" showSearch allow-clear optionFilterProp="children" v-model="queryParam.salesMan">
-                      <a-select-option v-for="(item,index) in salesManList" :key="index" :value="item.value">
-                        {{ item.text }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24">
-                  <a-form-item label="单据备注" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入单据备注" v-model="queryParam.remark"></a-input>
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </template>
           </a-form>
         </div>
         <!-- 操作按钮区域 -->
-        <div class="table-operator" style="margin-top: 5px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+        <div class="table-operator"  style="margin-top: 5px">
           <a-button v-if="btnEnableList.indexOf(1)>-1" @click="myHandleAdd" type="primary" icon="plus">新增</a-button>
           <a-button v-if="btnEnableList.indexOf(1)>-1" icon="delete" @click="batchDel">删除</a-button>
-          <a-button v-if="quickBtn.saleBack.indexOf(1)>-1 && btnEnableList.indexOf(1)>-1" icon="share-alt" @click="transferBill('转销售退货', quickBtn.saleBack)">转销售退货</a-button>
           <a-tooltip title="可将状态是部分出库的单据强制完成">
             <a-button v-if="inOutManageFlag && btnEnableList.indexOf(1)>-1" icon="issues-close" @click="batchForceClose">强制结单</a-button>
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
-          <a-button icon="audit" @click="batchSetPriceApproved('1')" style="color:#52c41a">价格核准</a-button>
-          <a-button icon="undo" @click="batchSetPriceApproved('0')">取消核准</a-button>
+          <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="audit" @click="batchWeightApprove" style="color:#52c41a">重量核准</a-button>
+          <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="undo" @click="batchWeightUnapprove">取消重量核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
-          <!-- CLodop -->
-          <span style="margin-left:8px;display:flex;align-items:center;gap:6px;">
-            <a-tag v-if="clodopReady" color="green">CLodop已连接</a-tag>
-            <a-tag v-else color="orange" style="cursor:pointer;" @click="initClodop">CLodop未连接（点击重试）</a-tag>
-            <a-select v-if="clodopReady && printerList.length" v-model="selectedPrinter"
-              style="width:180px;" size="small" placeholder="默认打印机">
-              <a-select-option value="">默认打印机</a-select-option>
-              <a-select-option v-for="p in printerList" :key="p" :value="p">{{ p }}</a-select-option>
-            </a-select>
-            <a-button icon="eye" :disabled="!clodopReady || selectedRowKeys.length !== 1" @click="doPrint(true)">预览</a-button>
-            <a-button type="primary" icon="printer" :disabled="!clodopReady || selectedRowKeys.length === 0" @click="doPrint(false)">打印</a-button>
-          </span>
+          <a-button icon="printer" @click="handleClodopPrint">CLodop打印</a-button>
           <column-setting-popover
             :defColumns="defColumns"
             :settingDataIndex.sync="settingDataIndex"
@@ -187,6 +126,7 @@
             :loading="loading"
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange}"
             :expandedRowKeys="expandedRowKeys"
+            :rowClassName="billRowClassName"
             @expand="onExpand"
             @change="handleTableChange">
             <span slot="action" slot-scope="text, record">
@@ -199,6 +139,12 @@
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => myHandleDelete(record)">
                 <a>删除</a>
               </a-popconfirm>
+              <a-divider type="vertical" />
+              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+                <a-icon type="paper-clip" /> 附件
+                <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
+                <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
+              </a>
             </span>
             <template slot="customRenderDebt" slot-scope="value, record">
               <a-tooltip title="有收款单">
@@ -219,8 +165,8 @@
               <a-tag v-if="record.status == '2'" color="cyan">完成出库</a-tag>
               <a-tag v-if="record.status == '3'" color="blue">部分出库</a-tag>
               <a-tag v-if="record.status == '9'" color="orange">审核中</a-tag>
-              <a-tag v-if="record.priceApproved == '1'" color="green">已核准</a-tag>
-              <a-tag v-else color="">未核准</a-tag>
+              <a-tag v-if="record.weightApproved == '1'" color="green">重量已核准</a-tag>
+              <a-tag v-else color="">重量未核准</a-tag>
             </template>
             <a-table
               bordered
@@ -243,42 +189,62 @@
           <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
           <a-divider type="vertical" />
           <span>单据金额：<b style="color:red">{{ summary.totalAmount }}</b></span>
+          <template v-if="summary.contractInfo">
+            <a-divider type="vertical" />
+            <template v-if="!summary.contractInfo.hasContract">
+              <span style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+              <span style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+              <span style="color:#333">未签署合同</span>
+            </template>
+            <template v-else-if="summary.contractInfo.remainAmount < 0 || summary.contractInfo.remainTonnage < 0">
+              <span v-if="summary.contractInfo.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+              <span v-else>剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;</span>
+              <span v-if="summary.contractInfo.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+              <span v-else>剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;</span>
+              <a-tag color="orange" style="vertical-align:middle">已签署合同</a-tag>
+            </template>
+            <template v-else>
+              剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;
+              剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;
+              <a-tag color="green" style="vertical-align:middle">已签署合同</a-tag>
+            </template>
+          </template>
         </div>
         <!-- 表单区域 -->
         <sale-out-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></sale-out-modal>
-        <sale-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-back-modal>
         <bill-detail ref="modalDetail" @ok="modalFormOk" @close="modalFormClose"></bill-detail>
         <bill-excel-iframe ref="billExcelIframe" @ok="modalFormOk" @close="modalFormClose"></bill-excel-iframe>
         <freight-bill-modal ref="freightDetailModal"></freight-bill-modal>
+        <attachment-modal ref="attachModal" bizPath="bill" @change="onAttachChange"></attachment-modal>
       </a-card>
     </a-col>
   </a-row>
 </template>
 <script>
   import SaleOutModal from './modules/SaleOutModal'
-  import SaleBackModal from './modules/SaleBackModal'
   import BillDetail from './dialog/BillDetail'
   import BillExcelIframe from '@/components/tools/BillExcelIframe'
   import FreightBillModal from '@/views/freight/modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { BillListMixin } from './mixins/BillListMixin'
-  import { render } from '@/utils/printTemplateEngine'
-  import { isCLodopCode, execPrintCode, printHtml } from '@/utils/clodop'
-  import { listPrintTemplate } from '@/api/api'
-  import { getAction } from '@/api/manage'
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import JDate from '@/components/jeecg/JDate'
+  import { getContractBalance } from '@/api/api'
+  import AttachmentModal from '@/components/tools/AttachmentModal'
+  import { putAction, postAction } from '@/api/manage'
+  import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
+  import moment from 'moment'
   import Vue from 'vue'
   export default {
     name: "SaleOutList",
     mixins:[JeecgListMixin,BillListMixin],
     components: {
       SaleOutModal,
-      SaleBackModal,
       BillDetail,
       BillExcelIframe,
       FreightBillModal,
+      AttachmentModal,
       ColumnSettingPopover,
       JEllipsis,
       JDate,
@@ -295,17 +261,13 @@
           materialParam: "",
           type: "出库",
           subType: "销售",
-          organIdArray: [],
-          depotId: undefined,
-          creator: undefined,
+          organId: undefined,
           linkNumber: "",
-          accountId: undefined,
-          hasDebt: undefined,
           status: undefined,
-          salesMan: undefined,
-          remark: "",
-          priceApproved: '0'
+          remark: ""
         },
+        selectedCustomerName: undefined,
+        projectListForOrgan: [],
         prefixNo: 'XSCK',
         urlPath: '/bill/sale_out',
         //出入库管理开关，适合独立仓管场景
@@ -318,8 +280,8 @@
           offset: 1
         },
         // 默认索引
-        defDataIndex:['action','organName','projectName','number','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
-          'changeAmount','debt','lastDebt','status'],
+        defDataIndex:['action','organName','projectName','number','linkNumber','materialsList','operTimeStr','userName','materialCount','totalPrice','totalTaxLastMoney',
+          'changeAmount','debt','lastDebt','freightBillNo','totalWeight','status'],
         // 默认列
         defColumns: [
           {
@@ -332,7 +294,6 @@
           { title: '项目名称', dataIndex: 'projectName',width:120, ellipsis:true},
           { title: '单据编号', dataIndex: 'number',width:160,
             customRender:function (text,record,index) {
-              text = record.linkNumber?text+"[订]":text
               text = record.hasBackFlag?text+"[退]":text
               return text
             }
@@ -381,7 +342,8 @@
         summary: {
           count: 0,
           totalWeight: '0.000',
-          totalAmount: '0.00'
+          totalAmount: '0.00',
+          contractInfo: null
         },
         url: {
           list: "/depotHead/list",
@@ -389,15 +351,18 @@
           deleteBatch: "/depotHead/deleteBatch",
           forceCloseBatch: "/depotHead/forceCloseBatch",
           batchSetStatusUrl: "/depotHead/batchSetStatus"
-        },
-        // CLodop
-        clodopReady: false,
-        printerList: [],
-        selectedPrinter: '',
-        printTemplate: null
+        }
       }
     },
     computed: {
+      uniqueCustomerNames() {
+        let seen = new Set()
+        return this.cusList.map(c => c.supplier).filter(name => {
+          if (!name || seen.has(name)) return false
+          seen.add(name)
+          return true
+        })
+      }
     },
     watch: {
       dataSource() {
@@ -417,30 +382,66 @@
       this.initQuickBtn()
       this.getDepotByCurrentUser()
     },
-    mounted() {
-      this.initClodop()
-      this.loadPrintTemplate()
+    activated() {
+      // keep-alive 组件重新激活时，刷新 endTime 到当天，避免跨日缓存导致新单据查不到
+      let today = getFormatDate()
+      if (this.queryParam.endTime && this.queryParam.endTime < today) {
+        this.queryParam.endTime = today
+        this.queryParam.createTimeRange = [
+          moment(this.queryParam.beginTime || getPrevMonthFormatDate(3)),
+          moment(today)
+        ]
+        this.loadData(1)
+      }
     },
     methods: {
-      getQueryParams() {
-        // 覆盖父级方法，将客户多选数组转为逗号分隔字符串传给后端
-        let queryParamCopy = Object.assign({}, this.queryParam)
-        if (queryParamCopy.organIdArray && queryParamCopy.organIdArray.length > 0) {
-          queryParamCopy.organId = queryParamCopy.organIdArray.join(',')
+      // 保存成功后刷新列表：确保 endTime 包含当天，且回到第1页
+      modalFormOk() {
+        this._ensureEndDateCurrent()
+        this.loadData(1)
+      },
+      modalFormClose() {
+        this._ensureEndDateCurrent()
+        this.loadData(1)
+      },
+      _ensureEndDateCurrent() {
+        let today = getFormatDate()
+        if (!this.queryParam.endTime || this.queryParam.endTime < today) {
+          this.queryParam.endTime = today
+          this.queryParam.createTimeRange = [
+            moment(this.queryParam.beginTime || getPrevMonthFormatDate(3)),
+            moment(today)
+          ]
         }
-        delete queryParamCopy.organIdArray
-        let sqp = {}
-        if (this.superQueryParams) {
-          sqp['superQueryParams'] = encodeURI(this.superQueryParams)
-          sqp['superQueryMatchType'] = this.superQueryMatchType
+      },
+      searchReset() {
+        this.selectedCustomerName = undefined
+        this.projectListForOrgan = []
+        this.queryParam = {
+          type: '出库',
+          subType: '销售',
+          beginTime: getPrevMonthFormatDate(3),
+          endTime: getFormatDate(),
+          createTimeRange: [moment(getPrevMonthFormatDate(3)), moment(getFormatDate())]
         }
-        let searchObj = {}
-        searchObj.search = JSON.stringify(queryParamCopy)
-        var param = Object.assign(sqp, searchObj, this.isorter, this.filters)
-        param.field = this.getQueryField()
-        param.currentPage = this.ipagination.current
-        param.pageSize = this.ipagination.pageSize
-        return param
+        this.loadData(1)
+      },
+      onCustomerNameChange(supplierName) {
+        this.queryParam.organId = undefined
+        if (supplierName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
+          // 只有一个项目时自动选中并刷新
+          if (this.projectListForOrgan.length === 1) {
+            this.queryParam.organId = this.projectListForOrgan[0].id
+            this.searchQuery()
+          }
+        } else {
+          this.projectListForOrgan = []
+          this.searchQuery()
+        }
+      },
+      onProjectChange() {
+        this.searchQuery()
       },
       calcSummary() {
         let rows = this.dataSource || []
@@ -456,7 +457,27 @@
         this.summary = {
           count: rows.length,
           totalWeight: totalWeight.toFixed(3),
-          totalAmount: Math.abs(totalAmount).toFixed(2)
+          totalAmount: Math.abs(totalAmount).toFixed(2),
+          contractInfo: null
+        }
+        // 选中单据时查询合同余额（取第一条选中单据的客户）
+        if (rows.length > 0 && rows[0].organId) {
+          getContractBalance({ organId: rows[0].organId }).then(res => {
+            if (res && res.code === 200 && res.data) {
+              let d = res.data
+              let totalAmt = Number(d.totalAmount || 0)
+              let totalTon = Number(d.totalTonnage || 0)
+              this.summary.contractInfo = {
+                hasContract: totalAmt > 0 || totalTon > 0,
+                remainAmount: Number(d.remainAmount || 0).toFixed(2),
+                remainTonnage: Number(d.remainTonnage || 0).toFixed(3)
+              }
+            } else {
+              this.summary.contractInfo = { hasContract: false }
+            }
+          }).catch(() => {
+            this.summary.contractInfo = { hasContract: false }
+          })
         }
       },
       handleViewFreight(billNo) {
@@ -464,58 +485,76 @@
         let no = billNo.split(',')[0].trim()
         this.$refs.freightDetailModal.detailByBillNo(no)
       },
-
-      // ─── CLodop ───────────────────────────────────────────────
-      async initClodop() {
-        try {
-          const { loadCLodop, isAvailable, getPrinterList, resetCLodop } = await import('@/utils/clodop')
-          resetCLodop()
-          await loadCLodop()
-          this.clodopReady = isAvailable()
-          if (this.clodopReady) this.printerList = getPrinterList()
-        } catch (e) {
-          this.clodopReady = false
-        }
+      billRowClassName(record) {
+        // 未审核的出库单高亮
+        let s = String(record.status || '0')
+        return (s !== '1' && s !== '2' && s !== '3') ? 'bill-row-incomplete' : ''
       },
-      loadPrintTemplate() {
-        listPrintTemplate({ billType: 'saleOut' }).then(res => {
-          if (res && res.code === 200 && Array.isArray(res.data)) {
-            const def = res.data.find(t => t.isDefault === '1') || res.data[0]
-            this.printTemplate = def || null
+      onAttachChange({ id, attachments }) {
+        putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
+          if (res && res.code === 200) this.$message.success('附件已保存')
+        })
+      },
+      batchWeightApprove() {
+        if (this.selectedRowKeys.length <= 0) {
+          this.$message.warning('请选择一条或多条记录！')
+          return
+        }
+        let ids = this.selectedRowKeys.join(',')
+        let that = this
+        this.$confirm({
+          title: '确认重量核准',
+          content: '确认选中的 ' + this.selectedRowKeys.length + ' 条单据过磅重量已核实？',
+          onOk() {
+            postAction('/depotHead/batchSetWeightApproved', {
+              weightApproved: '1',
+              ids: ids
+            }).then(res => {
+              if (res && res.code === 200) {
+                that.$message.success('重量核准成功')
+                that.loadData()
+              } else {
+                that.$message.warning(res.data && res.data.message || '核准失败')
+              }
+            })
           }
         })
       },
-
-      // ─── 预览（单条）/ 打印（全部选中批量）────────────────────
-      async doPrint(preview) {
-        if (!this.clodopReady) { this.$message.warning('CLodop 未连接'); return }
-        if (!this.printTemplate) { this.$message.warning('未找到打印模板'); return }
-        if (this.selectedRowKeys.length === 0) { this.$message.warning('请先勾选单据'); return }
-        const ids = preview ? [this.selectedRowKeys[0]] : this.selectedRowKeys
-        const rowMap = {}
-        this.selectedRows.forEach(r => { rowMap[r.id] = r })
-        let successCount = 0, failCount = 0
-        for (const id of ids) {
-          try {
-            const res = await getAction('/depotItem/getDetailList', { headerId: id })
-            const items = (res && res.code === 200) ? (res.data.rows || []) : []
-            const header = rowMap[id] || {}
-            const rendered = render(this.printTemplate.templateHtml, header, items, {})
-            const opts = { preview, printer: this.selectedPrinter || undefined, title: header.number || '销售出库' }
-            const ok = isCLodopCode(this.printTemplate.templateHtml)
-              ? execPrintCode(rendered, opts)
-              : printHtml(rendered, opts)
-            if (ok) successCount++; else failCount++
-          } catch (e) { failCount++ }
+      batchWeightUnapprove() {
+        if (this.selectedRowKeys.length <= 0) {
+          this.$message.warning('请选择一条或多条记录！')
+          return
         }
-        if (!preview) {
-          if (failCount === 0) this.$message.success(`已发送 ${successCount} 张到打印机`)
-          else this.$message.warning(`打印完成：成功 ${successCount} 张，失败 ${failCount} 张`)
+        let ids = this.selectedRowKeys.join(',')
+        let that = this
+        postAction('/depotHead/batchSetWeightApproved', {
+          weightApproved: '0',
+          ids: ids
+        }).then(res => {
+          if (res && res.code === 200) {
+            that.$message.success('已取消重量核准')
+            that.loadData()
+          } else {
+            that.$message.warning(res.data && res.data.message || '操作失败')
+          }
+        })
+      },
+      handleClodopPrint() {
+        if (this.selectedRowKeys.length !== 1) {
+          this.$message.warning('请选择一条单据进行打印')
+          return
         }
+        let record = this.selectionRows[0]
+        this.$refs.modalDetail.show(record, '销售出库', this.prefixNo, true)
       }
     }
   }
 </script>
 <style scoped>
   @import '~@assets/less/common.less'
+</style>
+<style>
+  .bill-row-incomplete td {
+    background-color: var(--erp-primary-light, #e6f7ff) !important;
+  }
 </style>
