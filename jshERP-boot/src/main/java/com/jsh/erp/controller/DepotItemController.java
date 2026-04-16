@@ -222,6 +222,7 @@ public class DepotItemController {
                 for (DepotItemVo4WithInfoEx diEx : dataList) {
                     JSONObject item = new JSONObject();
                     item.put("id", diEx.getId());
+                    item.put("materialId", diEx.getMaterialId());
                     item.put("materialExtendId", diEx.getMaterialExtendId() == null ? "" : diEx.getMaterialExtendId());
                     item.put("barCode", diEx.getBarCode());
                     item.put("name", diEx.getMName());
@@ -249,6 +250,8 @@ public class DepotItemController {
                     }
                     item.put("stock", stock);
                     item.put("unit", diEx.getMaterialUnit());
+                    item.put("materialUnit", diEx.getMaterialUnit());
+                    item.put("unitWeight", diEx.getUnitWeight());
                     item.put("snList", diEx.getSnList());
                     item.put("batchNumber", diEx.getBatchNumber());
                     item.put("expirationDate", Tools.parseDateToStr(diEx.getExpirationDate()));

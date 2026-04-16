@@ -12,6 +12,7 @@
     <template slot="footer">
       <a-button @click="handleCancel">取消(ESC)</a-button>
       <template v-if="!isReadOnly">
+        <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOkAndCheck">保存并审核</a-button>
         <a-button type="primary" :loading="confirmLoading" @click.prevent="handleOk">保存</a-button>
       </template>
       <template v-else>
@@ -174,6 +175,7 @@
         confirmLoading: false,
         isReadOnly: false,
         isCanBackCheck: true,
+        submitStatus: '0',
         model: {},
         carrierList: [],
         totalWeight: '0.000',
@@ -388,6 +390,7 @@
         });
       },
       add() {
+        this.submitStatus = '0'
         this.edit({});
         // 自动生成运费单编号，格式: yyyyW0001
         getAction('/freightHead/buildBillNo').then((res) => {
@@ -402,6 +405,7 @@
         this.isReadOnly = false;
         this.form.resetFields();
         this.model = Object.assign({}, record);
+        this.submitStatus = this.model.status != null ? String(this.model.status) : '0';
         this.selectedSaleOutList = [];
         this.totalWeight = '0.00';
         this.totalFreight = '0.00';
@@ -544,6 +548,14 @@
         this.visible = false;
       },
       handleOk() {
+        this.submitStatus = this.model.status != null ? String(this.model.status) : '0';
+        this.submitFreightBill()
+      },
+      handleOkAndCheck() {
+        this.submitStatus = '1';
+        this.submitFreightBill()
+      },
+      submitFreightBill() {
         const that = this;
         this.form.validateFields((err, values) => {
           if (!err) {
@@ -561,6 +573,7 @@
             delete billMain.totalWeight;
             delete billMain.totalFreight;
             billMain.remark = values.remark;
+            billMain.status = that.submitStatus;
             // 从明细行提取唯一出库单，按 depotHeadId 汇总重量
             let weightMap = {}
             that.selectedSaleOutList.forEach(item => {

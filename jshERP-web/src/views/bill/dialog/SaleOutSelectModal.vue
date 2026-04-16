@@ -74,7 +74,7 @@
   </a-modal>
 </template>
 <script>
-import { listAvailableSaleOutForApproval, createPriceApprovalFromSaleOut, findBySelectCus,
+import { listAvailableSaleOutForApproval, findBySelectCus,
   getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
 import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 
@@ -243,17 +243,13 @@ export default {
         this.$message.warning('请选择一条出库单')
         return
       }
-      this.confirmLoading = true
-      createPriceApprovalFromSaleOut({ depotHeadId: this.selectedRowKeys[0] }).then(res => {
-        this.confirmLoading = false
-        if (res && res.code === 200) {
-          this.$message.success('导入成功')
-          this.visible = false
-          this.$emit('ok', res.data) // res.data = approvalId
-        } else {
-          this.$message.error(res.data || '导入失败')
-        }
-      }).catch(() => { this.confirmLoading = false })
+      let record = this.dataSource.find(item => item.id === this.selectedRowKeys[0])
+      if (!record) {
+        this.$message.error('未找到选中的出库单')
+        return
+      }
+      this.visible = false
+      this.$emit('ok', { ...record })
     },
     // ─── 列设置（云同步） ──────────────────────────────────────
     initColumnsSetting() {
@@ -283,7 +279,8 @@ export default {
         on: {
           dblclick: () => {
             this.selectedRowKeys = [record.id]
-            this.handleOk()
+            this.visible = false
+            this.$emit('ok', { ...record })
           }
         }
       }

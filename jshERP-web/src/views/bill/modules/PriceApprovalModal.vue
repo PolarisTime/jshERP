@@ -9,9 +9,9 @@
     style="top:20px;height:95%;">
     <template slot="footer">
       <a-button @click="handleCancel">{{ readOnly ? '关闭' : '取消' }}</a-button>
-      <a-button v-if="!readOnly" type="primary" :loading="confirmLoading" :disabled="!approvalId" @click="handleSave">保存</a-button>
+      <a-button v-if="!readOnly" type="primary" :loading="confirmLoading" :disabled="!canSave" @click="handleSave">保存</a-button>
       <a-button v-if="!readOnly" type="primary" style="background:#52c41a;border-color:#52c41a"
-                :loading="confirmLoading" :disabled="!approvalId" @click="handleSaveAndConfirm">保存并核准</a-button>
+                :loading="confirmLoading" :disabled="!canSave" @click="handleSaveAndConfirm">保存并核准</a-button>
     </template>
     <a-spin :spinning="confirmLoading">
       <!-- 第一行：单据编号 | 出库单号 | 送到日期 -->
@@ -60,13 +60,13 @@
 
       <!-- 操作按钮行（明细表格上方，风格同出库单） -->
       <div style="margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;">
-        <a-row v-if="!readOnly && !approvalId" :gutter="24" style="float:left;padding-bottom:5px;">
+        <a-row v-if="!readOnly && !sourceDepotHeadId" :gutter="24" style="float:left;padding-bottom:5px;">
           <a-button type="primary" icon="import" @click="handleImportSaleOut">导入出库单</a-button>
         </a-row>
-        <a-row v-if="!readOnly && approvalId && selectedRowKeys.length" :gutter="24" style="float:left;padding-bottom:5px;">
+        <a-row v-if="!readOnly && canEditItems && selectedRowKeys.length" :gutter="24" style="float:left;padding-bottom:5px;">
           <a-button icon="scissor" @click="handleSplitSelected">拆分</a-button>
         </a-row>
-        <a-row v-if="!readOnly && approvalId && selectedRowKeys.length && isSelectedSplitRow" :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
+        <a-row v-if="!readOnly && canEditItems && selectedRowKeys.length && isSelectedSplitRow" :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
           <a-popconfirm title="删除选中的拆分行？" @confirm="handleRemoveSelectedSplitRow">
             <a-button icon="delete" type="danger">删除拆分行</a-button>
           </a-popconfirm>
@@ -89,7 +89,7 @@
         :dataSource="processedItems"
         :pagination="false"
         :scroll="{ y: tableScrollY }"
-        :rowSelection="!readOnly && approvalId ? { selectedRowKeys: selectedRowKeys, onChange: onRowSelectChange, type: 'radio' } : null"
+        :rowSelection="!readOnly && canEditItems ? { selectedRowKeys: selectedRowKeys, onChange: onRowSelectChange, type: 'radio' } : null"
         @change="handleTableChange">
         <!-- 可编辑的单价列 -->
         <template slot="unitPriceSlot" slot-scope="text, record">
@@ -122,6 +122,7 @@ import RowSplitModal from '../dialog/RowSplitModal'
 import SaleOutSelectModal from '../dialog/SaleOutSelectModal'
 import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 import { getPriceApprovalDetail, savePriceApprovalItems, confirmPriceApproval,
+  createPriceApprovalFromSaleOut, getDepotItemDetailList,
   getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
 
 let rowIdSeq = 1
@@ -141,6 +142,7 @@ export default {
       readOnly: false,
       isNew: false,
       approvalId: null,
+      sourceDepotHeadId: null,
       header: {},
       billNo: '',
       customerName: '',
@@ -270,11 +272,18 @@ export default {
       let record = this.items.find(i => i.rowId === this.selectedRowKeys[0])
       if (!record) return false
       return this.items.filter(i => i.depotItemId === record.depotItemId).length > 1
+    },
+    canSave() {
+      return !!this.sourceDepotHeadId && this.items.length > 0
+    },
+    canEditItems() {
+      return !!this.sourceDepotHeadId && this.items.length > 0
     }
   },
   methods: {
     showNew() {
       this.approvalId = null
+      this.sourceDepotHeadId = null
       this.isNew = true
       this.readOnly = false
       this.header = {}
@@ -302,6 +311,7 @@ export default {
         if (res && res.code === 200) {
           let data = res.data
           this.header = data.header || {}
+          this.sourceDepotHeadId = this.header.depotHeadId || null
           this.deliveryDate = this.header.deliveryDate ? moment(this.header.deliveryDate) : null
           this.deliveryDateStr = this.header.deliveryDate ? moment(this.header.deliveryDate).format('YYYY-MM-DD') : ''
           this.remark = this.header.remark || ''
@@ -315,6 +325,65 @@ export default {
             return { ...item, rowId: 'r' + (rowIdSeq++) }
           })
         }
+      })
+    },
+    loadSaleOutDetail(source) {
+      if (!source || !source.id) return
+      this.sourceDepotHeadId = source.id
+      this.billNo = source.billNo || ''
+      this.customerName = source.customerName || ''
+      this.projectName = source.projectName || ''
+      this.deliveryDate = source.operTimeStr ? moment(source.operTimeStr, 'YYYY-MM-DD') : null
+      this.deliveryDateStr = this.deliveryDate ? this.deliveryDate.format('YYYY-MM-DD') : ''
+      this.remark = source.remark || ''
+      this.confirmLoading = true
+      getDepotItemDetailList({ headerId: source.id, linkType: 'basic' }).then(res => {
+        if (res && res.code === 200) {
+          let rows = (res.data && res.data.rows) || []
+          this.items = rows
+            .filter(item => item && item.id)
+            .map(item => ({
+              rowId: 'r' + (rowIdSeq++),
+              id: null,
+              approvalId: null,
+              depotItemId: item.id,
+              materialId: item.materialId,
+              materialExtendId: item.materialExtendId,
+              barCode: item.barCode,
+              name: item.name,
+              standard: item.standard,
+              model: item.model,
+              color: item.color,
+              brand: item.brand,
+              categoryName: item.categoryName,
+              operNumber: item.operNumber,
+              unitWeight: item.unitWeight,
+              weight: item.weight,
+              originalWeight: item.weight,
+              unitPrice: item.unitPrice,
+              allPrice: item.allPrice,
+              taxRate: item.taxRate,
+              taxMoney: item.taxMoney,
+              taxLastMoney: item.taxLastMoney,
+              remark: item.remark,
+              billTimeStr: source.operTimeStr,
+              salesMan: source.salesMan,
+              customerName: source.customerName,
+              projectName: source.projectName,
+              mfrs: item.mfrs,
+              batchNumber: item.batchNumber,
+              sku: item.sku,
+              materialUnit: item.materialUnit || item.unit,
+              depotName: item.depotName
+            }))
+          this.selectedRowKeys = []
+        } else {
+          this.$message.error(res.data || '加载出库单明细失败')
+        }
+      }).catch(() => {
+        this.$message.error('加载出库单明细失败')
+      }).finally(() => {
+        this.confirmLoading = false
       })
     },
     // ─── 单元格编辑（仅单价，金额自动联动） ─────────────
@@ -464,11 +533,30 @@ export default {
         })))
       }
     },
+    ensureApprovalCreated() {
+      if (this.approvalId) {
+        return Promise.resolve(this.approvalId)
+      }
+      if (!this.sourceDepotHeadId) {
+        return Promise.reject(new Error('请先导入销售出库单'))
+      }
+      return createPriceApprovalFromSaleOut({ depotHeadId: this.sourceDepotHeadId }).then(res => {
+        if (res && res.code === 200) {
+          this.approvalId = res.data
+          this.isNew = false
+          return res.data
+        }
+        throw new Error((res && res.data) || '创建核准单失败')
+      })
+    },
     handleSave() {
       let params = this.buildSaveParams()
       if (!params) return
       this.confirmLoading = true
-      savePriceApprovalItems(params).then(res => {
+      this.ensureApprovalCreated().then(approvalId => {
+        params.id = approvalId
+        return savePriceApprovalItems(params)
+      }).then(res => {
         this.confirmLoading = false
         if (res && res.code === 200) {
           this.$message.success('保存成功')
@@ -477,7 +565,12 @@ export default {
         } else {
           this.$message.error(res.data || '保存失败')
         }
-      }).catch(() => { this.confirmLoading = false })
+      }).catch(err => {
+        this.confirmLoading = false
+        if (err && err.message) {
+          this.$message.error(err.message)
+        }
+      })
     },
     handleSaveAndConfirm() {
       let params = this.buildSaveParams()
@@ -488,7 +581,10 @@ export default {
         return
       }
       this.confirmLoading = true
-      savePriceApprovalItems(params).then(res => {
+      this.ensureApprovalCreated().then(approvalId => {
+        params.id = approvalId
+        return savePriceApprovalItems(params)
+      }).then(res => {
         if (res && res.code === 200) {
           confirmPriceApproval({ id: this.approvalId }).then(res2 => {
             this.confirmLoading = false
@@ -504,17 +600,21 @@ export default {
           this.confirmLoading = false
           this.$message.error(res.data || '保存失败')
         }
-      }).catch(() => { this.confirmLoading = false })
+      }).catch(err => {
+        this.confirmLoading = false
+        if (err && err.message) {
+          this.$message.error(err.message)
+        }
+      })
     },
     // ─── 导入出库单 ────────────────────────────────────────
     handleImportSaleOut() {
       this.$refs.selectModal.show()
     },
-    onSaleOutImported(approvalId) {
-      this.approvalId = approvalId
-      this.isNew = false
-      this.loadDetail()
-      this.$emit('ok')
+    onSaleOutImported(saleOut) {
+      this.approvalId = null
+      this.header = {}
+      this.loadSaleOutDetail(saleOut)
     },
     handleCancel() {
       this.visible = false

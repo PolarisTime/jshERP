@@ -123,6 +123,19 @@
         if (dataSourceOverride) this._dataSourceOverride = dataSourceOverride
         this.visible = true
         this.designing = false
+        // 自动从物流单获取运输车号
+        let effectiveModel = this._modelOverride || this.model || {}
+        if (effectiveModel.freightCarNo) {
+          this.userInputFields.carNo = effectiveModel.freightCarNo
+        } else {
+          this.userInputFields.carNo = ''
+        }
+        // 送货日期默认取价格核准送到日期（YYYYMMDD 格式）
+        if (effectiveModel.priceApprovalDeliveryDate) {
+          this.userInputFields.sendDate = effectiveModel.priceApprovalDeliveryDate
+        } else {
+          this.userInputFields.sendDate = null
+        }
         await this.loadTemplateList()
         this.restorePrintPreferences()
         this.loadFieldMeta()

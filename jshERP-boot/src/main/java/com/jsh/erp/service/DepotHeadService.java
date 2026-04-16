@@ -90,6 +90,10 @@ public class DepotHeadService {
     private FreightHeadService freightHeadService;
     @Resource
     private LogService logService;
+    @Resource
+    private com.jsh.erp.datasource.mappers.PriceApprovalMapper priceApprovalMapper;
+    @Resource
+    private PriceApprovalService priceApprovalService;
 
     @Value(value="${file.exportTmp}")
     private String fileExportTmp;
@@ -154,6 +158,7 @@ public class DepotHeadService {
                 Map<Long,String> materialsListMap = findMaterialsListMapByHeaderIdList(idList);
                 Map<Long,BigDecimal> materialCountListMap = getMaterialCountListMapByHeaderIdList(idList);
                 Map<Long,String> freightBillNoMap = getFreightBillNoMapByDepotHeadIdList(idList);
+                Map<Long,String> freightCarNoMap = getFreightCarNoMapByDepotHeadIdList(idList);
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 //被销售出库引用的单号（仅采购入库场景）
                 Map<String,String> referencedByMap = null;
@@ -236,6 +241,10 @@ public class DepotHeadService {
                     //关联物流单号
                     if(freightBillNoMap!=null) {
                         dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
+                    }
+                    //关联物流单的运输车号
+                    if(freightCarNoMap!=null) {
+                        dh.setFreightCarNo(freightCarNoMap.get(dh.getId()));
                     }
                     //总重量(吨)
                     if(totalWeightMap!=null) {
@@ -863,6 +872,25 @@ public class DepotHeadService {
                 if(!saleOutIds.isEmpty()) {
                     freightHeadService.recalcByDepotHeadIds(saleOutIds);
                 }
+                //审核销售出库单时，自动核准非过磅类别（全部明细均无 weightEditable）的单据
+                for(Long saleOutId: saleOutIds) {
+                    List<DepotItemVo4WithInfoEx> detailList = depotItemService.getDetailList(saleOutId);
+                    boolean hasWeightEditable = false;
+                    if(detailList != null) {
+                        for(DepotItemVo4WithInfoEx item: detailList) {
+                            if("1".equals(item.getWeightEditable())) {
+                                hasWeightEditable = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(!hasWeightEditable) {
+                        DepotHead waUpdate = new DepotHead();
+                        waUpdate.setId(saleOutId);
+                        waUpdate.setWeightApproved("1");
+                        depotHeadMapper.updateByPrimaryKeySelective(waUpdate);
+                    }
+                }
             }
             //记录日志
             if(!noList.isEmpty() && ("0".equals(status) || "1".equals(status))) {
@@ -886,6 +914,25 @@ public class DepotHeadService {
             DepotHead update = new DepotHead();
             update.setId(id);
             update.setPriceApproved(priceApproved);
+            try {
+                depotHeadMapper.updateByPrimaryKeySelective(update);
+            } catch (Exception e) {
+                JshException.writeFail(logger, e);
+            }
+        }
+    }
+
+    /**
+     * 批量设置重量核准状态（纯标记，不影响业务流程）
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void batchSetWeightApproved(String weightApproved, String ids) throws Exception {
+        String[] idArr = ids.split(",");
+        for (String idStr : idArr) {
+            Long id = Long.parseLong(idStr.trim());
+            DepotHead update = new DepotHead();
+            update.setId(id);
+            update.setWeightApproved(weightApproved);
             try {
                 depotHeadMapper.updateByPrimaryKeySelective(update);
             } catch (Exception e) {
@@ -961,6 +1008,50 @@ public class DepotHeadService {
                 request);
     }
 
+    /**
+     * 更新已审核单据的明细重量（重量编辑模式）
+     * 仅更新明细行的 weight、remark 字段，不改主表状态
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void updateItemWeights(String beanJson, String rows, HttpServletRequest request) throws Exception {
+        DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
+        DepotHead existing = getDepotHead(depotHead.getId());
+        if (existing == null) {
+            throw new BusinessRunTimeException(0, "单据不存在");
+        }
+        //仅允许已审核+重量未核准的单据
+        if (!"1".equals(existing.getStatus()) || "1".equals(existing.getWeightApproved())) {
+            throw new BusinessRunTimeException(0, "仅重量未核准的已审核单据可以修改重量");
+        }
+        //更新明细行的重量、备注字段
+        JSONArray itemArr = JSONArray.parseArray(rows);
+        if (itemArr != null) {
+            for (int i = 0; i < itemArr.size(); i++) {
+                JSONObject item = itemArr.getJSONObject(i);
+                if (item.getLong("id") != null) {
+                    com.jsh.erp.datasource.entities.DepotItem upd = new com.jsh.erp.datasource.entities.DepotItem();
+                    upd.setId(item.getLong("id"));
+                    if (item.getBigDecimal("weight") != null) {
+                        upd.setWeight(item.getBigDecimal("weight"));
+                    }
+                    if (item.containsKey("remark")) {
+                        upd.setRemark(item.getString("remark"));
+                    }
+                    depotItemMapper.updateByPrimaryKeySelective(upd);
+                }
+            }
+        }
+        //同步刷新关联价格核准单及已核准销售出库金额
+        priceApprovalService.syncByDepotHeadAfterWeightChange(depotHead.getId());
+        //同步更新关联物流单的重量
+        List<Long> ids = new ArrayList<>();
+        ids.add(depotHead.getId());
+        freightHeadService.recalcByDepotHeadIds(ids);
+        logService.insertLog("单据",
+                BusinessConstants.LOG_OPERATION_TYPE_EDIT + "重量修改:" + existing.getNumber(),
+                request);
+    }
+
     public Map<Long,String> findMaterialsListMapByHeaderIdList(List<Long> idList)throws Exception {
         Map<Long,String> materialsListMap = new HashMap<>();
         if(idList.size()>0) {
@@ -996,6 +1087,28 @@ public class DepotHeadService {
             }
         }
         return freightBillNoMap;
+    }
+
+    /**
+     * 根据出库单ID列表批量查询关联物流单的运输车号
+     */
+    public Map<Long,String> getFreightCarNoMapByDepotHeadIdList(List<Long> idList) {
+        Map<Long,String> carNoMap = new HashMap<>();
+        if(idList != null && idList.size() > 0) {
+            try {
+                List<Map<String, Object>> list = freightItemMapperEx.selectFreightBillNoByDepotHeadIds(idList);
+                if(list != null) {
+                    for(Map<String, Object> map : list) {
+                        Long depotHeadId = Long.parseLong(map.get("depotHeadId").toString());
+                        String carNo = map.get("carNo") != null ? map.get("carNo").toString() : "";
+                        carNoMap.put(depotHeadId, carNo);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("查询物流单车号信息异常", e);
+            }
+        }
+        return carNoMap;
     }
 
     /**
@@ -1378,10 +1491,27 @@ public class DepotHeadService {
                 if(freightBillNoMap!=null && freightBillNoMap.containsKey(dh.getId())) {
                     dh.setFreightBillNo(freightBillNoMap.get(dh.getId()));
                 }
+                //物流单运输车号
+                Map<Long,String> freightCarNoMap = getFreightCarNoMapByDepotHeadIdList(idList);
+                if(freightCarNoMap!=null && freightCarNoMap.containsKey(dh.getId())) {
+                    dh.setFreightCarNo(freightCarNoMap.get(dh.getId()));
+                }
                 //总重量
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 if(totalWeightMap!=null && totalWeightMap.containsKey(dh.getId())) {
                     dh.setTotalWeight(totalWeightMap.get(dh.getId()));
+                }
+                //价格核准送到日期（用于自定义打印默认送货日期）
+                try {
+                    Long tenantId = userService.getCurrentUser() != null ? userService.getCurrentUser().getTenantId() : null;
+                    com.jsh.erp.datasource.entities.PriceApproval pa =
+                            priceApprovalMapper.selectByDepotHeadId(dh.getId(), tenantId);
+                    if (pa != null && pa.getDeliveryDate() != null) {
+                        dh.setPriceApprovalDeliveryDate(
+                                new java.text.SimpleDateFormat("yyyyMMdd").format(pa.getDeliveryDate()));
+                    }
+                } catch (Exception ex) {
+                    logger.warn("查询价格核准送到日期失败: {}", ex.getMessage());
                 }
                 resList.add(dh);
             }

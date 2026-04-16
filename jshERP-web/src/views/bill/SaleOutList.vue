@@ -95,7 +95,8 @@
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
-          <!-- 价格核准已移至独立模块（销售管理 > 价格核准） -->
+          <a-button icon="audit" @click="batchWeightApprove" style="color:#52c41a">重量核准</a-button>
+          <a-button icon="undo" @click="batchWeightUnapprove">取消重量核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
           <a-button icon="printer" @click="handleClodopPrint">CLodop打印</a-button>
@@ -165,8 +166,8 @@
               <a-tag v-if="record.status == '2'" color="cyan">完成出库</a-tag>
               <a-tag v-if="record.status == '3'" color="blue">部分出库</a-tag>
               <a-tag v-if="record.status == '9'" color="orange">审核中</a-tag>
-              <a-tag v-if="record.priceApproved == '1'" color="green">已核准</a-tag>
-              <a-tag v-else color="">未核准</a-tag>
+              <a-tag v-if="record.weightApproved == '1'" color="green">重量已核准</a-tag>
+              <a-tag v-else color="">重量未核准</a-tag>
             </template>
             <a-table
               bordered
@@ -234,7 +235,7 @@
   import JDate from '@/components/jeecg/JDate'
   import { getContractBalance } from '@/api/api'
   import AttachmentModal from '@/components/tools/AttachmentModal'
-  import { putAction } from '@/api/manage'
+  import { putAction, postAction } from '@/api/manage'
   import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
   import moment from 'moment'
   import Vue from 'vue'
@@ -496,6 +497,50 @@
       onAttachChange({ id, attachments }) {
         putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
           if (res && res.code === 200) this.$message.success('附件已保存')
+        })
+      },
+      batchWeightApprove() {
+        if (this.selectedRowKeys.length <= 0) {
+          this.$message.warning('请选择一条或多条记录！')
+          return
+        }
+        let ids = this.selectedRowKeys.join(',')
+        let that = this
+        this.$confirm({
+          title: '确认重量核准',
+          content: '确认选中的 ' + this.selectedRowKeys.length + ' 条单据过磅重量已核实？',
+          onOk() {
+            postAction('/depotHead/batchSetWeightApproved', {
+              weightApproved: '1',
+              ids: ids
+            }).then(res => {
+              if (res && res.code === 200) {
+                that.$message.success('重量核准成功')
+                that.loadData()
+              } else {
+                that.$message.warning(res.data && res.data.message || '核准失败')
+              }
+            })
+          }
+        })
+      },
+      batchWeightUnapprove() {
+        if (this.selectedRowKeys.length <= 0) {
+          this.$message.warning('请选择一条或多条记录！')
+          return
+        }
+        let ids = this.selectedRowKeys.join(',')
+        let that = this
+        postAction('/depotHead/batchSetWeightApproved', {
+          weightApproved: '0',
+          ids: ids
+        }).then(res => {
+          if (res && res.code === 200) {
+            that.$message.success('已取消重量核准')
+            that.loadData()
+          } else {
+            that.$message.warning(res.data && res.data.message || '操作失败')
+          }
         })
       },
       handleClodopPrint() {

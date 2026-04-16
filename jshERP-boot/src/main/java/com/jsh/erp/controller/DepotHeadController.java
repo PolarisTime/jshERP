@@ -189,6 +189,20 @@ public class DepotHeadController extends BaseController {
     }
 
     /**
+     * 批量设置重量核准状态
+     */
+    @PostMapping(value = "/batchSetWeightApproved")
+    @ApiOperation(value = "批量设置重量核准状态")
+    public String batchSetWeightApproved(@RequestBody JSONObject jsonObject,
+                                         HttpServletRequest request) throws Exception{
+        Map<String, Object> objectMap = new HashMap<>();
+        String weightApproved = jsonObject.getString("weightApproved");
+        String ids = jsonObject.getString("ids");
+        depotHeadService.batchSetWeightApproved(weightApproved, ids);
+        return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
+    /**
      * 入库出库明细接口
      * @param currentPage
      * @param pageSize
@@ -676,6 +690,19 @@ public class DepotHeadController extends BaseController {
         String beanJson = body.getInfo();
         String rows = body.getRows();
         depotHeadService.updateItemPrices(beanJson, rows, request);
+        return result;
+    }
+
+    /**
+     * 更新已审核单据的明细重量（重量编辑模式，仅限重量未核准单据）
+     */
+    @PutMapping(value = "/updateItemWeights")
+    @ApiOperation(value = "更新已审核单据的明细重量")
+    public Object updateItemWeights(@RequestBody DepotHeadVo4Body body, HttpServletRequest request) throws Exception{
+        JSONObject result = ExceptionConstants.standardSuccess();
+        String beanJson = body.getInfo();
+        String rows = body.getRows();
+        depotHeadService.updateItemWeights(beanJson, rows, request);
         return result;
     }
 

@@ -82,7 +82,7 @@
 
     <!-- 根据出库单ID列表批量查询关联的物流单号 -->
     <select id="selectFreightBillNoByDepotHeadIds" resultType="java.util.HashMap">
-        select fi.depot_head_id as depotHeadId, fh.bill_no as freightBillNo
+        select fi.depot_head_id as depotHeadId, fh.bill_no as freightBillNo, fh.car_no as carNo
         from jsh_freight_item fi
         left join jsh_freight_head fh on fi.header_id = fh.id and fh.delete_flag = '0'
         where fi.delete_flag = '0'

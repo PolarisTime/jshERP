@@ -55,6 +55,8 @@ public interface PriceApprovalMapper {
 
     int batchInsertItems(@Param("items") List<PriceApprovalItem> items);
 
+    int updateItemByPrimaryKeySelective(PriceApprovalItem record);
+
     int deleteItemsByApprovalId(@Param("approvalId") Long approvalId);
 
     // ─── 可导入的出库单 ──────────────────────────────────────────

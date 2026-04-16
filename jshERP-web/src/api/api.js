@@ -109,6 +109,7 @@ const findBySelectRetail = (params)=>postAction("/supplier/findBySelect_retail",
 const findBySelectOrgan = (params)=>postAction("/supplier/findBySelect_organ",params);
 //单据相关
 const findBillDetailByNumber = (params)=>getAction("/depotHead/getDetailByNumber",params);
+const getDepotItemDetailList = (params)=>getAction("/depotItem/getDetailList",params);
 const waitBillCount = (params)=>getAction("/depotHead/waitBillCount",params);
 const getNeedCount = (params)=>getAction("/depotHead/getNeedCount",params);
 const batchAddDepotHeadAndDetail = (params)=>postAction("/depotHead/batchAddDepotHeadAndDetail",params);
@@ -271,6 +272,7 @@ export {
   findBySelectRetail,
   findBySelectOrgan,
   findBillDetailByNumber,
+  getDepotItemDetailList,
   waitBillCount,
   getNeedCount,
   batchAddDepotHeadAndDetail,

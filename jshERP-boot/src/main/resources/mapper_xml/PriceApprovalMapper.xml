@@ -38,7 +38,8 @@
 
   <select id="selectByDepotHeadId" resultType="com.jsh.erp.datasource.entities.PriceApproval">
     SELECT id, approval_no as approvalNo, depot_head_id as depotHeadId,
-           organ_id as organId, status, tenant_id as tenantId
+           organ_id as organId, delivery_date as deliveryDate,
+           status, tenant_id as tenantId
     FROM jsh_price_approval
     WHERE depot_head_id=#{depotHeadId}
       AND ifnull(delete_flag,'0') != '1'
@@ -159,9 +160,22 @@
        #{item.barCode}, #{item.name}, #{item.standard}, #{item.model}, #{item.color}, #{item.brand},
        #{item.operNumber}, #{item.weight}, #{item.unitPrice}, #{item.allPrice},
        #{item.taxRate}, #{item.taxMoney}, #{item.taxLastMoney},
-       #{item.remark}, '0')
+      #{item.remark}, '0')
     </foreach>
   </insert>
+
+  <update id="updateItemByPrimaryKeySelective" parameterType="com.jsh.erp.datasource.entities.PriceApprovalItem">
+    UPDATE jsh_price_approval_item
+    <set>
+      <if test="weight != null">weight=#{weight},</if>
+      <if test="allPrice != null">all_price=#{allPrice},</if>
+      <if test="taxMoney != null">tax_money=#{taxMoney},</if>
+      <if test="taxLastMoney != null">tax_last_money=#{taxLastMoney},</if>
+      <if test="remark != null">remark=#{remark},</if>
+      <if test="deleteFlag != null">delete_flag=#{deleteFlag},</if>
+    </set>
+    WHERE id=#{id}
+  </update>
 
   <update id="deleteItemsByApprovalId">
     DELETE FROM jsh_price_approval_item

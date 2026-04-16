@@ -1576,6 +1576,7 @@
         select dh.id, dh.number, date_format(dh.oper_time, '%Y-%m-%d') as operTime,
             s.supplier as organName, dh.status,
             ifnull(dh.price_approved, '0') as priceApproved,
+            ifnull(dh.weight_approved, '0') as weightApproved,
             round(ifnull(tw.totalWeight, 0), 3) as totalWeight,
             round(ifnull(dh.discount_last_money, 0), 2) as totalAmount
         from jsh_depot_head dh

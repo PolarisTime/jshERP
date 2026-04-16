@@ -1815,3 +1815,9 @@ ALTER TABLE jsh_freight_head ADD COLUMN delivery_status VARCHAR(1) DEFAULT '0' C
 
 -- 供销售出库关联标志
 ALTER TABLE jsh_depot_head ADD COLUMN sale_link_flag VARCHAR(1) DEFAULT '0' COMMENT '供销售出库关联标志：0=否，1=是' AFTER linked_flag;
+
+-- 重量核准标记
+ALTER TABLE jsh_depot_head ADD COLUMN weight_approved VARCHAR(50) DEFAULT '0' COMMENT '重量核准(0未核准,1已核准)' AFTER price_approved;
+
+-- 物流单运输车号
+ALTER TABLE jsh_freight_head ADD COLUMN car_no VARCHAR(100) DEFAULT NULL COMMENT '运输车号' AFTER bill_time;

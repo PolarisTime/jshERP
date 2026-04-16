@@ -48,6 +48,9 @@ public class PriceApprovalService {
     @Resource
     private MaterialExtendService materialExtendService;
 
+    @Resource
+    private SystemConfigService systemConfigService;
+
     // ─── 从出库单创建核准记录 ────────────────────────────────────
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
@@ -239,11 +242,15 @@ public class PriceApprovalService {
             }
         }
 
-        // 计算总金额
+        // 计算总金额（不含税）和含税合计
         BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalTaxLastMoney = BigDecimal.ZERO;
         for (PriceApprovalItemVo item : items) {
             if (item.getAllPrice() != null) {
                 totalAmount = totalAmount.add(item.getAllPrice());
+            }
+            if (item.getTaxLastMoney() != null) {
+                totalTaxLastMoney = totalTaxLastMoney.add(item.getTaxLastMoney());
             }
         }
 
@@ -259,7 +266,7 @@ public class PriceApprovalService {
         DepotHead headUpd = new DepotHead();
         headUpd.setId(pa.getDepotHeadId());
         headUpd.setTotalPrice(totalAmount);
-        headUpd.setDiscountLastMoney(totalAmount);
+        headUpd.setDiscountLastMoney(totalTaxLastMoney);
         headUpd.setDiscount(BigDecimal.ZERO);
         headUpd.setDiscountMoney(BigDecimal.ZERO);
         headUpd.setPriceApproved("1");
@@ -302,6 +309,116 @@ public class PriceApprovalService {
             itemUpd.setTaxLastMoney(sumTaxLastMoney);
             itemUpd.setRemark(remarkBuilder.toString());
             depotItemMapper.updateByPrimaryKeySelective(itemUpd);
+        }
+    }
+
+    /**
+     * 销售出库修改重量后，同步刷新价格核准单明细/表头，
+     * 若该核准单已确认，则同时回写销售出库金额。
+     */
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void syncByDepotHeadAfterWeightChange(Long depotHeadId) throws Exception {
+        Long tenantId = getTenantId();
+        PriceApproval brief = priceApprovalMapper.selectByDepotHeadId(depotHeadId, tenantId);
+        if (brief == null) {
+            return;
+        }
+        PriceApproval pa = priceApprovalMapper.selectByPrimaryKey(brief.getId());
+        if (pa == null) {
+            return;
+        }
+
+        List<PriceApprovalItemVo> items = priceApprovalMapper.getApprovalItems(pa.getId());
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+
+        boolean materialPriceTaxFlag = systemConfigService.getMaterialPriceTaxFlag();
+        User user = userService.getCurrentUser();
+        Date now = new Date();
+
+        Map<Long, List<PriceApprovalItemVo>> groupByDepotItem = items.stream()
+                .collect(Collectors.groupingBy(PriceApprovalItemVo::getDepotItemId, LinkedHashMap::new, Collectors.toList()));
+
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalTaxLastMoney = BigDecimal.ZERO;
+
+        for (Map.Entry<Long, List<PriceApprovalItemVo>> entry : groupByDepotItem.entrySet()) {
+            List<PriceApprovalItemVo> group = entry.getValue();
+            BigDecimal currentGroupWeight = normalizeWeight(group.get(0).getOriginalWeight());
+            List<BigDecimal> distributedWeights = distributeGroupWeights(group, currentGroupWeight);
+
+            BigDecimal groupAllPrice = BigDecimal.ZERO;
+            BigDecimal groupTaxMoney = BigDecimal.ZERO;
+            BigDecimal groupTaxLastMoney = BigDecimal.ZERO;
+            StringBuilder remarkBuilder = new StringBuilder();
+
+            for (int i = 0; i < group.size(); i++) {
+                PriceApprovalItemVo itemVo = group.get(i);
+                BigDecimal newWeight = distributedWeights.get(i);
+                BigDecimal[] moneyValues = calcMoneyValues(newWeight, itemVo.getUnitPrice(), itemVo.getTaxRate(), materialPriceTaxFlag);
+
+                PriceApprovalItem itemUpd = new PriceApprovalItem();
+                itemUpd.setId(itemVo.getId());
+                itemUpd.setWeight(newWeight);
+                itemUpd.setAllPrice(moneyValues[0]);
+                itemUpd.setTaxMoney(moneyValues[1]);
+                itemUpd.setTaxLastMoney(moneyValues[2]);
+                priceApprovalMapper.updateItemByPrimaryKeySelective(itemUpd);
+
+                itemVo.setWeight(newWeight);
+                itemVo.setAllPrice(moneyValues[0]);
+                itemVo.setTaxMoney(moneyValues[1]);
+                itemVo.setTaxLastMoney(moneyValues[2]);
+
+                groupAllPrice = groupAllPrice.add(moneyValues[0]);
+                groupTaxMoney = groupTaxMoney.add(moneyValues[1]);
+                groupTaxLastMoney = groupTaxLastMoney.add(moneyValues[2]);
+
+                if (itemVo.getRemark() != null && !itemVo.getRemark().isEmpty()) {
+                    if (remarkBuilder.length() > 0) {
+                        remarkBuilder.append("；");
+                    }
+                    remarkBuilder.append(itemVo.getRemark());
+                }
+            }
+
+            totalWeight = totalWeight.add(currentGroupWeight);
+            totalAmount = totalAmount.add(groupAllPrice);
+            totalTaxLastMoney = totalTaxLastMoney.add(groupTaxLastMoney);
+
+            if ("1".equals(pa.getStatus())) {
+                BigDecimal groupUnitPrice = BigDecimal.ZERO;
+                if (currentGroupWeight.compareTo(BigDecimal.ZERO) > 0) {
+                    groupUnitPrice = groupAllPrice.divide(currentGroupWeight, 6, RoundingMode.HALF_UP);
+                } else if (group.size() == 1 && group.get(0).getUnitPrice() != null) {
+                    groupUnitPrice = group.get(0).getUnitPrice();
+                }
+                DepotItem depotItemUpd = new DepotItem();
+                depotItemUpd.setId(entry.getKey());
+                depotItemUpd.setUnitPrice(groupUnitPrice);
+                depotItemUpd.setAllPrice(groupAllPrice);
+                depotItemUpd.setTaxMoney(groupTaxMoney);
+                depotItemUpd.setTaxLastMoney(groupTaxLastMoney);
+                depotItemUpd.setRemark(remarkBuilder.toString());
+                depotItemMapper.updateByPrimaryKeySelective(depotItemUpd);
+            }
+        }
+
+        pa.setTotalWeight(totalWeight);
+        pa.setTotalAmount(totalAmount);
+        pa.setUpdateTime(now);
+        pa.setUpdater(user != null ? user.getId() : null);
+        priceApprovalMapper.updateByPrimaryKey(pa);
+
+        if ("1".equals(pa.getStatus())) {
+            DepotHead headUpd = new DepotHead();
+            headUpd.setId(pa.getDepotHeadId());
+            headUpd.setTotalPrice(totalAmount);
+            headUpd.setDiscountLastMoney(totalTaxLastMoney);
+            headUpd.setRemark(pa.getRemark());
+            depotHeadMapper.updateByPrimaryKeySelective(headUpd);
         }
     }
 
@@ -413,6 +530,76 @@ public class PriceApprovalService {
     private Long getTenantId() throws Exception {
         User user = userService.getCurrentUser();
         return user == null ? null : user.getTenantId();
+    }
+
+    private BigDecimal normalizeWeight(BigDecimal weight) {
+        return weight == null ? BigDecimal.ZERO : weight.setScale(6, RoundingMode.HALF_UP);
+    }
+
+    private List<BigDecimal> distributeGroupWeights(List<PriceApprovalItemVo> group, BigDecimal currentGroupWeight) {
+        List<BigDecimal> result = new ArrayList<>();
+        if (group == null || group.isEmpty()) {
+            return result;
+        }
+        if (group.size() == 1) {
+            result.add(currentGroupWeight);
+            return result;
+        }
+
+        BigDecimal oldGroupWeight = BigDecimal.ZERO;
+        for (PriceApprovalItemVo item : group) {
+            oldGroupWeight = oldGroupWeight.add(normalizeWeight(item.getWeight()));
+        }
+
+        if (oldGroupWeight.compareTo(BigDecimal.ZERO) <= 0) {
+            result.add(currentGroupWeight);
+            for (int i = 1; i < group.size(); i++) {
+                result.add(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP));
+            }
+            return result;
+        }
+
+        BigDecimal allocatedWeight = BigDecimal.ZERO;
+        for (int i = 0; i < group.size(); i++) {
+            BigDecimal newWeight;
+            if (i == group.size() - 1) {
+                newWeight = currentGroupWeight.subtract(allocatedWeight).setScale(6, RoundingMode.HALF_UP);
+            } else {
+                BigDecimal oldWeight = normalizeWeight(group.get(i).getWeight());
+                newWeight = currentGroupWeight.multiply(oldWeight)
+                        .divide(oldGroupWeight, 6, RoundingMode.HALF_UP);
+                allocatedWeight = allocatedWeight.add(newWeight);
+            }
+            result.add(newWeight);
+        }
+        return result;
+    }
+
+    private BigDecimal[] calcMoneyValues(BigDecimal weight, BigDecimal unitPrice, BigDecimal taxRate,
+                                         boolean materialPriceTaxFlag) {
+        BigDecimal safeWeight = normalizeWeight(weight);
+        BigDecimal safeUnitPrice = unitPrice == null ? BigDecimal.ZERO : unitPrice;
+        BigDecimal safeTaxRate = taxRate == null ? BigDecimal.ZERO : taxRate;
+
+        BigDecimal allPrice = safeUnitPrice.multiply(safeWeight).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal taxMoney = BigDecimal.ZERO;
+        BigDecimal taxLastMoney = BigDecimal.ZERO;
+
+        if (materialPriceTaxFlag) {
+            if (safeTaxRate.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal taxRatePercent = safeTaxRate.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                taxMoney = allPrice.divide(BigDecimal.ONE.add(taxRatePercent), 2, RoundingMode.HALF_UP)
+                        .multiply(taxRatePercent).setScale(2, RoundingMode.HALF_UP);
+            }
+            taxLastMoney = allPrice;
+        } else {
+            if (safeTaxRate.compareTo(BigDecimal.ZERO) != 0) {
+                taxMoney = safeTaxRate.multiply(allPrice).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            }
+            taxLastMoney = allPrice.add(taxMoney);
+        }
+
+        return new BigDecimal[]{allPrice, taxMoney, taxLastMoney};
     }
 
     private Date parseDate(String dateStr) {

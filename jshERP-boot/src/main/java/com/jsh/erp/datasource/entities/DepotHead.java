@@ -58,6 +58,9 @@ public class DepotHead {
 
     private String priceApproved;
 
+    /** 重量核准标记：0=未核准，1=已核准 */
+    private String weightApproved;
+
     private String purchaseStatus;
 
     private String source;
@@ -290,6 +293,14 @@ public class DepotHead {
 
     public void setPriceApproved(String priceApproved) {
         this.priceApproved = priceApproved == null ? null : priceApproved.trim();
+    }
+
+    public String getWeightApproved() {
+        return weightApproved;
+    }
+
+    public void setWeightApproved(String weightApproved) {
+        this.weightApproved = weightApproved == null ? null : weightApproved.trim();
     }
 
     public String getPurchaseStatus() {

@@ -18,7 +18,7 @@
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrintPro('销售出库')">三联打印-新版</a-button>
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrint('销售出库')">三联打印</a-button>
       <a-button v-if="checkFlag && isCanCheck" :loading="confirmLoading" @click="handleOkAndCheck">保存并审核</a-button>
-      <a-button v-if="priceEditOnly" type="danger" :loading="confirmLoading" @click="handleOkAndApprove">保存并核准</a-button>
+      <a-button v-if="model.id && model.status == '1' && model.weightApproved != '1'" type="danger" :loading="confirmLoading" @click="handleWeightApprove">重量核准</a-button>
       <a-button type="primary" :loading="confirmLoading" @click="handleOkOnly">保存（Ctrl+S）</a-button>
       <!--发起多级审核-->
       <a-button v-if="!checkFlag" @click="handleWorkflow()" type="primary">提交流程</a-button>
@@ -268,7 +268,7 @@
   import WorkflowIframe from '@/components/tools/WorkflowIframe'
   import BillPrintIframe from '../dialog/BillPrintIframe'
   import BillPrintProIframe from '../dialog/BillPrintProIframe'
-  import { FormTypes } from '@/utils/JEditableTableUtil'
+  import { FormTypes, VALIDATE_NO_PASSED, validateFormAndTables } from '@/utils/JEditableTableUtil'
   import { JEditableTableMixin } from '@/mixins/JEditableTableMixin'
   import { BillModalMixin } from '../mixins/BillModalMixin'
   import { getMpListShort,handleIntroJs } from "@/utils/util"
@@ -277,7 +277,7 @@
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
   import { getCurrentSystemConfig, findBySelectCus, getContractBalance } from '@/api/api'
-  import { postAction } from '@/api/manage'
+  import { httpAction, postAction } from '@/api/manage'
   export default {
     name: "SaleOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
@@ -315,7 +315,7 @@
         contractBalance: null,  // 当前客户的合同余额信息
         fileList:[],
         rowCanEdit: true,
-        priceEditOnly: false,
+        weightEditMode: false,
         model: {},
         labelCol: {
           xs: { span: 24 },
@@ -415,28 +415,68 @@
       }
     },
     methods: {
-      // ─── 保存并核准：复用 handleOk 保存，成功后自动核准 ───────────────
-      handleOkAndApprove() {
-        const billId = this.model.id
-        if (!billId) {
-          this.$message.warning('单据未保存，无法核准')
-          return
+      flushActiveEditor() {
+        const activeElement = document.activeElement
+        if (activeElement && typeof activeElement.blur === 'function') {
+          activeElement.blur()
         }
-        this.$once('ok', () => {
-          postAction('/depotHead/batchSetPriceApproved', {
-            priceApproved: '1',
-            ids: String(billId)
-          }).then(res => {
-            if (res && res.code === 200) {
-              this.$message.success('核准成功')
-              this.$emit('ok')
-            } else {
-              this.$message.warning('保存成功，但核准失败')
-            }
+        return new Promise((resolve) => {
+          this.$nextTick(() => {
+            setTimeout(resolve, 0)
           })
         })
-        this.billStatus = '0'
-        this.handleOk()
+      },
+      handleOk() {
+        this.flushActiveEditor().then(() => {
+          JEditableTableMixin.methods.handleOk.call(this)
+        })
+      },
+      // ─── 重量核准：标记单据重量已确认 ─────────────────────────────
+      handleWeightApprove() {
+        const that = this
+        this.$confirm({
+          title: '确认重量核准',
+          content: '确认该单据的过磅重量已核实？',
+          onOk() {
+            return that.saveWeightAndApprove()
+          }
+        })
+      },
+      saveWeightAndApprove() {
+        return this.flushActiveEditor().then(() => {
+          this.confirmLoading = true
+          return this.getAllTable().then(tables => {
+            return validateFormAndTables(this.form, tables)
+          }).then(allValues => {
+            let formData = this.classifyIntoFormData(allValues)
+            return httpAction(this.url.edit, formData, 'put')
+          }).then(res => {
+            if (!res || res.code !== 200) {
+              throw new Error((res && res.data && res.data.message) || '重量保存失败')
+            }
+            return postAction('/depotHead/batchSetWeightApproved', {
+              weightApproved: '1',
+              ids: String(this.model.id)
+            })
+          }).then(res => {
+            if (res && res.code === 200) {
+              this.$message.success('重量核准成功')
+              this.$emit('ok')
+              this.handleCancel()
+            } else {
+              this.$message.warning(res.data && res.data.message || '核准失败')
+            }
+          }).catch(e => {
+            if (e && e.error === VALIDATE_NO_PASSED) {
+              this.activeKey = e.index == null ? this.activeKey : this.refKeys[e.index]
+              return
+            }
+            console.error(e)
+            this.$message.error((e && e.message) || '保存失败，请稍后重试')
+          }).finally(() => {
+            this.confirmLoading = false
+          })
+        })
       },
       // ─── 覆盖保存方法：超额提示（不阻拦）─────────────────────────
       handleOkOnly() {
@@ -517,6 +557,7 @@
         this.changeFormTypes(this.materialTable.columns, 'expirationDate', 0)
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 0)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 0)
+        this.changeFormTypes(this.materialTable.columns, 'remark', 0)
         if (this.action === 'add') {
           this.selectedCustomerName = undefined
           this.projectListForOrgan = []
@@ -589,14 +630,20 @@
           }
           let url = this.readOnly ? this.url.detailList : this.url.detailList;
           this.requestSubTableData(url, params, this.materialTable);
-          //价格修改模式：锁定除单价、金额外的所有明细列和表单字段
-          if(this.priceEditOnly) {
+          //重量编辑模式：已审核单据仅允许编辑过磅类别的重量列，其余列锁定
+          if(this.weightEditMode) {
             this.rowCanEdit = false
-            // 保留统计列的 inputNumber 类型，确保合计行正常显示
-            const keepInputNumberKeys = ['unitPrice', 'allPrice', 'operNumber', 'weight']
             this.materialTable.columns.forEach(col => {
-              if(keepInputNumberKeys.includes(col.key)) {
+              if(col.key === 'weight') {
+                // 保持重量列可编辑（仅 weightEditable 行，由列定义的 readonly 函数控制）
                 col.type = FormTypes.inputNumber
+              } else if(col.key === 'remark') {
+                // 重量未核准时允许补充/修改每行备注
+                col.type = FormTypes.input
+              } else if(col.key === 'operNumber') {
+                // 数量列保持 inputNumber 类型用于统计显示，但设置只读
+                col.type = FormTypes.inputNumber
+                col.readonly = true
               } else if(col.type === FormTypes.inputNumber || col.type === FormTypes.input || col.type === FormTypes.popupJsh) {
                 col.type = FormTypes.normal
               }
@@ -633,9 +680,9 @@
       },
       //提交单据时整理成formData
       classifyIntoFormData(allValues) {
-        //价格修改模式：切换到专用接口
-        if(this.priceEditOnly) {
-          this.url.edit = '/depotHead/updateItemPrices'
+        //重量编辑模式：切换到重量专用接口
+        if(this.weightEditMode) {
+          this.url.edit = '/depotHead/updateItemWeights'
         } else {
           this.url.edit = '/depotHead/updateDepotHeadAndDetail'
         }
