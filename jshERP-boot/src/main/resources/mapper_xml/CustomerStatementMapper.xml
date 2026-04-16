@@ -123,6 +123,9 @@
       <if test="organId != null">
         AND cs.organ_id = #{organId}
       </if>
+      <if test="statementNo != null and statementNo != ''">
+        AND cs.statement_no LIKE concat('%', #{statementNo}, '%')
+      </if>
       <if test="status != null and status != ''">
         AND cs.status = #{status}
       </if>
@@ -148,6 +151,9 @@
       AND cs.tenant_id = #{tenantId}
       <if test="organId != null">
         AND cs.organ_id = #{organId}
+      </if>
+      <if test="statementNo != null and statementNo != ''">
+        AND cs.statement_no LIKE concat('%', #{statementNo}, '%')
       </if>
       <if test="status != null and status != ''">
         AND cs.status = #{status}

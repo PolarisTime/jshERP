@@ -225,8 +225,22 @@
     created() {
       this.initCarrierList();
       this.initColumnsSetting();
+      this._applyGlobalSearchBillNo(true)
+    },
+    activated() {
+      this._applyGlobalSearchBillNo(true)
     },
     methods: {
+      _applyGlobalSearchBillNo(reload) {
+        const pending = sessionStorage.getItem('globalSearch_billNo')
+        if (pending) {
+          sessionStorage.removeItem('globalSearch_billNo')
+          this.queryParam.billNo = pending
+          if (reload) {
+            this.$nextTick(() => { this.loadData(1) })
+          }
+        }
+      },
       freightRowClassName(record) {
         // 审核或送达任一未完成，行底色染蓝
         let notAudited = record.status === '0' || record.status === 0

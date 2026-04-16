@@ -104,18 +104,18 @@ public class CustomerStatementService {
 
     // ─── 对账单列表 ──────────────────────────────────────────────
 
-    public List<Map<String, Object>> listStatements(Long organId, String status, String signStatus,
+    public List<Map<String, Object>> listStatements(Long organId, String statementNo, String status, String signStatus,
                                                     String beginTime, String endTime,
                                                     Integer offset, Integer rows) throws Exception {
         Long tenantId = getTenantId();
-        return customerStatementMapper.listStatements(organId, status, signStatus,
+        return customerStatementMapper.listStatements(organId, statementNo, status, signStatus,
                 beginTime, endTime, tenantId, offset, rows);
     }
 
-    public int countStatements(Long organId, String status, String signStatus,
+    public int countStatements(Long organId, String statementNo, String status, String signStatus,
                                String beginTime, String endTime) throws Exception {
         Long tenantId = getTenantId();
-        return customerStatementMapper.countStatements(organId, status, signStatus,
+        return customerStatementMapper.countStatements(organId, statementNo, status, signStatus,
                 beginTime, endTime, tenantId);
     }
 

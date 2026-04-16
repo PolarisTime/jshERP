@@ -45,6 +45,7 @@ public interface CustomerStatementMapper {
 
     List<Map<String, Object>> listStatements(
             @Param("organId") Long organId,
+            @Param("statementNo") String statementNo,
             @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,
@@ -55,6 +56,7 @@ public interface CustomerStatementMapper {
 
     int countStatements(
             @Param("organId") Long organId,
+            @Param("statementNo") String statementNo,
             @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime,

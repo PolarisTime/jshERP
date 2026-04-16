@@ -92,6 +92,7 @@ public class CustomerStatementController extends BaseController {
     @ApiOperation(value = "对账单列表")
     public BaseResponseInfo list(
             @RequestParam(value = "organId", required = false) Long organId,
+            @RequestParam(value = "statementNo", required = false) String statementNo,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "signStatus", required = false) String signStatus,
             @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -103,8 +104,8 @@ public class CustomerStatementController extends BaseController {
         try {
             int offset = (currentPage - 1) * pageSize;
             List<Map<String, Object>> rows = customerStatementService.listStatements(
-                    organId, status, signStatus, beginTime, endTime, offset, pageSize);
-            int total = customerStatementService.countStatements(organId, status, signStatus, beginTime, endTime);
+                    organId, statementNo, status, signStatus, beginTime, endTime, offset, pageSize);
+            int total = customerStatementService.countStatements(organId, statementNo, status, signStatus, beginTime, endTime);
             Map<String, Object> data = new HashMap<>();
             data.put("rows", rows);
             data.put("total", total);

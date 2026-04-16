@@ -60,8 +60,8 @@
         <!-- 操作按钮区域 -->
         <div class="table-operator" style="margin-top:5px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
           <a-button type="primary" icon="plus" @click="handleAdd">新增</a-button>
-          <a-button icon="check" @click="handleBatchConfirm" style="color:#52c41a">批量核准</a-button>
-          <a-button icon="undo" @click="handleBatchCancel">批量取消核准</a-button>
+          <a-button icon="check" @click="handleBatchConfirm" style="color:#52c41a">核准</a-button>
+          <a-button icon="undo" @click="handleBatchCancel">取消核准</a-button>
           <a-button icon="delete" @click="handleBatchDelete">批量删除</a-button>
           <column-setting-popover
             :defColumns="defColumns"

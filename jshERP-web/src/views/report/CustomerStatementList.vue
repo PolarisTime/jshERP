@@ -7,6 +7,11 @@
           <a-form layout="inline" @keyup.enter.native="searchQuery">
             <a-row :gutter="24">
               <a-col :md="4" :sm="24">
+                <a-form-item label="单号" :labelCol="{span:6}" :wrapperCol="{span:18}">
+                  <a-input placeholder="对账单号" v-model="queryParam.statementNo" allow-clear></a-input>
+                </a-form-item>
+              </a-col>
+              <a-col :md="4" :sm="24">
                 <a-form-item label="客户" :labelCol="{span:6}" :wrapperCol="{span:18}">
                   <a-select placeholder="全部" v-model="selectedCustomerName"
                     showSearch allow-clear optionFilterProp="children"
@@ -15,7 +20,7 @@
                   </a-select>
                 </a-form-item>
               </a-col>
-              <a-col :md="6" :sm="24">
+              <a-col :md="5" :sm="24">
                 <a-form-item label="项目" :labelCol="{span:4}" :wrapperCol="{span:20}">
                   <a-select placeholder="全部" v-model="queryParam.organId"
                     showSearch allow-clear optionFilterProp="children"
@@ -147,6 +152,7 @@
         labelCol: { span: 5 },
         wrapperCol: { span: 18, offset: 1 },
         queryParam: {
+          statementNo: '',
           organId: undefined,
           status: undefined,
           signStatus: undefined,
@@ -194,9 +200,23 @@
     },
     created() {
       this.initCustomer()
+      this._applyGlobalSearchStatementNo(true)
+    },
+    activated() {
+      this._applyGlobalSearchStatementNo(true)
     },
     mounted() {},
     methods: {
+      _applyGlobalSearchStatementNo(reload) {
+        const pending = sessionStorage.getItem('globalSearch_statementNo')
+        if (pending) {
+          sessionStorage.removeItem('globalSearch_statementNo')
+          this.queryParam.statementNo = pending
+          if (reload) {
+            this.$nextTick(() => { this.loadData(1) })
+          }
+        }
+      },
       // ─── 数据加载 ───────────────────────────────────────────────
       getQueryParams() {
         const p = Object.assign({}, this.queryParam)
@@ -221,7 +241,7 @@
       searchReset() {
         this.selectedCustomerName = undefined
         this.projectListForOrgan = []
-        this.queryParam = { organId: undefined, status: undefined, signStatus: undefined, beginTime: '', endTime: '', dateRange: [] }
+        this.queryParam = { statementNo: '', organId: undefined, status: undefined, signStatus: undefined, beginTime: '', endTime: '', dateRange: [] }
         this.loadData(1)
       },
       onCustomerNameChange(supplierName) {

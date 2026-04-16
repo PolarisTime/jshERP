@@ -105,6 +105,12 @@ function preProcess(model, dataSource, extraFields) {
     dataSource.forEach(item => {
       const num = parseFloat(item.operNumber)
       if (!isNaN(num)) totalPiece += num
+      // 派生 displayName：备注有文字时用备注替换名称，否则保持原名称
+      if (item.remark && String(item.remark).trim()) {
+        item.displayName = String(item.remark).trim()
+      } else {
+        item.displayName = item.name || ''
+      }
       // 派生 length 字段（优先条码，其次规格，在去除*12之前）
       if (item.length == null || item.length === '') {
         item.length = deriveLength(item.barCode, item.standard)
