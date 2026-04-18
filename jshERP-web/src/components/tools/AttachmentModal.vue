@@ -1,6 +1,14 @@
 <template>
   <a-modal :title="title" :visible="visible" :footer="null" @cancel="visible=false" :width="680">
-    <j-upload v-model="attachments" :bizPath="bizPath" :billId="recordId" fileType="all" @change="onFileChange" />
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;">
+      <j-upload v-model="attachments" :bizPath="bizPath" :billId="recordId" fileType="all" @change="onFileChange" />
+      <div v-if="uploadMeta" style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;color:#595959;">
+        <span v-if="uploadMeta.freightBillNo">物流单号：<span style="color:#262626;font-weight:500;">{{ uploadMeta.freightBillNo }}</span></span>
+        <span v-if="uploadMeta.totalWeight !== '' && uploadMeta.totalWeight !== null && uploadMeta.totalWeight !== undefined">
+          单据总重量：<span style="color:#262626;font-weight:500;">{{ formatWeight(uploadMeta.totalWeight) }} 吨</span>
+        </span>
+      </div>
+    </div>
     <!-- 附件预览区 -->
     <div v-if="fileUrls.length > 0" style="margin-top:12px;border-top:1px solid #e8e8e8;padding-top:12px;">
       <div v-for="(file, idx) in fileUrls" :key="idx" style="margin-bottom:8px;">
@@ -54,7 +62,8 @@
         attachments: '',
         previewVisible: false,
         previewUrl: '',
-        recordId: null
+        recordId: null,
+        uploadMeta: null
       }
     },
     computed: {
@@ -69,8 +78,9 @@
     },
     methods: {
       show(record, fieldName) {
-        this.recordId = record.id
+        this.recordId = record.uploadBillId || record.billId || record.id
         this.attachments = record[fieldName || 'fileName'] || ''
+        this.uploadMeta = record.uploadMeta || null
         this.visible = true
       },
       onFileChange(val) {
@@ -82,6 +92,10 @@
       },
       isPdf(name) {
         return /\.pdf$/i.test(name)
+      },
+      formatWeight(value) {
+        let num = Number(value)
+        return isNaN(num) ? value : num.toFixed(3)
       }
     }
   }

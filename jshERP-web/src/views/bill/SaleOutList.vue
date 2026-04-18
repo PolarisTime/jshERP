@@ -141,7 +141,7 @@
                 <a>删除</a>
               </a-popconfirm>
               <a-divider type="vertical" />
-              <a @click="$refs.attachModal.show(record, 'fileName')" style="white-space:nowrap">
+              <a @click="showAttach(record)" style="white-space:nowrap">
                 <a-icon type="paper-clip" /> 附件
                 <a-badge v-if="record.fileName" :count="record.fileName.split(',').filter(f=>f).length" :numberStyle="{fontSize:'10px',minWidth:'16px',height:'16px',lineHeight:'16px'}" />
                 <a-icon v-else type="close-circle" style="color:#ccc;font-size:12px" />
@@ -488,6 +488,15 @@
         // 物流单号可能包含多个（逗号分隔），取第一个
         let no = billNo.split(',')[0].trim()
         this.$refs.freightDetailModal.detailByBillNo(no)
+      },
+      showAttach(record) {
+        this.$refs.attachModal.show({
+          ...record,
+          uploadMeta: {
+            freightBillNo: record.freightBillNo,
+            totalWeight: record.totalWeight
+          }
+        }, 'fileName')
       },
       billRowClassName(record) {
         // 未审核的出库单高亮

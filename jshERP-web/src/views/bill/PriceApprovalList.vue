@@ -374,7 +374,11 @@ export default {
 
     // ─── 附件（与销售出库共享 DepotHead.fileName） ─────────
     showAttach(record) {
-      this.$refs.attachModal.show({ id: record.depotHeadId, fileName: record.fileName }, 'fileName')
+      this.$refs.attachModal.show({
+        id: record.id,
+        uploadBillId: record.depotHeadId,
+        fileName: record.fileName
+      }, 'fileName')
     },
     onAttachChange({ id, attachments }) {
       putAction('/depotHead/updateFileById', { id, fileName: attachments }).then(res => {
