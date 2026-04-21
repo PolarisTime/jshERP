@@ -1,5 +1,6 @@
 package com.jsh.erp.datasource.mappers;
 
+import com.baomidou.mybatisplus.annotation.SqlParser;
 import com.jsh.erp.datasource.entities.DepotHead;
 import com.jsh.erp.datasource.vo.*;
 import org.apache.ibatis.annotations.Param;
@@ -48,12 +49,14 @@ public interface DepotHeadMapperEx {
 
     List<Map<String, Object>> getDashboardFreightList();
 
+    @SqlParser(filter = true)
     List<MaterialsListVo> findMaterialsListMapByHeaderIdList(
             @Param("idList") List<Long> idList);
 
     List<MaterialCountVo> getMaterialCountListByHeaderIdList(
             @Param("idList") List<Long> idList);
 
+    @SqlParser(filter = true)
     List<TotalWeightVo> getTotalWeightListByHeaderIdList(
             @Param("idList") List<Long> idList);
 
@@ -239,6 +242,7 @@ public interface DepotHeadMapperEx {
             @Param("subTypeBack") String subTypeBack,
             @Param("billType") String billType);
 
+    @SqlParser(filter = true)
     List<DepotHeadVo4List> getDetailByNumber(
             @Param("number") String number);
 
@@ -318,6 +322,7 @@ public interface DepotHeadMapperEx {
     BigDecimal getBillAllPriceByOrganId(
             @Param("organId") Long organId);
 
+    @SqlParser(filter = true)
     List<Map<String, String>> getReferencedByNumbersMap(
             @Param("numberList") List<String> numberList);
 
