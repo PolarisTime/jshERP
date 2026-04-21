@@ -11,14 +11,14 @@ import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
  */
 @RestController
 @RequestMapping(value = "/freightHead")
-@Api(tags = {"运费管理"})
+@Tag(name = "运费管理")
 public class FreightHeadController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(FreightHeadController.class);
 
@@ -42,7 +42,7 @@ public class FreightHeadController extends BaseController {
      * 生成运费单编号（格式: yyyyW0001）
      */
     @GetMapping(value = "/buildBillNo")
-    @ApiOperation(value = "生成运费单编号")
+    @Operation(summary = "生成运费单编号")
     public BaseResponseInfo buildBillNo(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -63,7 +63,7 @@ public class FreightHeadController extends BaseController {
      * 运费单列表查询
      */
     @GetMapping(value = "/list")
-    @ApiOperation(value = "获取运费单列表")
+    @Operation(summary = "获取运费单列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request) throws Exception {
         String billNo = StringUtil.getInfo(search, "billNo");
@@ -81,7 +81,7 @@ public class FreightHeadController extends BaseController {
      * 新增运费单（主表+明细）
      */
     @PostMapping(value = "/addFreightBill")
-    @ApiOperation(value = "新增运费单")
+    @Operation(summary = "新增运费单")
     public Object addFreightBill(@RequestBody AccountHeadVo4Body body,
                                  HttpServletRequest request) throws Exception {
         JSONObject result = ExceptionConstants.standardSuccess();
@@ -96,7 +96,7 @@ public class FreightHeadController extends BaseController {
      * 编辑运费单（主表+明细）
      */
     @PutMapping(value = "/updateFreightBill")
-    @ApiOperation(value = "编辑运费单")
+    @Operation(summary = "编辑运费单")
     public Object updateFreightBill(@RequestBody AccountHeadVo4Body body,
                                     HttpServletRequest request) throws Exception {
         JSONObject result = ExceptionConstants.standardSuccess();
@@ -110,7 +110,7 @@ public class FreightHeadController extends BaseController {
      * 删除运费单
      */
     @DeleteMapping(value = "/deleteFreightBill")
-    @ApiOperation(value = "删除运费单")
+    @Operation(summary = "删除运费单")
     public String deleteFreightBill(@RequestParam("id") Long id,
                                     HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -122,7 +122,7 @@ public class FreightHeadController extends BaseController {
      * 批量删除运费单
      */
     @DeleteMapping(value = "/deleteBatchFreightBill")
-    @ApiOperation(value = "批量删除运费单")
+    @Operation(summary = "批量删除运费单")
     public String deleteBatchFreightBill(@RequestParam("ids") String ids,
                                          HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -134,7 +134,7 @@ public class FreightHeadController extends BaseController {
      * 批量审核/反审核
      */
     @PostMapping(value = "/batchSetStatus")
-    @ApiOperation(value = "批量设置状态-审核或者反审核")
+    @Operation(summary = "批量设置状态-审核或者反审核")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -152,7 +152,7 @@ public class FreightHeadController extends BaseController {
      * 批量设置送达状态
      */
     @PostMapping(value = "/batchSetDeliveryStatus")
-    @ApiOperation(value = "批量设置送达状态")
+    @Operation(summary = "批量设置送达状态")
     public String batchSetDeliveryStatus(@RequestBody JSONObject jsonObject,
                                          HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -170,7 +170,7 @@ public class FreightHeadController extends BaseController {
      * 获取可关联的销售出库单
      */
     @GetMapping(value = "/availableSaleOut")
-    @ApiOperation(value = "获取可关联的销售出库单")
+    @Operation(summary = "获取可关联的销售出库单")
     public TableDataInfo getAvailableSaleOut(@RequestParam(value = "billNo", required = false) String billNo,
                                              HttpServletRequest request) throws Exception {
         List<Map<String, Object>> list = freightHeadService.getAvailableSaleOut(billNo, request);
@@ -181,7 +181,7 @@ public class FreightHeadController extends BaseController {
      * 获取运费单详情
      */
     @GetMapping(value = "/detail")
-    @ApiOperation(value = "获取运费单详情")
+    @Operation(summary = "获取运费单详情")
     public BaseResponseInfo getDetail(@RequestParam(value = "id", required = false) Long id,
                                       @RequestParam(value = "billNo", required = false) String billNo,
                                       HttpServletRequest request) throws Exception {
@@ -211,7 +211,7 @@ public class FreightHeadController extends BaseController {
      * 运费对账聚合查询（按物流方汇总已审核物流单）
      */
     @GetMapping(value = "/reconciliation")
-    @ApiOperation(value = "运费对账汇总")
+    @Operation(summary = "运费对账汇总")
     public TableDataInfo getReconciliation(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                             HttpServletRequest request) throws Exception {
         Long carrierId = StringUtil.parseStrLong(StringUtil.getInfo(search, "carrierId"));
@@ -225,7 +225,7 @@ public class FreightHeadController extends BaseController {
      * 计算出库单重量
      */
     @GetMapping(value = "/calcWeight")
-    @ApiOperation(value = "计算出库单重量")
+    @Operation(summary = "计算出库单重量")
     public BaseResponseInfo calcWeight(@RequestParam("depotHeadId") Long depotHeadId,
                                        HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -241,7 +241,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @GetMapping(value = "/getDepotItems")
-    @ApiOperation(value = "按出库单ID列表查询商品明细行")
+    @Operation(summary = "按出库单ID列表查询商品明细行")
     public BaseResponseInfo getDepotItems(@RequestParam("headerIds") String headerIds,
                                           HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -263,7 +263,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @GetMapping(value = "/reconciliationDetail")
-    @ApiOperation(value = "对账明细查询")
+    @Operation(summary = "对账明细查询")
     public TableDataInfo reconciliationDetail(@RequestParam(value = "search", required = false) String search,
                                               HttpServletRequest request) throws Exception {
         Long carrierId = null;
@@ -282,7 +282,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @PostMapping(value = "/batchSetPaymentStatus")
-    @ApiOperation(value = "批量标记付款状态")
+    @Operation(summary = "批量标记付款状态")
     public BaseResponseInfo batchSetPaymentStatus(@RequestBody JSONObject jsonObject,
                                                    HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -307,7 +307,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @PostMapping(value = "/cancelPayment")
-    @ApiOperation(value = "取消付款标记")
+    @Operation(summary = "取消付款标记")
     public BaseResponseInfo cancelPayment(@RequestBody JSONObject jsonObject,
                                            HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -330,7 +330,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @GetMapping(value = "/exportFreightViewList")
-    @ApiOperation(value = "导出运费查看列表Excel")
+    @Operation(summary = "导出运费查看列表Excel")
     public void exportFreightViewList(@RequestParam(value = "billNo", required = false) String billNo,
                                        @RequestParam(value = "carrierId", required = false) Long carrierId,
                                        @RequestParam(value = "status", required = false) String status,
@@ -338,7 +338,7 @@ public class FreightHeadController extends BaseController {
                                        @RequestParam(value = "beginTime", required = false) String beginTime,
                                        @RequestParam(value = "endTime", required = false) String endTime,
                                        HttpServletRequest request,
-                                       javax.servlet.http.HttpServletResponse response) throws Exception {
+                                       jakarta.servlet.http.HttpServletResponse response) throws Exception {
         try {
             List<FreightHeadVo> dataList = freightHeadService.selectForExport(billNo, carrierId, status, paymentStatus, null, beginTime, endTime);
             String[] names = {"单据编号", "日期", "结算方", "总重量(吨)", "单价(元/吨)", "总运费(元)", "审核状态", "付款状态", "已付金额", "未付金额", "付款时间", "操作人", "备注"};
@@ -377,14 +377,14 @@ public class FreightHeadController extends BaseController {
     }
 
     @GetMapping(value = "/exportReconciliation")
-    @ApiOperation(value = "导出对账明细Excel")
+    @Operation(summary = "导出对账明细Excel")
     public void exportReconciliation(@RequestParam(value = "carrierId", required = false) Long carrierId,
                                       @RequestParam(value = "beginTime", required = false) String beginTime,
                                       @RequestParam(value = "endTime", required = false) String endTime,
                                       @RequestParam(value = "paymentStatus", required = false) String paymentStatus,
                                       @RequestParam(value = "carrierName", required = false) String carrierName,
                                       HttpServletRequest request,
-                                      javax.servlet.http.HttpServletResponse response) throws Exception {
+                                      jakarta.servlet.http.HttpServletResponse response) throws Exception {
         try {
             List<Map<String, Object>> dataList = freightHeadService.getReconciliationDetailForExport(carrierId, beginTime, endTime, paymentStatus);
             // 使用 ExcelUtils 导出
@@ -419,7 +419,7 @@ public class FreightHeadController extends BaseController {
     }
 
     @PutMapping(value = "/updateFileById")
-    @ApiOperation(value = "更新物流单附件")
+    @Operation(summary = "更新物流单附件")
     public BaseResponseInfo updateFileById(@RequestBody JSONObject params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {

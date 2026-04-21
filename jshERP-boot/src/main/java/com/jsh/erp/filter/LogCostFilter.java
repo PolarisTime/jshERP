@@ -4,24 +4,24 @@ import com.jsh.erp.service.RedisService;
 import com.jsh.erp.service.UserService;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.annotation.WebInitParam;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebFilter(filterName = "LogCostFilter", urlPatterns = {"/*"},
         initParams = {@WebInitParam(name = "filterPath",
                       value = "/jshERP-boot/platformConfig/getPlatform/name#/jshERP-boot/platformConfig/getPlatform/url#" +
                               "/jshERP-boot/platformConfig/getPlatform/registerFlag#/jshERP-boot/platformConfig/getPlatform/checkcodeFlag#" +
-                              "/jshERP-boot/v2/api-docs#/jshERP-boot/webjars")})
+                              "/jshERP-boot/v3/api-docs#/jshERP-boot/swagger-ui")})
 public class LogCostFilter implements Filter {
 
     private static final String FILTER_PATH = "filterPath";
     private static final String STATIC_PATH = "/systemConfig/static";
-    private static final String WEBJARS_PATH = "/jshERP-boot/webjars";
+    private static final String SWAGGER_UI_PATH = "/jshERP-boot/swagger-ui";
 
     private String[] allowUrls;
     @Resource
@@ -99,7 +99,7 @@ public class LogCostFilter implements Filter {
         }
         if (null != allowUrls && allowUrls.length > 0) {
             for (String url : allowUrls) {
-                if (WEBJARS_PATH.equals(url)) {
+                if (SWAGGER_UI_PATH.equals(url)) {
                     if (requestUrl.equals(url) || requestUrl.startsWith(url + "/")) {
                         return true;
                     }

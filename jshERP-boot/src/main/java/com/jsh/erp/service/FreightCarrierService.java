@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +75,7 @@ public class FreightCarrierService {
             result = freightCarrierMapper.insertSelective(freightCarrier);
             logService.insertLog("结算方",
                     BusinessConstants.LOG_OPERATION_TYPE_ADD + freightCarrier.getName(),
-                    ((javax.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
+                    ((jakarta.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
                             .getRequestAttributes().resolveReference("request")));
         } catch (Exception e) {
             JshException.writeFail(logger, e);
@@ -93,7 +93,7 @@ public class FreightCarrierService {
             result = freightCarrierMapper.updateByPrimaryKeySelective(freightCarrier);
             logService.insertLog("结算方",
                     BusinessConstants.LOG_OPERATION_TYPE_EDIT + freightCarrier.getName(),
-                    ((javax.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
+                    ((jakarta.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
                             .getRequestAttributes().resolveReference("request")));
         } catch (Exception e) {
             JshException.writeFail(logger, e);
@@ -115,7 +115,7 @@ public class FreightCarrierService {
             result = freightCarrierMapper.updateByPrimaryKeySelective(update);
             logService.insertLog("结算方",
                     BusinessConstants.LOG_OPERATION_TYPE_DELETE + (freightCarrier != null ? freightCarrier.getName() : ""),
-                    ((javax.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
+                    ((jakarta.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
                             .getRequestAttributes().resolveReference("request")));
         } catch (Exception e) {
             JshException.writeFail(logger, e);
@@ -141,7 +141,7 @@ public class FreightCarrierService {
             }
             logService.insertLog("结算方",
                     BusinessConstants.LOG_OPERATION_TYPE_DELETE + ids,
-                    ((javax.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
+                    ((jakarta.servlet.http.HttpServletRequest) org.springframework.web.context.request.RequestContextHolder
                             .getRequestAttributes().resolveReference("request")));
         } catch (Exception e) {
             JshException.writeFail(logger, e);

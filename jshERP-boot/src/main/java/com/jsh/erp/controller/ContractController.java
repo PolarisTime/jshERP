@@ -12,14 +12,14 @@ import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +29,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 
 @RestController
 @RequestMapping(value = "/contract")
-@Api(tags = {"合同管理"})
+@Tag(name = "合同管理")
 public class ContractController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(ContractController.class);
 
@@ -38,7 +38,7 @@ public class ContractController extends BaseController {
 
     // ─── 列表 ─────────────────────────────────────────────────────
     @GetMapping(value = "/list")
-    @ApiOperation(value = "合同列表")
+    @Operation(summary = "合同列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request) throws Exception {
         String contractNo   = StringUtil.getInfo(search, "contractNo");
@@ -53,7 +53,7 @@ public class ContractController extends BaseController {
 
     // ─── 详情（含授权人员） ────────────────────────────────────────
     @GetMapping(value = "/detail")
-    @ApiOperation(value = "合同详情")
+    @Operation(summary = "合同详情")
     public BaseResponseInfo detail(@RequestParam("id") Long id, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -72,7 +72,7 @@ public class ContractController extends BaseController {
 
     // ─── 新增 ─────────────────────────────────────────────────────
     @PostMapping(value = "/add")
-    @ApiOperation(value = "新增合同")
+    @Operation(summary = "新增合同")
     public String add(@RequestBody Map<String, Object> body, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         Contract contract = parseContract(body);
@@ -84,7 +84,7 @@ public class ContractController extends BaseController {
 
     // ─── 更新 ─────────────────────────────────────────────────────
     @PutMapping(value = "/update")
-    @ApiOperation(value = "更新合同")
+    @Operation(summary = "更新合同")
     public String update(@RequestBody Map<String, Object> body, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         Contract contract = parseContract(body);
@@ -96,7 +96,7 @@ public class ContractController extends BaseController {
 
     // ─── 审核 / 反审核 ────────────────────────────────────────────
     @PutMapping(value = "/audit")
-    @ApiOperation(value = "审核/反审核")
+    @Operation(summary = "审核/反审核")
     public BaseResponseInfo audit(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -113,7 +113,7 @@ public class ContractController extends BaseController {
 
     // ─── 签署 / 取消签署 ──────────────────────────────────────────
     @PutMapping(value = "/sign")
-    @ApiOperation(value = "签署/取消签署")
+    @Operation(summary = "签署/取消签署")
     public BaseResponseInfo sign(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -130,7 +130,7 @@ public class ContractController extends BaseController {
 
     // ─── 附件 ─────────────────────────────────────────────────────
     @PutMapping(value = "/updateAttachments")
-    @ApiOperation(value = "更新附件")
+    @Operation(summary = "更新附件")
     public BaseResponseInfo updateAttachments(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -147,7 +147,7 @@ public class ContractController extends BaseController {
 
     // ─── 合同余额 ─────────────────────────────────────────────────
     @GetMapping(value = "/balance")
-    @ApiOperation(value = "获取客户合同余额")
+    @Operation(summary = "获取客户合同余额")
     public BaseResponseInfo balance(@RequestParam("organId") Long organId, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -162,7 +162,7 @@ public class ContractController extends BaseController {
 
     // ─── 删除 ─────────────────────────────────────────────────────
     @DeleteMapping(value = "/delete")
-    @ApiOperation(value = "删除合同")
+    @Operation(summary = "删除合同")
     public String delete(@RequestParam("id") Long id, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int res = contractService.delete(id);
@@ -171,7 +171,7 @@ public class ContractController extends BaseController {
     }
 
     @DeleteMapping(value = "/deleteBatch")
-    @ApiOperation(value = "批量删除合同")
+    @Operation(summary = "批量删除合同")
     public String deleteBatch(@RequestParam("ids") String ids, HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int res = contractService.deleteBatch(ids);

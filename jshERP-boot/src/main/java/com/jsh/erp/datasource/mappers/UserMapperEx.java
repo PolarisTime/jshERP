@@ -1,6 +1,6 @@
 package com.jsh.erp.datasource.mappers;
 
-import com.baomidou.mybatisplus.annotation.SqlParser;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.entities.UserEx;
 import com.jsh.erp.datasource.entities.UserExample;
@@ -22,24 +22,28 @@ public interface UserMapperEx {
             @Param("userName") String userName,
             @Param("loginName") String loginName);
 
+    @InterceptorIgnore(tenantLine = "true")
     List<User> getUserListByUserNameOrLoginName(@Param("userName") String userName,
                                                 @Param("loginName") String loginName);
 
     int batDeleteOrUpdateUser(@Param("ids") String[] ids);
 
     List<TreeNodeEx> getNodeTree();
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     List<TreeNodeEx> getNextNodeTree(Map<String, Object> parameterMap);
 
+    @InterceptorIgnore(tenantLine = "true")
     void disableUserByLimit(@Param("tenantId") Long tenantId);
 
     List<User> getListByOrgaId(
             @Param("id") Long id,
             @Param("orgaId") Long orgaId);
 
+    @InterceptorIgnore(tenantLine = "true")
     User getUserByWeixinOpenId(
             @Param("weixinOpenId") String weixinOpenId);
 
+    @InterceptorIgnore(tenantLine = "true")
     int updateUserWithWeixinOpenId(
             @Param("loginName") String loginName,
             @Param("password") String password,

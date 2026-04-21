@@ -9,8 +9,8 @@ import com.jsh.erp.service.RedisService;
 import com.jsh.erp.service.SystemConfigService;
 import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,10 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.HandlerMapping;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -44,7 +44,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
  */
 @RestController
 @RequestMapping(value = "/systemConfig")
-@Api(tags = {"系统参数"})
+@Tag(name = "系统参数")
 public class SystemConfigController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(SystemConfigController.class);
 
@@ -70,7 +70,7 @@ public class SystemConfigController extends BaseController {
     private Long maxRequestSize;
 
     @GetMapping(value = "/info")
-    @ApiOperation(value = "根据id获取信息")
+    @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
         SystemConfig systemConfig = systemConfigService.getSystemConfig(id);
@@ -84,7 +84,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @GetMapping(value = "/list")
-    @ApiOperation(value = "获取信息列表")
+    @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
         String companyName = StringUtil.getInfo(search, "companyName");
@@ -93,7 +93,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @PostMapping(value = "/add")
-    @ApiOperation(value = "新增")
+    @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int insert = systemConfigService.insertSystemConfig(obj, request);
@@ -101,7 +101,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @PutMapping(value = "/update")
-    @ApiOperation(value = "修改")
+    @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int update = systemConfigService.updateSystemConfig(obj, request);
@@ -109,7 +109,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @DeleteMapping(value = "/delete")
-    @ApiOperation(value = "删除")
+    @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.deleteSystemConfig(id, request);
@@ -117,7 +117,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @DeleteMapping(value = "/deleteBatch")
-    @ApiOperation(value = "批量删除")
+    @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.batchDeleteSystemConfig(ids, request);
@@ -125,7 +125,7 @@ public class SystemConfigController extends BaseController {
     }
 
     @GetMapping(value = "/checkIsNameExist")
-    @ApiOperation(value = "检查名称是否存在")
+    @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -144,7 +144,7 @@ public class SystemConfigController extends BaseController {
      * @return
      */
     @GetMapping(value = "/getCurrentInfo")
-    @ApiOperation(value = "获取当前租户的配置信息")
+    @Operation(summary = "获取当前租户的配置信息")
     public BaseResponseInfo getCurrentInfo(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try{
@@ -168,7 +168,7 @@ public class SystemConfigController extends BaseController {
      * @throws Exception
      */
     @GetMapping(value = "/fileSizeLimit")
-    @ApiOperation(value = "获取文件大小限制")
+    @Operation(summary = "获取文件大小限制")
     public BaseResponseInfo fileSizeLimit(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try{
@@ -195,7 +195,7 @@ public class SystemConfigController extends BaseController {
      * @return
      */
     @PostMapping(value = "/upload")
-    @ApiOperation(value = "文件上传统一方法")
+    @Operation(summary = "文件上传统一方法")
     public BaseResponseInfo upload(HttpServletRequest request, HttpServletResponse response) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -247,7 +247,7 @@ public class SystemConfigController extends BaseController {
      * @param response
      */
     @GetMapping(value = "/static/**")
-    @ApiOperation(value = "预览图片&下载文件")
+    @Operation(summary = "预览图片&下载文件")
     public void view(HttpServletRequest request, HttpServletResponse response) {
         if (!hasStaticAccess(request)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -327,7 +327,7 @@ public class SystemConfigController extends BaseController {
      * @param response
      */
     @GetMapping(value = "/static/mini/**")
-    @ApiOperation(value = "预览缩略图&下载文件")
+    @Operation(summary = "预览缩略图&下载文件")
     public void viewMini(HttpServletRequest request, HttpServletResponse response) {
         if (!hasStaticAccess(request)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -393,7 +393,7 @@ public class SystemConfigController extends BaseController {
      * @param response
      */
     @PostMapping(value = "/exportExcelByParam")
-    @ApiOperation(value = "生成excel表格")
+    @Operation(summary = "生成excel表格")
     public void exportExcelByParam(@RequestBody JSONObject jsonObject,
                                    HttpServletResponse response) {
         try {

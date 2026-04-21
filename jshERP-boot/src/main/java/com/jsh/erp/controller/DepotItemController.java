@@ -20,8 +20,8 @@ import com.jsh.erp.service.SystemConfigService;
 import com.jsh.erp.service.UnitService;
 import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import jxl.Sheet;
 import jxl.Workbook;
 import org.slf4j.Logger;
@@ -30,9 +30,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
  */
 @RestController
 @RequestMapping(value = "/depotItem")
-@Api(tags = {"单据明细"})
+@Tag(name = "单据明细")
 public class DepotItemController {
     private Logger logger = LoggerFactory.getLogger(DepotItemController.class);
 
@@ -84,7 +84,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/findDetailByDepotIdsAndMaterialId")
-    @ApiOperation(value = "根据仓库和商品查询单据列表")
+    @Operation(summary = "根据仓库和商品查询单据列表")
     public String findDetailByDepotIdsAndMaterialId(
             @RequestParam(value = Constants.PAGE_SIZE, required = false) Integer pageSize,
             @RequestParam(value = Constants.CURRENT_PAGE, required = false) Integer currentPage,
@@ -149,7 +149,7 @@ public class DepotItemController {
      * @throws Exception
      */
     @GetMapping(value = "/findStockByDepotAndBarCode")
-    @ApiOperation(value = "根据商品条码和仓库id查询库存数量")
+    @Operation(summary = "根据商品条码和仓库id查询库存数量")
     public BaseResponseInfo findStockByDepotAndBarCode(
             @RequestParam(value = "depotId",required = false) Long depotId,
             @RequestParam("barCode") String barCode,
@@ -192,7 +192,7 @@ public class DepotItemController {
      * @throws Exception
      */
     @GetMapping(value = "/getDetailList")
-    @ApiOperation(value = "单据明细列表")
+    @Operation(summary = "单据明细列表")
     public BaseResponseInfo getDetailList(@RequestParam("headerId") Long headerId,
                               @RequestParam(value = "mpList", required = false) String mpList,
                               @RequestParam(value = "linkType", required = false) String linkType,
@@ -347,7 +347,7 @@ public class DepotItemController {
      * @throws Exception
      */
     @GetMapping(value = "/getInOutStock")
-    @ApiOperation(value = "进销存统计查询")
+    @Operation(summary = "进销存统计查询")
     public BaseResponseInfo getInOutStock(@RequestParam("currentPage") Integer currentPage,
                                       @RequestParam("pageSize") Integer pageSize,
                                       @RequestParam(value = "depotIds",required = false) String depotIds,
@@ -444,7 +444,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/getInOutStockCountMoney")
-    @ApiOperation(value = "进销存统计总计金额")
+    @Operation(summary = "进销存统计总计金额")
     public BaseResponseInfo getInOutStockCountMoney(@RequestParam(value = "depotIds",required = false) String depotIds,
                                             @RequestParam(value = "categoryId", required = false) Long categoryId,
                                             @RequestParam("endTime") String endTime,
@@ -504,7 +504,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/getMaterialDepotStockByParam")
-    @ApiOperation(value = "根据仓库和商品查询库存分布情况-带时间段参数")
+    @Operation(summary = "根据仓库和商品查询库存分布情况-带时间段参数")
     public String getMaterialDepotStockByParam(
             @RequestParam(value = "depotIds",required = false) String depotIds,
             @RequestParam("materialId") Long mId,
@@ -589,7 +589,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/buyIn")
-    @ApiOperation(value = "采购统计")
+    @Operation(summary = "采购统计")
     public BaseResponseInfo buyIn(@RequestParam("currentPage") Integer currentPage,
                                   @RequestParam("pageSize") Integer pageSize,
                                   @RequestParam("beginTime") String beginTime,
@@ -682,7 +682,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/retailOut")
-    @ApiOperation(value = "零售统计")
+    @Operation(summary = "零售统计")
     public BaseResponseInfo retailOut(@RequestParam("currentPage") Integer currentPage,
                                       @RequestParam("pageSize") Integer pageSize,
                                       @RequestParam("beginTime") String beginTime,
@@ -776,7 +776,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/saleOut")
-    @ApiOperation(value = "销售统计")
+    @Operation(summary = "销售统计")
     public BaseResponseInfo saleOut(@RequestParam("currentPage") Integer currentPage,
                                     @RequestParam("pageSize") Integer pageSize,
                                     @RequestParam("beginTime") String beginTime,
@@ -880,7 +880,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/findStockWarningCount")
-    @ApiOperation(value = "库存预警报表")
+    @Operation(summary = "库存预警报表")
     public BaseResponseInfo findStockWarningCount(@RequestParam("currentPage") Integer currentPage,
                                                   @RequestParam("pageSize") Integer pageSize,
                                                   @RequestParam("materialParam") String materialParam,
@@ -944,7 +944,7 @@ public class DepotItemController {
      * @throws Exception
      */
     @GetMapping(value = "/buyOrSalePrice")
-    @ApiOperation(value = "统计采购、销售、零售的总金额")
+    @Operation(summary = "统计采购、销售、零售的总金额")
     public BaseResponseInfo buyOrSalePrice(HttpServletRequest request,
                                            HttpServletResponse response)throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
@@ -1038,7 +1038,7 @@ public class DepotItemController {
      * @return
      */
     @GetMapping(value = "/getBatchNumberList")
-    @ApiOperation(value = "获取批次商品列表信息")
+    @Operation(summary = "获取批次商品列表信息")
     public BaseResponseInfo getBatchNumberList(@RequestParam("name") String name,
                                                @RequestParam("depotItemId") Long depotItemId,
                                                @RequestParam("depotId") Long depotId,
@@ -1178,7 +1178,7 @@ public class DepotItemController {
      * 过磅重量差异报表（长款短款）
      */
     @GetMapping(value = "/weightDifference")
-    @ApiOperation(value = "长短款报表 — 采购入库理论重量 vs 销售出库过磅重量差异")
+    @Operation(summary = "长短款报表 — 采购入库理论重量 vs 销售出库过磅重量差异")
     public BaseResponseInfo weightDifference(@RequestParam("currentPage") Integer currentPage,
                                              @RequestParam("pageSize") Integer pageSize,
                                              @RequestParam(value = "beginTime", required = false) String beginTime,

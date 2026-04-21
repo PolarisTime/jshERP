@@ -1,5 +1,6 @@
 <configuration>
-    <property name="LOG_FILE" value="${logs.home}/jshERP"/>
+    <property name="LOG_HOME" value="${logs.home:-./logs}"/>
+    <property name="LOG_FILE" value="${LOG_HOME}/jshERP"/>
     <property name="LOG_PATTERN" value="%d{yyyy/MM/dd-HH:mm:ss} %-5level [%thread] %logger - %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -13,13 +14,11 @@
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
             <maxHistory>10</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
     </appender>
 

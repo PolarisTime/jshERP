@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -30,7 +30,7 @@ public class PrintTemplateService {
     /**
      * 应用启动时初始化打印模板目录结构
      */
-    @javax.annotation.PostConstruct
+    @jakarta.annotation.PostConstruct
     public void initTemplateDirectories() {
         try {
             for (String dirName : new java.util.LinkedHashSet<>(BILL_TYPE_DIR_MAP.values())) {

@@ -4,14 +4,14 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.datasource.vo.CustomerStatementItemVo;
 import com.jsh.erp.service.CustomerStatementService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/customerStatement")
-@Api(tags = {"客户对账单"})
+@Tag(name = "客户对账单")
 public class CustomerStatementController extends BaseController {
 
     private final Logger logger = LoggerFactory.getLogger(CustomerStatementController.class);
@@ -35,7 +35,7 @@ public class CustomerStatementController extends BaseController {
      * 未对账销售出库明细列表（按 depot_item 行）
      */
     @GetMapping("/unreconciledItems")
-    @ApiOperation(value = "未对账明细列表")
+    @Operation(summary = "未对账明细列表")
     public BaseResponseInfo listUnreconciledItems(
             @RequestParam(value = "organId", required = false) Long organId,
             @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -66,7 +66,7 @@ public class CustomerStatementController extends BaseController {
      * 生成对账单
      */
     @PostMapping("/generate")
-    @ApiOperation(value = "生成对账单")
+    @Operation(summary = "生成对账单")
     public BaseResponseInfo generate(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -91,7 +91,7 @@ public class CustomerStatementController extends BaseController {
      * 对账单列表
      */
     @GetMapping("/list")
-    @ApiOperation(value = "对账单列表")
+    @Operation(summary = "对账单列表")
     public BaseResponseInfo list(
             @RequestParam(value = "organId", required = false) Long organId,
             @RequestParam(value = "statementNo", required = false) String statementNo,
@@ -125,7 +125,7 @@ public class CustomerStatementController extends BaseController {
      * 对账单详情（含明细行）
      */
     @GetMapping("/detail")
-    @ApiOperation(value = "对账单详情")
+    @Operation(summary = "对账单详情")
     public BaseResponseInfo detail(@RequestParam("id") Long id, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -143,7 +143,7 @@ public class CustomerStatementController extends BaseController {
      * 拆分未对账来源明细
      */
     @PutMapping("/splitItem")
-    @ApiOperation(value = "拆分未对账来源明细")
+    @Operation(summary = "拆分未对账来源明细")
     public BaseResponseInfo splitItem(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -171,7 +171,7 @@ public class CustomerStatementController extends BaseController {
      * 审核 / 反审核
      */
     @PutMapping("/audit")
-    @ApiOperation(value = "审核/反审核")
+    @Operation(summary = "审核/反审核")
     public BaseResponseInfo audit(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -192,7 +192,7 @@ public class CustomerStatementController extends BaseController {
      * 签署 / 取消签署
      */
     @PutMapping("/sign")
-    @ApiOperation(value = "签署/取消签署")
+    @Operation(summary = "签署/取消签署")
     public BaseResponseInfo sign(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -213,7 +213,7 @@ public class CustomerStatementController extends BaseController {
      * 更新附件路径
      */
     @PutMapping("/updateAttachment")
-    @ApiOperation(value = "更新附件")
+    @Operation(summary = "更新附件")
     public BaseResponseInfo updateAttachment(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -234,7 +234,7 @@ public class CustomerStatementController extends BaseController {
      * 删除对账单（软删，恢复明细为未对账状态）
      */
     @DeleteMapping("/delete")
-    @ApiOperation(value = "删除对账单")
+    @Operation(summary = "删除对账单")
     public BaseResponseInfo delete(@RequestParam("id") Long id, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -250,7 +250,7 @@ public class CustomerStatementController extends BaseController {
     }
 
     @GetMapping(value = "/unpaidList")
-    @ApiOperation(value = "未收完的对账单列表")
+    @Operation(summary = "未收完的对账单列表")
     public BaseResponseInfo unpaidList(@RequestParam(value = "organId", required = false) Long organId, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {

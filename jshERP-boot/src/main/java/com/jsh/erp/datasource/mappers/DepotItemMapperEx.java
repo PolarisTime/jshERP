@@ -1,6 +1,6 @@
 package com.jsh.erp.datasource.mappers;
 
-import com.baomidou.mybatisplus.annotation.SqlParser;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.datasource.vo.DepotItemStockWarningCount;
 import com.jsh.erp.datasource.vo.DepotItemVo4Stock;
@@ -35,7 +35,7 @@ public interface DepotItemMapperEx {
             @Param("type") Integer type,
             @Param("remark") String remark);
 
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     List<DepotItemVo4DetailByTypeAndMId> findDetailByDepotIdsAndMaterialIdList(
             @Param("depotIdArray") Long[] depotIdArray,
             @Param("forceFlag") Boolean forceFlag,
@@ -49,7 +49,7 @@ public interface DepotItemMapperEx {
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     Long findDetailByDepotIdsAndMaterialIdCount(
             @Param("depotIdArray") Long[] depotIdArray,
             @Param("forceFlag") Boolean forceFlag,
@@ -79,7 +79,7 @@ public interface DepotItemMapperEx {
             @Param("categoryIdList") List<Long> categoryIdList,
             @Param("endTime") String endTime);
 
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     List<DepotItemVo4WithInfoEx> getListWithBuyOrSale(
             @Param("materialParam") String materialParam,
             @Param("billType") String billType,
@@ -94,7 +94,7 @@ public interface DepotItemMapperEx {
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     int getListWithBuyOrSaleCount(
             @Param("materialParam") String materialParam,
             @Param("billType") String billType,
@@ -133,7 +133,7 @@ public interface DepotItemMapperEx {
             @Param("forceFlag") Boolean forceFlag,
             @Param("sumType") String sumType);
 
-    @SqlParser(filter = true)
+    @InterceptorIgnore(tenantLine = "true")
     BigDecimal buyOrSalePriceTotal(
             @Param("type") String type,
             @Param("subType") String subType,

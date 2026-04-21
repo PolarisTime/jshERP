@@ -4,13 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.datasource.entities.PrintTemplate;
 import com.jsh.erp.service.PrintTemplateService;
 import com.jsh.erp.utils.BaseResponseInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.*;
 
 /**
@@ -18,7 +18,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping(value = "/printTemplate")
-@Api(tags = {"打印模板"})
+@Tag(name = "打印模板")
 public class PrintTemplateController {
     private Logger logger = LoggerFactory.getLogger(PrintTemplateController.class);
 
@@ -26,7 +26,7 @@ public class PrintTemplateController {
     private PrintTemplateService printTemplateService;
 
     @GetMapping(value = "/getByBillType")
-    @ApiOperation(value = "获取指定单据类型的启用模板")
+    @Operation(summary = "获取指定单据类型的启用模板")
     public BaseResponseInfo getByBillType(@RequestParam("billType") String billType) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -42,7 +42,7 @@ public class PrintTemplateController {
     }
 
     @GetMapping(value = "/listByBillType")
-    @ApiOperation(value = "获取指定单据类型的所有模板列表（合并数据库+文件模板）")
+    @Operation(summary = "获取指定单据类型的所有模板列表（合并数据库+文件模板）")
     public BaseResponseInfo listByBillType(@RequestParam("billType") String billType) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -81,7 +81,7 @@ public class PrintTemplateController {
     }
 
     @PostMapping(value = "/save")
-    @ApiOperation(value = "保存打印模板")
+    @Operation(summary = "保存打印模板")
     public BaseResponseInfo save(@RequestBody JSONObject obj) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -110,7 +110,7 @@ public class PrintTemplateController {
     }
 
     @DeleteMapping(value = "/delete")
-    @ApiOperation(value = "删除打印模板")
+    @Operation(summary = "删除打印模板")
     public BaseResponseInfo delete(@RequestParam(value = "id", required = false) Long id,
                                    @RequestParam(value = "source", required = false) String source,
                                    @RequestParam(value = "billType", required = false) String billType,
@@ -133,7 +133,7 @@ public class PrintTemplateController {
     }
 
     @GetMapping(value = "/getFieldMeta")
-    @ApiOperation(value = "获取单据类型的可用字段元数据")
+    @Operation(summary = "获取单据类型的可用字段元数据")
     public BaseResponseInfo getFieldMeta(@RequestParam("billType") String billType) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {

@@ -8,14 +8,14 @@ import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
  */
 @RestController
 @RequestMapping(value = "/freightCarrier")
-@Api(tags = {"运费结算方"})
+@Tag(name = "运费结算方")
 public class FreightCarrierController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(FreightCarrierController.class);
 
@@ -38,7 +38,7 @@ public class FreightCarrierController extends BaseController {
      * 结算方列表查询（分页）
      */
     @GetMapping(value = "/list")
-    @ApiOperation(value = "获取结算方列表")
+    @Operation(summary = "获取结算方列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request) throws Exception {
         String name = StringUtil.getInfo(search, "name");
@@ -50,7 +50,7 @@ public class FreightCarrierController extends BaseController {
      * 查询所有启用的结算方（下拉框用）
      */
     @GetMapping(value = "/selectAll")
-    @ApiOperation(value = "获取全部结算方")
+    @Operation(summary = "获取全部结算方")
     public BaseResponseInfo selectAll(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -69,7 +69,7 @@ public class FreightCarrierController extends BaseController {
      * 新增结算方
      */
     @PostMapping(value = "/add")
-    @ApiOperation(value = "新增结算方")
+    @Operation(summary = "新增结算方")
     public String add(@RequestBody FreightCarrier freightCarrier,
                       HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -85,7 +85,7 @@ public class FreightCarrierController extends BaseController {
      * 更新结算方
      */
     @PutMapping(value = "/update")
-    @ApiOperation(value = "更新结算方")
+    @Operation(summary = "更新结算方")
     public String update(@RequestBody FreightCarrier freightCarrier,
                          HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -101,7 +101,7 @@ public class FreightCarrierController extends BaseController {
      * 删除结算方
      */
     @DeleteMapping(value = "/delete")
-    @ApiOperation(value = "删除结算方")
+    @Operation(summary = "删除结算方")
     public String delete(@RequestParam("id") Long id,
                          HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
@@ -117,7 +117,7 @@ public class FreightCarrierController extends BaseController {
      * 批量删除结算方
      */
     @DeleteMapping(value = "/deleteBatch")
-    @ApiOperation(value = "批量删除结算方")
+    @Operation(summary = "批量删除结算方")
     public String deleteBatch(@RequestParam("ids") String ids,
                               HttpServletRequest request) throws Exception {
         Map<String, Object> objectMap = new HashMap<>();

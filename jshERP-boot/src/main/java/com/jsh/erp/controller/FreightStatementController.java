@@ -3,21 +3,21 @@ package com.jsh.erp.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.service.FreightStatementService;
 import com.jsh.erp.utils.BaseResponseInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/freightStatement")
-@Api(tags = {"物流对账单"})
+@Tag(name = "物流对账单")
 public class FreightStatementController {
     private Logger logger = LoggerFactory.getLogger(FreightStatementController.class);
 
@@ -25,7 +25,7 @@ public class FreightStatementController {
     private FreightStatementService freightStatementService;
 
     @GetMapping("/unreconciledItems")
-    @ApiOperation(value = "未对账物流单列表")
+    @Operation(summary = "未对账物流单列表")
     public BaseResponseInfo unreconciledItems(
             @RequestParam(value = "carrierId", required = false) Long carrierId,
             @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -51,7 +51,7 @@ public class FreightStatementController {
     }
 
     @PostMapping("/generate")
-    @ApiOperation(value = "生成物流对账单")
+    @Operation(summary = "生成物流对账单")
     public BaseResponseInfo generate(@RequestBody JSONObject params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -70,7 +70,7 @@ public class FreightStatementController {
     }
 
     @GetMapping("/list")
-    @ApiOperation(value = "物流对账单列表")
+    @Operation(summary = "物流对账单列表")
     public BaseResponseInfo list(
             @RequestParam(value = "carrierId", required = false) Long carrierId,
             @RequestParam(value = "status", required = false) String status,
@@ -97,7 +97,7 @@ public class FreightStatementController {
     }
 
     @GetMapping("/detail")
-    @ApiOperation(value = "对账单详情")
+    @Operation(summary = "对账单详情")
     public BaseResponseInfo detail(@RequestParam("id") Long id, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -111,7 +111,7 @@ public class FreightStatementController {
     }
 
     @PutMapping("/audit")
-    @ApiOperation(value = "审核/反审核")
+    @Operation(summary = "审核/反审核")
     public BaseResponseInfo audit(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -127,7 +127,7 @@ public class FreightStatementController {
     }
 
     @PutMapping("/sign")
-    @ApiOperation(value = "签署/取消签署")
+    @Operation(summary = "签署/取消签署")
     public BaseResponseInfo sign(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -143,7 +143,7 @@ public class FreightStatementController {
     }
 
     @PutMapping("/updateAttachment")
-    @ApiOperation(value = "更新附件")
+    @Operation(summary = "更新附件")
     public BaseResponseInfo updateAttachment(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
@@ -159,7 +159,7 @@ public class FreightStatementController {
     }
 
     @DeleteMapping("/delete")
-    @ApiOperation(value = "删除对账单")
+    @Operation(summary = "删除对账单")
     public BaseResponseInfo delete(@RequestParam("id") Long id, HttpServletRequest request) {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
