@@ -91,7 +91,7 @@
     ) ct on 1=1
     left join (
       select
-        SUM(ifnull(dh.discount_last_money,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as deliveredAmount,
+        SUM(ifnull(dh.total_price,0)+ifnull(dh.other_money,0)-ifnull(dh.deposit,0)) as deliveredAmount,
         SUM(ifnull(di_sum.w,0)) as deliveredTonnage
       from jsh_depot_head dh
       left join (

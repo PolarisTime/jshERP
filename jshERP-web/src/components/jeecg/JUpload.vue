@@ -53,6 +53,8 @@
   const uidGenerator=()=>{
     return '-'+parseInt(Math.random()*10000+1,10);
   }
+  const ALLOWED_UPLOAD_EXTENSIONS = ['.gif', '.jpg', '.jpeg', '.png', '.pdf', '.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar', '.mp3', '.mp4', '.avi']
+  const ALLOWED_IMAGE_EXTENSIONS = ['.gif', '.jpg', '.jpeg', '.png']
   const getFileName=(path)=>{
     if(!path){
       return '';
@@ -66,6 +68,16 @@
       decodedPath = decodedPath.replace(reg,"/");
     }
     return decodedPath.substring(decodedPath.lastIndexOf("/")+1);
+  }
+  const getFileExt=(fileName)=>{
+    if(!fileName){
+      return ''
+    }
+    const lastDot = fileName.lastIndexOf('.')
+    if(lastDot < 0){
+      return ''
+    }
+    return fileName.substring(lastDot).toLowerCase()
   }
   const normalizeUploadFile=(file)=>{
     const responsePath = file && file.response ? file.response.data : '';
@@ -264,25 +276,48 @@
         }
         this.$emit('change', path);
       },
-      beforeUpload(file){
-        this.uploadGoOn=true
-        let fileType = file.type;
-        let fileSize = file.size;
+      validateUploadFile(file) {
+        this.uploadGoOn = true
+        if(!file){
+          this.uploadGoOn = false
+          return false
+        }
+        const fileName = file.name || ''
+        const fileExt = getFileExt(fileName)
+        let fileType = file.type || ''
+        let fileSize = file.size || 0
+        if(!fileName || !fileExt) {
+          this.$message.warning('请上传带合法后缀名的文件');
+          this.uploadGoOn=false
+          return false;
+        }
+        if(ALLOWED_UPLOAD_EXTENSIONS.indexOf(fileExt) < 0) {
+          this.$message.warning('当前仅支持上传：' + ALLOWED_UPLOAD_EXTENSIONS.join('、'));
+          this.uploadGoOn=false
+          return false;
+        }
+        if(fileSize <= 0) {
+          this.$message.warning('不允许上传空文件');
+          this.uploadGoOn=false
+          return false;
+        }
         if(this.fileType===FILE_TYPE_IMG){
-          if(fileType.indexOf('image')<0){
-            this.$message.warning('请上传图片');
+          if(ALLOWED_IMAGE_EXTENSIONS.indexOf(fileExt) < 0 || (fileType && fileType.indexOf('image')<0)){
+            this.$message.warning('请上传 jpg、jpeg、png、gif 格式图片');
             this.uploadGoOn=false
             return false;
           }
         }
-        //验证文件大小
-        if(fileSize>this.sizeLimit) {
+        if(this.sizeLimit && fileSize>this.sizeLimit) {
           let parseSizeLimit = (this.sizeLimit/1024/1024).toFixed(2)
           this.$message.warning('抱歉，文件大小不能超过' + parseSizeLimit + 'M');
           this.uploadGoOn=false
           return false;
         }
         return true
+      },
+      beforeUpload(file){
+        return this.validateUploadFile(file)
       },
       handleChange(info) {
         console.log("--文件列表改变--")
@@ -296,6 +331,9 @@
           }
           if(info.file.response.code === 200){
             fileList = fileList.map((file) => normalizeUploadFile(file));
+          } else {
+            fileList = fileList.filter(file => file.uid !== info.file.uid)
+            this.$message.error((info.file.response && (info.file.response.data || info.file.response.msg)) || (info.file.name + ' 上传失败'));
           }
           //this.$message.success(`${info.file.name} 上传成功!`);
         }else if (info.file.status === 'error') {
@@ -327,74 +365,126 @@
         //如有需要新增 删除逻辑
         console.log(file)
       },
-      /** 剪贴板粘贴图片上传 */
-      handlePaste(e) {
-        if (this.disabled) return
-        const items = (e.clipboardData || e.originalEvent.clipboardData).items
-        if (!items) return
+      getClipboardFiles(e) {
+        const clipboardData = e && (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData))
+        if(!clipboardData) {
+          return []
+        }
+        let files = []
+        const items = clipboardData.items || []
         for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') === -1) continue
-          e.preventDefault()
-          const blob = items[i].getAsFile()
-          if (!blob) continue
-          // 校验大小
-          if (this.sizeLimit && blob.size > this.sizeLimit) {
-            this.$message.warning('粘贴图片超过大小限制')
-            return
+          const item = items[i]
+          if (!item || item.kind !== 'file') {
+            continue
           }
-          // 构造文件名（白名单校验扩展名）
-          const allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp']
-          const ext = blob.type.split('/')[1] || 'png'
-          if (!allowedExts.includes(ext.toLowerCase())) {
-            this.$message.warning('不支持的图片格式')
-            return
+          const file = item.getAsFile && item.getAsFile()
+          if (file) {
+            files.push(this.normalizeClipboardFile(file, files.length))
           }
-          const fileName = 'paste_' + Date.now() + '.' + ext
-          const file = new File([blob], fileName, { type: blob.type })
-          // 通过 FormData 上传
+        }
+        if (!files.length && clipboardData.files && clipboardData.files.length) {
+          files = Array.from(clipboardData.files).map((file, index) => this.normalizeClipboardFile(file, index))
+        }
+        return files.filter(file => !!file)
+      },
+      normalizeClipboardFile(file, index) {
+        if (!file) {
+          return null
+        }
+        if (file.name) {
+          return file
+        }
+        const ext = (file.type && file.type.split('/')[1]) || 'png'
+        return new File([file], 'paste_' + Date.now() + '_' + index + '.' + ext, { type: file.type || '' })
+      },
+      uploadPastedFile(file) {
+        return new Promise((resolve, reject) => {
           const formData = new FormData()
           formData.append('file', file)
           formData.append('biz', this.bizPath)
+          formData.append('billId', this.billId || '')
           const xhr = new XMLHttpRequest()
           xhr.open('POST', this.uploadAction)
-          // 复用 token header
           const token = this.headers['X-Access-Token']
-          if (token) xhr.setRequestHeader('X-Access-Token', token)
+          if (token) {
+            xhr.setRequestHeader('X-Access-Token', token)
+          }
           xhr.onload = () => {
-            if (xhr.status === 200) {
-              try {
-                const res = JSON.parse(xhr.responseText)
-                if (res.code === 200) {
-                  const filePath = res.data
-                  const url = getFileAccessHttpUrl(filePath)
-                  this.fileList = this.fileList.concat(normalizeUploadFile({
-                    uid: uidGenerator(),
-                    name: fileName,
-                    status: 'done',
-                    url: url,
-                    response: { code: 200, data: filePath }
-                  }))
-                  if (this.number > 0) {
-                    this.fileList = this.fileList.slice(-this.number)
-                  }
-                  if (this.returnUrl) {
-                    this.handlePathChange()
-                  }
-                  this.$message.success('粘贴图片上传成功')
-                } else {
-                  this.$message.error('粘贴上传失败：' + (res.msg || ''))
-                }
-              } catch (err) {
-                this.$message.error('粘贴上传响应解析失败')
+            if (xhr.status !== 200) {
+              reject(new Error('upload_failed'))
+              return
+            }
+            try {
+              const res = JSON.parse(xhr.responseText)
+              if (res.code === 200) {
+                resolve({
+                  uid: uidGenerator(),
+                  name: file.name,
+                  status: 'done',
+                  response: { code: 200, data: res.data }
+                })
+              } else {
+                reject(new Error(res.msg || 'upload_failed'))
               }
-            } else {
-              this.$message.error('粘贴上传请求失败')
+            } catch (e) {
+              reject(new Error('parse_failed'))
             }
           }
-          xhr.onerror = () => this.$message.error('粘贴上传网络错误')
+          xhr.onerror = () => reject(new Error('network_failed'))
           xhr.send(formData)
-          return // 只处理第一张图片
+        })
+      },
+      emitFileListChange() {
+        if(this.returnUrl){
+          this.handlePathChange()
+        }else{
+          this.newFileList = [];
+          for(var a=0;a<this.fileList.length;a++){
+            var fileJson = {
+              fileName:this.fileList[a].name,
+              filePath:this.fileList[a].response.data,
+              fileSize:this.fileList[a].size
+            };
+            this.newFileList.push(fileJson);
+          }
+          this.$emit('change', this.newFileList);
         }
+      },
+      async handlePaste(e) {
+        if (this.disabled) return false
+        const files = this.getClipboardFiles(e)
+        if (!files.length) {
+          return false
+        }
+        e.preventDefault()
+        const validFiles = files.filter(file => this.validateUploadFile(file))
+        if (!validFiles.length) {
+          return true
+        }
+        const uploadedFiles = []
+        for (let i = 0; i < validFiles.length; i++) {
+          const file = validFiles[i]
+          try {
+            const uploadResult = await this.uploadPastedFile(file)
+            uploadedFiles.push(normalizeUploadFile({
+              ...uploadResult,
+              size: file.size,
+              type: file.type
+            }))
+          } catch (err) {
+            this.$message.error(file.name + ' 粘贴上传失败')
+          }
+        }
+        if (!uploadedFiles.length) {
+          return true
+        }
+        this.fileList = this.fileList.concat(uploadedFiles)
+        if (this.number > 0) {
+          this.fileList = this.fileList.slice(-this.number)
+        }
+        this.emitFileListChange()
+        this.$message.success('粘贴上传成功')
+        return true
       },
       handlePreview(file){
         let postfix = file.name.substring(file.name.lastIndexOf('.'))

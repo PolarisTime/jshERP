@@ -1,6 +1,7 @@
 package com.jsh.erp.filter;
 
 import com.jsh.erp.service.RedisService;
+import com.jsh.erp.service.UserService;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -13,16 +14,22 @@ import java.io.IOException;
 
 @WebFilter(filterName = "LogCostFilter", urlPatterns = {"/*"},
         initParams = {@WebInitParam(name = "filterPath",
-                      value = "/jshERP-boot/platformConfig/getPlatform#/jshERP-boot/v2/api-docs#/jshERP-boot/webjars#" +
+                      value = "/jshERP-boot/platformConfig/getPlatform/name#/jshERP-boot/platformConfig/getPlatform/url#" +
+                              "/jshERP-boot/platformConfig/getPlatform/registerFlag#/jshERP-boot/platformConfig/getPlatform/checkcodeFlag#" +
+                              "/jshERP-boot/v2/api-docs#/jshERP-boot/webjars#" +
                               "/jshERP-boot/api/plugin/wechat/weChat/share#" +
                               "/jshERP-boot/api/plugin/general-ledger/pdf/voucher#/jshERP-boot/api/plugin/tenant-statistics/tenantClean")})
 public class LogCostFilter implements Filter {
 
     private static final String FILTER_PATH = "filterPath";
+    private static final String STATIC_PATH = "/systemConfig/static";
+    private static final String WEBJARS_PATH = "/jshERP-boot/webjars";
 
     private String[] allowUrls;
     @Resource
     private RedisService redisService;
+    @Resource
+    private UserService userService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -39,43 +46,76 @@ public class LogCostFilter implements Filter {
         HttpServletResponse servletResponse = (HttpServletResponse) response;
         String requestUrl = servletRequest.getRequestURI();
         if(requestUrl.contains("..") || requestUrl.contains("%2e") || requestUrl.contains("%2E")) {
-            servletResponse.setStatus(500);
-            servletResponse.getWriter().write("loginOut");
+            writeLoginOut(servletRequest, servletResponse);
             return;
         }
-        //具体，比如：处理若用户未登录，则跳转到登录页
-        Object userId = redisService.getObjectFromSessionByKey(servletRequest,"userId");
-        if(userId!=null) { //如果已登录，不阻止
+        if (isPublicPath(requestUrl)) {
             chain.doFilter(request, response);
             return;
         }
-        // 文件访问支持URL参数token鉴权（用于图片/PDF预览）
-        if(requestUrl.startsWith("/jshERP-boot/systemConfig/static")) {
-            String tokenParam = servletRequest.getParameter("token");
-            if(tokenParam != null && !tokenParam.isEmpty()) {
-                Object tokenUser = redisService.getObjectFromSessionByToken(tokenParam, "userId");
-                if(tokenUser != null) {
-                    chain.doFilter(request, response);
-                    return;
-                }
+        if (isStaticPath(servletRequest)) {
+            Object staticUserId = redisService.getObjectFromStaticSessionByKey(servletRequest, "userId");
+            if (isValidUser(staticUserId)) {
+                chain.doFilter(request, response);
+                return;
             }
+            writeLoginOut(servletRequest, servletResponse);
+            return;
         }
+        Object userId = redisService.getObjectFromSessionByKey(servletRequest,"userId");
+        if(isValidUser(userId)) {
+            chain.doFilter(request, response);
+            return;
+        }
+        if(userId!=null) {
+            redisService.deleteSessionByRequest(servletRequest);
+        }
+        writeLoginOut(servletRequest, servletResponse);
+    }
+
+    private boolean isValidUser(Object userId) {
+        if (userId == null) {
+            return false;
+        }
+        try {
+            Long currentUserId = Long.parseLong(userId.toString());
+            return userService.isUserSessionAvailable(currentUserId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isStaticPath(HttpServletRequest request) {
+        String requestUrl = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        String prefix = (contextPath == null ? "" : contextPath) + STATIC_PATH;
+        return requestUrl.equals(prefix) || requestUrl.startsWith(prefix + "/");
+    }
+
+    private boolean isPublicPath(String requestUrl) {
         if (requestUrl.equals("/jshERP-boot/doc.html") || requestUrl.equals("/jshERP-boot/user/login")
                 || requestUrl.equals("/jshERP-boot/user/register") || requestUrl.equals("/jshERP-boot/user/weixinLogin")
                 || requestUrl.equals("/jshERP-boot/user/weixinBind") || requestUrl.equals("/jshERP-boot/user/registerUser")
                 || requestUrl.equals("/jshERP-boot/user/randomImage")) {
-            chain.doFilter(request, response);
-            return;
+            return true;
         }
         if (null != allowUrls && allowUrls.length > 0) {
             for (String url : allowUrls) {
-                if (requestUrl.startsWith(url)) {
-                    chain.doFilter(request, response);
-                    return;
+                if (WEBJARS_PATH.equals(url)) {
+                    if (requestUrl.equals(url) || requestUrl.startsWith(url + "/")) {
+                        return true;
+                    }
+                } else if (requestUrl.equals(url)) {
+                    return true;
                 }
             }
         }
-        servletResponse.setStatus(500);
+        return false;
+    }
+
+    private void writeLoginOut(HttpServletRequest request, HttpServletResponse servletResponse) throws IOException {
+        servletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        String requestUrl = request.getRequestURI();
         if(!requestUrl.equals("/jshERP-boot/user/logout") && !requestUrl.equals("/jshERP-boot/function/findMenuByPNumber")) {
             servletResponse.getWriter().write("loginOut");
         }

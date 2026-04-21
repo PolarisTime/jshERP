@@ -23,7 +23,7 @@
               </a-col>
               <a-col :md="6" :sm="24">
                 <a-form-item label="商品信息" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input placeholder="请输入条码、名称、助记码、规格、型号等信息" v-model="queryParam.materialParam"></a-input>
+                  <a-input placeholder="请输入条码、名称、助记码、规格、材质等信息" v-model="queryParam.materialParam"></a-input>
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24" >
@@ -194,7 +194,7 @@
           {title: '条码', dataIndex: 'mBarCode', width: 100, sorter: (a, b) => a.mBarCode - b.mBarCode},
           {title: '名称', dataIndex: 'name', width: 140, ellipsis:true},
           {title: '规格', dataIndex: 'standard', width: 100, ellipsis:true},
-          {title: '型号', dataIndex: 'model', width: 100, ellipsis:true},
+          {title: '材质', dataIndex: 'model', width: 100, ellipsis:true},
           {title: '颜色', dataIndex: 'color', width: 60, ellipsis:true},
           {title: '品牌', dataIndex: 'brand', width: 100, ellipsis:true},
           {title: '制造商', dataIndex: 'mfrs', width: 100, ellipsis:true},
@@ -308,7 +308,7 @@
       },
       exportExcel() {
         let list = []
-        let head = '条码,名称,规格,型号,颜色,品牌,制造商,类别,仓位货架,单位,成本价,初始库存,库存,库存金额,重量'
+        let head = '条码,名称,规格,材质,颜色,品牌,制造商,类别,仓位货架,单位,成本价,初始库存,库存,库存金额,重量'
         for (let i = 0; i < this.dataSource.length; i++) {
           let item = []
           let ds = this.dataSource[i]

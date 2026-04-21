@@ -18,7 +18,6 @@
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrintPro('销售出库')">三联打印-新版</a-button>
       <a-button v-if="billPrintFlag && isShowPrintBtn" @click="handlePrint('销售出库')">三联打印</a-button>
       <a-button v-if="checkFlag && isCanCheck" :loading="confirmLoading" @click="handleOkAndCheck">保存并审核</a-button>
-      <a-button v-if="model.id && model.status == '1' && model.weightApproved != '1'" type="danger" :loading="confirmLoading" @click="handleWeightApprove">重量核准</a-button>
       <a-button type="primary" :loading="confirmLoading" @click="handleOkOnly">保存（Ctrl+S）</a-button>
       <!--发起多级审核-->
       <a-button v-if="!checkFlag" @click="handleWorkflow()" type="primary">提交流程</a-button>
@@ -43,20 +42,6 @@
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :lg="12" :md="12" :sm="24">
-            <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="项目名称">
-              <a-select placeholder="请先选择客户名称" v-decorator="[ 'organId', validatorRules.organId ]" :disabled="!rowCanEdit || projectListForOrgan.length === 0"
-                :dropdownMatchSelectWidth="false" showSearch optionFilterProp="children" @change="handleOrganChange">
-                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
-                  {{ item.projectName || '(无项目名称)' }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-          </a-col>
-        </a-row>
-        <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单据日期">
               <j-date v-decorator="['operTime', validatorRules.operTime]" :show-time="true"/>
@@ -68,18 +53,35 @@
               <a-input placeholder="请输入单据编号" v-decorator.trim="[ 'number', validatorRules.number ]" />
             </a-form-item>
           </a-col>
-          <!-- 合同状态 -->
+          <a-col :lg="6" :md="12" :sm="24">
+          </a-col>
+        </a-row>
+        <a-row class="form-row" :gutter="24">
+          <a-col :lg="12" :md="24" :sm="24">
+            <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="项目名称">
+              <a-select placeholder="请先选择客户名称" v-decorator="[ 'organId', validatorRules.organId ]" :disabled="!rowCanEdit || projectListForOrgan.length === 0"
+                style="width:100%"
+                :dropdownMatchSelectWidth="false"
+                :dropdownStyle="{ minWidth: '520px' }"
+                dropdownClassName="sale-out-project-dropdown"
+                showSearch optionFilterProp="children" @change="handleOrganChange">
+                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                  <span class="project-option-label" :title="item.projectName || '(无项目名称)'">
+                    {{ item.projectName || '(无项目名称)' }}
+                  </span>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
           <a-col :lg="12" :md="24" :sm="24">
             <a-form-item :labelCol="{span:4}" :wrapperCol="{span:20}" label="合同状态">
               <div style="border:1px solid #d9d9d9;border-radius:4px;padding:4px 11px;min-height:32px;line-height:24px;font-size:14px;background:#fff;">
                 <template v-if="contractBalance">
-                  <!-- 无合同 -->
                   <template v-if="!contractBalance.hasContract">
                     <span style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
                     <span style="color:red">吨位超限：{{ Math.abs(contractBalance.remainTonnage) }} 吨&nbsp;</span>
                     <span style="color:#333">未签署合同</span>
                   </template>
-                  <!-- 有合同但超限 -->
                   <template v-else-if="contractBalance.remainAmount < 0 || contractBalance.remainTonnage < 0">
                     <span v-if="contractBalance.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(contractBalance.remainAmount) }} 元&nbsp;</span>
                     <span v-else>剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;</span>
@@ -87,7 +89,6 @@
                     <span v-else>剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;</span>
                     <a-tag color="orange" style="margin-left:4px">已签署合同</a-tag>
                   </template>
-                  <!-- 有合同且正常 -->
                   <template v-else>
                     剩余金额：<b style="color:#1890ff">{{ contractBalance.remainAmount }}</b> 元&nbsp;
                     剩余吨位：<b style="color:#1890ff">{{ contractBalance.remainTonnage }}</b> 吨&nbsp;
@@ -99,6 +100,14 @@
             </a-form-item>
           </a-col>
         </a-row>
+        <div class="sale-out-detail-operator">
+          <column-setting-popover
+            :defColumns="detailDefColumns"
+            :settingDataIndex.sync="detailSettingDataIndex"
+            @change="onDetailColChange"
+            @reset="handleDetailRestDefault"
+          />
+        </div>
         <j-editable-table id="billModal"
           :ref="refKeys[0]"
           :loading="materialTable.loading"
@@ -132,10 +141,7 @@
               </a-col>
             </a-row>
             <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
-              <a-button icon="import" @click="onImport(prefixNo)">导入明细</a-button>
-            </a-row>
-            <a-row v-if="rowCanEdit" :gutter="24" style="float:left;padding-bottom: 5px;padding-left:20px;">
-              <a-button @click="onSearchLinkNumber"><a-icon type="link" />关联采购入库</a-button>
+              <a-button icon="link" @click="onSearchLinkNumber">关联采购入库</a-button>
             </a-row>
           </template>
           <template #depotBatchSet>
@@ -154,35 +160,16 @@
             </a-form-item>
           </a-col>
         </a-row>
+        <div style="display:none;">
+          <a-input v-decorator.trim="[ 'linkNumber' ]" />
+          <a-input v-decorator.trim="[ 'discount' ]" />
+          <a-input v-decorator.trim="[ 'discountMoney' ]" />
+          <a-input v-decorator.trim="[ 'discountLastMoney' ]" />
+          <a-input v-decorator.trim="[ 'otherMoney' ]" />
+        </div>
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="优惠率" data-step="5" data-title="优惠率"
-                         data-intro="针对单据明细中商品总金额进行优惠的比例">
-              <a-input style="width:80%;" placeholder="请输入优惠率" v-decorator.trim="[ 'discount' ]" suffix="%" @change="onChangeDiscount"/>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="收款优惠" data-step="6" data-title="收款优惠"
-                         data-intro="针对单据明细中商品总金额进行优惠的金额">
-              <a-input placeholder="请输入付款优惠" v-decorator.trim="[ 'discountMoney' ]" @change="onChangeDiscountMoney"/>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="优惠后金额" data-step="7" data-title="优惠后金额"
-                         data-intro="针对单据明细中商品总金额进行优惠后的金额">
-              <a-input placeholder="请输入优惠后金额" v-decorator.trim="[ 'discountLastMoney' ]" :readOnly="true"/>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="其它费用" data-step="8" data-title="其它费用"
-                         data-intro="比如快递费、油费、过路费">
-              <a-input placeholder="请输入其它费用" v-decorator.trim="[ 'otherMoney' ]" @change="onChangeOtherMoney"/>
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row class="form-row" :gutter="24">
-          <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算账户" data-step="9" data-title="结算账户"
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="结算账户" data-step="5" data-title="结算账户"
                          data-intro="如果在下拉框中选择多账户，则可以通过多个结算账户进行结算">
               <a-select style="width:80%;" placeholder="请选择结算账户" v-decorator="[ 'accountId', validatorRules.accountId ]"
                         :dropdownMatchSelectWidth="false" allowClear @select="selectAccount">
@@ -212,7 +199,7 @@
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="本次欠款" data-step="10" data-title="本次欠款"
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="本次欠款" data-step="6" data-title="本次欠款"
                          data-intro="欠款产生的费用，后续可以在收款单进行收取">
               <a-input placeholder="请输入本次欠款" v-decorator.trim="[ 'debt', validatorRules.price ]" :readOnly="true"/>
             </a-form-item>
@@ -220,21 +207,7 @@
         </a-row>
         <a-row class="form-row" :gutter="24">
           <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="销售人员" data-step="11" data-title="销售人员"
-                         data-intro="销售人员的数据来自【经手人管理】菜单中的销售员">
-              <j-select-multiple style="width:80%;" placeholder="请选择销售人员" v-model="personList.value" :options="personList.options"/>
-            </a-form-item>
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-          </a-col>
-          <a-col :lg="6" :md="12" :sm="24">
-          </a-col>
-        </a-row>
-        <a-row class="form-row" :gutter="24">
-          <a-col :lg="6" :md="12" :sm="24">
-            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="附件" data-step="12" data-title="附件"
+            <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="附件" data-step="7" data-title="附件"
                          data-intro="可以上传与单据相关的图片、文档，支持多个文件">
               <j-upload v-model="fileList" bizPath="bill" :billId="model.id || ''"></j-upload>
             </a-form-item>
@@ -243,7 +216,6 @@
       </a-form>
     </a-spin>
     <many-account-modal ref="manyAccountModalForm" @ok="manyAccountModalFormOk"></many-account-modal>
-    <import-item-modal ref="importItemModalForm" @ok="importItemModalFormOk"></import-item-modal>
     <link-bill-list ref="linkBillList" @ok="linkBillListOk"></link-bill-list>
     <customer-modal ref="customerModalForm" @ok="customerModalFormOk"></customer-modal>
     <depot-modal ref="depotModalForm" @ok="depotModalFormOk"></depot-modal>
@@ -258,7 +230,6 @@
 <script>
   import pick from 'lodash.pick'
   import ManyAccountModal from '../dialog/ManyAccountModal'
-  import ImportItemModal from '../dialog/ImportItemModal'
   import LinkBillList from '../dialog/LinkBillList'
   import CustomerModal from '../../system/modules/CustomerModal'
   import DepotModal from '../../system/modules/DepotModal'
@@ -268,22 +239,21 @@
   import WorkflowIframe from '@/components/tools/WorkflowIframe'
   import BillPrintIframe from '../dialog/BillPrintIframe'
   import BillPrintProIframe from '../dialog/BillPrintProIframe'
-  import { FormTypes, VALIDATE_NO_PASSED, validateFormAndTables } from '@/utils/JEditableTableUtil'
+  import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import { FormTypes } from '@/utils/JEditableTableUtil'
   import { JEditableTableMixin } from '@/mixins/JEditableTableMixin'
   import { BillModalMixin } from '../mixins/BillModalMixin'
   import { getMpListShort,handleIntroJs } from "@/utils/util"
-  import JSelectMultiple from '@/components/jeecg/JSelectMultiple'
   import JUpload from '@/components/jeecg/JUpload'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
-  import { getCurrentSystemConfig, findBySelectCus, getContractBalance } from '@/api/api'
-  import { httpAction, postAction } from '@/api/manage'
+  import { findBySelectCus, getContractBalance } from '@/api/api'
+  import { loadColumnSetting, saveColumnSetting, resetColumnSetting } from '@/utils/columnSetting'
   export default {
     name: "SaleOutModal",
     mixins: [JEditableTableMixin, BillModalMixin],
     components: {
       ManyAccountModal,
-      ImportItemModal,
       LinkBillList,
       CustomerModal,
       DepotModal,
@@ -293,9 +263,9 @@
       WorkflowIframe,
       BillPrintIframe,
       BillPrintProIframe,
+      ColumnSettingPopover,
       JUpload,
       JDate,
-      JSelectMultiple,
       VNodes: {
         functional: true,
         render: (h, ctx) => ctx.props.vnodes,
@@ -311,11 +281,17 @@
         visible: false,
         operTimeStr: '',
         prefixNo: 'XSCK',
+        detailColumnSettingManagedBySelf: true,
+        detailColumnStorageKey: 'XSCK_MODAL_DETAIL_COLUMNS',
+        detailColumnPageCode: 'XSCK_MODAL_DETAIL',
         depositStatus: false,
         contractBalance: null,  // 当前客户的合同余额信息
         fileList:[],
+        detailAllColumns: [],
+        detailBaseTypeMap: {},
+        detailDefaultDataIndex: [],
+        detailSettingDataIndex: [],
         rowCanEdit: true,
-        weightEditMode: false,
         model: {},
         labelCol: {
           xs: { span: 24 },
@@ -331,19 +307,19 @@
           loading: false,
           dataSource: [],
           columns: [
-            { title: '仓库名称', key: 'depotId', width: '8%', type: FormTypes.select, placeholder: '请选择${title}', options: [],
+            { title: '仓库名称', key: 'depotId', width: '6%', type: FormTypes.select, placeholder: '请选择${title}', options: [],
               allowSearch:true, validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '条码', key: 'barCode', width: '12%', type: FormTypes.popupJsh, kind: 'material', multi: true,
+            { title: '条码', key: 'barCode', width: '6%', type: FormTypes.popupJsh, kind: 'material', multi: true,
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
-            { title: '名称', key: 'name', width: '10%', type: FormTypes.normal },
-            { title: '规格', key: 'standard', width: '9%', type: FormTypes.normal },
-            { title: '型号', key: 'model', width: '9%', type: FormTypes.normal },
+            { title: '名称', key: 'name', width: '6%', type: FormTypes.normal },
+            { title: '规格', key: 'standard', width: '6%', type: FormTypes.normal },
+            { title: '材质', key: 'model', width: '6%', type: FormTypes.normal },
             { title: '颜色', key: 'color', width: '5%', type: FormTypes.normal },
             { title: '品牌', key: 'brand', width: '6%', type: FormTypes.normal },
             { title: '制造商', key: 'mfrs', width: '6%', type: FormTypes.normal },
-            { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
+            { title: '长度', key: 'otherField1', width: '6%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '4%', type: FormTypes.normal },
@@ -359,14 +335,14 @@
             { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, statistics: true, statisticsDecimals: 3,
               readonly: (row) => { return row.weightEditable !== '1' && row.weightEditable !== 1 }
             },
-            { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.hidden},
-            { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.hidden },
-            { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},
-            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.hidden },
-            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.hidden },
+            { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.inputNumber},
+            { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber },
+            { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.input,placeholder: '%'},
+            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.normal },
+            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.inputNumber },
             { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
-            { title: '备注', key: 'remark', width: '6%', type: FormTypes.hidden },
-            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.hidden },
+            { title: '备注', key: 'remark', width: '6%', type: FormTypes.input },
+            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.normal },
           ]
         },
         confirmLoading: false,
@@ -405,16 +381,105 @@
         }
       }
     },
-    created () {
-    },
     computed: {
       currentProjectName() {
         if (!this.model.organId || !this.cusList || !this.cusList.length) return ''
         const cus = this.cusList.find(c => c.id === this.model.organId)
         return cus ? cus.projectName || '' : ''
+      },
+      detailDefColumns() {
+        return this.detailAllColumns
+          .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+          .filter(col => this.getDetailFixedVisibleKeys().indexOf(col.key) === -1)
+          .map(col => ({
+            title: this.getManagedDetailColumnTitle(col),
+            dataIndex: col.key
+          }))
       }
     },
+    created() {
+      this.normalizeDetailColumnsDefinition()
+      this.detailAllColumns = this.materialTable.columns.slice()
+      this.detailAllColumns.forEach(col => {
+        this.detailBaseTypeMap[col.key] = col.type
+      })
+      const detailDefaultHiddenKeys = ['color', 'brand', 'mfrs', 'otherField2', 'otherField3',
+        'sku', 'snList', 'batchNumber', 'expirationDate', 'preNumber', 'finishNumber',
+        'unitPrice', 'allPrice', 'taxRate', 'taxMoney', 'taxLastMoney', 'remark', 'linkId']
+      this.detailDefaultDataIndex = this.detailAllColumns
+        .filter(col => detailDefaultHiddenKeys.indexOf(col.key) === -1)
+        .map(col => col.key)
+      this.initDetailColumnSetting()
+    },
     methods: {
+      initDetailColumnSetting() {
+        return loadColumnSetting({
+          pageCode: this.detailColumnPageCode,
+          storageKey: this.detailColumnStorageKey,
+          defaultDataIndex: this.detailDefaultDataIndex,
+          mergeSetting: (dataIndexArr) => this.mergeDetailSettingKeys(dataIndexArr),
+          applySetting: (dataIndexArr) => {
+            this.applyDetailColumnsOrdered(dataIndexArr)
+          }
+        })
+      },
+      applyDetailColumnsOrdered(dataIndexArr) {
+        let colMap = {}
+        this.detailAllColumns.forEach(col => {
+          colMap[col.key] = col
+        })
+        let visibleArr = []
+        dataIndexArr.forEach(key => {
+          if (colMap[key] && visibleArr.indexOf(key) === -1) {
+            visibleArr.push(key)
+          }
+        })
+        visibleArr = this.normalizeDetailVisibleArr(visibleArr)
+        let orderedVisible = visibleArr.map(key => colMap[key])
+        let hiddenCols = this.detailAllColumns.filter(col => visibleArr.indexOf(col.key) === -1)
+        this.detailAllColumns.forEach(col => {
+          col.hiddenBySetting = visibleArr.indexOf(col.key) === -1
+        })
+        this.materialTable.columns = orderedVisible.concat(hiddenCols)
+        this.detailSettingDataIndex = visibleArr
+      },
+      saveDetailColumnsToServer(dataIndexArr) {
+        return saveColumnSetting({
+          pageCode: this.detailColumnPageCode,
+          storageKey: this.detailColumnStorageKey,
+          dataIndexArr,
+          mergeSetting: (settingKeys) => this.mergeDetailSettingKeys(settingKeys)
+        })
+      },
+      onDetailColChange(dataIndexArr) {
+        this.applyDetailColumnsOrdered(dataIndexArr)
+        this.saveDetailColumnsToServer(this.detailSettingDataIndex)
+      },
+      handleDetailRestDefault() {
+        return resetColumnSetting({
+          pageCode: this.detailColumnPageCode,
+          storageKey: this.detailColumnStorageKey,
+          defaultDataIndex: this.detailDefaultDataIndex,
+          mergeSetting: (settingKeys) => this.mergeDetailSettingKeys(settingKeys),
+          applySetting: (dataIndexArr) => {
+            this.applyDetailColumnsOrdered(dataIndexArr)
+          }
+        })
+      },
+      resetDetailColumnTypes() {
+        this.detailAllColumns.forEach(col => {
+          if (this.detailBaseTypeMap[col.key]) {
+            col.type = this.detailBaseTypeMap[col.key]
+          }
+        })
+        this.applyDetailColumnsOrdered(this.detailSettingDataIndex.length ? this.detailSettingDataIndex : this.detailDefaultDataIndex)
+      },
+      setBarCodeColumnType(type) {
+        const barCodeCol = this.detailAllColumns.find(col => col.key === 'barCode')
+        if (barCodeCol) {
+          barCodeCol.type = type
+        }
+      },
       flushActiveEditor() {
         const activeElement = document.activeElement
         if (activeElement && typeof activeElement.blur === 'function') {
@@ -429,53 +494,6 @@
       handleOk() {
         this.flushActiveEditor().then(() => {
           JEditableTableMixin.methods.handleOk.call(this)
-        })
-      },
-      // ─── 重量核准：标记单据重量已确认 ─────────────────────────────
-      handleWeightApprove() {
-        const that = this
-        this.$confirm({
-          title: '确认重量核准',
-          content: '确认该单据的过磅重量已核实？',
-          onOk() {
-            return that.saveWeightAndApprove()
-          }
-        })
-      },
-      saveWeightAndApprove() {
-        return this.flushActiveEditor().then(() => {
-          this.confirmLoading = true
-          return this.getAllTable().then(tables => {
-            return validateFormAndTables(this.form, tables)
-          }).then(allValues => {
-            let formData = this.classifyIntoFormData(allValues)
-            return httpAction(this.url.edit, formData, 'put')
-          }).then(res => {
-            if (!res || res.code !== 200) {
-              throw new Error((res && res.data && res.data.message) || '重量保存失败')
-            }
-            return postAction('/depotHead/batchSetWeightApproved', {
-              weightApproved: '1',
-              ids: String(this.model.id)
-            })
-          }).then(res => {
-            if (res && res.code === 200) {
-              this.$message.success('重量核准成功')
-              this.$emit('ok')
-              this.handleCancel()
-            } else {
-              this.$message.warning(res.data && res.data.message || '核准失败')
-            }
-          }).catch(e => {
-            if (e && e.error === VALIDATE_NO_PASSED) {
-              this.activeKey = e.index == null ? this.activeKey : this.refKeys[e.index]
-              return
-            }
-            console.error(e)
-            this.$message.error((e && e.message) || '保存失败，请稍后重试')
-          }).finally(() => {
-            this.confirmLoading = false
-          })
         })
       },
       // ─── 覆盖保存方法：超额提示（不阻拦）─────────────────────────
@@ -550,14 +568,8 @@
         this.billStatus = '0'
         this.currentSelectDepotId = ''
         this.rowCanEdit = true
-        this.materialTable.columns[1].type = FormTypes.popupJsh
-        this.changeColumnHide()
-        this.changeFormTypes(this.materialTable.columns, 'snList', 0)
-        this.changeFormTypes(this.materialTable.columns, 'batchNumber', 0)
-        this.changeFormTypes(this.materialTable.columns, 'expirationDate', 0)
-        this.changeFormTypes(this.materialTable.columns, 'preNumber', 0)
-        this.changeFormTypes(this.materialTable.columns, 'finishNumber', 0)
-        this.changeFormTypes(this.materialTable.columns, 'remark', 0)
+        this.resetDetailColumnTypes()
+        this.setBarCodeColumnType(FormTypes.popupJsh)
         if (this.action === 'add') {
           this.selectedCustomerName = undefined
           this.projectListForOrgan = []
@@ -576,7 +588,7 @@
         } else {
           if(this.model.linkNumber) {
             this.rowCanEdit = false
-            this.materialTable.columns[1].type = FormTypes.normal
+            this.setBarCodeColumnType(FormTypes.normal)
           }
           // 初始化编辑时的公司名称、项目列表和合同状态
           // 注意：客户名称和项目列表的解析延迟到 initCustomer 回调中执行，
@@ -630,25 +642,6 @@
           }
           let url = this.readOnly ? this.url.detailList : this.url.detailList;
           this.requestSubTableData(url, params, this.materialTable);
-          //重量编辑模式：已审核单据仅允许编辑过磅类别的重量列，其余列锁定
-          if(this.weightEditMode) {
-            this.rowCanEdit = false
-            this.materialTable.columns.forEach(col => {
-              if(col.key === 'weight') {
-                // 保持重量列可编辑（仅 weightEditable 行，由列定义的 readonly 函数控制）
-                col.type = FormTypes.inputNumber
-              } else if(col.key === 'remark') {
-                // 重量未核准时允许补充/修改每行备注
-                col.type = FormTypes.input
-              } else if(col.key === 'operNumber') {
-                // 数量列保持 inputNumber 类型用于统计显示，但设置只读
-                col.type = FormTypes.inputNumber
-                col.readonly = true
-              } else if(col.type === FormTypes.inputNumber || col.type === FormTypes.input || col.type === FormTypes.popupJsh) {
-                col.type = FormTypes.normal
-              }
-            })
-          }
         }
         //复制新增单据-初始化单号和日期
         if(this.action === 'copyAdd') {
@@ -680,12 +673,7 @@
       },
       //提交单据时整理成formData
       classifyIntoFormData(allValues) {
-        //重量编辑模式：切换到重量专用接口
-        if(this.weightEditMode) {
-          this.url.edit = '/depotHead/updateItemWeights'
-        } else {
-          this.url.edit = '/depotHead/updateDepotHeadAndDetail'
-        }
+        this.url.edit = '/depotHead/updateDepotHeadAndDetail'
         let totalPrice = 0
         let billMain = Object.assign(this.model, allValues.formValue)
         let detailArr = allValues.tablesValue[0].values
@@ -730,7 +718,7 @@
         // 销售出库关联采购入库：采购入库的 changeAmount 不是订金，organId 是供应商不是客户
         deposit = 0
         organId = null
-        this.materialTable.columns[1].type = FormTypes.normal
+        this.setBarCodeColumnType(FormTypes.normal)
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
         if(!selectBillDetailRows || selectBillDetailRows.length === 0) return
@@ -774,10 +762,8 @@
           allTaxLastMoney += (row.taxLastMoney-0) || 0
         })
         let discount = 0
-        if(allTaxLastMoney!==0) {
-          discount = (discountMoney/allTaxLastMoney*100).toFixed(2)-0
-        }
-        let discountLastMoney = (allTaxLastMoney - discountMoney).toFixed(2)-0
+        discountMoney = 0
+        let discountLastMoney = allTaxLastMoney.toFixed(2)-0
         let changeAmount = discountLastMoney
         if(deposit) {
           this.depositStatus = true
@@ -821,5 +807,24 @@
   }
 </script>
 <style scoped>
+  .sale-out-detail-operator {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
 
+  .project-option-label {
+    display: block;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 22px;
+  }
+
+  /deep/ .sale-out-project-dropdown .ant-select-dropdown-menu-item {
+    white-space: normal;
+    height: auto;
+    line-height: 22px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 </style>

@@ -11,6 +11,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,7 @@ public class RedisService {
     public RedisTemplate redisTemplate;
 
     public static final String ACCESS_TOKEN = "X-Access-Token";
+    public static final String STATIC_ACCESS_TOKEN_COOKIE = "Static-Access-Token";
 
     @Autowired(required = false)
     public void setRedisTemplate(RedisTemplate redisTemplate) {
@@ -49,11 +51,15 @@ public class RedisService {
      * @return Object
      */
     public Object getObjectFromSessionByKey(HttpServletRequest request, String key){
+        return getObjectByToken(getTokenFromRequest(request), key);
+    }
+
+    public Object getObjectFromStaticSessionByKey(HttpServletRequest request, String key) {
+        return getObjectByToken(getStaticTokenFromRequest(request), key);
+    }
+
+    private Object getObjectByToken(String token, String key) {
         Object obj=null;
-        if(request==null){
-            return null;
-        }
-        String token = request.getHeader(ACCESS_TOKEN);
         if(token!=null) {
             //开启redis，用户数据放在redis中，从redis中获取
             if(redisTemplate.opsForHash().hasKey(token,key)){
@@ -63,23 +69,6 @@ public class RedisService {
             }
         }
         return obj;
-    }
-
-    /**
-     * 通过 token 字符串直接校验（用于URL参数鉴权）
-     */
-    public Object getObjectFromSessionByToken(String token, String key) {
-        if(token == null || token.isEmpty()) return null;
-        try {
-            if(redisTemplate.opsForHash().hasKey(token, key)) {
-                Object obj = redisTemplate.opsForHash().get(token, key);
-                redisTemplate.expire(token, BusinessConstants.MAX_SESSION_IN_SECONDS, TimeUnit.SECONDS);
-                return obj;
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-        return null;
     }
 
     /**
@@ -154,12 +143,50 @@ public class RedisService {
      */
     public void deleteObjectBySession(HttpServletRequest request, String key){
         if(request!=null){
-            String token = request.getHeader(ACCESS_TOKEN);
+            String token = getTokenFromRequest(request);
             if(StringUtil.isNotEmpty(token)){
                 //开启redis，用户数据放在redis中，从redis中删除
                 redisTemplate.opsForHash().delete(token, key);
             }
         }
+    }
+
+    public String getTokenFromRequest(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String token = request.getHeader(ACCESS_TOKEN);
+        if (StringUtil.isEmpty(token)) {
+            return null;
+        }
+        return token.trim();
+    }
+
+    public String getStaticTokenFromRequest(HttpServletRequest request) {
+        String token = getTokenFromRequest(request);
+        if (StringUtil.isNotEmpty(token)) {
+            return token;
+        }
+        if (request == null || request.getCookies() == null) {
+            return null;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie != null && STATIC_ACCESS_TOKEN_COOKIE.equals(cookie.getName())
+                    && StringUtil.isNotEmpty(cookie.getValue())) {
+                return cookie.getValue().trim();
+            }
+        }
+        return null;
+    }
+
+    public void deleteSession(String token) {
+        if (StringUtil.isNotEmpty(token)) {
+            redisTemplate.delete(token);
+        }
+    }
+
+    public void deleteSessionByRequest(HttpServletRequest request) {
+        deleteSession(getTokenFromRequest(request));
     }
 
     /**
@@ -176,7 +203,7 @@ public class RedisService {
                 Object userIdValue = redisTemplate.opsForHash().get(token, "userId");
                 Object clientIpValue = redisTemplate.opsForHash().get(token, "clientIp");
                 if(userIdValue!=null && clientIpValue!=null && userIdValue.equals(userId.toString()) && clientIpValue.equals(clientIp)) {
-                    redisTemplate.opsForHash().delete(token, "userId");
+                    redisTemplate.delete(token);
                 }
             }
         }
@@ -194,7 +221,22 @@ public class RedisService {
             if (redisTemplate.hasKey(token) && redisTemplate.type(token) == DataType.HASH) {
                 Object userIdValue = redisTemplate.opsForHash().get(token, "userId");
                 if(userIdValue!=null && userIdValue.equals(userId.toString())) {
-                    redisTemplate.opsForHash().delete(token, "userId");
+                    redisTemplate.delete(token);
+                }
+            }
+        }
+    }
+
+    public void deleteObjectByTenant(Long tenantId){
+        if (tenantId == null) {
+            return;
+        }
+        String tenantTokenSuffix = "_" + tenantId;
+        Set<String> tokens = redisTemplate.keys("*");
+        for(String token : tokens) {
+            if (redisTemplate.hasKey(token) && redisTemplate.type(token) == DataType.HASH) {
+                if(token != null && token.endsWith(tenantTokenSuffix)) {
+                    redisTemplate.delete(token);
                 }
             }
         }

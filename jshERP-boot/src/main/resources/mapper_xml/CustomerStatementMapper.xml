@@ -78,9 +78,10 @@
   </sql>
 
   <select id="listUnreconciledItems" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT pai.id, dh.id as depotHeadId,
+    SELECT pai.id, pai.approval_id as approvalId, dh.id as depotHeadId,
+           dh.organ_id as organId,
            dh.number as billNo,
-           pa.delivery_date as billTime,
+           dh.oper_time as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
@@ -93,7 +94,7 @@
            pai.all_price as allPrice,
            s.supplier as customerName
     <include refid="unreconciledItemsBody"/>
-    ORDER BY pa.delivery_date, pai.id
+    ORDER BY dh.oper_time, pai.id
     <if test="offset != null and rows != null">
       LIMIT #{offset}, #{rows}
     </if>
@@ -109,6 +110,7 @@
   <select id="listStatements" resultType="java.util.Map">
     SELECT cs.id, cs.statement_no as statementNo,
            s.supplier as customerName,
+           s.project_name as projectName,
            DATE_FORMAT(cs.begin_time,'%Y-%m-%d') as beginTimeStr,
            DATE_FORMAT(cs.end_time,'%Y-%m-%d') as endTimeStr,
            cs.total_weight as totalWeight,
@@ -173,9 +175,10 @@
 
   <!-- depot_item_id 现在存储 price_approval_item.id -->
   <select id="getStatementDetail" resultType="com.jsh.erp.datasource.vo.CustomerStatementItemVo">
-    SELECT pai.id, dh.id as depotHeadId,
+    SELECT pai.id, pai.approval_id as approvalId, dh.id as depotHeadId,
+           dh.organ_id as organId,
            dh.number as billNo,
-           pa.delivery_date as billTime,
+           dh.oper_time as billTime,
            dh.remark as billRemark,
            mc.name as categoryName,
            m.name as brand,
@@ -197,7 +200,7 @@
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE csi.statement_id = #{statementId}
       AND ifnull(csi.delete_flag,'0') != '1'
-    ORDER BY pa.delivery_date, pai.id
+    ORDER BY dh.oper_time, pai.id
   </select>
 
   <!-- ═══ 关联 item 表 ═══ -->

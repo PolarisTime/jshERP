@@ -26,7 +26,7 @@
         <a-form-item label="项目名称" :labelCol="{span:3}" :wrapperCol="{span:21}">
           <a-select v-model="queryParam.organId" placeholder="请先选择客户名称"
             showSearch allow-clear optionFilterProp="children"
-            :disabled="projectListForOrgan.length === 0" style="width:100%">
+            :disabled="projectListForOrgan.length === 0" style="width:100%" @change="handleProjectChange">
             <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
               {{ item.projectName || '(无项目名称)' }}
             </a-select-option>
@@ -74,13 +74,16 @@
       size="small"
       bordered
       rowKey="id"
-      :columns="visibleColumns"
+      :columns="tableColumns"
       :dataSource="dataSource"
       :components="dragComponents"
       :loading="loading"
-      :rowSelection="{ selectedRowKeys, onChange: onSelectChange }"
+      :rowSelection="rowSelection"
       :pagination="false"
       :scroll="{ x: 1100, y: 380 }">
+      <span slot="action" slot-scope="text, record">
+        <a @click="handleSplit(record)">拆分</a>
+      </span>
     </a-table>
 
     <!-- 分页 -->
@@ -91,18 +94,29 @@
         @change="onPageChange" @showSizeChange="onPageSizeChange"
         :show-total="t => `共 ${t} 条`" />
     </div>
+
+    <row-split-modal ref="splitModal" @ok="onSplitOk" />
   </j-modal>
 </template>
 
 <script>
-  import { findBySelectCus, listUnreconciledStatementItems, generateCustomerStatement } from '@/api/api'
+  import { findBySelectCus, listUnreconciledStatementItems, generateCustomerStatement, splitCustomerStatementItem } from '@/api/api'
   import JModal from '@/components/jeecg/JModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+  import RowSplitModal from '@/views/bill/dialog/RowSplitModal'
   import moment from 'moment'
+  import {
+    bindColumnSettingForceSync,
+    unbindColumnSettingForceSync,
+    loadColumnSetting,
+    saveColumnSetting,
+    resetColumnSetting,
+    forceSyncColumnSetting
+  } from '@/utils/columnSetting'
 
   export default {
     name: 'CustomerStatementGenerateModal',
-    components: { JModal, ColumnSettingPopover },
+    components: { JModal, ColumnSettingPopover, RowSplitModal },
     data() {
       return {
         visible: false,
@@ -121,6 +135,7 @@
         dataSource: [],
         selectedRowKeys: [],
         selectedRows: [],
+        lockedOrganId: '',
         currentPage: 1,
         pageSize: 50,
         total: 0,
@@ -150,8 +165,20 @@
         this.defColumns.forEach(c => { colMap[c.dataIndex] = c })
         return this.settingDataIndex.filter(di => colMap[di]).map(di => colMap[di])
       },
+      tableColumns() {
+        return [...this.visibleColumns, { title: '操作', dataIndex: 'action', width: 70, align: 'center', scopedSlots: { customRender: 'action' } }]
+      },
       dragComponents() {
         return this.buildDragComponents(this.visibleColumns)
+      },
+      rowSelection() {
+        return {
+          selectedRowKeys: this.selectedRowKeys,
+          onChange: this.onSelectChange,
+          getCheckboxProps: (record) => ({
+            disabled: !!this.lockedOrganId && this.normalizeOrganId(record.organId) !== this.lockedOrganId
+          })
+        }
       },
       selectedWeight() {
         return this.selectedRows.reduce((sum, r) => sum + (parseFloat(r.itemWeight) || 0), 0).toFixed(3)
@@ -169,16 +196,72 @@
       }
     },
     created() {
-      this.settingDataIndex = [...this.defDataIndex]
+      this._forceSyncColumnSettingsHandler = () => {
+        this.forceSyncColumnSettings()
+      }
+      bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this.initColumnsSetting()
       this.initCustomer()
     },
+    beforeDestroy() {
+      if (this._forceSyncColumnSettingsHandler) {
+        unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+        this._forceSyncColumnSettingsHandler = null
+      }
+    },
     methods: {
+      getColumnSettingPageCode() {
+        return 'CustomerStatementGenerateModal'
+      },
+      getColumnSettingStorageKey() {
+        return 'CustomerStatementGenerateModal'
+      },
+      initColumnsSetting() {
+        return loadColumnSetting({
+          pageCode: this.getColumnSettingPageCode(),
+          storageKey: this.getColumnSettingStorageKey(),
+          defaultDataIndex: this.defDataIndex,
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
+          }
+        })
+      },
+      normalizeOrganId(organId) {
+        return organId === null || organId === undefined || organId === '' ? '' : String(organId)
+      },
+      resetSelection(organId) {
+        this.selectedRowKeys = []
+        this.selectedRows = []
+        this.lockedOrganId = this.normalizeOrganId(organId)
+      },
       //列设置相关
       onColChange(orderedArr) {
         this.settingDataIndex = orderedArr
+        saveColumnSetting({
+          pageCode: this.getColumnSettingPageCode(),
+          storageKey: this.getColumnSettingStorageKey(),
+          dataIndexArr: orderedArr
+        })
       },
       handleResetColumns() {
-        this.settingDataIndex = [...this.defDataIndex]
+        resetColumnSetting({
+          pageCode: this.getColumnSettingPageCode(),
+          storageKey: this.getColumnSettingStorageKey(),
+          defaultDataIndex: this.defDataIndex,
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
+          }
+        })
+      },
+      forceSyncColumnSettings() {
+        return forceSyncColumnSetting({
+          pageCode: this.getColumnSettingPageCode(),
+          storageKey: this.getColumnSettingStorageKey(),
+          defaultDataIndex: this.defDataIndex,
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
+          }
+        })
       },
       //列宽拖拽
       buildDragComponents(columns) {
@@ -236,11 +319,10 @@
       },
       show() {
         this.visible = true
-        this.selectedRowKeys = []
-        this.selectedRows = []
         this.selectedCustomerName = undefined
         this.projectListForOrgan = []
         this.queryParam.organId = undefined
+        this.resetSelection('')
         this.remark = ''
         this.loadItems(1)
       },
@@ -254,14 +336,19 @@
       },
       handleCustomerNameChange(supplierName) {
         this.queryParam.organId = undefined
+        this.resetSelection('')
         if (supplierName) {
           this.projectListForOrgan = this.cusList.filter(c => c.supplier === supplierName)
           if (this.projectListForOrgan.length === 1) {
             this.queryParam.organId = this.projectListForOrgan[0].id
+            this.lockedOrganId = this.normalizeOrganId(this.queryParam.organId)
           }
         } else {
           this.projectListForOrgan = []
         }
+      },
+      handleProjectChange(value) {
+        this.resetSelection(value)
       },
       handleSearchCustomer(val) {
         if (this.searchTimer) clearTimeout(this.searchTimer)
@@ -274,6 +361,7 @@
       onDateChange(dates, dateStrings) {
         this.queryParam.beginTime = dateStrings[0] || ''
         this.queryParam.endTime = dateStrings[1] || ''
+        this.resetSelection(this.queryParam.organId)
       },
       resetQuery() {
         this.queryParam = {
@@ -282,6 +370,7 @@
           beginTime: moment().subtract(3, 'months').format('YYYY-MM-DD'),
           endTime: moment().format('YYYY-MM-DD')
         }
+        this.resetSelection('')
         this.loadItems(1)
       },
       loadItems(page) {
@@ -302,8 +391,19 @@
         }).finally(() => { this.loading = false })
       },
       onSelectChange(keys, rows) {
-        this.selectedRowKeys = keys
-        this.selectedRows = rows
+        if (!keys || keys.length === 0) {
+          this.resetSelection(this.queryParam.organId)
+          return
+        }
+        let baseOrganId = this.lockedOrganId || this.normalizeOrganId(this.queryParam.organId) || this.normalizeOrganId(rows[0] && rows[0].organId)
+        let filteredRows = rows.filter(row => this.normalizeOrganId(row.organId) === baseOrganId)
+        let filteredKeys = filteredRows.map(row => row.id)
+        if (filteredRows.length !== rows.length) {
+          this.$message.warning('一次只能选择同一项目名称的明细')
+        }
+        this.lockedOrganId = baseOrganId
+        this.selectedRowKeys = filteredKeys
+        this.selectedRows = filteredRows
       },
       onPageChange(page) {
         this.currentPage = page
@@ -313,10 +413,39 @@
         this.pageSize = size
         this.loadItems(1)
       },
+      handleSplit(record) {
+        if (!record || !record.id) return
+        this.$refs.splitModal.show({
+          rowId: record.id,
+          name: record.brand,
+          standard: record.standard,
+          operNumber: record.operNumber,
+          weight: record.itemWeight
+        })
+      },
+      onSplitOk({ sourceRowId, splitRows }) {
+        this.confirmLoading = true
+        splitCustomerStatementItem({
+          itemId: sourceRowId,
+          splitWeights: splitRows.map(r => r.weight)
+        }).then(res => {
+          if (res && res.code === 200) {
+            this.selectedRowKeys = this.selectedRowKeys.filter(id => id !== sourceRowId)
+            this.selectedRows = this.selectedRows.filter(row => row.id !== sourceRowId)
+            this.$message.success('拆分成功')
+            this.loadItems(this.currentPage)
+          } else {
+            this.$message.error(res.data || '拆分失败')
+          }
+        }).finally(() => { this.confirmLoading = false })
+      },
       handleGenerate() {
         if (this.selectedRowKeys.length === 0) {
           this.$message.warning('请至少勾选一条明细')
           return
+        }
+        if (!this.queryParam.organId && this.selectedRows.length > 0) {
+          this.queryParam.organId = this.selectedRows[0].organId
         }
         // 从勾选的明细行中取最早和最晚送货日期作为账期
         let dates = this.selectedRows

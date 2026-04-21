@@ -11,7 +11,9 @@ import com.jsh.erp.datasource.entities.DepotHeadVo4Body;
 import com.jsh.erp.datasource.vo.DepotHeadVo4InDetail;
 import com.jsh.erp.datasource.vo.DepotHeadVo4InOutMCount;
 import com.jsh.erp.datasource.vo.DepotHeadVo4List;
+import com.jsh.erp.datasource.vo.DepotHeadSelectQuery;
 import com.jsh.erp.datasource.vo.DepotHeadVo4StatementAccount;
+import com.jsh.erp.datasource.vo.DepotHeadWaitBillQuery;
 import com.jsh.erp.service.DepotService;
 import com.jsh.erp.service.DepotHeadService;
 import com.jsh.erp.service.MaterialService;
@@ -78,37 +80,39 @@ public class DepotHeadController extends BaseController {
     @ApiOperation(value = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
-        String type = StringUtil.getInfo(search, "type");
-        String subType = StringUtil.getInfo(search, "subType");
-        String hasDebt = StringUtil.getInfo(search, "hasDebt");
-        String status = StringUtil.getInfo(search, "status");
-        String purchaseStatus = StringUtil.getInfo(search, "purchaseStatus");
-        String number = StringUtil.getInfo(search, "number");
-        String linkApply = StringUtil.getInfo(search, "linkApply");
-        String linkNumber = StringUtil.getInfo(search, "linkNumber");
-        String beginTime = StringUtil.getInfo(search, "beginTime");
-        String endTime = StringUtil.getInfo(search, "endTime");
-        String materialParam = StringUtil.getInfo(search, "materialParam");
-        String organIdStr = StringUtil.getInfo(search, "organId");
-        Long organId = null;
-        String[] organIdList = null;
-        // 支持客户多选筛选：逗号分隔的多个ID走IN查询
-        if (StringUtil.isNotEmpty(organIdStr) && organIdStr.contains(",")) {
-            organIdList = organIdStr.split(",");
-        } else {
-            organId = StringUtil.parseStrLong(organIdStr);
-        }
-        Long creator = StringUtil.parseStrLong(StringUtil.getInfo(search, "creator"));
-        Long depotId = StringUtil.parseStrLong(StringUtil.getInfo(search, "depotId"));
-        Long accountId = StringUtil.parseStrLong(StringUtil.getInfo(search, "accountId"));
-        String salesMan = StringUtil.getInfo(search, "salesMan");
-        String remark = StringUtil.getInfo(search, "remark");
-        String linkedFlag = StringUtil.getInfo(search, "linkedFlag");
-        String saleLinkFlag = StringUtil.getInfo(search, "saleLinkFlag");
-        String priceApproved = StringUtil.getInfo(search, "priceApproved");
-        List<DepotHeadVo4List> list = depotHeadService.select(type, subType, hasDebt, status, purchaseStatus, number, linkApply, linkNumber,
-                beginTime, endTime, materialParam, organId, organIdList, creator, depotId, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
+        DepotHeadSelectQuery query = buildSelectQuery(search);
+        List<DepotHeadVo4List> list = depotHeadService.select(query);
         return getDataTable(list);
+    }
+
+    private DepotHeadSelectQuery buildSelectQuery(String search) {
+        DepotHeadSelectQuery query = new DepotHeadSelectQuery();
+        query.setType(StringUtil.getInfo(search, "type"));
+        query.setSubType(StringUtil.getInfo(search, "subType"));
+        query.setHasDebt(StringUtil.getInfo(search, "hasDebt"));
+        query.setStatus(StringUtil.getInfo(search, "status"));
+        query.setPurchaseStatus(StringUtil.getInfo(search, "purchaseStatus"));
+        query.setNumber(StringUtil.getInfo(search, "number"));
+        query.setLinkApply(StringUtil.getInfo(search, "linkApply"));
+        query.setLinkNumber(StringUtil.getInfo(search, "linkNumber"));
+        query.setBeginTime(StringUtil.getInfo(search, "beginTime"));
+        query.setEndTime(StringUtil.getInfo(search, "endTime"));
+        query.setMaterialParam(StringUtil.getInfo(search, "materialParam"));
+        String organIdStr = StringUtil.getInfo(search, "organId");
+        if (StringUtil.isNotEmpty(organIdStr) && organIdStr.contains(",")) {
+            query.setOrganIdList(organIdStr.split(","));
+        } else {
+            query.setOrganId(StringUtil.parseStrLong(organIdStr));
+        }
+        query.setCreator(StringUtil.parseStrLong(StringUtil.getInfo(search, "creator")));
+        query.setDepotId(StringUtil.parseStrLong(StringUtil.getInfo(search, "depotId")));
+        query.setAccountId(StringUtil.parseStrLong(StringUtil.getInfo(search, "accountId")));
+        query.setSalesMan(StringUtil.getInfo(search, "salesMan"));
+        query.setRemark(StringUtil.getInfo(search, "remark"));
+        query.setLinkedFlag(StringUtil.getInfo(search, "linkedFlag"));
+        query.setSaleLinkFlag(StringUtil.getInfo(search, "saleLinkFlag"));
+        query.setPriceApproved(StringUtil.getInfo(search, "priceApproved"));
+        return query;
     }
 
     @DeleteMapping(value = "/delete")
@@ -185,20 +189,6 @@ public class DepotHeadController extends BaseController {
         String priceApproved = jsonObject.getString("priceApproved");
         String ids = jsonObject.getString("ids");
         depotHeadService.batchSetPriceApproved(priceApproved, ids);
-        return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
-    }
-
-    /**
-     * 批量设置重量核准状态
-     */
-    @PostMapping(value = "/batchSetWeightApproved")
-    @ApiOperation(value = "批量设置重量核准状态")
-    public String batchSetWeightApproved(@RequestBody JSONObject jsonObject,
-                                         HttpServletRequest request) throws Exception{
-        Map<String, Object> objectMap = new HashMap<>();
-        String weightApproved = jsonObject.getString("weightApproved");
-        String ids = jsonObject.getString("ids");
-        depotHeadService.batchSetWeightApproved(weightApproved, ids);
         return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
     }
 
@@ -694,19 +684,6 @@ public class DepotHeadController extends BaseController {
     }
 
     /**
-     * 更新已审核单据的明细重量（重量编辑模式，仅限重量未核准单据）
-     */
-    @PutMapping(value = "/updateItemWeights")
-    @ApiOperation(value = "更新已审核单据的明细重量")
-    public Object updateItemWeights(@RequestBody DepotHeadVo4Body body, HttpServletRequest request) throws Exception{
-        JSONObject result = ExceptionConstants.standardSuccess();
-        String beanJson = body.getInfo();
-        String rows = body.getRows();
-        depotHeadService.updateItemWeights(beanJson, rows, request);
-        return result;
-    }
-
-    /**
      * 统计今日采购额、昨日采购额、本月采购额、今年采购额|销售额|零售额
      * @param request
      * @return
@@ -843,16 +820,9 @@ public class DepotHeadController extends BaseController {
                            @RequestParam("pageSize") Integer pageSize,
                            HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
-        String number = StringUtil.getInfo(search, "number");
-        String materialParam = StringUtil.getInfo(search, "materialParam");
-        String type = StringUtil.getInfo(search, "type");
-        String subType = StringUtil.getInfo(search, "subType");
-        String beginTime = StringUtil.getInfo(search, "beginTime");
-        String endTime = StringUtil.getInfo(search, "endTime");
-        String status = StringUtil.getInfo(search, "status");
-        List<DepotHeadVo4List> list = depotHeadService.waitBillList(number, materialParam, type, subType, beginTime, endTime,
-                status, (currentPage-1)*pageSize, pageSize);
-        long total = depotHeadService.waitBillCount(number, materialParam, type, subType, beginTime, endTime, status);
+        DepotHeadWaitBillQuery query = buildWaitBillQuery(search, currentPage, pageSize);
+        List<DepotHeadVo4List> list = depotHeadService.waitBillList(query);
+        long total = depotHeadService.waitBillCount(query);
         if (list != null) {
             objectMap.put("rows", list);
             objectMap.put("total", total);
@@ -876,16 +846,26 @@ public class DepotHeadController extends BaseController {
     public String waitBillCount(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                HttpServletRequest request)throws Exception {
         Map<String, Object> objectMap = new HashMap<>();
-        String number = StringUtil.getInfo(search, "number");
-        String materialParam = StringUtil.getInfo(search, "materialParam");
-        String type = StringUtil.getInfo(search, "type");
-        String subType = StringUtil.getInfo(search, "subType");
-        String beginTime = StringUtil.getInfo(search, "beginTime");
-        String endTime = StringUtil.getInfo(search, "endTime");
-        String status = StringUtil.getInfo(search, "status");
-        long total = depotHeadService.waitBillCount(number, materialParam, type, subType, beginTime, endTime, status);
+        DepotHeadWaitBillQuery query = buildWaitBillQuery(search, null, null);
+        long total = depotHeadService.waitBillCount(query);
         objectMap.put("total", total);
         return returnJson(objectMap, ErpInfo.OK.name, ErpInfo.OK.code);
+    }
+
+    private DepotHeadWaitBillQuery buildWaitBillQuery(String search, Integer currentPage, Integer pageSize) {
+        DepotHeadWaitBillQuery query = new DepotHeadWaitBillQuery();
+        query.setNumber(StringUtil.getInfo(search, "number"));
+        query.setMaterialParam(StringUtil.getInfo(search, "materialParam"));
+        query.setType(StringUtil.getInfo(search, "type"));
+        query.setSubType(StringUtil.getInfo(search, "subType"));
+        query.setBeginTime(StringUtil.getInfo(search, "beginTime"));
+        query.setEndTime(StringUtil.getInfo(search, "endTime"));
+        query.setStatus(StringUtil.getInfo(search, "status"));
+        if(currentPage != null && pageSize != null) {
+            query.setOffset((currentPage - 1) * pageSize);
+            query.setRows(pageSize);
+        }
+        return query;
     }
 
     /**

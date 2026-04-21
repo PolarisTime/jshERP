@@ -147,7 +147,7 @@
           { title: '供应商', dataIndex: 'organName', width: 130, ellipsis: true },
           { title: '商品名称', dataIndex: 'materialName', width: 150, ellipsis: true },
           { title: '规格', dataIndex: 'standard', width: 100 },
-          { title: '型号', dataIndex: 'model', width: 100 },
+          { title: '材质', dataIndex: 'model', width: 100 },
           { title: '条码', dataIndex: 'barCode', width: 130 },
           { title: '批号', dataIndex: 'batchNumber', width: 120 },
           { title: '数量', dataIndex: 'operNumber', width: 80, align: 'right' },
@@ -255,7 +255,7 @@
           this.$message.warning('暂无数据可导出');
           return;
         }
-        let headers = ['供应商','商品名称','规格','型号','条码','批号','数量','入库单号','入库理论重量(吨)','出库单号','出库过磅重量(吨)','差额(吨)','采购单价','差额金额','仓库'];
+        let headers = ['供应商','商品名称','规格','材质','条码','批号','数量','入库单号','入库理论重量(吨)','出库单号','出库过磅重量(吨)','差额(吨)','采购单价','差额金额','仓库'];
         let rows = this.dataSource.map(row => [
           row.organName || '',
           row.materialName || '',

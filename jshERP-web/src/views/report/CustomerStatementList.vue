@@ -164,20 +164,23 @@
         selectedCustomerName: undefined,
         projectListForOrgan: [],
         searchTimer: null,
+        pendingGlobalSearchStatementNo: '',
+        loadDataRequestSeq: 0,
         // 行选择
         selectedRowKeys: [],
         selectedRows: [],
         columns: [
           { title: '操作', dataIndex: 'action', width: 100, align: 'center', scopedSlots: { customRender: 'action' } },
-          { title: '对账单号', dataIndex: 'statementNo', width: 170 },
           { title: '客户', dataIndex: 'customerName', width: 140, ellipsis: true },
+          { title: '对账单号', dataIndex: 'statementNo', width: 170 },
+          { title: '创建日期', dataIndex: 'createTimeStr', width: 160 },
+          { title: '项目', dataIndex: 'projectName', width: 180, ellipsis: true },
+          { title: '审核', dataIndex: 'status', width: 90, align: 'center', scopedSlots: { customRender: 'statusRender' } },
+          { title: '签署', dataIndex: 'signStatus', width: 90, align: 'center', scopedSlots: { customRender: 'signRender' } },
           { title: '账期开始', dataIndex: 'beginTimeStr', width: 110 },
           { title: '账期结束', dataIndex: 'endTimeStr', width: 110 },
           { title: '总重量(吨)', dataIndex: 'totalWeight', width: 110, customRender: t => t != null ? Number(t).toFixed(3) : '' },
           { title: '总金额(元)', dataIndex: 'totalAmount', width: 110, customRender: t => t != null ? Number(t).toFixed(2) : '' },
-          { title: '审核状态', dataIndex: 'status', width: 90, align: 'center', scopedSlots: { customRender: 'statusRender' } },
-          { title: '签署状态', dataIndex: 'signStatus', width: 90, align: 'center', scopedSlots: { customRender: 'signRender' } },
-          { title: '创建时间', dataIndex: 'createTimeStr', width: 160 },
           { title: '备注', dataIndex: 'remark', width: 150, ellipsis: true }
         ],
         printModel: {},
@@ -208,13 +211,28 @@
     mounted() {},
     methods: {
       _applyGlobalSearchStatementNo(reload) {
-        const pending = sessionStorage.getItem('globalSearch_statementNo')
-        if (pending) {
+        const payload = this.parseGlobalSearchStatementPayload(sessionStorage.getItem('globalSearch_statementNo'))
+        if (payload.statementNo) {
           sessionStorage.removeItem('globalSearch_statementNo')
-          this.queryParam.statementNo = pending
+          this.queryParam.statementNo = payload.statementNo
+          this.pendingGlobalSearchStatementNo = payload.autoOpen ? payload.statementNo : ''
           if (reload) {
             this.$nextTick(() => { this.loadData(1) })
           }
+        }
+      },
+      parseGlobalSearchStatementPayload(rawValue) {
+        if (!rawValue) {
+          return { statementNo: '', autoOpen: false }
+        }
+        try {
+          const parsed = JSON.parse(rawValue)
+          return {
+            statementNo: parsed.keyword || parsed.statementNo || '',
+            autoOpen: parsed.autoOpen !== false
+          }
+        } catch (e) {
+          return { statementNo: rawValue, autoOpen: false }
         }
       },
       // ─── 数据加载 ───────────────────────────────────────────────
@@ -227,15 +245,38 @@
       },
       loadData(arg) {
         if (arg === 1) this.ipagination.current = 1
+        const requestSeq = ++this.loadDataRequestSeq
         this.loading = true
         getAction(this.url.list, this.getQueryParams()).then(res => {
+          if (requestSeq !== this.loadDataRequestSeq) {
+            return
+          }
           if (res.code === 200) {
             this.dataSource = res.data.rows || []
             this.ipagination.total = res.data.total || 0
+            this.tryOpenGlobalSearchStatement(this.dataSource)
           } else {
             this.$message.warning(res.data || '查询失败')
           }
-        }).finally(() => { this.loading = false })
+        }).finally(() => {
+          if (requestSeq === this.loadDataRequestSeq) {
+            this.loading = false
+          }
+        })
+      },
+      tryOpenGlobalSearchStatement(rows) {
+        if (!this.pendingGlobalSearchStatementNo || !Array.isArray(rows) || rows.length === 0) {
+          return
+        }
+        const statementNo = String(this.pendingGlobalSearchStatementNo)
+        const matched = rows.find(row => String(row.statementNo || '') === statementNo)
+        if (!matched) {
+          return
+        }
+        this.pendingGlobalSearchStatementNo = ''
+        this.$nextTick(() => {
+          this.handleDetail(matched)
+        })
       },
       searchQuery() { this.loadData(1) },
       searchReset() {

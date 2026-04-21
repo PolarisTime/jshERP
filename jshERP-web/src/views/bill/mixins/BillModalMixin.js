@@ -5,6 +5,14 @@ import { getAction } from '@/api/manage'
 import { getCheckFlag, getMpListShort, getNowFormatDateTime } from '@/utils/util'
 import { USER_INFO } from '@/store/mutation-types'
 import Vue from 'vue'
+import {
+  bindColumnSettingForceSync,
+  unbindColumnSettingForceSync,
+  loadColumnSetting,
+  saveColumnSetting,
+  resetColumnSetting,
+  forceSyncColumnSetting
+} from '@/utils/columnSetting'
 
 export const BillModalMixin = {
   data() {
@@ -56,6 +64,15 @@ export const BillModalMixin = {
       projectListForOrgan: [],
       // 商品单位重量映射表（barCode → 单位重量），用于数量变化时重新计算总重量
       unitWeightMap: {},
+      detailColumnSettingEnabled: true,
+      detailColumnSettingManagedBySelf: false,
+      detailColumnStorageKey: '',
+      detailColumnPageCode: '',
+      detailAllColumns: [],
+      detailBaseTypeMap: {},
+      detailDefaultDataIndex: [],
+      detailSettingDataIndex: [],
+      detailExtraDefaultHiddenKeys: [],
       validatorRules:{
         price:{
           rules: [
@@ -82,18 +99,32 @@ export const BillModalMixin = {
     let realScreenWidth = window.screen.width
     this.width = realScreenWidth<1500?'1200px':'1550px'
     this.minWidth = realScreenWidth<1500?1150:1500
+    this.normalizeDetailColumnsDefinition()
     // 加载租户默认税率
     getCurrentSystemConfig().then((res) => {
       if (res && res.code === 200 && res.data) {
         this.defaultTaxRate = res.data.defaultTaxRate != null ? res.data.defaultTaxRate - 0 : 0
       }
     })
+    if (!this.detailColumnSettingManagedBySelf) {
+      this.setupDetailColumnSetting()
+    }
   },
   mounted() {
     document.getElementById(this.prefixNo).addEventListener('keydown', this.handleOkKey)
+    this._forceSyncColumnSettingsHandler = () => {
+      if (typeof this.forceSyncColumnSettings === 'function') {
+        this.forceSyncColumnSettings()
+      }
+    }
+    bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
   },
   beforeDestroy() {
     document.getElementById(this.prefixNo).removeEventListener('keydown', this.handleOkKey)
+    if (this._forceSyncColumnSettingsHandler) {
+      unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this._forceSyncColumnSettingsHandler = null
+    }
   },
   computed: {
     readOnly: function() {
@@ -108,9 +139,243 @@ export const BillModalMixin = {
           seen.add(name)
           return true
         })
+    },
+    detailDefColumns() {
+      return this.detailAllColumns
+        .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+        .filter(col => this.getDetailFixedVisibleKeys().indexOf(col.key) === -1)
+        .map(col => ({
+          title: this.getManagedDetailColumnTitle(col),
+          dataIndex: col.key
+        }))
     }
   },
   methods: {
+    getManagedDetailColumnTitle(col) {
+      if (!col) return ''
+      if (col.key === 'model') return '材质'
+      if (col.key === 'otherField1') return '长度'
+      return col.title
+    },
+    isDetailColumnSettingEnabled() {
+      return this.detailColumnSettingEnabled !== false && this.materialTable && Array.isArray(this.materialTable.columns)
+    },
+    getDetailAlwaysHiddenKeys() {
+      return ['hiddenKey', 'isEdit']
+    },
+    getDetailFixedVisibleKeys() {
+      return ['name', 'model', 'otherField1']
+    },
+    getDetailCommonDefaultHiddenKeys() {
+      return ['color', 'brand', 'mfrs', 'otherField2', 'otherField3',
+        'sku', 'snList', 'batchNumber', 'expirationDate', 'preNumber', 'finishNumber',
+        'taxRate', 'taxMoney', 'taxLastMoney', 'linkId']
+    },
+    getDetailDefaultHiddenKeys() {
+      return this.getDetailCommonDefaultHiddenKeys().concat(this.detailExtraDefaultHiddenKeys || [])
+    },
+    normalizeDetailColumnsDefinition() {
+      if (!this.materialTable || !Array.isArray(this.materialTable.columns) || !this.materialTable.columns.length) return
+      let columns = this.materialTable.columns
+      columns.forEach(col => {
+        col.align = 'center'
+      })
+      let nameIndex = columns.findIndex(col => col.key === 'name')
+      let modelIndex = columns.findIndex(col => col.key === 'model')
+      let standardIndex = columns.findIndex(col => col.key === 'standard')
+      let otherField1Index = columns.findIndex(col => col.key === 'otherField1')
+      if (modelIndex > -1) {
+        columns[modelIndex].title = '材质'
+        columns[modelIndex].type = FormTypes.normal
+        if (nameIndex > -1 && modelIndex !== nameIndex + 1) {
+          let modelCol = columns.splice(modelIndex, 1)[0]
+          nameIndex = columns.findIndex(col => col.key === 'name')
+          columns.splice(nameIndex + 1, 0, modelCol)
+        }
+      }
+      if (otherField1Index > -1) {
+        columns[otherField1Index].title = '长度'
+        columns[otherField1Index].type = FormTypes.normal
+        if (standardIndex > -1 && otherField1Index !== standardIndex + 1) {
+          let targetCol = columns.splice(otherField1Index, 1)[0]
+          standardIndex = columns.findIndex(col => col.key === 'standard')
+          columns.splice(standardIndex + 1, 0, targetCol)
+        }
+      }
+    },
+    setupDetailColumnSetting() {
+      if (!this.isDetailColumnSettingEnabled()) return
+      this.detailColumnStorageKey = this.detailColumnStorageKey || (this.prefixNo ? this.prefixNo + '_MODAL_DETAIL_COLUMNS' : '')
+      this.detailColumnPageCode = this.detailColumnPageCode || (this.prefixNo ? this.prefixNo + '_MODAL_DETAIL' : '')
+      this.detailAllColumns = this.materialTable.columns.slice()
+      this.detailAllColumns.forEach(col => {
+        this.detailBaseTypeMap[col.key] = col.type
+      })
+      let defaultHiddenKeys = this.getDetailDefaultHiddenKeys()
+      this.detailDefaultDataIndex = this.detailAllColumns
+        .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+        .filter(col => defaultHiddenKeys.indexOf(col.key) === -1)
+        .map(col => col.key)
+      return loadColumnSetting({
+        pageCode: this.detailColumnPageCode,
+        storageKey: this.detailColumnStorageKey,
+        defaultDataIndex: this.detailDefaultDataIndex,
+        mergeSetting: (dataIndexArr) => this.mergeDetailSettingKeys(dataIndexArr),
+        applySetting: (dataIndexArr) => {
+          this.applyDetailColumnsOrdered(dataIndexArr)
+        }
+      })
+    },
+    loadDetailColumnsFromLocal() {
+      if (!this.detailColumnStorageKey) return
+      let localConfig = Vue.ls.get(this.detailColumnStorageKey)
+      if (localConfig && localConfig.indexOf(',') > -1) {
+        let localArr = this.mergeDetailSettingKeys(localConfig.split(',').filter(Boolean))
+        this.applyDetailColumnsOrdered(localArr)
+        this.saveDetailColumnsToServer(localArr)
+      }
+    },
+    mergeDetailSettingKeys(settingKeys) {
+      let availableKeys = this.detailAllColumns
+        .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+        .map(col => col.key)
+      let visibleArr = []
+      settingKeys.forEach(key => {
+        if (availableKeys.indexOf(key) > -1 && visibleArr.indexOf(key) === -1) {
+          visibleArr.push(key)
+        }
+      })
+      this.detailDefaultDataIndex.forEach(key => {
+        if (visibleArr.indexOf(key) === -1) {
+          visibleArr.push(key)
+        }
+      })
+      return this.normalizeDetailVisibleArr(visibleArr)
+    },
+    ensureDetailKeyPosition(result, key, anchorKeys = [], fallback = 'end') {
+      if (result.indexOf(key) > -1) {
+        result.splice(result.indexOf(key), 1)
+      }
+      for (let i = 0; i < anchorKeys.length; i++) {
+        let anchorIndex = result.indexOf(anchorKeys[i])
+        if (anchorIndex > -1) {
+          result.splice(anchorIndex + 1, 0, key)
+          return result
+        }
+      }
+      if (fallback === 'start') {
+        result.unshift(key)
+      } else {
+        result.push(key)
+      }
+      return result
+    },
+    normalizeDetailVisibleArr(visibleArr) {
+      let availableKeys = this.detailAllColumns
+        .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+        .map(col => col.key)
+      let result = []
+      visibleArr.forEach(key => {
+        if (availableKeys.indexOf(key) > -1 && result.indexOf(key) === -1) {
+          result.push(key)
+        }
+      })
+      let fixedVisibleKeys = this.getDetailFixedVisibleKeys()
+      fixedVisibleKeys.forEach(key => {
+        if (availableKeys.indexOf(key) > -1 && result.indexOf(key) === -1) {
+          result.push(key)
+        }
+      })
+      if (availableKeys.indexOf('name') > -1) {
+        this.ensureDetailKeyPosition(result, 'name', ['barCode', 'depotId'], 'start')
+      }
+      if (availableKeys.indexOf('model') > -1) {
+        this.ensureDetailKeyPosition(result, 'model', ['name'], 'end')
+      }
+      if (availableKeys.indexOf('otherField1') > -1) {
+        this.ensureDetailKeyPosition(result, 'otherField1', ['standard'], 'end')
+      }
+      return result
+    },
+    applyDetailColumnsOrdered(dataIndexArr) {
+      if (!this.isDetailColumnSettingEnabled()) return
+      let visibleArr = []
+      let availableKeys = this.detailAllColumns
+        .filter(col => this.getDetailAlwaysHiddenKeys().indexOf(col.key) === -1)
+        .map(col => col.key)
+      dataIndexArr.forEach(key => {
+        if (availableKeys.indexOf(key) > -1 && visibleArr.indexOf(key) === -1) {
+          visibleArr.push(key)
+        }
+      })
+      visibleArr = this.normalizeDetailVisibleArr(visibleArr)
+      let colMap = {}
+      this.detailAllColumns.forEach(col => {
+        colMap[col.key] = col
+      })
+      let orderedVisible = visibleArr.map(key => colMap[key])
+      let hiddenCols = this.detailAllColumns.filter(col => visibleArr.indexOf(col.key) === -1)
+      this.detailAllColumns.forEach(col => {
+        col.hiddenBySetting = visibleArr.indexOf(col.key) === -1
+      })
+      this.materialTable.columns = orderedVisible.concat(hiddenCols)
+      this.detailSettingDataIndex = visibleArr
+    },
+    saveDetailColumnsToServer(dataIndexArr) {
+      return saveColumnSetting({
+        pageCode: this.detailColumnPageCode,
+        storageKey: this.detailColumnStorageKey,
+        dataIndexArr,
+        mergeSetting: (settingKeys) => this.mergeDetailSettingKeys(settingKeys)
+      })
+    },
+    onDetailColChange(dataIndexArr) {
+      this.applyDetailColumnsOrdered(dataIndexArr)
+      this.saveDetailColumnsToServer(this.detailSettingDataIndex)
+    },
+    handleDetailRestDefault() {
+      return resetColumnSetting({
+        pageCode: this.detailColumnPageCode,
+        storageKey: this.detailColumnStorageKey,
+        defaultDataIndex: this.detailDefaultDataIndex,
+        mergeSetting: (settingKeys) => this.mergeDetailSettingKeys(settingKeys),
+        applySetting: (dataIndexArr) => {
+          this.applyDetailColumnsOrdered(dataIndexArr)
+        }
+      })
+    },
+    resetDetailColumnTypes() {
+      if (!this.isDetailColumnSettingEnabled()) return
+      this.detailAllColumns.forEach(col => {
+        if (this.detailBaseTypeMap[col.key]) {
+          col.type = this.detailBaseTypeMap[col.key]
+        }
+      })
+      this.applyDetailColumnsOrdered(this.detailSettingDataIndex.length ? this.detailSettingDataIndex : this.detailDefaultDataIndex)
+    },
+    isDetailManagedColumnKey(key) {
+      return this.detailDefColumns.some(col => col.dataIndex === key)
+    },
+    restoreManagedDetailColumnType(columns, key) {
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i].key === key && this.detailBaseTypeMap[key]) {
+          columns[i].type = this.detailBaseTypeMap[key]
+        }
+      }
+    },
+    forceSyncColumnSettings() {
+      if (!this.isDetailColumnSettingEnabled()) return Promise.resolve([])
+      if (this.visible === false) return Promise.resolve([])
+      return forceSyncColumnSetting({
+        pageCode: this.detailColumnPageCode,
+        storageKey: this.detailColumnStorageKey,
+        defaultDataIndex: this.detailDefaultDataIndex,
+        mergeSetting: (settingKeys) => this.mergeDetailSettingKeys(settingKeys),
+        applySetting: (dataIndexArr) => {
+          this.applyDetailColumnsOrdered(dataIndexArr)
+        }
+      })
+    },
     // 快捷键
     handleOkKey(e) {
       const key = window.event.keyCode ? window.event.keyCode : window.event.which
@@ -189,6 +454,10 @@ export const BillModalMixin = {
     },
     //改变字段的状态，1-显示 0-隐藏
     changeFormTypes(columns, key, type) {
+      if (this.isDetailColumnSettingEnabled() && this.isDetailManagedColumnKey(key)) {
+        this.restoreManagedDetailColumnType(columns, key)
+        return
+      }
       for(let i=0; i<columns.length; i++){
         if(columns[i].key === key) {
           if(type){
@@ -909,7 +1178,7 @@ export const BillModalMixin = {
       }
       return result
     },
-    //使得型号、颜色、扩展信息、sku等为隐藏
+    //使得材质、颜色、扩展信息、sku等为隐藏
     changeColumnHide() {
       this.changeFormTypes(this.materialTable.columns, 'model', 0)
       this.changeFormTypes(this.materialTable.columns, 'color', 0)
@@ -1499,12 +1768,13 @@ export const BillModalMixin = {
     //动态替换扩展字段
     handleChangeOtherField() {
       let mpStr = getMpListShort(Vue.ls.get('materialPropertyList'))
+      this.normalizeDetailColumnsDefinition()
       if(mpStr) {
         let mpArr = mpStr.split(',')
         if(mpArr.length ===3) {
           for (let i = 0; i < this.materialTable.columns.length; i++) {
             if(this.materialTable.columns[i].key === 'otherField1') {
-              this.materialTable.columns[i].title = mpArr[0]
+              this.materialTable.columns[i].title = '长度'
             }
             if(this.materialTable.columns[i].key === 'otherField2') {
               this.materialTable.columns[i].title = mpArr[1]

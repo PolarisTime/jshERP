@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +131,34 @@ public class CustomerStatementController extends BaseController {
         try {
             res.code = 200;
             res.data = customerStatementService.getStatementDetail(id);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            res.code = 500;
+            res.data = e.getMessage();
+        }
+        return res;
+    }
+
+    /**
+     * 拆分未对账来源明细
+     */
+    @PutMapping("/splitItem")
+    @ApiOperation(value = "拆分未对账来源明细")
+    public BaseResponseInfo splitItem(@RequestBody Map<String, Object> params, HttpServletRequest request) {
+        BaseResponseInfo res = new BaseResponseInfo();
+        try {
+            Long itemId = Long.valueOf(params.get("itemId").toString());
+            @SuppressWarnings("unchecked")
+            List<Object> rawWeights = (List<Object>) params.get("splitWeights");
+            List<BigDecimal> splitWeights = new ArrayList<>();
+            if (rawWeights != null) {
+                for (Object rawWeight : rawWeights) {
+                    splitWeights.add(new BigDecimal(rawWeight.toString()));
+                }
+            }
+            customerStatementService.splitSourceItem(itemId, splitWeights);
+            res.code = 200;
+            res.data = "拆分成功";
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;

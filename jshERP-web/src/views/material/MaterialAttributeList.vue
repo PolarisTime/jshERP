@@ -60,7 +60,7 @@
               </a-popconfirm>
             </span>
             <template slot="customRenderAttributeValue" slot-scope="attributeValue">
-              <a-tag  v-for="(item,index) in getTagArr(attributeValue)" color="blue">{{item}}</a-tag>
+              <a-tag v-for="(item,index) in getTagArr(attributeValue)" :key="`${item}-${index}`" color="blue">{{item}}</a-tag>
             </template>
           </a-table>
         </div>

@@ -3,7 +3,8 @@
     <a-input-group v-if="kind === 'material'" compact style="width:100%;top:0px;display:flex;">
       <a-select placeholder="输入条码或名称" :dropdownMatchSelectWidth="false" showSearch :showArrow="false"
                 v-model="names" optionFilterProp="children" style="flex:1; min-width:0;" notFoundContent="需在商品管理先新增才能使用"
-                @search="handleSearch" @change="handleChange">
+                :filterOption="false" :disabled="disabled"
+                @search="handleSearch" @change="handleChange" @blur="handleBlur">
         <div slot="dropdownRender" slot-scope="menu">
           <v-nodes :vnodes="menu" />
           <a-divider v-if="materialData.length===20" style="margin: 4px 0;" />
@@ -69,7 +70,8 @@
         ids: "",
         names: "",
         materialData: [],
-        setTimeFlag: null
+        setTimeFlag: null,
+        searchKeyword: ''
       }
     },
     mounted() {
@@ -91,22 +93,88 @@
         this.names = name ? name : undefined
       },
       onSearch() {
+        if (this.kind === 'material') {
+          const keyword = (this.searchKeyword || '').trim()
+          if (keyword) {
+            this.tryResolveMaterial(keyword, true)
+            return
+          }
+        }
         this.$refs.selectModal.showModal()
       },
       handleSearch(value) {
+        this.searchKeyword = value
         let that = this
         if(this.setTimeFlag != null){
           clearTimeout(this.setTimeFlag);
         }
         this.setTimeFlag = setTimeout(()=>{
-          getMaterialByParam({q: value}).then((res) => {
-            if (res && res.code === 200) {
-              that.materialData = res.data
-            }
+          that.fetchMaterialOptions(value).then((list) => {
+            that.materialData = list
           })
         },500)
       },
+      handleBlur() {
+        const keyword = (this.searchKeyword || '').trim()
+        if (keyword) {
+          this.tryResolveMaterial(keyword, false)
+        }
+      },
+      fetchMaterialOptions(value) {
+        return getMaterialByParam({q: value}).then((res) => {
+            if (res && res.code === 200) {
+              return res.data || []
+            }
+            return []
+          })
+      },
+      matchMaterial(keyword, list) {
+        const normalizedKeyword = (keyword || '').trim().toLowerCase()
+        if (!normalizedKeyword || !list || list.length === 0) {
+          return null
+        }
+        const exact = list.find(item => {
+          const barCode = ((item && item.barCode) || '').toLowerCase()
+          const name = ((item && item.name) || '').toLowerCase()
+          const materialStr = ((item && item.materialStr) || '').toLowerCase()
+          return barCode === normalizedKeyword || name === normalizedKeyword || materialStr === normalizedKeyword
+        })
+        if (exact) {
+          return exact
+        }
+        const byNamePrefix = list.find(item => {
+          const materialStr = ((item && item.materialStr) || '').toLowerCase()
+          return materialStr.indexOf('_' + normalizedKeyword) > -1
+        })
+        if (byNamePrefix) {
+          return byNamePrefix
+        }
+        return list.length === 1 ? list[0] : null
+      },
+      applyMaterial(item) {
+        if (!item || !item.barCode) {
+          return false
+        }
+        this.ids = item.barCode
+        this.names = item.barCode
+        this.searchKeyword = ''
+        this.$emit("change", this.ids)
+        return true
+      },
+      tryResolveMaterial(keyword, openModalIfNotMatched) {
+        this.fetchMaterialOptions(keyword).then((list) => {
+          this.materialData = list
+          const matched = this.matchMaterial(keyword, list)
+          if (this.applyMaterial(matched)) {
+            return
+          }
+          if (openModalIfNotMatched) {
+            this.$refs.selectModal.showModal()
+          }
+        })
+      },
       handleChange(value) {
+        this.searchKeyword = ''
         this.$emit("change", value)
       },
       selectOK(rows, idstr) {
@@ -116,6 +184,7 @@
         } else {
           this.ids = idstr
         }
+        this.searchKeyword = ''
         this.$emit("change", this.ids)
       }
     }

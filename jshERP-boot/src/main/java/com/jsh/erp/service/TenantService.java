@@ -48,6 +48,9 @@ public class TenantService {
     @Resource
     private LogService logService;
 
+    @Resource
+    private RedisService redisService;
+
     @Value("${manage.roleId}")
     private Integer manageRoleId;
 
@@ -118,6 +121,10 @@ public class TenantService {
                     userMapperEx.disableUserByLimit(tenant.getTenantId());
                 }
                 result = tenantMapper.updateByPrimaryKeySelective(tenant);
+                Tenant latestTenant = tenantMapper.selectByPrimaryKey(tenant.getId());
+                if (latestTenant != null && !isTenantAvailable(latestTenant.getTenantId())) {
+                    invalidateTenantSessions(latestTenant.getTenantId());
+                }
                 //更新租户对应的角色
                 if(obj.get("roleId")!=null) {
                     String ubValue = "[" + obj.getString("roleId") + "]";
@@ -172,14 +179,31 @@ public class TenantService {
     }
 
     public Tenant getTenantByTenantId(long tenantId) {
-        Tenant tenant = new Tenant();
         TenantExample example = new TenantExample();
         example.createCriteria().andTenantIdEqualTo(tenantId).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
         List<Tenant> list = tenantMapper.selectByExample(example);
         if(list.size()>0) {
-            tenant = list.get(0);
+            return list.get(0);
         }
-        return tenant;
+        return null;
+    }
+
+    public boolean isTenantAvailable(Long tenantId) {
+        if (tenantId == null) {
+            return true;
+        }
+        Tenant tenant = getTenantByTenantId(tenantId);
+        if (tenant == null) {
+            return false;
+        }
+        if (tenant.getEnabled() != null && !tenant.getEnabled()) {
+            return false;
+        }
+        return tenant.getExpireTime() == null || tenant.getExpireTime().getTime() >= System.currentTimeMillis();
+    }
+
+    public void invalidateTenantSessions(Long tenantId) {
+        redisService.deleteObjectByTenant(tenantId);
     }
 
     public int batchSetStatus(Boolean status, String ids)throws Exception {
@@ -201,6 +225,14 @@ public class TenantService {
                 TenantExample example = new TenantExample();
                 example.createCriteria().andIdIn(idList);
                 result = tenantMapper.updateByExampleSelective(tenant, example);
+                if (!status) {
+                    TenantExample selectedExample = new TenantExample();
+                    selectedExample.createCriteria().andIdIn(idList).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
+                    List<Tenant> selectedTenants = tenantMapper.selectByExample(selectedExample);
+                    for (Tenant currentTenant : selectedTenants) {
+                        invalidateTenantSessions(currentTenant.getTenantId());
+                    }
+                }
             }
         }catch(Exception e){
             JshException.writeFail(logger, e);

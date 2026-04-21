@@ -115,9 +115,16 @@ import PriceApprovalModal from './modules/PriceApprovalModal'
 import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 import AttachmentModal from '@/components/tools/AttachmentModal'
 import { listPriceApprovals, confirmPriceApproval, cancelPriceApproval, deletePriceApproval,
-  getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
-import { findBySelectCus } from '@/api/api'
+  findBySelectCus } from '@/api/api'
 import { putAction } from '@/api/manage'
+import {
+  bindColumnSettingForceSync,
+  unbindColumnSettingForceSync,
+  loadColumnSetting,
+  saveColumnSetting,
+  resetColumnSetting,
+  forceSyncColumnSetting
+} from '@/utils/columnSetting'
 
 export default {
   name: 'PriceApprovalList',
@@ -201,9 +208,17 @@ export default {
     }
   },
   created() {
+    this._forceSyncColumnSettingsHandler = () => { this.forceSyncColumnSettings() }
+    bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
     this.initColumnsSetting()
     this.loadData(1)
     this.initCustomer()
+  },
+  beforeDestroy() {
+    if (this._forceSyncColumnSettingsHandler) {
+      unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this._forceSyncColumnSettingsHandler = null
+    }
   },
   methods: {
     loadData(page) {
@@ -298,23 +313,42 @@ export default {
 
     // ─── 列设置（云同步） ─────────────────────────────────────
     initColumnsSetting() {
-      this.settingDataIndex = [...this.defDataIndex]
-      getColumnConfig({ pageCode: 'HJHZ' }).then(res => {
-        if (res && res.code === 200 && res.data && res.data.columnConfig) {
-          try {
-            let arr = JSON.parse(res.data.columnConfig)
-            if (arr && arr.length > 0) { this.settingDataIndex = arr }
-          } catch (e) { /* ignore */ }
+      return loadColumnSetting({
+        pageCode: 'HJHZ',
+        storageKey: 'HJHZ',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
         }
-      }).catch(() => {})
+      })
     },
     onColChange(orderedArr) {
-      this.settingDataIndex = orderedArr
-      saveColumnConfig({ pageCode: 'HJHZ', columnConfig: JSON.stringify(orderedArr) })
+      this.settingDataIndex = [...orderedArr]
+      return saveColumnSetting({
+        pageCode: 'HJHZ',
+        storageKey: 'HJHZ',
+        dataIndexArr: this.settingDataIndex
+      })
     },
     handleResetColumns() {
-      this.settingDataIndex = [...this.defDataIndex]
-      resetColumnConfig({ pageCode: 'HJHZ' })
+      return resetColumnSetting({
+        pageCode: 'HJHZ',
+        storageKey: 'HJHZ',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
+    },
+    forceSyncColumnSettings() {
+      return forceSyncColumnSetting({
+        pageCode: 'HJHZ',
+        storageKey: 'HJHZ',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
     },
 
     // ─── 列宽拖拽 ────────────────────────────────────────────
@@ -401,7 +435,7 @@ export default {
       let that = this
       this.$confirm({
         title: '确认核准？',
-        content: '核准后将回写出库单金额，确定继续吗？',
+        content: '核准后将回写销售出库的重量、价格、送到日期、备注和行备注，确定继续吗？',
         onOk() {
           confirmPriceApproval({ id: record.id }).then(res => {
             if (res && res.code === 200) {
@@ -418,7 +452,7 @@ export default {
       let that = this
       this.$confirm({
         title: '确认取消核准？',
-        content: '取消后将清零出库单金额，确定继续吗？',
+        content: '取消后将撤销销售出库的重量/价格核准状态，确定继续吗？',
         onOk() {
           cancelPriceApproval({ id: record.id }).then(res => {
             if (res && res.code === 200) {

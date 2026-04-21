@@ -422,6 +422,7 @@ public class MaterialService {
                 sb.append("(").append(item.getUnit()).append(")");
             }
             obj.put("barCode", item.getBarCode());
+            obj.put("name", item.getName());
             obj.put("materialStr", sb.toString());
             arr.add(obj);
         }

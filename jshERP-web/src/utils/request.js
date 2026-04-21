@@ -4,6 +4,7 @@ import store from '@/store'
 import { VueAxios } from './axios'
 import {Modal, notification} from 'ant-design-vue'
 import { ACCESS_TOKEN } from "@/store/mutation-types"
+import { clearStaticAccessToken } from '@/utils/staticAccessToken'
 
 /**
  * 【指定 axios的 baseURL】
@@ -36,6 +37,7 @@ const err = (error) => {
             mask: false,
             onOk: () => {
               Vue.ls.remove(ACCESS_TOKEN)
+              clearStaticAccessToken()
               window.location.reload()
             }
           })

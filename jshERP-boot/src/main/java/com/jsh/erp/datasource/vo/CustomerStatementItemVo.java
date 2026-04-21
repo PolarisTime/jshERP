@@ -8,11 +8,17 @@ import java.util.Date;
  */
 public class CustomerStatementItemVo {
 
-    /** depot_item.id */
+    /** price_approval_item.id */
     private Long id;
+
+    /** price_approval.id */
+    private Long approvalId;
 
     /** depot_head.id */
     private Long depotHeadId;
+
+    /** customer/project id */
+    private Long organId;
 
     /** 出库单号 */
     private String billNo;
@@ -58,8 +64,14 @@ public class CustomerStatementItemVo {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
+    public Long getApprovalId() { return approvalId; }
+    public void setApprovalId(Long approvalId) { this.approvalId = approvalId; }
+
     public Long getDepotHeadId() { return depotHeadId; }
     public void setDepotHeadId(Long depotHeadId) { this.depotHeadId = depotHeadId; }
+
+    public Long getOrganId() { return organId; }
+    public void setOrganId(Long organId) { this.organId = organId; }
 
     public String getBillNo() { return billNo; }
     public void setBillNo(String billNo) { this.billNo = billNo; }

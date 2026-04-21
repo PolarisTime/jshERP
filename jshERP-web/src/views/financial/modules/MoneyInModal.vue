@@ -262,8 +262,17 @@
       },
       statementSelectOk(selectRows) {
         if (!selectRows || selectRows.length === 0) return
+        let currentOrganId = this.form.getFieldValue('organId')
+        let targetOrganId = currentOrganId || selectRows[0].organId
+        let matchedRows = selectRows.filter(row => String(row.organId) === String(targetOrganId))
+        if (matchedRows.length !== selectRows.length) {
+          this.$message.warning('一次只能带入同一项目名称的对账单')
+        }
+        if (matchedRows.length === 0) {
+          return
+        }
         // 从对账单带入客户名称和项目名称
-        let firstRow = selectRows[0]
+        let firstRow = matchedRows[0]
         if (firstRow.organId && !this.form.getFieldValue('organId')) {
           // 查找客户信息回填公司名称和项目名称
           let cus = this.cusList.find(c => c.id === Number(firstRow.organId))
@@ -277,9 +286,14 @@
         }
         // 将对账单数据映射到收款单明细
         let listEx = []
-        let changeAmount = 0
-        for (let i = 0; i < selectRows.length; i++) {
-          let row = selectRows[i]
+        let existingStatementIds = new Set((this.accountTable.dataSource || [])
+          .filter(item => item.billId !== undefined && item.billId !== null && item.billId !== '')
+          .map(item => String(item.billId)))
+        for (let i = 0; i < matchedRows.length; i++) {
+          let row = matchedRows[i]
+          if (existingStatementIds.has(String(row.id))) {
+            continue
+          }
           let unpaid = parseFloat(row.unpaidAmount) || 0
           if (unpaid > 0) {
             listEx.push({
@@ -290,8 +304,11 @@
               remark: '',
               billId: row.id
             })
-            changeAmount += unpaid
           }
+        }
+        if (listEx.length === 0) {
+          this.$message.warning('所选对账单已全部带入')
+          return
         }
         // 追加到现有明细（不覆盖）
         let existing = this.accountTable.dataSource || []

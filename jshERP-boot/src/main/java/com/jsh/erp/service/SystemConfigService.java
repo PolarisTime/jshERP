@@ -351,6 +351,9 @@ public class SystemConfigService {
     private String validateAndGetFileExt(String orgName, MultipartFile mf) throws Exception {
         String[] allowedExtensions = {".gif", ".jpg", ".jpeg", ".png", ".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx",
                 ".ppt", ".pptx", ".zip", ".rar", ".mp3", ".mp4", ".avi"};
+        if(mf == null || mf.isEmpty() || mf.getSize() <= 0) {
+            throw new IllegalArgumentException("上传文件不能为空");
+        }
         String fileExt = "";
         int lastDot = orgName.lastIndexOf(".");
         if (lastDot >= 0) {
@@ -364,14 +367,14 @@ public class SystemConfigService {
             }
         }
         if (!isValidExtension) {
-            throw new IllegalArgumentException("Invalid file type");
+            throw new IllegalArgumentException("暂不支持该文件类型上传");
         }
         if (".jpg".equals(fileExt) || ".jpeg".equals(fileExt) || ".png".equals(fileExt) || ".gif".equals(fileExt)) {
             byte[] header = new byte[8];
             try (InputStream is = mf.getInputStream()) {
                 int read = is.read(header);
                 if (read < 4 || !isValidImageMagic(header)) {
-                    throw new IllegalArgumentException("File content does not match image type");
+                    throw new IllegalArgumentException("图片内容校验失败，请重新选择文件");
                 }
             }
         }

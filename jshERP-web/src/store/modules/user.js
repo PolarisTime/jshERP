@@ -4,6 +4,7 @@ import { ACCESS_TOKEN, USER_NAME,USER_INFO,UI_CACHE_DB_DICT_DATA,USER_ID,USER_LO
 import { welcome } from "@/utils/util"
 import { queryPermissionsByUser, getUserBtnByCurrentUser } from '@/api/api'
 import { getAction } from '@/api/manage'
+import { clearStaticAccessToken, syncStaticAccessToken } from '@/utils/staticAccessToken'
 
 const user = {
   state: {
@@ -46,6 +47,7 @@ const user = {
             const result = response.result
             const userInfo = result.userInfo
             Vue.ls.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
+            syncStaticAccessToken(result.token)
             Vue.ls.set(USER_NAME, userInfo.username, 7 * 24 * 60 * 60 * 1000)
             Vue.ls.set(USER_INFO, userInfo, 7 * 24 * 60 * 60 * 1000)
             commit('SET_TOKEN', result.token)
@@ -72,6 +74,7 @@ const user = {
               Vue.ls.set(USER_LOGIN_NAME, result.user.loginName, 7 * 24 * 60 * 60 * 1000);
               //前端7天有效期，后端默认1天，只要用户在1天内有访问页面就可以一直续期直到7天结束
               Vue.ls.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
+              syncStaticAccessToken(result.token)
               Vue.ls.set(USER_INFO, result.user, 7 * 24 * 60 * 60 * 1000)
               commit('SET_TOKEN', result.token)
             }
@@ -121,14 +124,23 @@ const user = {
         //let logoutToken = state.token;
         commit('SET_TOKEN', '')
         commit('SET_PERMISSIONLIST', [])
-        Vue.ls.remove(USER_ID)
-        Vue.ls.remove(USER_LOGIN_NAME)
-        Vue.ls.remove(USER_INFO)
-        Vue.ls.remove(UI_CACHE_DB_DICT_DATA)
-        Vue.ls.remove(CACHE_INCLUDED_ROUTES)
         logout().then(() => {
+          Vue.ls.remove(ACCESS_TOKEN)
+          Vue.ls.remove(USER_ID)
+          Vue.ls.remove(USER_LOGIN_NAME)
+          Vue.ls.remove(USER_INFO)
+          Vue.ls.remove(UI_CACHE_DB_DICT_DATA)
+          Vue.ls.remove(CACHE_INCLUDED_ROUTES)
+          clearStaticAccessToken()
           resolve()
         }).catch(() => {
+          Vue.ls.remove(ACCESS_TOKEN)
+          Vue.ls.remove(USER_ID)
+          Vue.ls.remove(USER_LOGIN_NAME)
+          Vue.ls.remove(USER_INFO)
+          Vue.ls.remove(UI_CACHE_DB_DICT_DATA)
+          Vue.ls.remove(CACHE_INCLUDED_ROUTES)
+          clearStaticAccessToken()
           resolve()
         })
       })
@@ -141,6 +153,7 @@ const user = {
             const result = response.result
             const userInfo = result.userInfo
             Vue.ls.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
+            syncStaticAccessToken(result.token)
             Vue.ls.set(USER_NAME, userInfo.username, 7 * 24 * 60 * 60 * 1000)
             Vue.ls.set(USER_INFO, userInfo, 7 * 24 * 60 * 60 * 1000)
             commit('SET_TOKEN', result.token)

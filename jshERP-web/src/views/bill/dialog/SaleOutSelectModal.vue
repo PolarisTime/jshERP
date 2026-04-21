@@ -1,88 +1,117 @@
 <template>
-  <a-modal
+  <j-modal
     title="选择销售出库单"
-    :width="1300"
+    :width="width"
     :visible="visible"
     :confirmLoading="confirmLoading"
+    :keyboard="false"
+    :forceRender="true"
+    fullscreen
+    switchFullscreen
     :maskClosable="false"
-    @ok="handleOk"
-    @cancel="handleCancel">
-    <!-- 搜索区域 -->
-    <div class="table-page-search-wrapper" style="margin-bottom:12px">
-      <a-form layout="inline" @keyup.enter.native="loadData(1)">
-        <a-row :gutter="16">
-          <a-col :span="5">
-            <a-form-item label="出库单号" :labelCol="{span:8}" :wrapperCol="{span:16}">
-              <a-input placeholder="请输入单号" v-model="searchBillNo" allow-clear />
-            </a-form-item>
-          </a-col>
-          <a-col :span="5">
-            <a-form-item label="客户" :labelCol="{span:6}" :wrapperCol="{span:18}">
-              <a-select placeholder="全部" v-model="selectedCustomerName"
-                showSearch allow-clear optionFilterProp="children"
-                @search="handleSearchCustomer" @change="onCustomerNameChange">
-                <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">{{ name }}</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="5">
-            <a-form-item label="项目" :labelCol="{span:6}" :wrapperCol="{span:18}">
-              <a-select placeholder="全部" v-model="searchOrganId"
-                showSearch allow-clear optionFilterProp="children"
-                :disabled="projectListForOrgan.length === 0">
-                <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
-                  {{ item.projectName || item.project_name || '(无项目名称)' }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="6">
-            <a-form-item label="出库日期" :labelCol="{span:7}" :wrapperCol="{span:17}">
-              <a-range-picker style="width:100%" v-model="dateRange" format="YYYY-MM-DD"
-                :placeholder="['开始','结束']" @change="onDateChange" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="3">
-            <a-button type="primary" @click="loadData(1)">查询</a-button>
-            <a-button style="margin-left:8px" @click="searchReset">重置</a-button>
-          </a-col>
-        </a-row>
-      </a-form>
-    </div>
-    <!-- 列设置 + 表格 -->
-    <div style="margin-bottom:8px;text-align:right;">
-      <column-setting-popover
-        :defColumns="defColumns"
-        :settingDataIndex.sync="settingDataIndex"
-        @change="onColChange"
-        @reset="handleResetColumns"
-      />
-    </div>
-    <a-table
-      size="small"
-      bordered
-      rowKey="id"
-      :columns="visibleColumns"
-      :dataSource="dataSource"
-      :pagination="ipagination"
-      :loading="loading"
-      :scroll="{ x: scrollX }"
-      :rowSelection="{ type: 'radio', selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
-      :customRow="customRow"
-      @change="handleTableChange">
-    </a-table>
-  </a-modal>
+    @cancel="handleCancel"
+    style="top:20px;height:95%;">
+    <template slot="footer">
+      <a-button @click="handleCancel">取消</a-button>
+      <a-button type="primary" :loading="confirmLoading" @click="handleOk">确定</a-button>
+    </template>
+    <a-spin :spinning="confirmLoading">
+      <div class="table-page-search-wrapper sale-out-select-search">
+        <a-form layout="inline" @keyup.enter.native="loadData(1)">
+          <a-row :gutter="24">
+            <a-col :md="6" :sm="24">
+              <a-form-item label="出库单号" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                <a-input placeholder="请输入单号" v-model="searchBillNo" allow-clear />
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item label="客户" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                <a-select placeholder="全部" v-model="selectedCustomerName"
+                  showSearch allow-clear optionFilterProp="children"
+                  @search="handleSearchCustomer" @change="onCustomerNameChange">
+                  <div slot="dropdownRender" slot-scope="menu">
+                    <v-nodes :vnodes="menu" />
+                    <a-divider style="margin: 4px 0;" />
+                    <div class="dropdown-btn" @mousedown="e => e.preventDefault()" @click="initCustomer()"><a-icon type="reload" /> 刷新列表</div>
+                  </div>
+                  <a-select-option v-for="name in uniqueCustomerNames" :key="name" :value="name">{{ name }}</a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item label="项目名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                <a-select placeholder="全部" v-model="searchOrganId"
+                  showSearch allow-clear optionFilterProp="children"
+                  :disabled="projectListForOrgan.length === 0">
+                  <a-select-option v-for="item in projectListForOrgan" :key="item.id" :value="item.id">
+                    {{ item.projectName || item.project_name || '(无项目名称)' }}
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :md="6" :sm="24">
+              <a-form-item label="出库日期" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                <a-range-picker style="width:100%" v-model="dateRange" format="YYYY-MM-DD"
+                  :placeholder="['开始时间', '结束时间']" @change="onDateChange" />
+              </a-form-item>
+            </a-col>
+            <a-col :md="24" :sm="24">
+              <span class="table-page-search-submitButtons">
+                <a-button type="primary" @click="loadData(1)">查询</a-button>
+                <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
+              </span>
+            </a-col>
+          </a-row>
+        </a-form>
+      </div>
+      <div class="table-operator sale-out-select-operator">
+        <column-setting-popover
+          :defColumns="defColumns"
+          :settingDataIndex.sync="settingDataIndex"
+          @change="onColChange"
+          @reset="handleResetColumns"
+        />
+      </div>
+      <a-table
+        size="middle"
+        bordered
+        rowKey="id"
+        :columns="visibleColumns"
+        :dataSource="dataSource"
+        :pagination="ipagination"
+        :loading="loading"
+        :scroll="{ x: scrollX, y: tableScrollY }"
+        :rowSelection="{ type: 'radio', selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+        :customRow="customRow"
+        @change="handleTableChange">
+      </a-table>
+    </a-spin>
+  </j-modal>
 </template>
 <script>
-import { listAvailableSaleOutForApproval, findBySelectCus,
-  getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
+import { listAvailableSaleOutForApproval, findBySelectCus } from '@/api/api'
 import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
+import {
+  bindColumnSettingForceSync,
+  unbindColumnSettingForceSync,
+  loadColumnSetting,
+  saveColumnSetting,
+  resetColumnSetting,
+  forceSyncColumnSetting
+} from '@/utils/columnSetting'
 
 export default {
   name: 'SaleOutSelectModal',
-  components: { ColumnSettingPopover },
+  components: {
+    ColumnSettingPopover,
+    VNodes: {
+      functional: true,
+      render: (h, ctx) => ctx.props.vnodes,
+    }
+  },
   data() {
     return {
+      width: '1600px',
       visible: false,
       confirmLoading: false,
       searchBillNo: '',
@@ -114,6 +143,8 @@ export default {
       dataSource: [],
       loading: false,
       selectedRowKeys: [],
+      labelCol: { span: 5 },
+      wrapperCol: { span: 18, offset: 1 },
       ipagination: {
         current: 1,
         pageSize: 15,
@@ -133,6 +164,9 @@ export default {
       this.defColumns.forEach(c => { colMap[c.dataIndex] = c })
       return this.settingDataIndex.filter(di => colMap[di]).map(di => colMap[di])
     },
+    tableScrollY() {
+      return Math.max(window.innerHeight - 360, 300)
+    },
     scrollX() {
       let sum = 0
       this.visibleColumns.forEach(c => { sum += (c.width || 100) })
@@ -145,6 +179,16 @@ export default {
         seen.add(name)
         return true
       })
+    }
+  },
+  created() {
+    this._forceSyncColumnSettingsHandler = () => { this.forceSyncColumnSettings() }
+    bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+  },
+  beforeDestroy() {
+    if (this._forceSyncColumnSettingsHandler) {
+      unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this._forceSyncColumnSettingsHandler = null
     }
   },
   methods: {
@@ -253,25 +297,43 @@ export default {
     },
     // ─── 列设置（云同步） ──────────────────────────────────────
     initColumnsSetting() {
-      if (!this.settingDataIndex.length) {
-        this.settingDataIndex = [...this.defDataIndex]
-      }
-      getColumnConfig({ pageCode: 'HJHZ_select' }).then(res => {
-        if (res && res.code === 200 && res.data && res.data.columnConfig) {
-          try {
-            let arr = JSON.parse(res.data.columnConfig)
-            if (arr && arr.length > 0) { this.settingDataIndex = arr }
-          } catch (e) { /* ignore */ }
+      return loadColumnSetting({
+        pageCode: 'HJHZ_select',
+        storageKey: 'HJHZ_select',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
         }
-      }).catch(() => {})
+      })
     },
     onColChange(orderedArr) {
-      this.settingDataIndex = orderedArr
-      saveColumnConfig({ pageCode: 'HJHZ_select', columnConfig: JSON.stringify(orderedArr) })
+      this.settingDataIndex = [...orderedArr]
+      return saveColumnSetting({
+        pageCode: 'HJHZ_select',
+        storageKey: 'HJHZ_select',
+        dataIndexArr: this.settingDataIndex
+      })
     },
     handleResetColumns() {
-      this.settingDataIndex = [...this.defDataIndex]
-      resetColumnConfig({ pageCode: 'HJHZ_select' })
+      return resetColumnSetting({
+        pageCode: 'HJHZ_select',
+        storageKey: 'HJHZ_select',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
+    },
+    forceSyncColumnSettings() {
+      if (!this.visible) return Promise.resolve([])
+      return forceSyncColumnSetting({
+        pageCode: 'HJHZ_select',
+        storageKey: 'HJHZ_select',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
     },
     // ─── 双击行确认导入 ─────────────────────────────────────
     customRow(record) {
@@ -291,3 +353,16 @@ export default {
   }
 }
 </script>
+<style scoped>
+  .sale-out-select-search {
+    margin-bottom: 12px;
+  }
+
+  .sale-out-select-operator {
+    margin-top: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+</style>

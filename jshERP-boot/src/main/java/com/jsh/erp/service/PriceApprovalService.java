@@ -148,10 +148,6 @@ public class PriceApprovalService {
         JSONArray itemArr = JSONArray.parseArray(itemsJson);
         List<PriceApprovalItem> items = new ArrayList<>();
 
-        // 解析明细并构建拆分组校验数据
-        Map<Long, BigDecimal> groupWeightSum = new HashMap<>();
-        Map<Long, BigDecimal> groupOriginalWeight = new HashMap<>();
-
         for (int i = 0; i < itemArr.size(); i++) {
             JSONObject obj = itemArr.getJSONObject(i);
             PriceApprovalItem item = new PriceApprovalItem();
@@ -173,30 +169,14 @@ public class PriceApprovalService {
             item.setTaxMoney(obj.getBigDecimal("taxMoney"));
             item.setTaxLastMoney(obj.getBigDecimal("taxLastMoney"));
             item.setRemark(obj.getString("remark"));
+            if (item.getDepotItemId() == null) {
+                throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "存在未关联原始出库明细的记录");
+            }
+            if (item.getWeight() == null || item.getWeight().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE,
+                        "明细行重量必须大于0：" + item.getName() + " " + item.getStandard());
+            }
             items.add(item);
-
-            // 累计拆分组重量
-            Long diId = item.getDepotItemId();
-            BigDecimal w = item.getWeight() != null ? item.getWeight() : BigDecimal.ZERO;
-            groupWeightSum.merge(diId, w, BigDecimal::add);
-            if (obj.getBigDecimal("originalWeight") != null) {
-                groupOriginalWeight.putIfAbsent(diId, obj.getBigDecimal("originalWeight"));
-            }
-        }
-
-        // 拆分组重量校验：同组求和必须等于原始重量
-        for (Map.Entry<Long, BigDecimal> entry : groupWeightSum.entrySet()) {
-            Long diId = entry.getKey();
-            BigDecimal sumWeight = entry.getValue().setScale(6, RoundingMode.HALF_UP);
-            BigDecimal origWeight = groupOriginalWeight.get(diId);
-            if (origWeight != null) {
-                origWeight = origWeight.setScale(6, RoundingMode.HALF_UP);
-                if (sumWeight.compareTo(origWeight) != 0) {
-                    throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE,
-                            "拆分组重量校验失败：depot_item_id=" + diId
-                                    + "，原始重量=" + origWeight + "，拆分合计=" + sumWeight);
-                }
-            }
         }
 
         // 删旧插新
@@ -219,6 +199,77 @@ public class PriceApprovalService {
         pa.setUpdateTime(new Date());
         pa.setUpdater(user.getId());
         priceApprovalMapper.updateByPrimaryKey(pa);
+    }
+
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void splitApprovalItem(Long approvalItemId, List<BigDecimal> splitWeights) throws Exception {
+        if (approvalItemId == null) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "请选择需要拆分的明细");
+        }
+        if (splitWeights == null || splitWeights.size() < 2) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "请至少拆分为两行");
+        }
+
+        PriceApprovalItem source = priceApprovalMapper.selectItemById(approvalItemId);
+        if (source == null) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "待拆分明细不存在");
+        }
+
+        PriceApproval approval = priceApprovalMapper.selectByPrimaryKey(source.getApprovalId());
+        if (approval == null) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "核准单不存在");
+        }
+        User user = userService.getCurrentUser();
+        Long tenantId = user == null ? null : user.getTenantId();
+        if (tenantId != null && approval.getTenantId() != null && !tenantId.equals(approval.getTenantId())) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "无权操作当前明细");
+        }
+        if ("1".equals(approval.getStatus())) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "已核准的明细不能拆分");
+        }
+
+        BigDecimal sourceWeight = normalizeWeight(source.getWeight());
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        boolean materialPriceTaxFlag = systemConfigService.getMaterialPriceTaxFlag();
+        List<PriceApprovalItem> newItems = new ArrayList<>();
+        for (int i = 0; i < splitWeights.size(); i++) {
+            BigDecimal weight = normalizeWeight(splitWeights.get(i));
+            if (weight.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "拆分后的重量必须大于0");
+            }
+            totalWeight = totalWeight.add(weight);
+
+            PriceApprovalItem item = new PriceApprovalItem();
+            item.setApprovalId(source.getApprovalId());
+            item.setDepotItemId(source.getDepotItemId());
+            item.setMaterialId(source.getMaterialId());
+            item.setMaterialExtendId(source.getMaterialExtendId());
+            item.setBarCode(source.getBarCode());
+            item.setName(source.getName());
+            item.setStandard(source.getStandard());
+            item.setModel(source.getModel());
+            item.setColor(source.getColor());
+            item.setBrand(source.getBrand());
+            item.setOperNumber(source.getOperNumber());
+            item.setWeight(weight);
+            item.setUnitPrice(source.getUnitPrice());
+            item.setTaxRate(source.getTaxRate());
+            item.setRemark(i == 0 ? source.getRemark() : "");
+
+            BigDecimal[] moneyValues = calcMoneyValues(weight, source.getUnitPrice(), source.getTaxRate(), materialPriceTaxFlag);
+            item.setAllPrice(moneyValues[0]);
+            item.setTaxMoney(moneyValues[1]);
+            item.setTaxLastMoney(moneyValues[2]);
+            newItems.add(item);
+        }
+
+        if (totalWeight.compareTo(sourceWeight) != 0) {
+            throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "拆分重量合计必须等于原始重量");
+        }
+
+        priceApprovalMapper.deleteItemById(source.getId());
+        priceApprovalMapper.batchInsertItems(newItems);
+        refreshApprovalTotals(approval, user);
     }
 
     // ─── 核准确认（回写depot_head） ─────────────────────────────
@@ -262,7 +313,7 @@ public class PriceApprovalService {
         pa.setUpdater(user.getId());
         priceApprovalMapper.updateByPrimaryKey(pa);
 
-        // 回写 depot_head：discount_last_money、total_price、price_approved、remark
+        // 回写 depot_head：价格核准同时确认重量、价格和备注
         DepotHead headUpd = new DepotHead();
         headUpd.setId(pa.getDepotHeadId());
         headUpd.setTotalPrice(totalAmount);
@@ -270,6 +321,7 @@ public class PriceApprovalService {
         headUpd.setDiscount(BigDecimal.ZERO);
         headUpd.setDiscountMoney(BigDecimal.ZERO);
         headUpd.setPriceApproved("1");
+        headUpd.setWeightApproved("1");
         headUpd.setRemark(pa.getRemark());
         depotHeadMapper.updateByPrimaryKeySelective(headUpd);
 
@@ -303,6 +355,7 @@ public class PriceApprovalService {
             }
             DepotItem itemUpd = new DepotItem();
             itemUpd.setId(depotItemId);
+            itemUpd.setWeight(sumWeight);
             itemUpd.setUnitPrice(unitPrice);
             itemUpd.setAllPrice(sumAllPrice);
             itemUpd.setTaxMoney(sumTaxMoney);
@@ -446,12 +499,13 @@ public class PriceApprovalService {
         pa.setUpdater(user.getId());
         priceApprovalMapper.updateByPrimaryKey(pa);
 
-        // 清零 depot_head
+        // 重置 depot_head 的核准标记和已回写金额
         DepotHead headUpd = new DepotHead();
         headUpd.setId(pa.getDepotHeadId());
         headUpd.setTotalPrice(BigDecimal.ZERO);
         headUpd.setDiscountLastMoney(BigDecimal.ZERO);
         headUpd.setPriceApproved("0");
+        headUpd.setWeightApproved("0");
         headUpd.setRemark("");
         depotHeadMapper.updateByPrimaryKeySelective(headUpd);
 
@@ -530,6 +584,25 @@ public class PriceApprovalService {
     private Long getTenantId() throws Exception {
         User user = userService.getCurrentUser();
         return user == null ? null : user.getTenantId();
+    }
+
+    private void refreshApprovalTotals(PriceApproval approval, User user) {
+        List<PriceApprovalItemVo> items = priceApprovalMapper.getApprovalItems(approval.getId());
+        BigDecimal totalWeight = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (PriceApprovalItemVo item : items) {
+            if (item.getWeight() != null) {
+                totalWeight = totalWeight.add(item.getWeight());
+            }
+            if (item.getAllPrice() != null) {
+                totalAmount = totalAmount.add(item.getAllPrice());
+            }
+        }
+        approval.setTotalWeight(totalWeight);
+        approval.setTotalAmount(totalAmount);
+        approval.setUpdateTime(new Date());
+        approval.setUpdater(user == null ? null : user.getId());
+        priceApprovalMapper.updateByPrimaryKey(approval);
     }
 
     private BigDecimal normalizeWeight(BigDecimal weight) {

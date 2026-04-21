@@ -55,6 +55,10 @@
           <a-icon type="setting"/>
           <span>密码修改</span>
         </a-menu-item>
+        <a-menu-item key="5" @click="forceSyncColumnSettings">
+          <a-icon type="reload"/>
+          <span>强制同步列设置</span>
+        </a-menu-item>
       </a-menu>
     </a-dropdown>
     <span class="action">
@@ -78,6 +82,7 @@
   import { mixinDevice } from '@/utils/mixin.js'
   import { getFileAccessHttpUrl,getAction } from "@/api/manage"
   import { getPlatformConfigByKey } from '@/api/api'
+  import { emitForceSyncColumnSettings } from '@/utils/columnSetting'
 
   export default {
     name: "UserMenu",
@@ -174,6 +179,16 @@
       },
       systemSetting(){
         this.$refs.settingDrawer.showDrawer()
+      },
+      forceSyncColumnSettings() {
+        this.$confirm({
+          title: '提示',
+          content: '将清除当前页面的列设置本地缓存，并从服务器重新下载列设置，是否继续？',
+          onOk: () => {
+            emitForceSyncColumnSettings(this)
+            this.$message.success('已开始重新同步列设置')
+          }
+        })
       },
       /* update_begin author:zhaoxin date:20191129 for: 做头部菜单栏导航*/
       searchMenus(arr,menus){

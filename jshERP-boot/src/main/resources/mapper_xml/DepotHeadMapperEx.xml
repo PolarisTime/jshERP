@@ -115,7 +115,7 @@
             <bind name="bindKey" value="'%'+materialParam+'%'"/>
             and (me.bar_code like #{bindKey} or m.name like #{bindKey} or m.mnemonic like #{bindKey} or m.standard like #{bindKey} or m.model like #{bindKey}
             or m.color like #{bindKey} or m.mfrs like #{bindKey} or m.brand like #{bindKey} or m.other_field1 like #{bindKey}
-            or m.other_field2 like #{bindKey} or m.other_field3 like #{bindKey})
+            or m.other_field2 like #{bindKey} or m.other_field3 like #{bindKey} or cast(ifnull(dh.total_weight,0) as char) like #{bindKey})
         </if>
         <if test="organId != null">
             and dh.organ_id=#{organId}

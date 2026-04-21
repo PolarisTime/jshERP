@@ -9,6 +9,14 @@ import Vue from 'vue'
 import VueDraggableResizable from 'vue-draggable-resizable'
 import { ACCESS_TOKEN } from "@/store/mutation-types"
 import {mixinDevice} from '@/utils/mixin.js'
+import {
+  bindColumnSettingForceSync,
+  unbindColumnSettingForceSync,
+  loadColumnSetting,
+  saveColumnSetting,
+  resetColumnSetting,
+  forceSyncColumnSetting
+} from '@/utils/columnSetting'
 
 export const JeecgListMixin = {
   mixins: [mixinDevice],
@@ -52,6 +60,8 @@ export const JeecgListMixin = {
       filters: {},
       /* table加载状态 */
       loading:false,
+      /* 查询请求序号，避免旧响应覆盖新结果 */
+      loadDataRequestSeq: 0,
       /* table选中keys*/
       selectedRowKeys: [],
       /* table选中records*/
@@ -74,6 +84,12 @@ export const JeecgListMixin = {
     if(this.isDesktop()) {
       this.cardStyle = 'height:' + (document.documentElement.clientHeight-100) + 'px'
     }
+    this._forceSyncColumnSettingsHandler = () => {
+      if (typeof this.forceSyncColumnSettings === 'function') {
+        this.forceSyncColumnSettings()
+      }
+    }
+    bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
     if(!this.disableMixinCreated){
       //console.log(' -- mixin created -- ')
       this.loadData();
@@ -99,8 +115,18 @@ export const JeecgListMixin = {
       window.removeEventListener('resize', this._resizeHandler)
       this._resizeHandler = null
     }
+    if (this._forceSyncColumnSettingsHandler) {
+      unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this._forceSyncColumnSettingsHandler = null
+    }
   },
   methods:{
+    getColumnSettingPageCode() {
+      return this.pageName || this.prefixNo || ''
+    },
+    getColumnSettingStorageKey() {
+      return this.pageName || this.prefixNo || ''
+    },
     // 简易 debounce，避免 resize 频繁触发
     _debounce(fn, delay) {
       let timer = null
@@ -119,19 +145,29 @@ export const JeecgListMixin = {
         this.ipagination.current = 1
       }
       let params = this.getQueryParams() //查询条件
+      const requestSeq = ++this.loadDataRequestSeq
       this.loading = true
       getAction(this.url.list, params).then((res) => {
+        if (requestSeq !== this.loadDataRequestSeq) {
+          return
+        }
         if (res.code===200) {
           this.dataSource = res.data.rows
           this.ipagination.total = res.data.total
           this.tableAddTotalRow(this.columns, this.dataSource)
+          if (typeof this.afterLoadDataSuccess === 'function') {
+            this.afterLoadDataSuccess(this.dataSource, this.ipagination.total)
+          }
         } else if(res.code===510){
           this.$message.warning(res.data)
         } else {
           this.$message.warning(res.data.message)
         }
-        this.loading = false
         this.onClearSelected()
+      }).finally(() => {
+        if (requestSeq === this.loadDataRequestSeq) {
+          this.loading = false
+        }
       })
     },
     initDictConfig(){
@@ -343,19 +379,25 @@ export const JeecgListMixin = {
     },
     //加载初始化列
     initColumnsSetting(){
-      let columnsStr = Vue.ls.get(this.pageName)
-      if(columnsStr && columnsStr.indexOf(',')>-1) {
-        this.settingDataIndex = columnsStr.split(',')
-      } else {
-        this.settingDataIndex = this.defDataIndex
-      }
-      this.columns = this.buildOrderedColumns(this.settingDataIndex)
+      return loadColumnSetting({
+        pageCode: this.getColumnSettingPageCode(),
+        storageKey: this.getColumnSettingStorageKey(),
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.columns = this.buildOrderedColumns(this.settingDataIndex)
+        }
+      })
     },
     //列设置更改事件
     onColChange (checkedValues) {
-      this.columns = this.buildOrderedColumns(checkedValues)
-      let columnsStr = checkedValues.join()
-      Vue.ls.set(this.pageName, columnsStr)
+      this.settingDataIndex = [...checkedValues]
+      this.columns = this.buildOrderedColumns(this.settingDataIndex)
+      return saveColumnSetting({
+        pageCode: this.getColumnSettingPageCode(),
+        storageKey: this.getColumnSettingStorageKey(),
+        dataIndexArr: this.settingDataIndex
+      })
     },
     //按指定顺序构建列数组，统一居中对齐、列宽自适应内容
     buildOrderedColumns(orderedIndex) {
@@ -373,8 +415,26 @@ export const JeecgListMixin = {
     },
     //恢复默认
     handleRestDefault() {
-      Vue.ls.remove(this.pageName)
-      this.initColumnsSetting()
+      return resetColumnSetting({
+        pageCode: this.getColumnSettingPageCode(),
+        storageKey: this.getColumnSettingStorageKey(),
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.columns = this.buildOrderedColumns(this.settingDataIndex)
+        }
+      })
+    },
+    forceSyncColumnSettings() {
+      return forceSyncColumnSetting({
+        pageCode: this.getColumnSettingPageCode(),
+        storageKey: this.getColumnSettingStorageKey(),
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.columns = this.buildOrderedColumns(this.settingDataIndex)
+        }
+      })
     },
     /* 导出 */
     handleExportXls2(){
@@ -628,13 +688,13 @@ export const JeecgListMixin = {
         let mpArr = mpStr.split(',')
         if(mpArr.length ===3) {
           if(showQuery) {
-            this.queryTitle.mp1 = mpArr[0]
+            this.queryTitle.mp1 = '长度'
             this.queryTitle.mp2 = mpArr[1]
             this.queryTitle.mp3 = mpArr[2]
           }
           for (let i = 0; i < this.defColumns.length; i++) {
             if(this.defColumns[i].dataIndex === 'otherField1') {
-              this.defColumns[i].title = mpArr[0]
+              this.defColumns[i].title = '长度'
             }
             if(this.defColumns[i].dataIndex === 'otherField2') {
               this.defColumns[i].title = mpArr[1]

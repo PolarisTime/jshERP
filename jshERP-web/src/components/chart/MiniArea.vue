@@ -65,5 +65,5 @@
 </script>
 
 <style lang="less" scoped>
-  @import "chart";
+  @import "chart.less";
 </style>

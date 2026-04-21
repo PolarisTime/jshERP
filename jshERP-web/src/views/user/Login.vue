@@ -84,6 +84,7 @@
   import { getAction } from '@/api/manage'
   import { getEncryptedString } from '@/utils/encryption/aesEncrypt'
   import { mixinDevice } from '@/utils/mixin.js'
+  import { clearStaticAccessToken } from '@/utils/staticAccessToken'
 
   export default {
     components: {
@@ -138,6 +139,7 @@
       this.checkScreen()
       this.currdatetime = new Date().getTime();
       Vue.ls.remove(ACCESS_TOKEN)
+      clearStaticAccessToken()
       this.getRouterData()
       this.getRegisterFlag()
       this.getCheckcodeFlag()

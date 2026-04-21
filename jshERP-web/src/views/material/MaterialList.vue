@@ -39,8 +39,8 @@
             <template v-if="toggleSearchStatus">
               <a-row :gutter="24">
                 <a-col :md="6" :sm="24">
-                  <a-form-item label="型号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入型号查询" v-model="queryParam.model"></a-input>
+                <a-form-item label="材质" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                    <a-input placeholder="请输入材质查询" v-model="queryParam.model"></a-input>
                   </a-form-item>
                 </a-col>
                 <a-col :md="6" :sm="24">
@@ -237,7 +237,7 @@
           offset: 1
         },
         queryTitle: {
-          mp1: '扩展1',
+          mp1: '长度',
           mp2: '扩展2',
           mp3: '扩展3'
         },
@@ -268,7 +268,7 @@
           pageSizeOptions: ['10', '20', '30', '50', '100', '200']
         },
         // 默认索引
-        defDataIndex:['action','mBarCode','name','standard','model','color','categoryName','unit', 'stock',
+        defDataIndex:['action','mBarCode','name','model','standard','color','categoryName','unit', 'stock',
           'purchaseDecimal','commodityDecimal','wholesaleDecimal','lowDecimal','enabled'],
         // 默认列
         defColumns: [
@@ -282,13 +282,13 @@
           {title: '图片', dataIndex: 'pic', width: 60, scopedSlots: { customRender: 'customPic' }},
           {title: '条码', dataIndex: 'mBarCode', width: 120},
           {title: '名称', dataIndex: 'name', width: 160, scopedSlots: { customRender: 'customName' }},
+          {title: '材质', dataIndex: 'model', width: 120},
           {title: '规格', dataIndex: 'standard', width: 120},
-          {title: '型号', dataIndex: 'model', width: 120},
           {title: '颜色', dataIndex: 'color', width: 70, ellipsis:true},
           {title: '品牌', dataIndex: 'brand', width: 100, ellipsis:true},
           {title: '助记码', dataIndex: 'mnemonic', width: 80, ellipsis:true},
           {title: '类别', dataIndex: 'categoryName', width: 100, ellipsis:true},
-          {title: '扩展1', dataIndex: 'otherField1', width: 100, ellipsis:true},
+          {title: '长度', dataIndex: 'otherField1', width: 100, ellipsis:true},
           {title: '扩展2', dataIndex: 'otherField2', width: 100, ellipsis:true},
           {title: '扩展3', dataIndex: 'otherField3', width: 100, ellipsis:true},
           {title: '单位', dataIndex: 'unit', width: 100, ellipsis:true,
@@ -475,6 +475,15 @@
           mpList: getMpListShort(Vue.ls.get('materialPropertyList'))  //扩展属性
         }
         this.loadData(1);
+      },
+      handleChangeOtherField(showQuery) {
+        JeecgListMixin.methods.handleChangeOtherField.call(this, showQuery)
+        this.queryTitle.mp1 = '长度'
+        for (let i = 0; i < this.defColumns.length; i++) {
+          if (this.defColumns[i].dataIndex === 'otherField1') {
+            this.defColumns[i].title = '长度'
+          }
+        }
       }
     }
   }

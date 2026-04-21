@@ -33,17 +33,22 @@ public class CustomerStatementService {
     @Resource
     private UserService userService;
 
+    @Resource
+    private PriceApprovalService priceApprovalService;
+
     // ─── 未对账明细 ──────────────────────────────────────────────
 
     public List<CustomerStatementItemVo> listUnreconciledItems(Long organId, String beginTime, String endTime,
                                                                Integer offset, Integer rows) throws Exception {
         Long tenantId = getTenantId();
-        return customerStatementMapper.listUnreconciledItems(organId, beginTime, endTime, tenantId, offset, rows);
+        return customerStatementMapper.listUnreconciledItems(
+                organId, normalizeQueryBeginTime(beginTime), normalizeQueryEndTime(endTime), tenantId, offset, rows);
     }
 
     public int countUnreconciledItems(Long organId, String beginTime, String endTime) throws Exception {
         Long tenantId = getTenantId();
-        return customerStatementMapper.countUnreconciledItems(organId, beginTime, endTime, tenantId);
+        return customerStatementMapper.countUnreconciledItems(
+                organId, normalizeQueryBeginTime(beginTime), normalizeQueryEndTime(endTime), tenantId);
     }
 
     // ─── 生成对账单 ──────────────────────────────────────────────
@@ -128,6 +133,11 @@ public class CustomerStatementService {
         result.put("header", header);
         result.put("items", items);
         return result;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void splitSourceItem(Long itemId, List<BigDecimal> splitWeights) throws Exception {
+        priceApprovalService.splitApprovalItem(itemId, splitWeights);
     }
 
     // ─── 审核 ────────────────────────────────────────────────────
@@ -219,5 +229,27 @@ public class CustomerStatementService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private String normalizeQueryBeginTime(String beginTime) {
+        if (beginTime == null) {
+            return null;
+        }
+        String trimmed = beginTime.trim();
+        if (trimmed.length() == 10) {
+            return trimmed + " 00:00:00";
+        }
+        return trimmed;
+    }
+
+    private String normalizeQueryEndTime(String endTime) {
+        if (endTime == null) {
+            return null;
+        }
+        String trimmed = endTime.trim();
+        if (trimmed.length() == 10) {
+            return trimmed + " 23:59:59";
+        }
+        return trimmed;
     }
 }

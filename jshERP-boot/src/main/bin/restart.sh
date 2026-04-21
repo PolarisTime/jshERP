@@ -1,1 +1,3 @@
-./bin/run-manage.sh restart
+#!/bin/bash
+APP_HOME=$(cd "$(dirname "$0")"; pwd)
+"$APP_HOME/bin/run-manage.sh" restart

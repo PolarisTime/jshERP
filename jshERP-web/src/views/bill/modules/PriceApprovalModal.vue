@@ -63,14 +63,6 @@
         <a-row v-if="!readOnly && !sourceDepotHeadId" :gutter="24" style="float:left;padding-bottom:5px;">
           <a-button type="primary" icon="import" @click="handleImportSaleOut">导入出库单</a-button>
         </a-row>
-        <a-row v-if="!readOnly && canEditItems && selectedRowKeys.length" :gutter="24" style="float:left;padding-bottom:5px;">
-          <a-button icon="scissor" @click="handleSplitSelected">拆分</a-button>
-        </a-row>
-        <a-row v-if="!readOnly && canEditItems && selectedRowKeys.length && isSelectedSplitRow" :gutter="24" style="float:left;padding-bottom:5px;padding-left:20px;">
-          <a-popconfirm title="删除选中的拆分行？" @confirm="handleRemoveSelectedSplitRow">
-            <a-button icon="delete" type="danger">删除拆分行</a-button>
-          </a-popconfirm>
-        </a-row>
         <div style="flex:1"></div>
         <column-setting-popover
           :defColumns="defColumns"
@@ -91,11 +83,19 @@
         :scroll="{ y: tableScrollY }"
         :rowSelection="!readOnly && canEditItems ? { selectedRowKeys: selectedRowKeys, onChange: onRowSelectChange, type: 'radio' } : null"
         @change="handleTableChange">
-        <!-- 可编辑的单价列 -->
+        <template slot="weightSlot" slot-scope="text, record">
+          <a-input-number v-if="!readOnly" :value="record.weight" :precision="3" :min="0.001" style="width:100%"
+                          @change="v => onCellChange(record, 'weight', v)"/>
+          <span v-else>{{ text ? Number(text).toFixed(3) : '' }}</span>
+        </template>
         <template slot="unitPriceSlot" slot-scope="text, record">
           <a-input-number v-if="!readOnly" :value="record.unitPrice" :precision="2" :min="0" style="width:100%"
                           @change="v => onCellChange(record, 'unitPrice', v)"/>
           <span v-else>{{ text ? Number(text).toFixed(2) : '' }}</span>
+        </template>
+        <template slot="remarkSlot" slot-scope="text, record">
+          <a-input v-if="!readOnly" :value="record.remark" @change="e => onCellChange(record, 'remark', e.target.value)"/>
+          <span v-else>{{ text }}</span>
         </template>
       </a-table>
 
@@ -110,26 +110,31 @@
       </a-row>
     </a-spin>
 
-    <!-- 拆分弹窗 -->
-    <row-split-modal ref="splitModal" @ok="onSplitOk"/>
     <!-- 出库单选择弹窗 -->
     <sale-out-select-modal ref="selectModal" @ok="onSaleOutImported"/>
   </j-modal>
 </template>
 <script>
 import moment from 'moment'
-import RowSplitModal from '../dialog/RowSplitModal'
 import SaleOutSelectModal from '../dialog/SaleOutSelectModal'
 import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 import { getPriceApprovalDetail, savePriceApprovalItems, confirmPriceApproval,
-  createPriceApprovalFromSaleOut, getDepotItemDetailList,
-  getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
+  createPriceApprovalFromSaleOut, getDepotItemDetailList, getCurrentSystemConfig,
+  } from '@/api/api'
+import {
+  bindColumnSettingForceSync,
+  unbindColumnSettingForceSync,
+  loadColumnSetting,
+  saveColumnSetting,
+  resetColumnSetting,
+  forceSyncColumnSetting
+} from '@/utils/columnSetting'
 
 let rowIdSeq = 1
 
 export default {
   name: 'PriceApprovalModal',
-  components: { RowSplitModal, SaleOutSelectModal, ColumnSettingPopover },
+  components: { SaleOutSelectModal, ColumnSettingPopover },
   data() {
     const mergeCell = (record) => {
       const span = record._groupRowSpan
@@ -152,10 +157,11 @@ export default {
       remark: '',
       items: [],
       selectedRowKeys: [],
+      materialPriceTaxFlag: false,
       labelCol: { span: 8 },
       wrapperCol: { span: 16 },
       // 列设置 — 默认显示列
-      defDataIndex: ['name','standard','model','color','brand','operNumber','weight','unitPrice','allPrice'],
+      defDataIndex: ['name','standard','model','color','brand','operNumber','weight','unitPrice','allPrice','taxMoney','taxLastMoney','remark'],
       settingDataIndex: [],
       defColumns: [
         { title: '条码', dataIndex: 'barCode', width: 140, ellipsis: true, sorter: true,
@@ -164,7 +170,7 @@ export default {
           customCell: mergeCell },
         { title: '规格', dataIndex: 'standard', width: 90, ellipsis: true, sorter: true,
           customCell: mergeCell },
-        { title: '型号', dataIndex: 'model', width: 90, ellipsis: true, sorter: true,
+        { title: '材质', dataIndex: 'model', width: 90, ellipsis: true, sorter: true,
           customCell: mergeCell },
         { title: '颜色', dataIndex: 'color', width: 70, sorter: true,
           customCell: mergeCell },
@@ -182,8 +188,8 @@ export default {
         { title: '件重(吨)', dataIndex: 'unitWeight', width: 90, sorter: true,
           customCell: mergeCell,
           customRender: (text) => text ? Number(text).toFixed(4) : '' },
-        { title: '重量(吨)', dataIndex: 'weight', width: 110, sorter: true,
-          customRender: (text) => text ? Number(text).toFixed(3) : '' },
+        { title: '重量(吨)', dataIndex: 'weight', width: 140, sorter: true,
+          scopedSlots: { customRender: 'weightSlot' } },
         { title: '单价', dataIndex: 'unitPrice', width: 140, sorter: true,
           scopedSlots: { customRender: 'unitPriceSlot' } },
         { title: '金额', dataIndex: 'allPrice', width: 140, sorter: true,
@@ -198,11 +204,23 @@ export default {
           customCell: mergeCell },
         { title: '仓库', dataIndex: 'depotName', width: 90, ellipsis: true, sorter: true },
         { title: '出库日期', dataIndex: 'billTimeStr', width: 100, sorter: true },
-        { title: '销售人员', dataIndex: 'salesMan', width: 90, ellipsis: true, sorter: true }
+        { title: '销售人员', dataIndex: 'salesMan', width: 90, ellipsis: true, sorter: true },
+        { title: '行备注', dataIndex: 'remark', width: 180, ellipsis: true,
+          scopedSlots: { customRender: 'remarkSlot' } }
       ],
       // 前端排序
       sortField: '',
       sortOrder: ''
+    }
+  },
+  created() {
+    this._forceSyncColumnSettingsHandler = () => { this.forceSyncColumnSettings() }
+    bindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+  },
+  beforeDestroy() {
+    if (this._forceSyncColumnSettingsHandler) {
+      unbindColumnSettingForceSync(this, this._forceSyncColumnSettingsHandler)
+      this._forceSyncColumnSettingsHandler = null
     }
   },
   computed: {
@@ -266,13 +284,6 @@ export default {
       this.items.forEach(i => { sum += Number(i.allPrice) || 0 })
       return sum.toFixed(2)
     },
-    /** 选中的行是否属于拆分组（组内行数 > 1） */
-    isSelectedSplitRow() {
-      if (!this.selectedRowKeys.length) return false
-      let record = this.items.find(i => i.rowId === this.selectedRowKeys[0])
-      if (!record) return false
-      return this.items.filter(i => i.depotItemId === record.depotItemId).length > 1
-    },
     canSave() {
       return !!this.sourceDepotHeadId && this.items.length > 0
     },
@@ -297,6 +308,7 @@ export default {
       this.selectedRowKeys = []
       this.visible = true
       this.initColumnsSetting()
+      this.initSystemConfig()
     },
     show(approvalId, readOnly) {
       this.approvalId = approvalId
@@ -304,6 +316,7 @@ export default {
       this.readOnly = readOnly || false
       this.visible = true
       this.initColumnsSetting()
+      this.initSystemConfig()
       this.loadDetail()
     },
     loadDetail() {
@@ -315,6 +328,9 @@ export default {
           this.deliveryDate = this.header.deliveryDate ? moment(this.header.deliveryDate) : null
           this.deliveryDateStr = this.header.deliveryDate ? moment(this.header.deliveryDate).format('YYYY-MM-DD') : ''
           this.remark = this.header.remark || ''
+          this.billNo = ''
+          this.customerName = ''
+          this.projectName = ''
           let itemList = data.items || []
           if (itemList.length > 0) {
             this.billNo = itemList[0].billNo || ''
@@ -386,39 +402,89 @@ export default {
         this.confirmLoading = false
       })
     },
-    // ─── 单元格编辑（仅单价，金额自动联动） ─────────────
+    initSystemConfig() {
+      getCurrentSystemConfig().then(res => {
+        if (res && res.code === 200 && res.data) {
+          this.materialPriceTaxFlag = res.data.materialPriceTaxFlag === '1'
+        }
+      }).catch(() => {})
+    },
+    normalizeAmount(value) {
+      return Number((Number(value) || 0).toFixed(2))
+    },
+    recalcMoneyValues(item) {
+      let weight = Number(item.weight) || 0
+      let unitPrice = Number(item.unitPrice) || 0
+      let taxRate = Number(item.taxRate) || 0
+      let allPrice = this.normalizeAmount(weight * unitPrice)
+      let taxMoney = 0
+      let taxLastMoney = 0
+      if (this.materialPriceTaxFlag) {
+        if (taxRate) {
+          let realAllPrice = this.normalizeAmount(allPrice / (1 + taxRate * 0.01))
+          taxMoney = this.normalizeAmount(realAllPrice * taxRate * 0.01)
+        }
+        taxLastMoney = allPrice
+      } else {
+        taxMoney = this.normalizeAmount(allPrice * taxRate * 0.01)
+        taxLastMoney = this.normalizeAmount(allPrice + taxMoney)
+      }
+      item.allPrice = allPrice
+      item.taxMoney = taxMoney
+      item.taxLastMoney = taxLastMoney
+    },
     onCellChange(record, field, value) {
       let item = this.items.find(i => i.rowId === record.rowId)
       if (!item) return
-      if (field === 'unitPrice') {
-        item.unitPrice = value
-        if (item.weight) {
-          item.allPrice = parseFloat((item.weight * value).toFixed(2))
+      if (field === 'remark') {
+        item.remark = value || ''
+      } else {
+        item[field] = value
+        if (field === 'weight' || field === 'unitPrice') {
+          this.recalcMoneyValues(item)
         }
       }
       this.items = [...this.items]
     },
     // ─── 列设置（云同步） ──────────────────────────────────
     initColumnsSetting() {
-      if (!this.settingDataIndex.length) {
-        this.settingDataIndex = [...this.defDataIndex]
-      }
-      getColumnConfig({ pageCode: 'HJHZ_detail' }).then(res => {
-        if (res && res.code === 200 && res.data && res.data.columnConfig) {
-          try {
-            let arr = JSON.parse(res.data.columnConfig)
-            if (arr && arr.length > 0) { this.settingDataIndex = arr }
-          } catch (e) { /* ignore */ }
+      return loadColumnSetting({
+        pageCode: 'HJHZ_detail',
+        storageKey: 'HJHZ_detail',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
         }
-      }).catch(() => {})
+      })
     },
     onColChange(orderedArr) {
-      this.settingDataIndex = orderedArr
-      saveColumnConfig({ pageCode: 'HJHZ_detail', columnConfig: JSON.stringify(orderedArr) })
+      this.settingDataIndex = [...orderedArr]
+      return saveColumnSetting({
+        pageCode: 'HJHZ_detail',
+        storageKey: 'HJHZ_detail',
+        dataIndexArr: this.settingDataIndex
+      })
     },
     handleResetColumns() {
-      this.settingDataIndex = [...this.defDataIndex]
-      resetColumnConfig({ pageCode: 'HJHZ_detail' })
+      return resetColumnSetting({
+        pageCode: 'HJHZ_detail',
+        storageKey: 'HJHZ_detail',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
+    },
+    forceSyncColumnSettings() {
+      if (!this.visible) return Promise.resolve([])
+      return forceSyncColumnSetting({
+        pageCode: 'HJHZ_detail',
+        storageKey: 'HJHZ_detail',
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+        }
+      })
     },
     // ─── 排序 ────────────────────────────────────────────
     handleTableChange(pagination, filters, sorter) {
@@ -434,76 +500,16 @@ export default {
     onRowSelectChange(keys) {
       this.selectedRowKeys = keys
     },
-    // ─── 拆分（按钮在表格上方） ──────────────────────────
-    handleSplitSelected() {
-      if (!this.selectedRowKeys.length) return
-      let record = this.items.find(i => i.rowId === this.selectedRowKeys[0])
-      if (record) this.$refs.splitModal.show(record)
-    },
-    handleRemoveSelectedSplitRow() {
-      if (!this.selectedRowKeys.length) return
-      let record = this.items.find(i => i.rowId === this.selectedRowKeys[0])
-      if (!record) return
-      let group = this.items.filter(i => i.depotItemId === record.depotItemId)
-      if (group.length <= 1) {
-        this.$message.warning('至少保留一行')
-        return
-      }
-      let idx = this.items.findIndex(i => i.rowId === record.rowId)
-      if (idx !== -1) {
-        this.items.splice(idx, 1)
-        this.selectedRowKeys = []
-      }
-    },
-    handleSplitRow(record) {
-      this.$refs.splitModal.show(record)
-    },
-    onSplitOk({ sourceRowId, splitRows }) {
-      let idx = this.items.findIndex(i => i.rowId === sourceRowId)
-      if (idx === -1) return
-      let source = this.items[idx]
-      let newItems = splitRows.map(sr => ({
-        ...source,
-        rowId: 'r' + (rowIdSeq++),
-        id: null,
-        weight: sr.weight,
-        unitPrice: source.unitPrice,
-        allPrice: source.unitPrice ? parseFloat((sr.weight * source.unitPrice).toFixed(2)) : null,
-        remark: ''
-      }))
-      let first = newItems[0]
-      first.rowId = source.rowId
-      first.id = source.id
-      first.remark = source.remark
-      this.items.splice(idx, 1, first, ...newItems.slice(1))
-    },
-    isSplitRow(record) {
-      let group = this.items.filter(i => i.depotItemId === record.depotItemId)
-      return group.length > 1
-    },
-    handleRemoveSplitRow(record) {
-      let group = this.items.filter(i => i.depotItemId === record.depotItemId)
-      if (group.length <= 1) {
-        this.$message.warning('至少保留一行')
-        return
-      }
-      let idx = this.items.findIndex(i => i.rowId === record.rowId)
-      if (idx !== -1) {
-        this.items.splice(idx, 1)
-      }
-    },
     // ─── 保存 ──────────────────────────────────────────
     buildSaveParams() {
-      let groupMap = {}
-      this.items.forEach(item => {
-        let key = item.depotItemId
-        if (!groupMap[key]) groupMap[key] = { sum: 0, orig: item.originalWeight }
-        groupMap[key].sum += Number(item.weight) || 0
-      })
-      for (let key in groupMap) {
-        let g = groupMap[key]
-        if (g.orig && Math.abs(g.sum - Number(g.orig)) > 0.001) {
-          this.$message.error(`拆分组重量不匹配：原始=${Number(g.orig).toFixed(3)}，当前合计=${g.sum.toFixed(3)}`)
+      for (let i = 0; i < this.items.length; i++) {
+        let item = this.items[i]
+        if (!item.depotItemId) {
+          this.$message.error('存在未关联原始出库明细的记录，无法保存')
+          return null
+        }
+        if (!item.weight || Number(item.weight) <= 0) {
+          this.$message.error(`第 ${i + 1} 行重量必须大于 0`)
           return null
         }
       }
@@ -618,6 +624,7 @@ export default {
     },
     handleCancel() {
       this.visible = false
+      this.selectedRowKeys = []
     }
   }
 }

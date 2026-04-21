@@ -1,6 +1,6 @@
 <!-- create j i s h e n g h u a -->
 <template>
-  <a-row :gutter="24">
+  <a-row :gutter="24" class="sale-out-list-page">
     <a-col :md="24">
       <a-card :style="cardStyle" :bordered="false">
         <!-- 查询区域 -->
@@ -15,7 +15,7 @@
               </a-col>
               <a-col :md="6" :sm="24">
                 <a-form-item label="商品信息" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input placeholder="请输入条码、名称、助记码、规格、型号等信息" v-model="queryParam.materialParam"></a-input>
+                  <a-input placeholder="请输入条码、名称、助记码、规格、材质、总重量等信息" v-model="queryParam.materialParam"></a-input>
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
@@ -53,8 +53,8 @@
               <a-col :md="6" :sm="24">
                 <a-form-item label="项目名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
                   <a-select placeholder="全部" showSearch allow-clear optionFilterProp="children"
-                    v-model="queryParam.organId" :disabled="projectListForOrgan.length === 0" @change="onProjectChange">
-                    <a-select-option v-for="(item,index) in projectListForOrgan" :key="index" :value="item.id">
+                    v-model="queryParam.organId" @search="handleSearchProject" @change="onProjectChange">
+                    <a-select-option v-for="(item,index) in availableProjectList" :key="index" :value="item.id">
                       {{ item.projectName || item.supplier }}
                     </a-select-option>
                   </a-select>
@@ -76,12 +76,39 @@
                   <a-input placeholder="请输入单据备注" v-model="queryParam.remark"></a-input>
                 </a-form-item>
               </a-col>
-              <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">
-                <a-col :md="6" :sm="24">
+              <a-col :md="24" :sm="24">
+                <div class="sale-out-search-actions table-page-search-submitButtons">
                   <a-button type="primary" @click="searchQuery">查询</a-button>
                   <a-button style="margin-left: 8px" @click="searchReset">重置</a-button>
-                </a-col>
-              </span>
+                  <div class="sale-out-list-summary">
+                    <span>单据数量：<b>{{ summary.count }}</b></span>
+                    <a-divider type="vertical" />
+                    <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
+                    <a-divider type="vertical" />
+                    <span>单据金额：<b style="color:red">{{ summary.totalAmount }}</b></span>
+                    <template v-if="summary.contractInfo">
+                      <a-divider type="vertical" />
+                      <template v-if="!summary.contractInfo.hasContract">
+                        <span style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+                        <span style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+                        <span style="color:#333">未签署合同</span>
+                      </template>
+                      <template v-else-if="summary.contractInfo.remainAmount < 0 || summary.contractInfo.remainTonnage < 0">
+                        <span v-if="summary.contractInfo.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
+                        <span v-else>剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;</span>
+                        <span v-if="summary.contractInfo.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
+                        <span v-else>剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;</span>
+                        <a-tag color="orange" style="vertical-align:middle">已签署合同</a-tag>
+                      </template>
+                      <template v-else>
+                        剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;
+                        剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;
+                        <a-tag color="green" style="vertical-align:middle">已签署合同</a-tag>
+                      </template>
+                    </template>
+                  </div>
+                </div>
+              </a-col>
             </a-row>
           </a-form>
         </div>
@@ -95,8 +122,6 @@
           </a-tooltip>
           <a-button v-if="checkFlag && btnEnableList.indexOf(2)>-1" icon="check" @click="batchSetStatus(1)">审核</a-button>
           <a-button v-if="checkFlag && btnEnableList.indexOf(7)>-1" icon="stop" @click="batchSetStatus(0)">反审核</a-button>
-          <a-button icon="audit" @click="batchWeightApprove" style="color:#52c41a">重量核准</a-button>
-          <a-button icon="undo" @click="batchWeightUnapprove">取消重量核准</a-button>
           <a-button v-if="isShowExcel && btnEnableList.indexOf(3)>-1" icon="download" @click="handleExport">导出</a-button>
           <a-button icon="export" @click="handleExportSelectedCsv">导出选中</a-button>
           <a-button icon="printer" @click="handleClodopPrint">CLodop打印</a-button>
@@ -135,8 +160,6 @@
               <a-divider v-if="btnEnableList.indexOf(1)>-1" type="vertical" />
               <a v-if="btnEnableList.indexOf(1)>-1" @click="myHandleEdit(record)">编辑</a>
               <a-divider v-if="btnEnableList.indexOf(1)>-1" type="vertical" />
-              <a v-if="btnEnableList.indexOf(1)>-1" @click="myHandleCopyAdd(record)">复制</a>
-              <a-divider v-if="btnEnableList.indexOf(1)>-1" type="vertical" />
               <a-popconfirm v-if="btnEnableList.indexOf(1)>-1" title="确定删除吗?" @confirm="() => myHandleDelete(record)">
                 <a>删除</a>
               </a-popconfirm>
@@ -166,8 +189,6 @@
               <a-tag v-if="record.status == '2'" color="cyan">完成出库</a-tag>
               <a-tag v-if="record.status == '3'" color="blue">部分出库</a-tag>
               <a-tag v-if="record.status == '9'" color="orange">审核中</a-tag>
-              <a-tag v-if="record.weightApproved == '1'" color="green">重量已核准</a-tag>
-              <a-tag v-else color="">重量未核准</a-tag>
             </template>
             <a-table
               bordered
@@ -183,34 +204,6 @@
           </a-table>
         </div>
         <!-- table区域-end -->
-        <!-- 汇总统计栏 -->
-        <div style="margin-top:10px;padding:8px 16px;background:#fafafa;border:1px solid #e8e8e8;border-radius:4px;">
-          <span>单据数量：<b>{{ summary.count }}</b></span>
-          <a-divider type="vertical" />
-          <span>合计吨位：<b>{{ summary.totalWeight }}</b></span>
-          <a-divider type="vertical" />
-          <span>单据金额：<b style="color:red">{{ summary.totalAmount }}</b></span>
-          <template v-if="summary.contractInfo">
-            <a-divider type="vertical" />
-            <template v-if="!summary.contractInfo.hasContract">
-              <span style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
-              <span style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
-              <span style="color:#333">未签署合同</span>
-            </template>
-            <template v-else-if="summary.contractInfo.remainAmount < 0 || summary.contractInfo.remainTonnage < 0">
-              <span v-if="summary.contractInfo.remainAmount < 0" style="color:red">金额超限：{{ Math.abs(summary.contractInfo.remainAmount) }} 元&nbsp;</span>
-              <span v-else>剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;</span>
-              <span v-if="summary.contractInfo.remainTonnage < 0" style="color:red">吨位超限：{{ Math.abs(summary.contractInfo.remainTonnage) }} 吨&nbsp;</span>
-              <span v-else>剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;</span>
-              <a-tag color="orange" style="vertical-align:middle">已签署合同</a-tag>
-            </template>
-            <template v-else>
-              剩余金额：<b style="color:#1890ff">{{ summary.contractInfo.remainAmount }}</b> 元&nbsp;
-              剩余吨位：<b style="color:#1890ff">{{ summary.contractInfo.remainTonnage }}</b> 吨&nbsp;
-              <a-tag color="green" style="vertical-align:middle">已签署合同</a-tag>
-            </template>
-          </template>
-        </div>
         <!-- 表单区域 -->
         <sale-out-modal ref="modalForm" @ok="modalFormOk" @close="modalFormClose"></sale-out-modal>
         <sale-back-modal ref="transferModalForm" @ok="modalFormOk" @close="modalFormClose"></sale-back-modal>
@@ -231,14 +224,11 @@
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import { BillListMixin } from './mixins/BillListMixin'
-  import JEllipsis from '@/components/jeecg/JEllipsis'
-  import JDate from '@/components/jeecg/JDate'
   import { getContractBalance } from '@/api/api'
   import AttachmentModal from '@/components/tools/AttachmentModal'
-  import { putAction, postAction } from '@/api/manage'
+  import { putAction } from '@/api/manage'
   import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
   import moment from 'moment'
-  import Vue from 'vue'
   export default {
     name: "SaleOutList",
     mixins:[JeecgListMixin,BillListMixin],
@@ -250,8 +240,6 @@
       FreightBillModal,
       AttachmentModal,
       ColumnSettingPopover,
-      JEllipsis,
-      JDate,
       VNodes: {
         functional: true,
         render: (h, ctx) => ctx.props.vnodes,
@@ -366,6 +354,17 @@
           seen.add(name)
           return true
         })
+      },
+      availableProjectList() {
+        let source = this.projectListForOrgan && this.projectListForOrgan.length ? this.projectListForOrgan : this.cusList
+        let result = []
+        let seen = new Set()
+        source.forEach(item => {
+          if (!item || !item.id || seen.has(String(item.id))) return
+          seen.add(String(item.id))
+          result.push(item)
+        })
+        return result
       }
     },
     watch: {
@@ -444,14 +443,30 @@
           this.searchQuery()
         }
       },
-      onProjectChange() {
+      handleSearchProject(value) {
+        this.handleSearchCustomer(value)
+      },
+      onProjectChange(value) {
+        if (value) {
+          let selectedProject = this.cusList.find(item => String(item.id) === String(value))
+          if (selectedProject) {
+            this.selectedCustomerName = selectedProject.supplier
+            this.projectListForOrgan = this.cusList.filter(c => c.supplier === selectedProject.supplier)
+          }
+        } else if (this.selectedCustomerName) {
+          this.projectListForOrgan = this.cusList.filter(c => c.supplier === this.selectedCustomerName)
+        } else {
+          this.projectListForOrgan = []
+        }
         this.searchQuery()
       },
       calcSummary() {
         let rows = this.dataSource || []
+        let selectedRows = []
         if (this.selectedRowKeys && this.selectedRowKeys.length > 0) {
           const keySet = new Set(this.selectedRowKeys.map(String))
-          rows = rows.filter(r => keySet.has(String(r.id)))
+          selectedRows = rows.filter(r => keySet.has(String(r.id)))
+          rows = selectedRows
         }
         let totalWeight = 0, totalAmount = 0
         rows.forEach(row => {
@@ -464,9 +479,9 @@
           totalAmount: Math.abs(totalAmount).toFixed(2),
           contractInfo: null
         }
-        // 选中单据时查询合同余额（取第一条选中单据的客户）
-        if (rows.length > 0 && rows[0].organId) {
-          getContractBalance({ organId: rows[0].organId }).then(res => {
+        // 未选择单据时隐藏合同提示；选择后按首条选中单据显示
+        if (selectedRows.length > 0 && selectedRows[0].organId) {
+          getContractBalance({ organId: selectedRows[0].organId }).then(res => {
             if (res && res.code === 200 && res.data) {
               let d = res.data
               let totalAmt = Number(d.totalAmount || 0)
@@ -508,50 +523,6 @@
           if (res && res.code === 200) this.$message.success('附件已保存')
         })
       },
-      batchWeightApprove() {
-        if (this.selectedRowKeys.length <= 0) {
-          this.$message.warning('请选择一条或多条记录！')
-          return
-        }
-        let ids = this.selectedRowKeys.join(',')
-        let that = this
-        this.$confirm({
-          title: '确认重量核准',
-          content: '确认选中的 ' + this.selectedRowKeys.length + ' 条单据过磅重量已核实？',
-          onOk() {
-            postAction('/depotHead/batchSetWeightApproved', {
-              weightApproved: '1',
-              ids: ids
-            }).then(res => {
-              if (res && res.code === 200) {
-                that.$message.success('重量核准成功')
-                that.loadData()
-              } else {
-                that.$message.warning(res.data && res.data.message || '核准失败')
-              }
-            })
-          }
-        })
-      },
-      batchWeightUnapprove() {
-        if (this.selectedRowKeys.length <= 0) {
-          this.$message.warning('请选择一条或多条记录！')
-          return
-        }
-        let ids = this.selectedRowKeys.join(',')
-        let that = this
-        postAction('/depotHead/batchSetWeightApproved', {
-          weightApproved: '0',
-          ids: ids
-        }).then(res => {
-          if (res && res.code === 200) {
-            that.$message.success('已取消重量核准')
-            that.loadData()
-          } else {
-            that.$message.warning(res.data && res.data.message || '操作失败')
-          }
-        })
-      },
       handleClodopPrint() {
         if (this.selectedRowKeys.length !== 1) {
           this.$message.warning('请选择一条单据进行打印')
@@ -567,6 +538,35 @@
   @import '~@assets/less/common.less'
 </style>
 <style>
+  .sale-out-list-page .sale-out-search-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .sale-out-list-page .sale-out-list-summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    white-space: normal;
+  }
+
+  .sale-out-list-page .sale-out-list-summary .ant-divider {
+    margin: 0 8px;
+  }
+
+  @media (max-width: 1400px) {
+    .sale-out-list-page .sale-out-search-actions {
+      align-items: flex-start;
+    }
+
+    .sale-out-list-page .sale-out-list-summary {
+      margin-top: 4px;
+    }
+  }
+
   .bill-row-incomplete td {
     background-color: var(--erp-primary-light, #e6f7ff) !important;
   }

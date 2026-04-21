@@ -29,7 +29,7 @@ ${extraHeaderHtml || ''}
 </table>
 <table>
 <thead><tr>
-  <th>序号</th><th>仓库</th><th>条码</th><th>名称</th><th>规格</th><th>型号</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th>
+  <th>序号</th><th>仓库</th><th>条码</th><th>名称</th><th>规格</th><th>材质</th><th>单位</th><th>数量</th><th>单价</th><th>金额</th><th>备注</th>
 </tr></thead>
 <tbody>
 <!--DETAIL_ROW_START-->
@@ -258,7 +258,7 @@ LODOP.ADD_PRINT_RECT(dataTop,remarkLeft,remarkW,remarkH,0,1);
 var cY=dataTop+6;
 var cX=remarkLeft+6;
 var cW=remarkW-12;
-LODOP.ADD_PRINT_TEXT(cY,cX,cW,38,"1.货物规格、型号、数量及价格在收货时当即点清，并签字生效。");
+LODOP.ADD_PRINT_TEXT(cY,cX,cW,38,"1.货物规格、材质、数量及价格在收货时当即点清，并签字生效。");
 LODOP.SET_PRINT_STYLEA(0,"FontSize",9);
 cY+=40;
 LODOP.ADD_PRINT_TEXT(cY,cX,cW,110,"2.对货物必须先行检测合格后使用，如有质量问题需方需在五日内提出书面异议，逾期视为认可，供方负责调换或协助向厂方索赔，否则供方不予处理。需方不得以质量异议为由拒付或少付货款，否则视需方违约且需方向供方支付日息万分之五付违约金。");

@@ -27,7 +27,7 @@
             </a-col>
             <a-col :md="6" :sm="24">
               <a-form-item label="商品信息" :labelCol="{span: 5}" :wrapperCol="{span: 18, offset: 1}">
-                <a-input placeholder="请输入名称、规格、型号" v-model="queryParam.materialParam"></a-input>
+                <a-input placeholder="请输入名称、规格、材质" v-model="queryParam.materialParam"></a-input>
               </a-form-item>
             </a-col>
             <span style="float: left;overflow: hidden;" class="table-page-search-submitButtons">

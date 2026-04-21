@@ -207,6 +207,12 @@
       searchGlobalHeader(key, id, title, component){
         this.$emit("searchGlobalLayout", key, id, title, component)
       },
+      buildGlobalSearchPayload(number) {
+        return JSON.stringify({
+          keyword: number,
+          autoOpen: true
+        })
+      },
       handleGlobalSearch(value) {
         let number = (value || '').trim()
         if (!number) return
@@ -214,7 +220,7 @@
         for (let sp of SPECIAL_PREFIX_MAP) {
           if (sp.pattern.test(number)) {
             if (sp.storageKey) {
-              sessionStorage.setItem(sp.storageKey, number)
+              sessionStorage.setItem(sp.storageKey, this.buildGlobalSearchPayload(number))
             }
             this._navigateToMenu(sp.route, sp.label)
             return
@@ -232,7 +238,7 @@
               this.$message.warning('未识别的单据类型: ' + bill.type + '-' + bill.subType)
               return
             }
-            sessionStorage.setItem('globalSearchNumber', number)
+            sessionStorage.setItem('globalSearchNumber', this.buildGlobalSearchPayload(number))
             this._navigateToMenu(routePath, '单据')
           } else {
             this.$message.warning('未找到该单据编号')

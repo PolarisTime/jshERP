@@ -52,13 +52,24 @@
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="关联单据">
-              <a-input-search placeholder="请选择关联单据" v-decorator="[ 'linkNumber' ]" @search="onSearchLinkNumber" :readOnly="true"/>
+              <a-input-group compact>
+                <a-input style="width: calc(100% - 110px)" placeholder="请选择关联单据" v-decorator="[ 'linkNumber' ]" :readOnly="true"/>
+                <a-button style="width: 110px" icon="link" @click="onSearchLinkNumber">选择关联</a-button>
+              </a-input-group>
             </a-form-item>
           </a-col>
         </a-row>
         <a-row class="form-row" :gutter="24">
           <a-col :lg="18" :md="12" :sm="24">
-            <j-editable-table id="billModal"
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <column-setting-popover
+            :defColumns="detailDefColumns"
+            :settingDataIndex.sync="detailSettingDataIndex"
+            @change="onDetailColChange"
+            @reset="handleDetailRestDefault"
+          />
+        </div>
+        <j-editable-table id="billModal"
               :ref="refKeys[0]"
               :loading="materialTable.loading"
               :columns="materialTable.columns"
@@ -238,11 +249,11 @@
             },
             { title: '名称', key: 'name', width: '12%', type: FormTypes.normal },
             { title: '规格', key: 'standard', width: '10%', type: FormTypes.normal },
-            { title: '型号', key: 'model', width: '10%', type: FormTypes.normal },
+            { title: '材质', key: 'model', width: '10%', type: FormTypes.normal },
             { title: '颜色', key: 'color', width: '5%', type: FormTypes.normal },
             { title: '品牌', key: 'brand', width: '6%', type: FormTypes.normal },
             { title: '制造商', key: 'mfrs', width: '6%', type: FormTypes.normal },
-            { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
+            { title: '长度', key: 'otherField1', width: '4%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '5%', type: FormTypes.normal },
@@ -260,7 +271,7 @@
             { title: '金额', key: 'allPrice', width: '6%', type: FormTypes.inputNumber, statistics: true },
             { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '7%', type: FormTypes.input },
-            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.hidden },
+            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.normal },
           ]
         },
         confirmLoading: false,

@@ -66,7 +66,15 @@
         </a-row>
         <a-row class="form-row" :gutter="24">
           <a-col :lg="18" :md="12" :sm="24">
-            <j-editable-table id="billModal"
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <column-setting-popover
+            :defColumns="detailDefColumns"
+            :settingDataIndex.sync="detailSettingDataIndex"
+            @change="onDetailColChange"
+            @reset="handleDetailRestDefault"
+          />
+        </div>
+        <j-editable-table id="billModal"
               :ref="refKeys[0]"
               :loading="materialTable.loading"
               :columns="materialTable.columns"
@@ -247,11 +255,11 @@
             },
             { title: '名称', key: 'name', width: '12%', type: FormTypes.normal },
             { title: '规格', key: 'standard', width: '10%', type: FormTypes.normal },
-            { title: '型号', key: 'model', width: '10%', type: FormTypes.normal },
+            { title: '材质', key: 'model', width: '10%', type: FormTypes.normal },
             { title: '颜色', key: 'color', width: '5%', type: FormTypes.normal },
             { title: '品牌', key: 'brand', width: '6%', type: FormTypes.normal },
             { title: '制造商', key: 'mfrs', width: '6%', type: FormTypes.normal },
-            { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
+            { title: '长度', key: 'otherField1', width: '4%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '5%', type: FormTypes.normal },

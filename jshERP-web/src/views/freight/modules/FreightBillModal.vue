@@ -233,7 +233,7 @@
           { title: '项目名称', dataIndex: 'projectName', width: 100 },
           { title: '名称', dataIndex: 'materialName', width: 150 },
           { title: '规格', dataIndex: 'standard', width: 100 },
-          { title: '型号', dataIndex: 'model', width: 100 },
+          { title: '材质', dataIndex: 'model', width: 100 },
           { title: '批号', dataIndex: 'batchNumber', width: 100 },
           { title: '数量', dataIndex: 'operNumber', width: 80 },
           { title: '单位', dataIndex: 'materialUnit', width: 60 },

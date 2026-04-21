@@ -57,7 +57,10 @@
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="关联订单" data-step="3" data-title="关联订单"
               data-intro="采购入库单据可以通过关联订单来选择已录入的订单，选择之后会自动加载订单的内容，然后继续录入仓库等信息完成单据的提交，
               提交之后原来的采购订单会对应的改变单据状态。另外本系统支持订单多次入库，只需选择订单之后修改对应的商品数量即可">
-              <a-input-search placeholder="请选择关联订单" v-decorator="[ 'linkNumber' ]" @search="onSearchLinkNumber" :readOnly="true"/>
+              <a-input-group compact>
+                <a-input style="width: calc(100% - 110px)" placeholder="请选择关联订单" v-decorator="[ 'linkNumber' ]" :readOnly="true"/>
+                <a-button style="width: 110px" icon="link" @click="onSearchLinkNumber">选择关联</a-button>
+              </a-input-group>
             </a-form-item>
           </a-col>
           <a-col :lg="6" :md="12" :sm="24">
@@ -69,6 +72,14 @@
             </a-form-item>
           </a-col>
         </a-row>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+          <column-setting-popover
+            :defColumns="detailDefColumns"
+            :settingDataIndex.sync="detailSettingDataIndex"
+            @change="onDetailColChange"
+            @reset="handleDetailRestDefault"
+          />
+        </div>
         <j-editable-table id="billModal"
           :ref="refKeys[0]"
           :loading="materialTable.loading"
@@ -229,7 +240,7 @@
   import JUpload from '@/components/jeecg/JUpload'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
-  import { getCurrentSystemConfig, findBySelectSup } from '@/api/api'
+  import { findBySelectSup } from '@/api/api'
 
   export default {
     name: "PurchaseInModal",
@@ -290,11 +301,11 @@
             },
             { title: '名称', key: 'name', width: '10%', type: FormTypes.normal },
             { title: '规格', key: 'standard', width: '9%', type: FormTypes.normal },
-            { title: '型号', key: 'model', width: '9%', type: FormTypes.normal },
+            { title: '材质', key: 'model', width: '9%', type: FormTypes.normal },
             { title: '颜色', key: 'color', width: '5%', type: FormTypes.normal },
             { title: '品牌', key: 'brand', width: '6%', type: FormTypes.normal },
             { title: '制造商', key: 'mfrs', width: '6%', type: FormTypes.normal },
-            { title: '扩展1', key: 'otherField1', width: '4%', type: FormTypes.normal },
+            { title: '长度', key: 'otherField1', width: '4%', type: FormTypes.normal },
             { title: '扩展2', key: 'otherField2', width: '4%', type: FormTypes.normal },
             { title: '扩展3', key: 'otherField3', width: '4%', type: FormTypes.normal },
             { title: '单位', key: 'unit', width: '4%', type: FormTypes.normal },
@@ -308,19 +319,16 @@
               validateRules: [{ required: true, message: '${title}不能为空' }]
             },
             { title: '重量', key: 'weight', width: '4%', type: FormTypes.inputNumber, statistics: true, statisticsDecimals: 3,
-              readonly: (row) => {
-                // 类别标记 weight_editable=1 时可编辑重量，其他只读
-                return row.weightEditable !== '1' && row.weightEditable !== 1
-              }
+              readonly: true
             },
             { title: '单价', key: 'unitPrice', width: '4%', type: FormTypes.inputNumber},
             { title: '金额', key: 'allPrice', width: '5%', type: FormTypes.inputNumber, statistics: true },
-            { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.hidden,placeholder: '%'},
-            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.hidden },
-            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.hidden },
+            { title: '税率', key: 'taxRate', width: '4%', type: FormTypes.input,placeholder: '%'},
+            { title: '税额', key: 'taxMoney', width: '5%', type: FormTypes.normal },
+            { title: '价税合计', key: 'taxLastMoney', width: '7%', type: FormTypes.inputNumber },
             { title: '库存', key: 'stock', width: '5%', type: FormTypes.normal },
             { title: '备注', key: 'remark', width: '6%', type: FormTypes.input },
-            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.hidden },
+            { title: '关联id', key: 'linkId', width: '5%', type: FormTypes.normal },
           ]
         },
         confirmLoading: false,
@@ -358,8 +366,6 @@
           detailList: '/depotItem/getDetailList'
         }
       }
-    },
-    created () {
     },
     methods: {
       //调用完edit()方法之后会自动调用此方法

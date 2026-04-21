@@ -9,7 +9,7 @@
             <a-row :gutter="24">
               <a-col :md="6" :sm="24">
                 <a-form-item label="商品信息" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input placeholder="请输入条码、名称、助记码、规格、型号等信息" v-model="queryParam.materialParam"></a-input>
+                  <a-input placeholder="请输入条码、名称、助记码、规格、材质等信息" v-model="queryParam.materialParam"></a-input>
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
@@ -193,11 +193,11 @@
           {title: '条码', dataIndex: 'barCode', sorter: (a, b) => a.barCode - b.barCode, width: 160},
           {title: '名称', dataIndex: 'materialName', width: 160, ellipsis:true},
           {title: '规格', dataIndex: 'materialStandard', width: 80, ellipsis:true},
-          {title: '型号', dataIndex: 'materialModel', width: 80, ellipsis:true},
+          {title: '材质', dataIndex: 'materialModel', width: 80, ellipsis:true},
           {title: '颜色', dataIndex: 'materialColor', width: 60, ellipsis:true},
           {title: '品牌', dataIndex: 'materialBrand', width: 80, ellipsis:true},
           {title: '制造商', dataIndex: 'materialMfrs', width: 80, ellipsis:true},
-          {title: '扩展1', dataIndex: 'otherField1', width: 80, ellipsis:true},
+          {title: '长度', dataIndex: 'otherField1', width: 80, ellipsis:true},
           {title: '扩展2', dataIndex: 'otherField2', width: 80, ellipsis:true},
           {title: '扩展3', dataIndex: 'otherField3', width: 80, ellipsis:true},
           {title: '单位', dataIndex: 'materialUnit', width: 80, ellipsis:true},
@@ -321,7 +321,7 @@
       exportExcel() {
         let list = []
         let mpStr = getMpListShort(Vue.ls.get('materialPropertyList'))
-        let head = '条码,名称,规格,型号,颜色,品牌,制造商,' + mpStr + ',单位,零售数量,零售金额,退货数量,退货金额,实际零售金额'
+        let head = '条码,名称,规格,材质,颜色,品牌,制造商,' + mpStr + ',单位,零售数量,零售金额,退货数量,退货金额,实际零售金额'
         for (let i = 0; i < this.dataSource.length; i++) {
           let item = []
           let ds = this.dataSource[i]

@@ -15,7 +15,7 @@
       <a-col :span="8">
         <a-form-item label="物流方" :labelCol="{span:5}" :wrapperCol="{span:19}">
           <a-select v-model="queryParam.carrierId" placeholder="请选择物流方"
-            showSearch allow-clear optionFilterProp="children" style="width:100%" @change="loadItems(1)">
+            showSearch allow-clear optionFilterProp="children" style="width:100%" @change="handleCarrierChange">
             <a-select-option v-for="item in carrierList" :key="item.id" :value="item.id">{{ item.name }}</a-select-option>
           </a-select>
         </a-form-item>
@@ -50,7 +50,7 @@
     <a-table
       size="small" bordered rowKey="id"
       :columns="columns" :dataSource="dataSource" :loading="loading"
-      :rowSelection="{ selectedRowKeys, onChange: onSelectChange }"
+      :rowSelection="rowSelection"
       :pagination="false" :scroll="{ x: 900, y: 400 }">
     </a-table>
 
@@ -88,6 +88,7 @@
         dataSource: [],
         selectedRowKeys: [],
         selectedRows: [],
+        lockedCarrierId: '',
         currentPage: 1,
         pageSize: 50,
         total: 0,
@@ -103,6 +104,15 @@
       }
     },
     computed: {
+      rowSelection() {
+        return {
+          selectedRowKeys: this.selectedRowKeys,
+          onChange: this.onSelectChange,
+          getCheckboxProps: (record) => ({
+            disabled: !!this.lockedCarrierId && this.normalizeCarrierId(record.carrierId) !== this.lockedCarrierId
+          })
+        }
+      },
       selectedWeight() {
         return this.selectedRows.reduce((sum, r) => sum + (parseFloat(r.totalWeight) || 0), 0).toFixed(3)
       },
@@ -114,10 +124,17 @@
       this.initCarrier()
     },
     methods: {
-      show() {
-        this.visible = true
+      normalizeCarrierId(carrierId) {
+        return carrierId === null || carrierId === undefined || carrierId === '' ? '' : String(carrierId)
+      },
+      resetSelection(carrierId) {
         this.selectedRowKeys = []
         this.selectedRows = []
+        this.lockedCarrierId = this.normalizeCarrierId(carrierId)
+      },
+      show() {
+        this.visible = true
+        this.resetSelection(this.queryParam.carrierId)
         this.remark = ''
         this.loadItems(1)
       },
@@ -143,6 +160,10 @@
           }
         }).finally(() => { this.loading = false })
       },
+      handleCarrierChange(value) {
+        this.resetSelection(value)
+        this.loadItems(1)
+      },
       resetQuery() {
         this.queryParam = {
           carrierId: undefined,
@@ -150,15 +171,28 @@
           beginTime: moment().subtract(3, 'months').format('YYYY-MM-DD'),
           endTime: moment().format('YYYY-MM-DD')
         }
+        this.resetSelection('')
         this.loadItems(1)
       },
       onDateChange(dates, dateStrings) {
         this.queryParam.beginTime = dateStrings[0] || ''
         this.queryParam.endTime = dateStrings[1] || ''
+        this.resetSelection(this.queryParam.carrierId)
       },
       onSelectChange(keys, rows) {
-        this.selectedRowKeys = keys
-        this.selectedRows = rows
+        if (!keys || keys.length === 0) {
+          this.resetSelection(this.queryParam.carrierId)
+          return
+        }
+        let baseCarrierId = this.lockedCarrierId || this.normalizeCarrierId(this.queryParam.carrierId) || this.normalizeCarrierId(rows[0] && rows[0].carrierId)
+        let filteredRows = rows.filter(row => this.normalizeCarrierId(row.carrierId) === baseCarrierId)
+        let filteredKeys = filteredRows.map(row => row.id)
+        if (filteredRows.length !== rows.length) {
+          this.$message.warning('一次只能选择同一物流方的单据')
+        }
+        this.lockedCarrierId = baseCarrierId
+        this.selectedRowKeys = filteredKeys
+        this.selectedRows = filteredRows
       },
       onPageChange(page) { this.currentPage = page; this.loadItems() },
       onPageSizeChange(cur, size) { this.pageSize = size; this.loadItems(1) },
@@ -173,10 +207,7 @@
         // 确定物流方（取第一条的carrierId，或从查询条件取）
         let carrierId = this.queryParam.carrierId
         if (!carrierId && this.selectedRows.length > 0) {
-          // 从选中行反查
-          let firstRow = this.selectedRows[0]
-          let carrier = this.carrierList.find(c => c.name === firstRow.carrierName)
-          if (carrier) carrierId = carrier.id
+          carrierId = this.selectedRows[0].carrierId
         }
         this.confirmLoading = true
         generateFreightStatement({

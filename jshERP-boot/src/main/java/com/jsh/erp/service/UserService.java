@@ -182,6 +182,9 @@ public class UserService {
             Object userId = redisService.getObjectFromSessionByKey(request,"userId");
             if (userId != null) {
                 result = userMapper.updateByPrimaryKeySelective(user);
+                if (result > 0 && user.getId() != null && !isUserSessionAvailable(user.getId())) {
+                    redisService.deleteObjectByUser(user.getId());
+                }
                 logService.insertLog("用户",
                         new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(user.getLoginName()).toString(), request);
             }
@@ -199,6 +202,9 @@ public class UserService {
             Object userId = redisService.getObjectFromSessionByKey(request,"userId");
             if (userId != null) {
                 result = userMapper.updateByPrimaryKeySelective(user);
+                if (result > 0 && user.getId() != null && !isUserSessionAvailable(user.getId())) {
+                    redisService.deleteObjectByUser(user.getId());
+                }
                 logService.insertLog("用户",
                         new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(user.getId()).toString(),
                         ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());
@@ -373,6 +379,9 @@ public class UserService {
                     token = token + "_" + user.getTenantId();
                 }
                 redisService.storageObjectBySession(token,"userId",user.getId());
+                if (user.getTenantId() != null) {
+                    redisService.storageObjectBySession(token,"tenantId",user.getTenantId());
+                }
                 break;
             default:
                 break;
@@ -458,6 +467,31 @@ public class UserService {
             user = list.get(0);
         }
         return user;
+    }
+
+    public User getAvailableUserById(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        User user = userMapper.selectByPrimaryKey(userId);
+        if (user == null) {
+            return null;
+        }
+        if (user.getDeleteFlag() != null && BusinessConstants.DELETE_FLAG_DELETED.equals(user.getDeleteFlag())) {
+            return null;
+        }
+        if (user.getStatus() == null || user.getStatus() != BusinessConstants.USER_STATUS_NORMAL) {
+            return null;
+        }
+        return user;
+    }
+
+    public boolean isUserSessionAvailable(Long userId) {
+        User user = getAvailableUserById(userId);
+        if (user == null) {
+            return false;
+        }
+        return tenantService.isTenantAvailable(user.getTenantId());
     }
 
     /**
@@ -926,6 +960,11 @@ public class UserService {
             UserExample example = new UserExample();
             example.createCriteria().andIdIn(idList);
             result = userMapper.updateByExampleSelective(user, example);
+            if (result > 0 && status != BusinessConstants.USER_STATUS_NORMAL) {
+                for (Long id : idList) {
+                    redisService.deleteObjectByUser(id);
+                }
+            }
             logService.insertLog("用户",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(userStr).append("-").append(statusStr).toString(),
                     ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest());

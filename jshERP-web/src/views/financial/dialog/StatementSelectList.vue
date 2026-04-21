@@ -14,7 +14,7 @@
       :columns="columns"
       :dataSource="dataSource"
       :loading="loading"
-      :rowSelection="{ selectedRowKeys, onChange: onSelectChange }"
+      :rowSelection="rowSelection"
       :pagination="false"
       :scroll="{ y: 400 }">
     </a-table>
@@ -31,6 +31,7 @@
         visible: false,
         loading: false,
         organId: null,
+        lockedOrganId: '',
         dataSource: [],
         selectedRowKeys: [],
         selectRows: [],
@@ -53,9 +54,24 @@
         ]
       }
     },
+    computed: {
+      rowSelection() {
+        return {
+          selectedRowKeys: this.selectedRowKeys,
+          onChange: this.onSelectChange,
+          getCheckboxProps: (record) => ({
+            disabled: !!this.lockedOrganId && this.normalizeOrganId(record.organId) !== this.lockedOrganId
+          })
+        }
+      }
+    },
     methods: {
+      normalizeOrganId(organId) {
+        return organId === null || organId === undefined || organId === '' ? '' : String(organId)
+      },
       show(organId) {
         this.organId = organId
+        this.lockedOrganId = this.normalizeOrganId(organId)
         this.visible = true
         this.selectedRowKeys = []
         this.selectRows = []
@@ -72,8 +88,21 @@
         }).finally(() => { this.loading = false })
       },
       onSelectChange(keys, rows) {
-        this.selectedRowKeys = keys
-        this.selectRows = rows
+        if (!keys || keys.length === 0) {
+          this.selectedRowKeys = []
+          this.selectRows = []
+          this.lockedOrganId = this.normalizeOrganId(this.organId)
+          return
+        }
+        let baseOrganId = this.lockedOrganId || this.normalizeOrganId(this.organId) || this.normalizeOrganId(rows[0] && rows[0].organId)
+        let filteredRows = rows.filter(row => this.normalizeOrganId(row.organId) === baseOrganId)
+        let filteredKeys = filteredRows.map(row => row.id)
+        if (filteredRows.length !== rows.length) {
+          this.$message.warning('一次只能选择同一项目名称的对账单')
+        }
+        this.lockedOrganId = baseOrganId
+        this.selectedRowKeys = filteredKeys
+        this.selectRows = filteredRows
       },
       handleOk() {
         if (this.selectRows.length === 0) {
@@ -84,6 +113,7 @@
         this.visible = false
       },
       handleCancel() {
+        this.lockedOrganId = ''
         this.visible = false
       }
     }

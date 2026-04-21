@@ -2,11 +2,10 @@ import Vue from 'vue'
 import { getAction, postAction } from '@/api/manage'
 import { FormTypes } from '@/utils/JEditableTableUtil'
 import { findBillDetailByNumber, findBySelectSup, findBySelectCus, findBySelectRetail, getUserList, getAccount,
-  waitBillCount, getCurrentSystemConfig, getPlatformConfigByKey, getPersonByNumType,
-  getColumnConfig, saveColumnConfig, resetColumnConfig } from '@/api/api'
+  waitBillCount, getCurrentSystemConfig, getPlatformConfigByKey, getPersonByNumType } from '@/api/api'
 import { getCheckFlag, getFormatDate, getMpListShort, getPrevMonthFormatDate } from '@/utils/util'
+import { loadColumnSetting, saveColumnSetting, resetColumnSetting, forceSyncColumnSetting } from '@/utils/columnSetting'
 import moment from 'moment'
-import pick from 'lodash.pick'
 
 export const BillListMixin = {
   data () {
@@ -34,6 +33,9 @@ export const BillListMixin = {
       settingDataIndex: [],
       // 存储展开的行key
       expandedRowKeys: [],
+      pendingGlobalSearchRecordNo: '',
+      // 查询请求序号，避免旧响应覆盖新结果
+      loadDataRequestSeq: 0,
       // 实际列
       columns:[],
       // 明细表头
@@ -45,24 +47,19 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       retailBackColumns: [
@@ -70,56 +67,47 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       purchaseApplyColumns: [
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '单位', dataIndex: 'unit'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已采购', dataIndex: 'finishNumber'},
+        { title: '重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       purchaseOrderColumns: [
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
+        { title: '件重', dataIndex: 'unitWeight'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已采购', dataIndex: 'finishNumber'},
@@ -128,6 +116,7 @@ export const BillListMixin = {
         { title: '税率(%)', dataIndex: 'taxRate'},
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
+        { title: '总重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       purchaseInColumns: [
@@ -135,18 +124,15 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
+        { title: '件重', dataIndex: 'unitWeight'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已入库', dataIndex: 'finishNumber'},
@@ -155,8 +141,7 @@ export const BillListMixin = {
         { title: '税率(%)', dataIndex: 'taxRate'},
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
-        { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
+        { title: '总重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       purchaseBackColumns: [
@@ -164,18 +149,14 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已出库', dataIndex: 'finishNumber'},
@@ -185,18 +166,14 @@ export const BillListMixin = {
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       saleOrderColumns: [
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
@@ -210,6 +187,7 @@ export const BillListMixin = {
         { title: '税率(%)', dataIndex: 'taxRate'},
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
+        { title: '重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       saleOutColumns: [
@@ -217,18 +195,14 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已出库', dataIndex: 'finishNumber'},
@@ -238,7 +212,6 @@ export const BillListMixin = {
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       saleBackColumns: [
@@ -246,18 +219,14 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '已入库', dataIndex: 'finishNumber'},
@@ -267,7 +236,6 @@ export const BillListMixin = {
         { title: '税额', dataIndex: 'taxMoney'},
         { title: '价税合计', dataIndex: 'taxLastMoney'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       otherInColumns: [
@@ -275,24 +243,19 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       otherOutColumns: [
@@ -300,24 +263,19 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
         { title: '单位', dataIndex: 'unit'},
         { title: '序列号', dataIndex: 'snList', width:300},
         { title: '批号', dataIndex: 'batchNumber'},
-        { title: '有效期', dataIndex: 'expirationDate'},
         { title: '多属性', dataIndex: 'sku'},
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       allocationOutColumns: [
@@ -325,11 +283,8 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
@@ -340,7 +295,6 @@ export const BillListMixin = {
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
         { title: '重量', dataIndex: 'weight'},
-        { title: '仓位货架', dataIndex: 'position'},
         { title: '备注', dataIndex: 'remark'}
       ],
       assembleColumns: [
@@ -349,11 +303,8 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
@@ -362,6 +313,7 @@ export const BillListMixin = {
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
+        { title: '重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       disassembleColumns: [
@@ -370,11 +322,8 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '颜色', dataIndex: 'color'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
@@ -383,6 +332,7 @@ export const BillListMixin = {
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
+        { title: '重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       stockCheckReplayColumns: [
@@ -390,10 +340,8 @@ export const BillListMixin = {
         { title: '条码', dataIndex: 'barCode'},
         { title: '名称', dataIndex: 'name'},
         { title: '规格', dataIndex: 'standard'},
-        { title: '型号', dataIndex: 'model'},
-        { title: '品牌', dataIndex: 'brand'},
-        { title: '制造商', dataIndex: 'mfrs'},
-        { title: '扩展1', dataIndex: 'otherField1'},
+        { title: '材质', dataIndex: 'model'},
+        { title: '长度', dataIndex: 'otherField1'},
         { title: '扩展2', dataIndex: 'otherField2'},
         { title: '扩展3', dataIndex: 'otherField3'},
         { title: '库存', dataIndex: 'stock'},
@@ -402,6 +350,7 @@ export const BillListMixin = {
         { title: '数量', dataIndex: 'operNumber'},
         { title: '单价', dataIndex: 'unitPrice'},
         { title: '金额', dataIndex: 'allPrice'},
+        { title: '重量', dataIndex: 'weight'},
         { title: '备注', dataIndex: 'remark'}
       ],
       quickBtn: {
@@ -444,13 +393,28 @@ export const BillListMixin = {
   },
   methods: {
     _applyGlobalSearchNumber(reload) {
-      const pendingNumber = sessionStorage.getItem('globalSearchNumber')
-      if (pendingNumber) {
+      const payload = this.parseGlobalSearchPayload(sessionStorage.getItem('globalSearchNumber'))
+      if (payload.number) {
         sessionStorage.removeItem('globalSearchNumber')
-        this.queryParam.number = pendingNumber
+        this.queryParam.number = payload.number
+        this.pendingGlobalSearchRecordNo = payload.autoOpen ? payload.number : ''
         if (reload) {
           this.$nextTick(() => { this.loadData(1) })
         }
+      }
+    },
+    parseGlobalSearchPayload(rawValue) {
+      if (!rawValue) {
+        return { number: '', autoOpen: false }
+      }
+      try {
+        const parsed = JSON.parse(rawValue)
+        return {
+          number: parsed.keyword || parsed.number || '',
+          autoOpen: parsed.autoOpen !== false
+        }
+      } catch (e) {
+        return { number: rawValue, autoOpen: false }
       }
     },
     loadData(arg) {
@@ -460,19 +424,48 @@ export const BillListMixin = {
         this.ipagination.current = 1
       }
       let params = this.getQueryParams() //查询条件
+      const requestSeq = ++this.loadDataRequestSeq
       this.loading = true
       getAction(this.url.list, params).then((res) => {
+        if (requestSeq !== this.loadDataRequestSeq) {
+          return
+        }
         if (res.code===200) {
           this.dataSource = res.data.rows
           this.ipagination.total = res.data.total
           this.tableAddTotalRow(this.columns, this.dataSource)
+          this.afterLoadDataSuccess(this.dataSource)
         } else if(res.code===510){
           this.$message.warning(res.data)
         } else {
           this.$message.warning(res.data.message)
         }
-        this.loading = false
         this.onClearSelected()
+      }).finally(() => {
+        if (requestSeq === this.loadDataRequestSeq) {
+          this.loading = false
+        }
+      })
+    },
+    afterLoadDataSuccess(rows) {
+      if (!this.pendingGlobalSearchRecordNo || !Array.isArray(rows) || rows.length === 0) {
+        return
+      }
+      const targetNo = String(this.pendingGlobalSearchRecordNo)
+      const matched = rows.find(row => String(row.number || '') === targetNo)
+      if (!matched || !this.$refs.modalDetail || typeof this.$refs.modalDetail.show !== 'function') {
+        return
+      }
+      this.pendingGlobalSearchRecordNo = ''
+      let type = matched.type != null ? matched.type : this.queryParam.type
+      let subType = matched.subType != null ? matched.subType : this.queryParam.subType
+      type = type === '其它' ? '' : (type || '')
+      const billType = (subType || '') + type
+      this.$nextTick(() => {
+        this.$refs.modalDetail.show(matched, billType, this.prefixNo)
+        if (this.$refs.modalDetail) {
+          this.$refs.modalDetail.title = billType + '-详情'
+        }
       })
     },
     myHandleAdd() {
@@ -500,26 +493,12 @@ export const BillListMixin = {
       this.$refs.modalForm.materialTable.columns[columnIndex].type = FormTypes.popupJsh
     },
     myHandleEdit(record) {
-      //未审核：正常编辑
       if(record.status === '0') {
         this.$refs.modalForm.action = "edit";
-        this.$refs.modalForm.weightEditMode = false;
         if(this.btnEnableList.indexOf(2)===-1) {
           this.$refs.modalForm.isCanCheck = false
         }
-        findBillDetailByNumber({ number: record.number }).then((res) => {
-          if (res && res.code === 200) {
-            let item = res.data
-            this.handleEdit(item)
-          }
-        })
-      //已审核+重量未核准（销售出库）：允许编辑重量
-      } else if(record.status === '1' && record.weightApproved !== '1' && this.prefixNo === 'XSCK') {
-        this.$refs.modalForm.action = "edit";
-        this.$refs.modalForm.weightEditMode = true;
-        if(this.btnEnableList.indexOf(2)===-1) {
-          this.$refs.modalForm.isCanCheck = false
-        }
+        //查询单条单据信息
         findBillDetailByNumber({ number: record.number }).then((res) => {
           if (res && res.code === 200) {
             let item = res.data
@@ -715,40 +694,15 @@ export const BillListMixin = {
     },
     //加载初始化列（优先从服务端加载，支持排序）
     initColumnsSetting(){
-      // 先用默认列渲染，不阻塞
-      this.settingDataIndex = [...this.defDataIndex]
-      this.applyColumnsOrdered(this.settingDataIndex)
-      // 异步从服务端加载
-      if(this.prefixNo) {
-        getColumnConfig({ pageCode: this.prefixNo }).then((res) => {
-          if(res && res.code === 200 && res.data && res.data.columnConfig) {
-            try {
-              let configArr = JSON.parse(res.data.columnConfig)
-              if(configArr && configArr.length > 0) {
-                this.settingDataIndex = configArr
-                this.applyColumnsOrdered(configArr)
-                Vue.ls.set(this.prefixNo, configArr.join(','))
-                return
-              }
-            } catch(e) { /* ignore parse error */ }
-          }
-          // 服务端无配置，检查localStorage是否有旧配置需要迁移
-          let columnsStr = Vue.ls.get(this.prefixNo)
-          if(columnsStr && columnsStr.indexOf(',')>-1) {
-            this.settingDataIndex = columnsStr.split(',')
-            this.applyColumnsOrdered(this.settingDataIndex)
-            // 自动迁移到服务端
-            this.saveColumnsToServer(this.settingDataIndex)
-          }
-        }).catch(() => {
-          // 网络异常回退localStorage
-          let columnsStr = Vue.ls.get(this.prefixNo)
-          if(columnsStr && columnsStr.indexOf(',')>-1) {
-            this.settingDataIndex = columnsStr.split(',')
-            this.applyColumnsOrdered(this.settingDataIndex)
-          }
-        })
-      }
+      return loadColumnSetting({
+        pageCode: this.prefixNo,
+        storageKey: this.prefixNo,
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.applyColumnsOrdered(this.settingDataIndex)
+        }
+      })
     },
     //按有序数组重排列
     applyColumnsOrdered(orderedArr) {
@@ -769,12 +723,11 @@ export const BillListMixin = {
     },
     //保存列配置到服务端
     saveColumnsToServer(dataIndexArr) {
-      if(!this.prefixNo) return
-      saveColumnConfig({
+      if(!this.prefixNo) return Promise.resolve(dataIndexArr)
+      return saveColumnSetting({
         pageCode: this.prefixNo,
-        columnConfig: JSON.stringify(dataIndexArr)
-      }).then(() => {
-        Vue.ls.set(this.prefixNo, dataIndexArr.join(','))
+        storageKey: this.prefixNo,
+        dataIndexArr
       })
     },
     //加载快捷按钮：转入库、转出库等
@@ -919,12 +872,26 @@ export const BillListMixin = {
     },
     //恢复默认
     handleRestDefault() {
-      Vue.ls.remove(this.prefixNo)
-      if(this.prefixNo) {
-        resetColumnConfig({ pageCode: this.prefixNo })
-      }
-      this.settingDataIndex = [...this.defDataIndex]
-      this.applyColumnsOrdered(this.settingDataIndex)
+      return resetColumnSetting({
+        pageCode: this.prefixNo,
+        storageKey: this.prefixNo,
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.applyColumnsOrdered(this.settingDataIndex)
+        }
+      })
+    },
+    forceSyncColumnSettings() {
+      return forceSyncColumnSetting({
+        pageCode: this.prefixNo,
+        storageKey: this.prefixNo,
+        defaultDataIndex: this.defDataIndex || [],
+        applySetting: (dataIndexArr) => {
+          this.settingDataIndex = [...dataIndexArr]
+          this.applyColumnsOrdered(this.settingDataIndex)
+        }
+      })
     },
     //导出单据
     handleExport() {
@@ -1117,7 +1084,7 @@ export const BillListMixin = {
       }
       //动态替换扩展字段
       this.handleChangeOtherField()
-      //判断序列号、批号、有效期、多属性、重量、仓位货架、扩展、备注等是否有值
+      //判断序列号、批号、多属性、扩展、备注等是否有值
       let needAddkeywords = []
       for (let i = 0; i < ds.length; i++) {
         if(ds[i].snList) {
@@ -1126,23 +1093,8 @@ export const BillListMixin = {
         if(ds[i].batchNumber) {
           needAddkeywords.push('batchNumber')
         }
-        if(ds[i].expirationDate) {
-          needAddkeywords.push('expirationDate')
-        }
         if(ds[i].sku) {
           needAddkeywords.push('sku')
-        }
-        if(ds[i].weight) {
-          needAddkeywords.push('weight')
-        }
-        if(ds[i].position) {
-          needAddkeywords.push('position')
-        }
-        if(ds[i].brand) {
-          needAddkeywords.push('brand')
-        }
-        if(ds[i].mfrs) {
-          needAddkeywords.push('mfrs')
         }
         if(ds[i].otherField1) {
           needAddkeywords.push('otherField1')
@@ -1170,8 +1122,8 @@ export const BillListMixin = {
       } else {
         for(let i=0; i<this.defDetailColumns.length; i++){
           //移除列
-          let needRemoveKeywords = ['finishNumber','finishPurchaseNumber','snList','batchNumber','expirationDate','sku','weight','position',
-            'brand','mfrs','otherField1','otherField2','otherField3','taxRate','remark']
+          let needRemoveKeywords = ['finishNumber','finishPurchaseNumber','snList','batchNumber','sku',
+            'otherField1','otherField2','otherField3','taxRate','remark']
           if(needRemoveKeywords.indexOf(this.defDetailColumns[i].dataIndex)===-1) {
             let info = {}
             info.title = this.defDetailColumns[i].title
@@ -1206,7 +1158,7 @@ export const BillListMixin = {
         if(mpArr.length ===3) {
           for (let i = 0; i < this.defDetailColumns.length; i++) {
             if(this.defDetailColumns[i].dataIndex === 'otherField1') {
-              this.defDetailColumns[i].title = mpArr[0]
+              this.defDetailColumns[i].title = '长度'
             }
             if(this.defDetailColumns[i].dataIndex === 'otherField2') {
               this.defDetailColumns[i].title = mpArr[1]

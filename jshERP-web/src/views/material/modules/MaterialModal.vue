@@ -26,15 +26,22 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="规格" data-step="2" data-title="规格" data-intro="规格不必填，比如：10克">
+                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="材质" data-step="2" data-title="材质" data-intro="材质用于标识商品材质属性，比如：Q235B">
+                  <a-input placeholder="请输入材质" v-decorator.trim="[ 'model', validatorRules.model ]" />
+                </a-form-item>
+              </a-col>
+              <a-col :md="6" :sm="24">
+                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="规格" data-step="3" data-title="规格" data-intro="规格不必填，比如：10克">
                   <a-input placeholder="请输入规格" v-decorator.trim="[ 'standard', validatorRules.standard ]"/>
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="24">
-                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="型号" data-step="3" data-title="型号" data-intro="型号是比规格更小的属性，比如：RX-01">
-                  <a-input placeholder="请输入型号" v-decorator.trim="[ 'model', validatorRules.model ]" />
+                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" :label="mpShort.otherField1.name">
+                  <a-input :placeholder="'请输入'+ mpShort.otherField1.name" v-decorator.trim="[ 'otherField1', validatorRules.otherField1 ]" />
                 </a-form-item>
               </a-col>
+            </a-row>
+            <a-row class="form-row" :gutter="24">
               <a-col :md="6" :sm="24">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="单位"
                   data-step="4" data-title="单位" data-intro="此处支持单个单位和多单位，勾选多单位就可以切换到多单位的下拉框，多单位需要先在【多单位】页面进行录入。
@@ -62,8 +69,6 @@
                   </a-row>
                 </a-form-item>
               </a-col>
-            </a-row>
-            <a-row class="form-row" :gutter="24">
               <a-col :md="6" :sm="24">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="颜色" data-step="5" data-title="颜色"
                              data-intro="请填写商品的颜色，如果是多属性商品可以不填（下面有多属性开关）">
@@ -118,11 +123,6 @@
               </a-col>
             </a-row>
             <a-row class="form-row" :gutter="24">
-              <a-col :lg="6" :md="6" :sm="6">
-                <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" :label="mpShort.otherField1.name">
-                  <a-input :placeholder="'请输入'+ mpShort.otherField1.name" v-decorator.trim="[ 'otherField1' ]" />
-                </a-form-item>
-              </a-col>
               <a-col :lg="6" :md="6" :sm="6">
                 <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" :label="mpShort.otherField2.name">
                   <a-input :placeholder="'请输入'+ mpShort.otherField2.name" v-decorator.trim="[ 'otherField2' ]" />
@@ -357,7 +357,7 @@
         },
         mpShort: {
           mfrs: {},
-          otherField1: { name: '扩展1' },
+          otherField1: { name: '长度' },
           otherField2: { name: '扩展2' },
           otherField3: { name: '扩展3' }
         },
@@ -422,6 +422,12 @@
           standard:{
             rules: [
               { max: 100, message: '长度请小于100个字符', trigger: 'blur' }
+            ]
+          },
+          otherField1:{
+            rules: [
+              { required: true, message: '请输入长度!' },
+              { max: 500, message: '长度请小于500个字符', trigger: 'blur' }
             ]
           },
           model:{
@@ -675,7 +681,7 @@
           this.$message.warning('抱歉，多属性商品不能勾选多单位，请切换为单个单位！');
           return;
         }
-        //校验商品是否存在，通过校验商品的名称、型号、规格、颜色、单位、制造商等
+        //校验商品是否存在，通过校验商品的名称、材质、规格、颜色、单位、制造商等
         let param = {
           id: this.model.id?this.model.id:0,
           name: this.model.name,
@@ -1224,9 +1230,10 @@
       },
       loadParseMaterialProperty() {
         let mpList = Vue.ls.get('materialPropertyList')
+        this.mpShort.otherField1.name = '长度'
         for (let i = 0; i < mpList.length; i++) {
           if (mpList[i].nativeName === "扩展1") {
-            this.mpShort.otherField1.name = mpList[i].anotherName
+            this.mpShort.otherField1.name = '长度'
           }
           if (mpList[i].nativeName === "扩展2") {
             this.mpShort.otherField2.name = mpList[i].anotherName

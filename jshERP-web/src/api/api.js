@@ -159,6 +159,7 @@ const listUnreconciledStatementItems = (params)=>getAction('/customerStatement/u
 const listCustomerStatements = (params)=>getAction('/customerStatement/list',params);
 const getCustomerStatementDetail = (params)=>getAction('/customerStatement/detail',params);
 const generateCustomerStatement = (params)=>postAction('/customerStatement/generate',params);
+const splitCustomerStatementItem = (params)=>putAction('/customerStatement/splitItem',params);
 const auditCustomerStatement = (params)=>putAction('/customerStatement/audit',params);
 const signCustomerStatement = (params)=>putAction('/customerStatement/sign',params);
 const updateStatementAttachment = (params)=>putAction('/customerStatement/updateAttachment',params);
@@ -315,6 +316,7 @@ export {
   listCustomerStatements,
   getCustomerStatementDetail,
   generateCustomerStatement,
+  splitCustomerStatementItem,
   auditCustomerStatement,
   signCustomerStatement,
   updateStatementAttachment,

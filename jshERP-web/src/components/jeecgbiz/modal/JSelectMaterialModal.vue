@@ -22,8 +22,8 @@
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="8">
-                <a-form-item label="规格型号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                  <a-input placeholder="请输入规格、型号" v-model="queryParam.standardOrModel"></a-input>
+                <a-form-item label="规格材质" :labelCol="labelCol" :wrapperCol="wrapperCol">
+                  <a-input placeholder="请输入规格、材质" v-model="queryParam.standardOrModel"></a-input>
                 </a-form-item>
               </a-col>
               <a-col :md="6" :sm="8">
@@ -53,25 +53,10 @@
             <template v-if="toggleSearchStatus">
               <a-row :gutter="24">
                 <a-col :md="6" :sm="8">
-                  <a-form-item label="颜色" :labelCol="{span: 5}" :wrapperCol="{span: 18, offset: 1}">
-                    <a-input placeholder="请输入颜色" v-model="queryParam.color"></a-input>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="8">
-                  <a-form-item label="品牌" :labelCol="{span: 5}" :wrapperCol="{span: 18, offset: 1}">
-                    <a-input placeholder="请输入品牌" v-model="queryParam.brand"></a-input>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="8">
                   <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="类别">
                     <a-tree-select style="width:100%" :dropdownStyle="{maxHeight:'200px',overflow:'auto'}" allow-clear
                                    :treeData="categoryTree" v-model="queryParam.categoryId" placeholder="请选择类别">
                     </a-tree-select>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="8">
-                  <a-form-item label="制造商" :labelCol="{span: 5}" :wrapperCol="{span: 18, offset: 1}">
-                    <a-input placeholder="请输入制造商" v-model="queryParam.mfrs"></a-input>
                   </a-form-item>
                 </a-col>
                 <a-col :md="6" :sm="8">
@@ -163,7 +148,7 @@
       return {
         modalWidth: 1450,
         queryTitle: {
-          mp1: '扩展1',
+          mp1: '长度',
           mp2: '扩展2',
           mp3: '扩展3'
         },
@@ -171,10 +156,7 @@
           q: '',
           standardOrModel: '',
           depotId: undefined,
-          color: '',
-          brand: '',
           categoryId: undefined,
-          mfrs: '',
           otherField1:'',
           otherField2:'',
           otherField3:'',
@@ -195,14 +177,12 @@
           {dataIndex: 'name', title: '名称', scopedSlots: { customRender: 'customName' }},
           {dataIndex: 'categoryName', title: '类别'},
           {dataIndex: 'standard', title: '规格'},
-          {dataIndex: 'model', title: '型号'},
-          {dataIndex: 'color', title: '颜色'},
-          {dataIndex: 'brand', title: '品牌'},
-          {dataIndex: 'mfrs', title: '制造商'},
+          {dataIndex: 'model', title: '材质'},
           {dataIndex: 'unit', title: '单位'},
+          {dataIndex: 'weight', title: '重量'},
           {dataIndex: 'sku', title: '多属性'},
           {dataIndex: 'stock', title: '库存'},
-          {dataIndex: 'otherField1', title: '扩展1'},
+          {dataIndex: 'otherField1', title: '长度'},
           {dataIndex: 'otherField2', title: '扩展2'},
           {dataIndex: 'otherField3', title: '扩展3'}
         ],
@@ -322,12 +302,12 @@
         if(mpStr) {
           let mpArr = mpStr.split(',')
           if(mpArr.length ===3) {
-            this.queryTitle.mp1 = mpArr[0]
+            this.queryTitle.mp1 = '长度'
             this.queryTitle.mp2 = mpArr[1]
             this.queryTitle.mp3 = mpArr[2]
             for (let i = 0; i < this.columns.length; i++) {
               if(this.columns[i].dataIndex === 'otherField1') {
-                this.columns[i].title = mpArr[0]
+                this.columns[i].title = '长度'
               }
               if(this.columns[i].dataIndex === 'otherField2') {
                 this.columns[i].title = mpArr[1]

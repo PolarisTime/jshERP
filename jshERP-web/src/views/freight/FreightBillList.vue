@@ -135,11 +135,11 @@
   import FreightBillModal from './modules/FreightBillModal'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import { selectAllFreightCarrier, deleteFreightBill, getColumnConfig, saveColumnConfig, resetColumnConfig, getFreightDetail } from '@/api/api'
+  import { selectAllFreightCarrier, deleteFreightBill, getFreightDetail } from '@/api/api'
   import { postAction } from '@/api/manage'
-  import Vue from 'vue'
   import AttachmentModal from '@/components/tools/AttachmentModal'
   import { putAction } from '@/api/manage'
+  import { loadColumnSetting, saveColumnSetting, resetColumnSetting, forceSyncColumnSetting } from '@/utils/columnSetting'
 
   export default {
     name: "FreightBillList",
@@ -169,6 +169,7 @@
         carrierList: [],
         urlPath: '/freight/bill',
         prefixNo: 'WLBILL',
+        pendingGlobalSearchBillNo: '',
         settingDataIndex: [],
         defDataIndex: ['action','billNo','billTimeStr','customerNames','projectNames','carrierName','totalWeight','unitPrice','totalFreight','remark','status'],
         columns: [],
@@ -201,7 +202,7 @@
           { title: '客户名称', dataIndex: 'customerName', width: 120 },
           { title: '名称', dataIndex: 'materialName', width: 150 },
           { title: '规格', dataIndex: 'standard', width: 100 },
-          { title: '型号', dataIndex: 'model', width: 100 },
+          { title: '材质', dataIndex: 'model', width: 100 },
           { title: '批号', dataIndex: 'batchNumber', width: 100 },
           { title: '数量', dataIndex: 'operNumber', width: 80 },
           { title: '单位', dataIndex: 'materialUnit', width: 60 },
@@ -232,14 +233,43 @@
     },
     methods: {
       _applyGlobalSearchBillNo(reload) {
-        const pending = sessionStorage.getItem('globalSearch_billNo')
-        if (pending) {
+        const payload = this.parseGlobalSearchBillPayload(sessionStorage.getItem('globalSearch_billNo'))
+        if (payload.billNo) {
           sessionStorage.removeItem('globalSearch_billNo')
-          this.queryParam.billNo = pending
+          this.queryParam.billNo = payload.billNo
+          this.pendingGlobalSearchBillNo = payload.autoOpen ? payload.billNo : ''
           if (reload) {
             this.$nextTick(() => { this.loadData(1) })
           }
         }
+      },
+      parseGlobalSearchBillPayload(rawValue) {
+        if (!rawValue) {
+          return { billNo: '', autoOpen: false }
+        }
+        try {
+          const parsed = JSON.parse(rawValue)
+          return {
+            billNo: parsed.keyword || parsed.billNo || '',
+            autoOpen: parsed.autoOpen !== false
+          }
+        } catch (e) {
+          return { billNo: rawValue, autoOpen: false }
+        }
+      },
+      afterLoadDataSuccess(rows) {
+        if (!this.pendingGlobalSearchBillNo || !Array.isArray(rows) || rows.length === 0) {
+          return
+        }
+        const billNo = String(this.pendingGlobalSearchBillNo)
+        const matched = rows.find(row => String(row.billNo || '') === billNo)
+        if (!matched) {
+          return
+        }
+        this.pendingGlobalSearchBillNo = ''
+        this.$nextTick(() => {
+          this.myHandleDetail(matched)
+        })
       },
       freightRowClassName(record) {
         // 审核或送达任一未完成，行底色染蓝
@@ -248,30 +278,12 @@
         return (notAudited || notDelivered) ? 'freight-row-incomplete' : ''
       },
       initColumnsSetting() {
-        this.settingDataIndex = [...this.defDataIndex]
-        this.applyColumnsOrdered(this.settingDataIndex)
-        getColumnConfig({ pageCode: this.prefixNo }).then((res) => {
-          if(res && res.code === 200 && res.data && res.data.columnConfig) {
-            try {
-              let configArr = JSON.parse(res.data.columnConfig)
-              if(configArr && configArr.length > 0) {
-                this.settingDataIndex = configArr
-                this.applyColumnsOrdered(configArr)
-                Vue.ls.set(this.prefixNo, configArr.join(','))
-                return
-              }
-            } catch(e) { /* ignore */ }
-          }
-          let columnsStr = Vue.ls.get(this.prefixNo)
-          if(columnsStr && columnsStr.indexOf(',')>-1) {
-            this.settingDataIndex = columnsStr.split(',')
-            this.applyColumnsOrdered(this.settingDataIndex)
-            this.saveColumnsToServer(this.settingDataIndex)
-          }
-        }).catch(() => {
-          let columnsStr = Vue.ls.get(this.prefixNo)
-          if(columnsStr && columnsStr.indexOf(',')>-1) {
-            this.settingDataIndex = columnsStr.split(',')
+        return loadColumnSetting({
+          pageCode: this.prefixNo,
+          storageKey: this.prefixNo,
+          defaultDataIndex: this.defDataIndex || [],
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
             this.applyColumnsOrdered(this.settingDataIndex)
           }
         })
@@ -290,11 +302,10 @@
         this.columns = result
       },
       saveColumnsToServer(dataIndexArr) {
-        saveColumnConfig({
+        return saveColumnSetting({
           pageCode: this.prefixNo,
-          columnConfig: JSON.stringify(dataIndexArr)
-        }).then(() => {
-          Vue.ls.set(this.prefixNo, dataIndexArr.join(','))
+          storageKey: this.prefixNo,
+          dataIndexArr
         })
       },
       onColChange(orderedArr) {
@@ -309,10 +320,26 @@
         this.$refs.modalForm.detail(record);
       },
       handleRestDefault() {
-        Vue.ls.remove(this.prefixNo)
-        resetColumnConfig({ pageCode: this.prefixNo })
-        this.settingDataIndex = [...this.defDataIndex]
-        this.applyColumnsOrdered(this.settingDataIndex)
+        return resetColumnSetting({
+          pageCode: this.prefixNo,
+          storageKey: this.prefixNo,
+          defaultDataIndex: this.defDataIndex || [],
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
+            this.applyColumnsOrdered(this.settingDataIndex)
+          }
+        })
+      },
+      forceSyncColumnSettings() {
+        return forceSyncColumnSetting({
+          pageCode: this.prefixNo,
+          storageKey: this.prefixNo,
+          defaultDataIndex: this.defDataIndex || [],
+          applySetting: (dataIndexArr) => {
+            this.settingDataIndex = [...dataIndexArr]
+            this.applyColumnsOrdered(this.settingDataIndex)
+          }
+        })
       },
       initCarrierList() {
         selectAllFreightCarrier({}).then((res) => {

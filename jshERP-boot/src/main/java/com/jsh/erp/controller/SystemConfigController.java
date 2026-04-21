@@ -5,7 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.SystemConfig;
+import com.jsh.erp.service.RedisService;
 import com.jsh.erp.service.SystemConfigService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -48,6 +50,12 @@ public class SystemConfigController extends BaseController {
 
     @Resource
     private SystemConfigService systemConfigService;
+
+    @Resource
+    private RedisService redisService;
+
+    @Resource
+    private UserService userService;
 
     @Value(value="${file.uploadType}")
     private Long fileUploadType;
@@ -198,6 +206,11 @@ public class SystemConfigController extends BaseController {
                     || "contract".equals(bizPath) || "statement".equals(bizPath) || "freightStatement".equals(bizPath) || "freight".equals(bizPath)) {
                 MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
                 MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
+                if(file == null || file.isEmpty() || file.getSize() <= 0) {
+                    res.code = 500;
+                    res.data = "上传文件不能为空";
+                    return res;
+                }
                 if(fileUploadType == 1) {
                     savePath = systemConfigService.uploadLocal(file, bizPath, billId, request);
                 } else if(fileUploadType == 2) {
@@ -214,6 +227,10 @@ public class SystemConfigController extends BaseController {
                 res.code = 505;
                 res.data = "文件分类错误！";
             }
+        } catch (IllegalArgumentException e) {
+            logger.warn(e.getMessage());
+            res.code = 500;
+            res.data = e.getMessage();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             res.code = 500;
@@ -232,6 +249,10 @@ public class SystemConfigController extends BaseController {
     @GetMapping(value = "/static/**")
     @ApiOperation(value = "预览图片&下载文件")
     public void view(HttpServletRequest request, HttpServletResponse response) {
+        if (!hasStaticAccess(request)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
         if(StringUtil.isEmpty(imgPath) || "null".equals(imgPath)){
@@ -308,6 +329,10 @@ public class SystemConfigController extends BaseController {
     @GetMapping(value = "/static/mini/**")
     @ApiOperation(value = "预览缩略图&下载文件")
     public void viewMini(HttpServletRequest request, HttpServletResponse response) {
+        if (!hasStaticAccess(request)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         // ISO-8859-1 ==> UTF-8 进行编码转换
         String imgPath = extractPathFromPattern(request);
         if(StringUtil.isEmpty(imgPath) || "null".equals(imgPath)){
@@ -413,5 +438,17 @@ public class SystemConfigController extends BaseController {
         String path = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         String bestMatchPattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         return new AntPathMatcher().extractPathWithinPattern(bestMatchPattern, path);
+    }
+
+    private boolean hasStaticAccess(HttpServletRequest request) {
+        Object userId = redisService.getObjectFromStaticSessionByKey(request, "userId");
+        if (userId == null) {
+            return false;
+        }
+        try {
+            return userService.isUserSessionAvailable(Long.parseLong(userId.toString()));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

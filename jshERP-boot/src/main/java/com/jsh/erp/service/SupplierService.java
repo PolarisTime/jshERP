@@ -789,8 +789,16 @@ public class SupplierService {
     private void setUserCustomerPermission(HttpServletRequest request, Supplier supplier) throws Exception {
         if("客户".equals(supplier.getType())) {
             User user = userService.getCurrentUser();
-            Supplier sInfo = supplierMapperEx.getSupplierByNameAndType(supplier.getSupplier(), supplier.getType());
-            String ubKey = "[" + sInfo.getId() + "]";
+            Long supplierId = supplier.getId();
+            if(supplierId == null) {
+                Supplier sInfo = supplierMapperEx.getInfoByName(supplier.getSupplier(), supplier.getType());
+                supplierId = sInfo == null ? null : sInfo.getId();
+            }
+            if(supplierId == null) {
+                logger.warn("新增客户授权失败，未找到客户ID, supplier={}, type={}", supplier.getSupplier(), supplier.getType());
+                return;
+            }
+            String ubKey = "[" + supplierId + "]";
             //授权当前用户
             setPermissionByParam(user.getId(), ubKey);
             if(!user.getId().equals(user.getTenantId())) {

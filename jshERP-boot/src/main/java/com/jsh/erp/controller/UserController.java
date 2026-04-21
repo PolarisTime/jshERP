@@ -568,10 +568,15 @@ public class UserController extends BaseController {
             //获取当前用户数
             int userCurrentNum = userService.getUser(request).size();
             Tenant tenant = tenantService.getTenantByTenantId(user.getTenantId());
+            if (tenant == null) {
+                redisService.deleteSessionByRequest(request);
+                res.code = 401;
+                res.data = "租户不存在";
+                return res;
+            }
             if(tenant.getExpireTime()!=null && tenant.getExpireTime().getTime()<System.currentTimeMillis()){
                 //租户已经过期，移除token
-                redisService.deleteObjectBySession(request,"userId");
-                redisService.deleteObjectBySession(request,"clientIp");
+                redisService.deleteSessionByRequest(request);
             }
             data.put("type", tenant.getType()); //租户类型，0免费租户，1付费租户
             data.put("expireTime", Tools.parseDateToStr(tenant.getExpireTime()));

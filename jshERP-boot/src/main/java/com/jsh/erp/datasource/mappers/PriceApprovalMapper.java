@@ -53,9 +53,13 @@ public interface PriceApprovalMapper {
 
     List<PriceApprovalItemVo> getApprovalItems(@Param("approvalId") Long approvalId);
 
+    PriceApprovalItem selectItemById(@Param("id") Long id);
+
     int batchInsertItems(@Param("items") List<PriceApprovalItem> items);
 
     int updateItemByPrimaryKeySelective(PriceApprovalItem record);
+
+    int deleteItemById(@Param("id") Long id);
 
     int deleteItemsByApprovalId(@Param("approvalId") Long approvalId);
 

@@ -145,6 +145,24 @@
     ORDER BY pai.depot_item_id, pai.id
   </select>
 
+  <select id="selectItemById" resultType="com.jsh.erp.datasource.entities.PriceApprovalItem">
+    SELECT id, approval_id as approvalId,
+           depot_item_id as depotItemId,
+           material_id as materialId,
+           material_extend_id as materialExtendId,
+           bar_code as barCode,
+           name, standard, model, color, brand,
+           oper_number as operNumber,
+           weight, unit_price as unitPrice,
+           all_price as allPrice,
+           tax_rate as taxRate, tax_money as taxMoney,
+           tax_last_money as taxLastMoney,
+           remark, tenant_id as tenantId, delete_flag as deleteFlag
+    FROM jsh_price_approval_item
+    WHERE id = #{id}
+      AND ifnull(delete_flag,'0') != '1'
+  </select>
+
   <!-- ═══ 明细批量操作 ═══ -->
 
   <insert id="batchInsertItems">
@@ -176,6 +194,11 @@
     </set>
     WHERE id=#{id}
   </update>
+
+  <delete id="deleteItemById">
+    DELETE FROM jsh_price_approval_item
+    WHERE id = #{id}
+  </delete>
 
   <update id="deleteItemsByApprovalId">
     DELETE FROM jsh_price_approval_item

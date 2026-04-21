@@ -69,7 +69,7 @@
           <!-- 右侧动态生成td -->
           <template v-for="col in columns">
             <div
-              v-show="col.type !== formTypes.hidden"
+              v-show="col.type !== formTypes.hidden && !col.hiddenBySetting"
               class="td"
               :key="col.key"
               :style="buildTdStyle(col)">
@@ -167,7 +167,7 @@
                 <div
                   class="td"
                   v-for="col in columns"
-                  v-show="col.type !== formTypes.hidden"
+                  v-show="col.type !== formTypes.hidden && !col.hiddenBySetting"
                   :key="col.key"
                   :style="buildTdStyle(col)">
 
@@ -780,7 +780,7 @@
               <div
                 :key="col.key"
                 class="td"
-                v-show="col.type !== formTypes.hidden"
+                v-show="col.type !== formTypes.hidden && !col.hiddenBySetting"
                 :style="buildTdStyle(col)"
               >
                 <span
@@ -1024,9 +1024,9 @@
         let splice = ' + '
         let calcWidth = 'calc('
         this.columns.forEach((column, i) => {
-          let { type, width } = column
+          let { type, width, hiddenBySetting } = column
           // 隐藏字段不参与计算
-          if (type !== FormTypes.hidden) {
+          if (type !== FormTypes.hidden && !hiddenBySetting) {
             if (typeof width === 'number') {
               calcWidth += width + 'px'
             } else if (typeof width === 'string') {
@@ -2681,6 +2681,9 @@
         } else {
           style['width'] = '120px'
         }
+        if (col.align) {
+          style['text-align'] = col.align
+        }
         // checkbox 居中显示
         let isCheckbox = col.type === FormTypes.checkbox
         if (isCheckbox) {
@@ -2705,6 +2708,13 @@
               props[prop] = this.replaceProps(col, col.props[prop])
             }
           }
+        }
+        let style = typeof props.style === 'object' && props.style !== null ? { ...props.style } : {}
+        if (col.align) {
+          style.textAlign = col.align
+        }
+        if (Object.keys(style).length > 0) {
+          props.style = style
         }
         // 判断select是否允许输入
         if (col.type === FormTypes.select && (col.allowInput === true || col.allowSearch === true)) {
@@ -2798,7 +2808,12 @@
                 }else if(k.type === 'datetime'){
                   this.handleChangeJDateCommon(others[key], key+tempId, {id:tempId}, k, true)
                 }else{
-                  this.popupJshValues[index][key] = others[key]
+                  if (this.inputValues[index]) {
+                    this.$set(this.inputValues[index], key, others[key])
+                  }
+                  if (this.rows[index]) {
+                    this.$set(this.rows[index], key, others[key])
+                  }
                 }
               }
             })

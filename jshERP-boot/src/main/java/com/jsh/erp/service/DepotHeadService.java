@@ -123,27 +123,50 @@ public class DepotHeadService {
     public List<DepotHeadVo4List> select(String type, String subType, String hasDebt, String status, String purchaseStatus, String number, String linkApply, String linkNumber,
            String beginTime, String endTime, String materialParam, Long organId, String[] organIdList, Long creator, Long depotId, Long accountId, String salesMan, String remark,
            String linkedFlag, String saleLinkFlag, String priceApproved) throws Exception {
+        DepotHeadSelectQuery query = new DepotHeadSelectQuery();
+        query.setType(type);
+        query.setSubType(subType);
+        query.setHasDebt(hasDebt);
+        query.setStatus(status);
+        query.setPurchaseStatus(purchaseStatus);
+        query.setNumber(number);
+        query.setLinkApply(linkApply);
+        query.setLinkNumber(linkNumber);
+        query.setBeginTime(beginTime);
+        query.setEndTime(endTime);
+        query.setMaterialParam(materialParam);
+        query.setOrganId(organId);
+        query.setOrganIdList(organIdList);
+        query.setCreator(creator);
+        query.setDepotId(depotId);
+        query.setAccountId(accountId);
+        query.setSalesMan(salesMan);
+        query.setRemark(remark);
+        query.setLinkedFlag(linkedFlag);
+        query.setSaleLinkFlag(saleLinkFlag);
+        query.setPriceApproved(priceApproved);
+        return select(query);
+    }
+
+    public List<DepotHeadVo4List> select(DepotHeadSelectQuery query) throws Exception {
         List<DepotHeadVo4List> list = new ArrayList<>();
         try{
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             Long userId = userService.getUserId(request);
             String priceLimit = userService.getRoleTypeByUserId(userId).getPriceLimit();
-            String billCategory = getBillCategory(subType);
-            String [] depotArray = getDepotArray(subType);
-            String [] creatorArray = getCreatorArray();
-            String [] statusArray = StringUtil.isNotEmpty(status) ? status.split(",") : null;
-            String [] purchaseStatusArray = StringUtil.isNotEmpty(purchaseStatus) ? purchaseStatus.split(",") : null;
-            String [] organArray = getOrganArray(subType, purchaseStatus);
-            //以销定购，查看全部数据
-            creatorArray = StringUtil.isNotEmpty(purchaseStatus) ? null: creatorArray;
+            PreparedSelectQuery preparedQuery = prepareSelectQuery(query);
             Map<Long,String> personMap = personService.getPersonMap();
             Map<Long,String> accountMap = accountService.getAccountMap();
-            beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
-            endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
             PageUtils.startPage();
-            list = depotHeadMapperEx.selectByConditionDepotHead(type, subType, creatorArray, hasDebt,
-                    statusArray, purchaseStatusArray, number, linkApply, linkNumber, beginTime, endTime,
-                    materialParam, organId, organIdList, organArray, creator, depotId, depotArray, accountId, salesMan, remark, linkedFlag, saleLinkFlag, priceApproved);
+            list = depotHeadMapperEx.selectByConditionDepotHead(preparedQuery.type, preparedQuery.subType,
+                    preparedQuery.creatorArray, preparedQuery.hasDebt, preparedQuery.statusArray,
+                    preparedQuery.purchaseStatusArray, preparedQuery.number, preparedQuery.linkApply,
+                    preparedQuery.linkNumber, preparedQuery.beginTime, preparedQuery.endTime,
+                    preparedQuery.materialParam, preparedQuery.organId, preparedQuery.organIdList,
+                    preparedQuery.organArray, preparedQuery.creator, preparedQuery.depotId,
+                    preparedQuery.depotArray, preparedQuery.accountId, preparedQuery.salesMan,
+                    preparedQuery.remark, preparedQuery.linkedFlag, preparedQuery.saleLinkFlag,
+                    preparedQuery.priceApproved);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 List<String> numberList = new ArrayList<>();
@@ -162,12 +185,12 @@ public class DepotHeadService {
                 Map<Long,BigDecimal> totalWeightMap = getTotalWeightMapByHeaderIdList(idList);
                 //被销售出库引用的单号（仅采购入库场景）
                 Map<String,String> referencedByMap = null;
-                if("采购".equals(subType)) {
+                if("采购".equals(preparedQuery.subType)) {
                     referencedByMap = getReferencedByNumbersMapByList(numberList);
                 }
                 //被采购入库引用的单号（仅采购订单场景）
                 Map<String,String> purchaseInRefMap = null;
-                if("采购订单".equals(subType)) {
+                if("采购订单".equals(preparedQuery.subType)) {
                     purchaseInRefMap = getPurchaseInByOrderNumbersMapByList(numberList);
                 }
                 for (DepotHeadVo4List dh : list) {
@@ -184,40 +207,40 @@ public class DepotHeadService {
                         dh.setAccountMoneyList(accountmoneylistStr);
                     }
                     if(dh.getChangeAmount() != null) {
-                        dh.setChangeAmount(roleService.parseBillPriceByLimit(dh.getChangeAmount().abs(), billCategory, priceLimit, request));
+                        dh.setChangeAmount(roleService.parseBillPriceByLimit(dh.getChangeAmount().abs(), preparedQuery.billCategory, priceLimit, request));
                     } else {
                         dh.setChangeAmount(BigDecimal.ZERO);
                     }
                     if(dh.getTotalPrice() != null) {
                         BigDecimal lastTotalPrice = BusinessConstants.SUB_TYPE_CHECK_ENTER.equals(dh.getSubType())||
                                 BusinessConstants.SUB_TYPE_REPLAY.equals(dh.getSubType())?dh.getTotalPrice():dh.getTotalPrice().abs();
-                        dh.setTotalPrice(roleService.parseBillPriceByLimit(lastTotalPrice, billCategory, priceLimit, request));
+                        dh.setTotalPrice(roleService.parseBillPriceByLimit(lastTotalPrice, preparedQuery.billCategory, priceLimit, request));
                     }
                     BigDecimal discountLastMoney = dh.getDiscountLastMoney()!=null?dh.getDiscountLastMoney():BigDecimal.ZERO;
-                    dh.setDiscountLastMoney(roleService.parseBillPriceByLimit(discountLastMoney, billCategory, priceLimit, request));
+                    dh.setDiscountLastMoney(roleService.parseBillPriceByLimit(discountLastMoney, preparedQuery.billCategory, priceLimit, request));
                     BigDecimal backAmount = dh.getBackAmount()!=null?dh.getBackAmount():BigDecimal.ZERO;
-                    dh.setBackAmount(roleService.parseBillPriceByLimit(backAmount, billCategory, priceLimit, request));
+                    dh.setBackAmount(roleService.parseBillPriceByLimit(backAmount, preparedQuery.billCategory, priceLimit, request));
                     if(dh.getDeposit() == null) {
                         dh.setDeposit(BigDecimal.ZERO);
                     } else {
-                        dh.setDeposit(roleService.parseBillPriceByLimit(dh.getDeposit(), billCategory, priceLimit, request));
+                        dh.setDeposit(roleService.parseBillPriceByLimit(dh.getDeposit(), preparedQuery.billCategory, priceLimit, request));
                     }
                     //已经完成的欠款
                     if(finishDepositMap!=null) {
                         BigDecimal finishDeposit = finishDepositMap.get(dh.getNumber()) != null ? finishDepositMap.get(dh.getNumber()) : BigDecimal.ZERO;
-                        dh.setFinishDeposit(roleService.parseBillPriceByLimit(finishDeposit, billCategory, priceLimit, request));
+                        dh.setFinishDeposit(roleService.parseBillPriceByLimit(finishDeposit, preparedQuery.billCategory, priceLimit, request));
                     }
                     //欠款计算
                     BigDecimal otherMoney = dh.getOtherMoney()!=null?dh.getOtherMoney():BigDecimal.ZERO;
                     BigDecimal deposit = dh.getDeposit()!=null?dh.getDeposit():BigDecimal.ZERO;
                     BigDecimal changeAmount = dh.getChangeAmount()!=null?dh.getChangeAmount():BigDecimal.ZERO;
                     BigDecimal debt = discountLastMoney.add(otherMoney).subtract((deposit.add(changeAmount)));
-                    dh.setDebt(roleService.parseBillPriceByLimit(debt, billCategory, priceLimit, request));
+                    dh.setDebt(roleService.parseBillPriceByLimit(debt, preparedQuery.billCategory, priceLimit, request));
                     //最终欠款的金额
                     if(financialBillPriceMap!=null) {
                         BigDecimal financialBillPrice = financialBillPriceMap.get(dh.getId())!=null?financialBillPriceMap.get(dh.getId()):BigDecimal.ZERO;
                         BigDecimal lastDebt = debt.subtract(financialBillPrice);
-                        dh.setLastDebt(roleService.parseBillPriceByLimit(lastDebt, billCategory, priceLimit, request));
+                        dh.setLastDebt(roleService.parseBillPriceByLimit(lastDebt, preparedQuery.billCategory, priceLimit, request));
                     }
                     //是否有退款单
                     if(billSizeMap!=null) {
@@ -259,7 +282,7 @@ public class DepotHeadService {
                         dh.setPurchaseInNumbers(purchaseInRefMap.get(dh.getNumber()));
                     }
                     //以销定购的情况（不能显示销售单据的金额和客户名称）
-                    if(StringUtil.isNotEmpty(purchaseStatus)) {
+                    if(StringUtil.isNotEmpty(preparedQuery.purchaseStatus)) {
                         dh.setOrganName("****");
                         dh.setTotalPrice(null);
                         dh.setDiscountLastMoney(null);
@@ -270,6 +293,68 @@ public class DepotHeadService {
             JshException.readFail(logger, e);
         }
         return list;
+    }
+
+    private PreparedSelectQuery prepareSelectQuery(DepotHeadSelectQuery query) throws Exception {
+        PreparedSelectQuery preparedQuery = new PreparedSelectQuery();
+        preparedQuery.type = query.getType();
+        preparedQuery.subType = query.getSubType();
+        preparedQuery.hasDebt = query.getHasDebt();
+        preparedQuery.purchaseStatus = query.getPurchaseStatus();
+        preparedQuery.number = query.getNumber();
+        preparedQuery.linkApply = query.getLinkApply();
+        preparedQuery.linkNumber = query.getLinkNumber();
+        preparedQuery.materialParam = query.getMaterialParam();
+        preparedQuery.organId = query.getOrganId();
+        preparedQuery.organIdList = query.getOrganIdList();
+        preparedQuery.creator = query.getCreator();
+        preparedQuery.depotId = query.getDepotId();
+        preparedQuery.accountId = query.getAccountId();
+        preparedQuery.salesMan = query.getSalesMan();
+        preparedQuery.remark = query.getRemark();
+        preparedQuery.linkedFlag = query.getLinkedFlag();
+        preparedQuery.saleLinkFlag = query.getSaleLinkFlag();
+        preparedQuery.priceApproved = query.getPriceApproved();
+        preparedQuery.billCategory = getBillCategory(query.getSubType());
+        preparedQuery.depotArray = getDepotArray(query.getSubType());
+        preparedQuery.creatorArray = getCreatorArray();
+        preparedQuery.statusArray = StringUtil.isNotEmpty(query.getStatus()) ? query.getStatus().split(",") : null;
+        preparedQuery.purchaseStatusArray = StringUtil.isNotEmpty(query.getPurchaseStatus()) ? query.getPurchaseStatus().split(",") : null;
+        preparedQuery.organArray = getOrganArray(query.getSubType(), query.getPurchaseStatus());
+        preparedQuery.beginTime = Tools.parseDayToTime(query.getBeginTime(), BusinessConstants.DAY_FIRST_TIME);
+        preparedQuery.endTime = Tools.parseDayToTime(query.getEndTime(), BusinessConstants.DAY_LAST_TIME);
+        //以销定购，查看全部数据
+        preparedQuery.creatorArray = StringUtil.isNotEmpty(query.getPurchaseStatus()) ? null : preparedQuery.creatorArray;
+        return preparedQuery;
+    }
+
+    private static class PreparedSelectQuery {
+        private String type;
+        private String subType;
+        private String hasDebt;
+        private String purchaseStatus;
+        private String number;
+        private String linkApply;
+        private String linkNumber;
+        private String beginTime;
+        private String endTime;
+        private String materialParam;
+        private Long organId;
+        private String[] organIdList;
+        private Long creator;
+        private Long depotId;
+        private Long accountId;
+        private String salesMan;
+        private String remark;
+        private String linkedFlag;
+        private String saleLinkFlag;
+        private String priceApproved;
+        private String billCategory;
+        private String[] depotArray;
+        private String[] creatorArray;
+        private String[] statusArray;
+        private String[] purchaseStatusArray;
+        private String[] organArray;
     }
 
     /**
@@ -872,25 +957,6 @@ public class DepotHeadService {
                 if(!saleOutIds.isEmpty()) {
                     freightHeadService.recalcByDepotHeadIds(saleOutIds);
                 }
-                //审核销售出库单时，自动核准非过磅类别（全部明细均无 weightEditable）的单据
-                for(Long saleOutId: saleOutIds) {
-                    List<DepotItemVo4WithInfoEx> detailList = depotItemService.getDetailList(saleOutId);
-                    boolean hasWeightEditable = false;
-                    if(detailList != null) {
-                        for(DepotItemVo4WithInfoEx item: detailList) {
-                            if("1".equals(item.getWeightEditable())) {
-                                hasWeightEditable = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(!hasWeightEditable) {
-                        DepotHead waUpdate = new DepotHead();
-                        waUpdate.setId(saleOutId);
-                        waUpdate.setWeightApproved("1");
-                        depotHeadMapper.updateByPrimaryKeySelective(waUpdate);
-                    }
-                }
             }
             //记录日志
             if(!noList.isEmpty() && ("0".equals(status) || "1".equals(status))) {
@@ -914,25 +980,6 @@ public class DepotHeadService {
             DepotHead update = new DepotHead();
             update.setId(id);
             update.setPriceApproved(priceApproved);
-            try {
-                depotHeadMapper.updateByPrimaryKeySelective(update);
-            } catch (Exception e) {
-                JshException.writeFail(logger, e);
-            }
-        }
-    }
-
-    /**
-     * 批量设置重量核准状态（纯标记，不影响业务流程）
-     */
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void batchSetWeightApproved(String weightApproved, String ids) throws Exception {
-        String[] idArr = ids.split(",");
-        for (String idStr : idArr) {
-            Long id = Long.parseLong(idStr.trim());
-            DepotHead update = new DepotHead();
-            update.setId(id);
-            update.setWeightApproved(weightApproved);
             try {
                 depotHeadMapper.updateByPrimaryKeySelective(update);
             } catch (Exception e) {
@@ -1005,50 +1052,6 @@ public class DepotHeadService {
         }
         logService.insertLog("单据",
                 BusinessConstants.LOG_OPERATION_TYPE_EDIT + logFlag + existing.getNumber(),
-                request);
-    }
-
-    /**
-     * 更新已审核单据的明细重量（重量编辑模式）
-     * 仅更新明细行的 weight、remark 字段，不改主表状态
-     */
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateItemWeights(String beanJson, String rows, HttpServletRequest request) throws Exception {
-        DepotHead depotHead = JSONObject.parseObject(beanJson, DepotHead.class);
-        DepotHead existing = getDepotHead(depotHead.getId());
-        if (existing == null) {
-            throw new BusinessRunTimeException(0, "单据不存在");
-        }
-        //仅允许已审核+重量未核准的单据
-        if (!"1".equals(existing.getStatus()) || "1".equals(existing.getWeightApproved())) {
-            throw new BusinessRunTimeException(0, "仅重量未核准的已审核单据可以修改重量");
-        }
-        //更新明细行的重量、备注字段
-        JSONArray itemArr = JSONArray.parseArray(rows);
-        if (itemArr != null) {
-            for (int i = 0; i < itemArr.size(); i++) {
-                JSONObject item = itemArr.getJSONObject(i);
-                if (item.getLong("id") != null) {
-                    com.jsh.erp.datasource.entities.DepotItem upd = new com.jsh.erp.datasource.entities.DepotItem();
-                    upd.setId(item.getLong("id"));
-                    if (item.getBigDecimal("weight") != null) {
-                        upd.setWeight(item.getBigDecimal("weight"));
-                    }
-                    if (item.containsKey("remark")) {
-                        upd.setRemark(item.getString("remark"));
-                    }
-                    depotItemMapper.updateByPrimaryKeySelective(upd);
-                }
-            }
-        }
-        //同步刷新关联价格核准单及已核准销售出库金额
-        priceApprovalService.syncByDepotHeadAfterWeightChange(depotHead.getId());
-        //同步更新关联物流单的重量
-        List<Long> ids = new ArrayList<>();
-        ids.add(depotHead.getId());
-        freightHeadService.recalcByDepotHeadIds(ids);
-        logService.insertLog("单据",
-                BusinessConstants.LOG_OPERATION_TYPE_EDIT + "重量修改:" + existing.getNumber(),
                 request);
     }
 
@@ -1812,6 +1815,7 @@ public class DepotHeadService {
             inItem.setTaxMoney(orderItem.getTaxMoney());
             inItem.setTaxLastMoney(orderItem.getTaxLastMoney());
             inItem.setWeight(orderItem.getWeight());
+            inItem.setRemark(orderItem.getRemark());
             inItem.setDepotId(defaultDepotId);
             inItem.setBatchNumber(todayBatch);
             inItem.setExpirationDate(today);
@@ -1940,6 +1944,7 @@ public class DepotHeadService {
             List<Long> ids = new ArrayList<>();
             ids.add(depotHead.getId());
             freightHeadService.recalcByDepotHeadIds(ids);
+            priceApprovalService.syncByDepotHeadAfterWeightChange(depotHead.getId());
         }
         String statusStr = depotHead.getStatus().equals("1")?"[审核]":"";
         logService.insertLog("单据",
@@ -2336,18 +2341,28 @@ public class DepotHeadService {
 
     public List<DepotHeadVo4List> waitBillList(String number, String materialParam, String type, String subType,
                                                String beginTime, String endTime, String status, int offset, int rows) {
+        DepotHeadWaitBillQuery query = new DepotHeadWaitBillQuery();
+        query.setNumber(number);
+        query.setMaterialParam(materialParam);
+        query.setType(type);
+        query.setSubType(subType);
+        query.setBeginTime(beginTime);
+        query.setEndTime(endTime);
+        query.setStatus(status);
+        query.setOffset(offset);
+        query.setRows(rows);
+        return waitBillList(query);
+    }
+
+    public List<DepotHeadVo4List> waitBillList(DepotHeadWaitBillQuery query) {
         List<DepotHeadVo4List> resList = new ArrayList<>();
         try{
-            String [] depotArray = getDepotArray("其它");
-            //给仓管可以看全部的单据（此时可以通过分配仓库去控制权限）
-            String [] creatorArray = null;
-            String [] subTypeArray = StringUtil.isNotEmpty(subType) ? subType.split(",") : null;
-            String [] statusArray = StringUtil.isNotEmpty(status) ? status.split(",") : null;
+            PreparedWaitBillQuery preparedQuery = prepareWaitBillQuery(query);
             Map<Long,String> accountMap = accountService.getAccountMap();
-            beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
-            endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
-            List<DepotHeadVo4List> list = depotHeadMapperEx.waitBillList(type, subTypeArray, creatorArray, statusArray, number, beginTime, endTime,
-                    materialParam, depotArray, offset, rows);
+            List<DepotHeadVo4List> list = depotHeadMapperEx.waitBillList(preparedQuery.type, preparedQuery.subTypeArray,
+                    preparedQuery.creatorArray, preparedQuery.statusArray, preparedQuery.number, preparedQuery.beginTime,
+                    preparedQuery.endTime, preparedQuery.materialParam, preparedQuery.depotArray, preparedQuery.offset,
+                    preparedQuery.rows);
             if (null != list) {
                 List<Long> idList = new ArrayList<>();
                 for (DepotHeadVo4List dh : list) {
@@ -2383,21 +2398,59 @@ public class DepotHeadService {
 
     public Long waitBillCount(String number, String materialParam, String type, String subType,
                              String beginTime, String endTime, String status) {
+        DepotHeadWaitBillQuery query = new DepotHeadWaitBillQuery();
+        query.setNumber(number);
+        query.setMaterialParam(materialParam);
+        query.setType(type);
+        query.setSubType(subType);
+        query.setBeginTime(beginTime);
+        query.setEndTime(endTime);
+        query.setStatus(status);
+        return waitBillCount(query);
+    }
+
+    public Long waitBillCount(DepotHeadWaitBillQuery query) {
         Long result=null;
         try{
-            String [] depotArray = getDepotArray("其它");
-            //给仓管可以看全部的单据（此时可以通过分配仓库去控制权限）
-            String [] creatorArray = null;
-            String [] subTypeArray = StringUtil.isNotEmpty(subType) ? subType.split(",") : null;
-            String [] statusArray = StringUtil.isNotEmpty(status) ? status.split(",") : null;
-            beginTime = Tools.parseDayToTime(beginTime,BusinessConstants.DAY_FIRST_TIME);
-            endTime = Tools.parseDayToTime(endTime,BusinessConstants.DAY_LAST_TIME);
-            result=depotHeadMapperEx.waitBillCount(type, subTypeArray, creatorArray, statusArray, number, beginTime, endTime,
-                    materialParam, depotArray);
+            PreparedWaitBillQuery preparedQuery = prepareWaitBillQuery(query);
+            result = depotHeadMapperEx.waitBillCount(preparedQuery.type, preparedQuery.subTypeArray,
+                    preparedQuery.creatorArray, preparedQuery.statusArray, preparedQuery.number, preparedQuery.beginTime,
+                    preparedQuery.endTime, preparedQuery.materialParam, preparedQuery.depotArray);
         }catch(Exception e){
             JshException.readFail(logger, e);
         }
         return result;
+    }
+
+    private PreparedWaitBillQuery prepareWaitBillQuery(DepotHeadWaitBillQuery query) throws Exception {
+        PreparedWaitBillQuery preparedQuery = new PreparedWaitBillQuery();
+        preparedQuery.number = query.getNumber();
+        preparedQuery.materialParam = query.getMaterialParam();
+        preparedQuery.type = query.getType();
+        preparedQuery.subTypeArray = StringUtil.isNotEmpty(query.getSubType()) ? query.getSubType().split(",") : null;
+        preparedQuery.statusArray = StringUtil.isNotEmpty(query.getStatus()) ? query.getStatus().split(",") : null;
+        preparedQuery.beginTime = Tools.parseDayToTime(query.getBeginTime(), BusinessConstants.DAY_FIRST_TIME);
+        preparedQuery.endTime = Tools.parseDayToTime(query.getEndTime(), BusinessConstants.DAY_LAST_TIME);
+        preparedQuery.depotArray = getDepotArray("其它");
+        //给仓管可以看全部的单据（此时可以通过分配仓库去控制权限）
+        preparedQuery.creatorArray = null;
+        preparedQuery.offset = query.getOffset();
+        preparedQuery.rows = query.getRows();
+        return preparedQuery;
+    }
+
+    private static class PreparedWaitBillQuery {
+        private String number;
+        private String materialParam;
+        private String type;
+        private String[] subTypeArray;
+        private String[] creatorArray;
+        private String[] statusArray;
+        private String beginTime;
+        private String endTime;
+        private String[] depotArray;
+        private Integer offset;
+        private Integer rows;
     }
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)

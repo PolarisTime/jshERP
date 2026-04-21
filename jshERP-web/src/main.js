@@ -32,10 +32,12 @@ import {
   DEFAULT_MULTI_PAGE
 } from "@/store/mutation-types"
 import config from '@/defaultSettings'
+import { syncStaticAccessToken } from '@/utils/staticAccessToken'
 
 import hasPermission from '@/utils/hasPermission'
 import vueBus from '@/utils/vueBus';
 import JeecgComponents from '@/components/jeecg/index'
+import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
 import '@/assets/less/JAreaLinkage.less'
 import VueAreaLinkage from 'vue-area-linkage'
 
@@ -50,6 +52,7 @@ Vue.use(preview)
 Vue.use(vueBus);
 Vue.use(JeecgComponents)
 Vue.use(VueAreaLinkage)
+Vue.component('column-setting-popover', ColumnSettingPopover)
 
 new Vue({
   router,
@@ -65,7 +68,9 @@ new Vue({
     store.commit('TOGGLE_FIXED_HEADER_HIDDEN', Vue.ls.get(DEFAULT_FIXED_HEADER_HIDDEN, config.autoHideHeader))
     store.commit('TOGGLE_WEAK', Vue.ls.get(DEFAULT_COLOR_WEAK, config.colorWeak))
     store.commit('TOGGLE_COLOR', Vue.ls.get(DEFAULT_COLOR, config.primaryColor))
-    store.commit('SET_TOKEN', Vue.ls.get(ACCESS_TOKEN))
+    const token = Vue.ls.get(ACCESS_TOKEN)
+    store.commit('SET_TOKEN', token)
+    syncStaticAccessToken(token)
     store.commit('SET_MULTI_PAGE',Vue.ls.get(DEFAULT_MULTI_PAGE,config.multipage))
   },
   render: h => h(App)
