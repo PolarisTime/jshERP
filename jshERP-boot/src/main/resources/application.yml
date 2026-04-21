@@ -4,7 +4,7 @@ server:
   servlet:
     # 登录超时 - 秒
     session:
-      timeout: 36000
+      timeout: 36000s
     # 服务路径
     context-path: /jshERP-boot
   tomcat:
@@ -12,6 +12,8 @@ server:
     basedir: /instance/jsh_steel/uploads
 
 spring:
+  main:
+    allow-circular-references: true
   datasource:
     # 数据库连接
     url: jdbc:mysql://127.0.0.1:3306/jsh_erp_steel?useUnicode=true&characterEncoding=utf8&useCursorFetch=true&defaultFetchSize=500&allowMultiQueries=true&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
@@ -27,6 +29,9 @@ spring:
       # 文件上传限制 (byte)
       max-file-size: 10485760
       max-request-size: 10485760
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   # 开发热部署
   devtools:
     restart:
