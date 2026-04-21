@@ -21,6 +21,7 @@ import java.util.*;
 
 @Service
 public class FunctionService {
+    private static final Long REMOVED_PLUGIN_FUNCTION_ID = 245L;
     private Logger logger = LoggerFactory.getLogger(FunctionService.class);
 
     @Resource
@@ -162,6 +163,7 @@ public class FunctionService {
         List<Function> list=null;
         try{
             list = functionsMapper.selectByExample(example);
+            removePluginFunctions(list);
         }catch(Exception e){
             JshException.readFail(logger, e);
         }
@@ -212,10 +214,17 @@ public class FunctionService {
             }
             example.setOrderByClause("Sort");
             list =functionsMapper.selectByExample(example);
+            removePluginFunctions(list);
         }catch(Exception e){
             JshException.readFail(logger, e);
         }
         return list;
+    }
+
+    private void removePluginFunctions(List<Function> list) {
+        if (list != null) {
+            list.removeIf(function -> REMOVED_PLUGIN_FUNCTION_ID.equals(function.getId()));
+        }
     }
 
     public List<Function> findByIds(String functionsIds)throws Exception{

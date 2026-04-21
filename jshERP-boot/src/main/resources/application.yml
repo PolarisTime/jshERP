@@ -53,12 +53,6 @@ tenant:
   # 租户允许试用的天数
   tryDayLimit: 3000
 
-# 插件配置
-plugin:
-  runMode: prod
-  pluginPath: plugins
-  pluginConfigFilePath: pluginConfig
-
 # 重量可编辑的商品类别ID（盘螺、线材等按实际过磅重量计算的类别）
 erp:
   weight-editable-category-ids: 30,31,33,34

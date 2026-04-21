@@ -37,7 +37,6 @@
 <script>
   import pick from 'lodash.pick'
   import {mixinDevice} from '@/utils/mixin'
-  import { postAction } from '@api/manage'
   export default {
     name: 'WorkflowIframe',
     mixins: [mixinDevice],
@@ -72,24 +71,8 @@
         });
       },
       handleSubmit() {
-        const that = this
-        let formData = {}
-        formData.bigType = this.bigType
-        formData.billNo = this.billNo
-        that.loading = true
-        postAction('/api/plugin/workflow/workflowTask/add', formData).then((res)=>{
-          if(res.code === 200){
-            that.$message.success('提交成功！')
-            that.close()
-            setTimeout(function (){
-              that.$emit('ok')
-            },2000)
-          }else{
-            that.$message.warning(res.data.message)
-          }
-        }).finally(() => {
-          that.loading = false
-        })
+        this.$message.warning('插件系统已移除，流程提交入口已关闭')
+        this.close()
       },
       handleCancel() {
         this.close()

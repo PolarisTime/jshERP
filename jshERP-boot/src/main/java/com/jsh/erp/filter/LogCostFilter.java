@@ -16,9 +16,7 @@ import java.io.IOException;
         initParams = {@WebInitParam(name = "filterPath",
                       value = "/jshERP-boot/platformConfig/getPlatform/name#/jshERP-boot/platformConfig/getPlatform/url#" +
                               "/jshERP-boot/platformConfig/getPlatform/registerFlag#/jshERP-boot/platformConfig/getPlatform/checkcodeFlag#" +
-                              "/jshERP-boot/v2/api-docs#/jshERP-boot/webjars#" +
-                              "/jshERP-boot/api/plugin/wechat/weChat/share#" +
-                              "/jshERP-boot/api/plugin/general-ledger/pdf/voucher#/jshERP-boot/api/plugin/tenant-statistics/tenantClean")})
+                              "/jshERP-boot/v2/api-docs#/jshERP-boot/webjars")})
 public class LogCostFilter implements Filter {
 
     private static final String FILTER_PATH = "filterPath";

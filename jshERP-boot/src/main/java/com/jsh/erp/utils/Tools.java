@@ -588,18 +588,6 @@ public class Tools {
     }
 
     /**
-     * 判断是否插件URL 
-     *
-     * @return
-     */
-    public static boolean isPluginUrl(String url) {
-        if (url != null && (url.startsWith("/plugin"))) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * 处理字符串null值
      *
      * @param beforeStr 处理前字符串

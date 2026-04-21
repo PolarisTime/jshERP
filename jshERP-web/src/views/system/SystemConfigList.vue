@@ -357,30 +357,7 @@
         })
       },
       loadPlugins() {
-        //校验是否存在多级审批插件
-        getAction('/plugin/checkByPluginId', { pluginIds: 'workflow' }).then((res)=> {
-          if (res.code === 200) {
-            if(res.data) {
-              this.isShowApproval = true
-            }
-          }
-        })
-        //校验是否存在盘点插件
-        getAction('/plugin/checkByPluginId', { pluginIds: 'stock-check' }).then((res)=> {
-          if (res.code === 200) {
-            if(res.data) {
-              this.billTypeList.push({ 'key': 'PDLR', 'value': '盘点录入' }, { 'key': 'PDFP', 'value': '盘点复盘' })
-              //校验是否存在生产插件
-              getAction('/plugin/checkByPluginId', { pluginIds: 'produce' }).then((res)=> {
-                if (res.code === 200) {
-                  if(res.data) {
-                    this.billTypeList.push({ 'key': 'SC', 'value': '生产任务' }, { 'key': 'WW', 'value': '委外任务' })
-                  }
-                }
-              })
-            }
-          }
-        })
+        this.isShowApproval = false
       },
       handleCompanyName(event) {
         this.model.companyName = event.target.value

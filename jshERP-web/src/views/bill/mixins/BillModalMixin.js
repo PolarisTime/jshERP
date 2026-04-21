@@ -73,6 +73,7 @@ export const BillModalMixin = {
       detailDefaultDataIndex: [],
       detailSettingDataIndex: [],
       detailExtraDefaultHiddenKeys: [],
+      workflowEnabled: false,
       validatorRules:{
         price:{
           rules: [
@@ -1700,17 +1701,7 @@ export const BillModalMixin = {
     },
     //发起流程
     handleWorkflow() {
-      if(this.model && this.model.number) {
-        getPlatformConfigByKey({ "platformKey": "send_workflow_url" }).then((res) => {
-          if (res && res.code === 200) {
-            let sendWorkflowUrl = res.data.platformValue + '&no=' + this.model.number + '&type=1'
-            this.$refs.modalWorkflow.show(this.model, sendWorkflowUrl, this.model.number, 1, 320)
-            this.$refs.modalWorkflow.title = "发起流程"
-          }
-        })
-      } else {
-        this.$message.warning('请先保存单据后再提交流程！');
-      }
+      this.$message.warning('插件系统已移除，流程提交入口已关闭');
     },
     //三联打印新版
     handlePrintPro(billType) {
