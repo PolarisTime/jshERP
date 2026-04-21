@@ -167,6 +167,12 @@ public class RedisService {
         if (StringUtil.isNotEmpty(token)) {
             return token;
         }
+        if (request != null) {
+            token = request.getParameter("token");
+            if (StringUtil.isNotEmpty(token)) {
+                return token.trim();
+            }
+        }
         if (request == null || request.getCookies() == null) {
             return null;
         }
