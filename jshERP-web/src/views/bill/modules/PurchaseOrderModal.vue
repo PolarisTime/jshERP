@@ -339,7 +339,7 @@
         this.billStatus = '0'
         this.currentSelectDepotId = ''
         this.rowCanEdit = true
-        this.materialTable.columns[1].type = FormTypes.popupJsh
+        this.setColumnTypeByKey(this.materialTable.columns, 'barCode', FormTypes.popupJsh)
         this.changeColumnHide()
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 0)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 0)
@@ -356,7 +356,7 @@
         } else {
           if(this.model.linkNumber) {
             this.rowCanEdit = false
-            this.materialTable.columns[1].type = FormTypes.normal
+            this.setColumnTypeByKey(this.materialTable.columns, 'barCode', FormTypes.normal)
           }
           this.model.operTime = this.model.operTimeStr
           if(this.model.accountId == null && this.model.accountIdList) {
@@ -443,7 +443,7 @@
       },
       linkBillListOk(selectBillDetailRows, linkNumber, organId) {
         this.rowCanEdit = false
-        this.materialTable.columns[1].type = FormTypes.normal
+        this.setColumnTypeByKey(this.materialTable.columns, 'barCode', FormTypes.normal)
         this.changeFormTypes(this.materialTable.columns, 'preNumber', 1)
         this.changeFormTypes(this.materialTable.columns, 'finishNumber', 1)
         if(selectBillDetailRows && selectBillDetailRows.length>0) {

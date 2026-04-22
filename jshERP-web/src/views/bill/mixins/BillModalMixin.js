@@ -486,6 +486,17 @@ export const BillModalMixin = {
         }
       }
     },
+    setColumnTypeByKey(columns, key, type) {
+      if (!Array.isArray(columns)) {
+        return
+      }
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i].key === key) {
+          columns[i].type = type
+          return
+        }
+      }
+    },
     initSystemConfig() {
       getCurrentSystemConfig().then((res) => {
         if(res.code === 200 && res.data){
