@@ -51,20 +51,6 @@
                     <a-input placeholder="请输入操作IP" v-model="queryParam.clientIp"></a-input>
                   </a-form-item>
                 </a-col>
-                <a-col :md="6" :sm="24" v-if="isManage">
-                  <a-form-item label="租户账号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-input placeholder="请输入租户账号" v-model="queryParam.tenantLoginName"></a-input>
-                  </a-form-item>
-                </a-col>
-                <a-col :md="6" :sm="24" v-if="isManage">
-                  <a-form-item label="租户类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-                    <a-select v-model="queryParam.tenantType" placeholder="请选择租户类型">
-                      <a-select-option value="">请选择</a-select-option>
-                      <a-select-option value="0">试用租户</a-select-option>
-                      <a-select-option value="1">付费租户</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
               </a-row>
             </template>
           </a-form>
@@ -107,7 +93,6 @@
   import JEllipsis from '@/components/jeecg/JEllipsis'
   import ColumnSettingPopover from '@/components/tools/ColumnSettingPopover'
   import { getFormatDate, getPrevMonthFormatDate } from '@/utils/util'
-  import {getAction } from '@/api/manage'
   import moment from 'moment'
 
   export default {
@@ -125,14 +110,11 @@
           content:'',
           userInfo: '',
           clientIp:'',
-          tenantLoginName:'',
-          tenantType:'',
           beginTime: getPrevMonthFormatDate(1),
           endTime: getFormatDate(),
           createTimeRange: [moment(getPrevMonthFormatDate(1)), moment(getFormatDate())],
         },
         tabKey: "1",
-        isManage: false,
         pageName: 'logList',
         // 默认索引
         defDataIndex:['rowIndex','operation','content','loginName','userName','clientIp','createTimeStr'],
@@ -175,7 +157,6 @@
     },
     created() {
       this.initColumnsSetting()
-      this.initUserInfo()
     },
     methods: {
       onDateChange: function (value, dateString) {
@@ -194,25 +175,11 @@
           content:'',
           userInfo: '',
           clientIp:'',
-          tenantLoginName:'',
-          tenantType:'',
           beginTime: getPrevMonthFormatDate(1),
           endTime: getFormatDate(),
           createTimeRange: [moment(getPrevMonthFormatDate(1)), moment(getFormatDate())],
         }
         this.loadData(1);
-      },
-      initUserInfo() {
-        getAction('/user/getUserSession').then((res)=>{
-          if(res.code === 200){
-            let user = res.data.user
-            if(user.tenantId === 0) {
-              this.isManage = true
-            }
-          }else{
-            this.$message.warning(res.data)
-          }
-        })
       }
     }
   }

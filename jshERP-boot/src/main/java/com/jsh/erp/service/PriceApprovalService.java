@@ -56,7 +56,6 @@ public class PriceApprovalService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public Long createFromSaleOut(Long depotHeadId) throws Exception {
         User user = userService.getCurrentUser();
-        Long tenantId = user.getTenantId();
 
         // 校验：出库单存在
         DepotHead dh = depotHeadMapper.selectByPrimaryKey(depotHeadId);
@@ -64,7 +63,7 @@ public class PriceApprovalService {
             throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "出库单不存在");
         }
         // 校验：不能重复创建
-        PriceApproval existing = priceApprovalMapper.selectByDepotHeadId(depotHeadId, tenantId);
+        PriceApproval existing = priceApprovalMapper.selectByDepotHeadId(depotHeadId);
         if (existing != null) {
             throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE,
                     "该出库单已存在核准记录：" + existing.getApprovalNo());
@@ -72,7 +71,7 @@ public class PriceApprovalService {
 
         // 生成单号 HZ+yyyyMMdd+4位序
         String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        int todayCount = priceApprovalMapper.countTodayApproval(dateStr, tenantId);
+        int todayCount = priceApprovalMapper.countTodayApproval(dateStr);
         String approvalNo = "HZ" + dateStr + String.format("%04d", todayCount + 1);
 
         // 创建主表
@@ -85,7 +84,6 @@ public class PriceApprovalService {
         pa.setTotalWeight(BigDecimal.ZERO);
         pa.setTotalAmount(BigDecimal.ZERO);
         pa.setStatus("0");
-        // tenant_id 由多租户插件自动注入，不手动设置避免重复
         pa.setCreateTime(new Date());
         pa.setCreator(user.getId());
         pa.setDeleteFlag("0");
@@ -220,10 +218,6 @@ public class PriceApprovalService {
             throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "核准单不存在");
         }
         User user = userService.getCurrentUser();
-        Long tenantId = user == null ? null : user.getTenantId();
-        if (tenantId != null && approval.getTenantId() != null && !tenantId.equals(approval.getTenantId())) {
-            throw new BusinessRunTimeException(ExceptionConstants.DATA_READ_FAIL_CODE, "无权操作当前明细");
-        }
         if ("1".equals(approval.getStatus())) {
             throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "已核准的明细不能拆分");
         }
@@ -371,8 +365,7 @@ public class PriceApprovalService {
      */
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void syncByDepotHeadAfterWeightChange(Long depotHeadId) throws Exception {
-        Long tenantId = getTenantId();
-        PriceApproval brief = priceApprovalMapper.selectByDepotHeadId(depotHeadId, tenantId);
+        PriceApproval brief = priceApprovalMapper.selectByDepotHeadId(depotHeadId);
         if (brief == null) {
             return;
         }
@@ -547,14 +540,12 @@ public class PriceApprovalService {
     public List<Map<String, Object>> listApprovals(Long organId, String status, String billNo,
                                                     String beginTime, String endTime,
                                                     Integer offset, Integer rows) throws Exception {
-        Long tenantId = getTenantId();
-        return priceApprovalMapper.listApprovals(organId, status, billNo, beginTime, endTime, tenantId, offset, rows);
+        return priceApprovalMapper.listApprovals(organId, status, billNo, beginTime, endTime, offset, rows);
     }
 
     public int countApprovals(Long organId, String status, String billNo,
                               String beginTime, String endTime) throws Exception {
-        Long tenantId = getTenantId();
-        return priceApprovalMapper.countApprovals(organId, status, billNo, beginTime, endTime, tenantId);
+        return priceApprovalMapper.countApprovals(organId, status, billNo, beginTime, endTime);
     }
 
     public Map<String, Object> getDetail(Long id) throws Exception {
@@ -569,22 +560,15 @@ public class PriceApprovalService {
     public List<Map<String, Object>> listAvailableSaleOut(Long organId, String billNo,
                                                           String beginTime, String endTime,
                                                           Integer offset, Integer rows) throws Exception {
-        Long tenantId = getTenantId();
-        return priceApprovalMapper.listAvailableSaleOut(organId, billNo, beginTime, endTime, tenantId, offset, rows);
+        return priceApprovalMapper.listAvailableSaleOut(organId, billNo, beginTime, endTime, offset, rows);
     }
 
     public int countAvailableSaleOut(Long organId, String billNo,
                                      String beginTime, String endTime) throws Exception {
-        Long tenantId = getTenantId();
-        return priceApprovalMapper.countAvailableSaleOut(organId, billNo, beginTime, endTime, tenantId);
+        return priceApprovalMapper.countAvailableSaleOut(organId, billNo, beginTime, endTime);
     }
 
     // ─── 工具方法 ────────────────────────────────────────────────
-
-    private Long getTenantId() throws Exception {
-        User user = userService.getCurrentUser();
-        return user == null ? null : user.getTenantId();
-    }
 
     private void refreshApprovalTotals(PriceApproval approval, User user) {
         List<PriceApprovalItemVo> items = priceApprovalMapper.getApprovalItems(approval.getId());

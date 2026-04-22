@@ -53,8 +53,6 @@ public class Supplier {
 
     private Long creator;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -255,14 +253,6 @@ public class Supplier {
 
     public void setCreator(Long creator) {
         this.creator = creator;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

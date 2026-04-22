@@ -5,7 +5,6 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="attribute_name" jdbcType="VARCHAR" property="attributeName" />
     <result column="attribute_value" jdbcType="VARCHAR" property="attributeValue" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -67,7 +66,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, attribute_name, attribute_value, tenant_id, delete_flag
+    id, attribute_name, attribute_value, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.MaterialAttributeExample" resultMap="BaseResultMap">
     select
@@ -101,9 +100,9 @@
   </delete>
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.MaterialAttribute">
     insert into jsh_material_attribute (id, attribute_name, attribute_value, 
-      tenant_id, delete_flag)
+      delete_flag)
     values (#{id,jdbcType=BIGINT}, #{attributeName,jdbcType=VARCHAR}, #{attributeValue,jdbcType=VARCHAR}, 
-      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
+      #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.MaterialAttribute">
     insert into jsh_material_attribute
@@ -116,9 +115,6 @@
       </if>
       <if test="attributeValue != null">
         attribute_value,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -133,9 +129,6 @@
       </if>
       <if test="attributeValue != null">
         #{attributeValue,jdbcType=VARCHAR},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -160,9 +153,6 @@
       <if test="record.attributeValue != null">
         attribute_value = #{record.attributeValue,jdbcType=VARCHAR},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -176,7 +166,6 @@
     set id = #{record.id,jdbcType=BIGINT},
       attribute_name = #{record.attributeName,jdbcType=VARCHAR},
       attribute_value = #{record.attributeValue,jdbcType=VARCHAR},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -191,9 +180,6 @@
       <if test="attributeValue != null">
         attribute_value = #{attributeValue,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -204,7 +190,6 @@
     update jsh_material_attribute
     set attribute_name = #{attributeName,jdbcType=VARCHAR},
       attribute_value = #{attributeValue,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

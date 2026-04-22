@@ -232,19 +232,4 @@ public class RedisService {
             }
         }
     }
-
-    public void deleteObjectByTenant(Long tenantId){
-        if (tenantId == null) {
-            return;
-        }
-        String tenantTokenSuffix = "_" + tenantId;
-        Set<String> tokens = redisTemplate.keys("*");
-        for(String token : tokens) {
-            if (redisTemplate.hasKey(token) && redisTemplate.type(token) == DataType.HASH) {
-                if(token != null && token.endsWith(tenantTokenSuffix)) {
-                    redisTemplate.delete(token);
-                }
-            }
-        }
-    }
 }

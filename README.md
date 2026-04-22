@@ -4,18 +4,22 @@
 * **官网地址：http://www.gyjerp.com  商务或技术交流，请联系QQ：752718920 微信：shenhua861584**
 * 对物联网感兴趣的朋友欢迎关注我们的新开源系统：[管伊佳物联](https://gitee.com/jishenghua/gyj-iot)
 
+# 当前交付说明
+* 当前主干已收敛为单组织部署，不再包含运行态多租户逻辑
+* 插件系统已从当前交付代码移除，历史插件说明仅供旧版本追溯
+* 后端开发与运行基线为 JDK 17
+
 # 网络版介绍
 * 推荐使用网络版（198元1年）淘宝链接：https://item.taobao.com/item.htm?id=674169489573
-* 平台地址：http://cloud.gyjerp.com 欢迎大家注册租户进行使用
+* 平台地址：http://cloud.gyjerp.com 欢迎大家注册试用
 * 网络版手机端请扫描下方二维码
 
 ![输入图片说明](https://cloud.gyjerp.com/static/android-code.png)
 ![输入图片说明](https://cloud.gyjerp.com/static/iphone-code.png)
 ![输入图片说明](https://cloud.gyjerp.com/static/weixin-code.png)
 
-# 定制和插件
+# 定制和扩展
 * 如有ERP私人定制需求，请将需求整理成文档，发给邮箱： **752718920@qq.com** ，我会及时回复哒
-* 如需更多功能，欢迎购买作者小店的插件 https://shop104070207.taobao.com/ 谢谢支持
 
 # 开发初衷
 * 管伊佳ERP立志为中小企业提供开源好用的ERP软件，降低企业的信息化成本
@@ -23,19 +27,19 @@
 * 初学JAVA的小伙伴可以下载源代码来进行学习交流
 
 # 技术框架
-* 核心框架：SpringBoot 2.0.0
+* 核心框架：Spring Boot 3.x
 * 持久层框架：Mybatis 1.3.2
 * 日志管理：SLF4J 1.7
 * 前端框架：Vue 2.7.16
 * UI框架: Ant-Design-Vue 1.5.2
 * 模板框架: Jeecg-Boot 2.2.0
-* 项目管理框架: Maven 3.3.9
+* 项目管理框架: Maven 3.3.9+
 
 # 开发环境
 建议开发者使用以下环境，可以避免版本带来的问题
 * IDE: IntelliJ IDEA 2025.1.4.1
 * DB: Mysql 8.0.24
-* JDK: JDK 1.8
+* JDK: JDK 17
 * Node: Node 20.17.0
 * Maven: Maven 3.3.9
 * Redis: 6.2.1
@@ -43,7 +47,7 @@
 
 # 服务器环境
 * 数据库：Mysql8.0.24
-* JAVA平台：JRE1.8
+* JAVA平台：JRE17
 * Redis库：redis6.2.1
 * Nginx代理：nginx1.12.2
 * 操作系统：Windows、Linux等
@@ -55,7 +59,7 @@
 * 为方便大家搭建运行环境，分享了下载地址 https://pan.baidu.com/s/1jlild9uyGdQ7H2yaMx76zw  提取码:814g
 * 不会打包的小伙伴，请下载此打包后的文件 https://share.weiyun.com/NDJNLhry 密码：vd3aig
 * 不会部署的小伙伴，请参考部署教程 https://www.gyjerp.com/doc/archive/deploy.html
-* 部署后登录系统的默认租户账号：jsh，默认超管账户：admin，默认密码均为：123456
+* 默认初始化账号口令以实际数据库数据为准；当前开发库请使用 steel / 123456
 
 # 开源说明
 * 本系统100%开源，遵守Apache-2.0协议，企业可以商用

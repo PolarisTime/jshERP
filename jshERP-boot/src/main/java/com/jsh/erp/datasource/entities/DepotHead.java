@@ -69,8 +69,6 @@ public class DepotHead {
 
     private String linkApply;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     /** 关联标记：0=未关联，1=已被下游单据关联（如采购入库被销售出库引用） */
@@ -333,14 +331,6 @@ public class DepotHead {
 
     public void setLinkApply(String linkApply) {
         this.linkApply = linkApply == null ? null : linkApply.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

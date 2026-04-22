@@ -22,12 +22,10 @@ public interface PriceApprovalMapper {
     PriceApproval selectByPrimaryKey(Long id);
 
     /** 按出库单ID查找核准记录（排除已删除） */
-    PriceApproval selectByDepotHeadId(@Param("depotHeadId") Long depotHeadId,
-                                      @Param("tenantId") Long tenantId);
+    PriceApproval selectByDepotHeadId(@Param("depotHeadId") Long depotHeadId);
 
     /** 今日已生成的核准单数量（用于生成序号） */
-    int countTodayApproval(@Param("datePrefix") String datePrefix,
-                           @Param("tenantId") Long tenantId);
+    int countTodayApproval(@Param("datePrefix") String datePrefix);
 
     // ─── 核准单列表 ──────────────────────────────────────────────
 
@@ -37,7 +35,6 @@ public interface PriceApprovalMapper {
             @Param("billNo") String billNo,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
@@ -46,8 +43,7 @@ public interface PriceApprovalMapper {
             @Param("status") String status,
             @Param("billNo") String billNo,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     // ─── 核准单明细 ──────────────────────────────────────────────
 
@@ -70,7 +66,6 @@ public interface PriceApprovalMapper {
             @Param("billNo") String billNo,
             @Param("beginTime") String beginTime,
             @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
@@ -78,8 +73,7 @@ public interface PriceApprovalMapper {
             @Param("organId") Long organId,
             @Param("billNo") String billNo,
             @Param("beginTime") String beginTime,
-            @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("endTime") String endTime);
 
     // ─── 校验：核准明细是否被对账单引用 ──────────────────────────
 

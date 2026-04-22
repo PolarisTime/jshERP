@@ -15,33 +15,29 @@ public interface FreightStatementMapper {
 
     FreightStatement selectByPrimaryKey(@Param("id") Long id);
 
-    int countTodayStatement(@Param("datePrefix") String datePrefix, @Param("tenantId") Long tenantId);
+    int countTodayStatement(@Param("datePrefix") String datePrefix);
 
     /** 未对账的物流单列表 */
     List<Map<String, Object>> listUnreconciledItems(
             @Param("carrierId") Long carrierId,
             @Param("beginTime") String beginTime, @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset, @Param("rows") Integer rows);
 
     int countUnreconciledItems(
             @Param("carrierId") Long carrierId,
-            @Param("beginTime") String beginTime, @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
     /** 对账单列表 */
     List<Map<String, Object>> listStatements(
             @Param("carrierId") Long carrierId, @Param("status") String status,
             @Param("signStatus") String signStatus,
             @Param("beginTime") String beginTime, @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId,
             @Param("offset") Integer offset, @Param("rows") Integer rows);
 
     int countStatements(
             @Param("carrierId") Long carrierId, @Param("status") String status,
             @Param("signStatus") String signStatus,
-            @Param("beginTime") String beginTime, @Param("endTime") String endTime,
-            @Param("tenantId") Long tenantId);
+            @Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
     /** 对账单详情（关联的物流单列表） */
     List<Map<String, Object>> getStatementDetail(@Param("statementId") Long statementId);

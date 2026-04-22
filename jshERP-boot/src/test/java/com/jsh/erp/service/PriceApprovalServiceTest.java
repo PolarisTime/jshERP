@@ -172,7 +172,6 @@ public class PriceApprovalServiceTest {
     private User buildUser(Long id) {
         User user = new User();
         user.setId(id);
-        user.setTenantId(1L);
         return user;
     }
 

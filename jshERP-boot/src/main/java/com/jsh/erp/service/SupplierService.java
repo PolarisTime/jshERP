@@ -52,8 +52,6 @@ public class SupplierService {
     @Resource
     private UserBusinessService userBusinessService;
     @Resource
-    private TenantModeService tenantModeService;
-    @Resource
     private UserBusinessMapper userBusinessMapper;
 
     @Value(value="${file.exportTmp}")
@@ -159,7 +157,7 @@ public class SupplierService {
             User userInfo=userService.getCurrentUser();
             supplier.setCreator(userInfo==null?null:userInfo.getId());
             result=supplierMapper.insertSelective(supplier);
-            //新增客户时给当前用户和租户自动授权
+            //新增客户时给当前用户自动授权
             setUserCustomerPermission(request, supplier);
             logService.insertLog("商家",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(supplier.getSupplier()).toString(),request);
@@ -783,7 +781,7 @@ public class SupplierService {
     }
 
     /**
-     * 新增客户时给当前用户和租户自动授权
+     * 新增客户时给当前用户自动授权
      * @param request
      * @param supplier
      * @throws Exception
@@ -803,10 +801,6 @@ public class SupplierService {
             String ubKey = "[" + supplierId + "]";
             //授权当前用户
             setPermissionByParam(user.getId(), ubKey);
-            if(tenantModeService.isEnabled() && user.getTenantId() != null && !tenantModeService.isTenantOwner(user)) {
-                //授权当前租户
-                setPermissionByParam(user.getTenantId(), ubKey);
-            }
         }
     }
 

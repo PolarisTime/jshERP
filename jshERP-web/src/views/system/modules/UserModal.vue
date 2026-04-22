@@ -32,12 +32,11 @@
             <a-input placeholder="请输入用户姓名" v-decorator.trim="[ 'username', validatorRules.username]" />
           </a-form-item>
           <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="角色">
-            <a-select v-if="!model.id||model.id!==model.tenantId" placeholder="选择角色" v-decorator="[ 'roleId', validatorRules.roleId]" :dropdownMatchSelectWidth="false">
+            <a-select placeholder="选择角色" v-decorator="[ 'roleId', validatorRules.roleId]" :dropdownMatchSelectWidth="false">
               <a-select-option v-for="(item,index) in roleList" :key="index" :value="item.id">
                 {{ item.name }}
               </a-select-option>
             </a-select>
-            <a-col v-if="model.id===model.tenantId"><a-row>{{ tenantRoleName }}</a-row></a-col>
           </a-form-item>
           <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="机构">
             <a-tree-select style="width:100%" :dropdownStyle="{maxHeight:'200px',overflow:'auto'}" allow-clear
@@ -96,7 +95,6 @@
         orgaTree: [],
         roleList: [],
         userId:"", //保存用户id
-        tenantRoleName: '', //租户的角色名称
         isReadOnly: false,
         disableSubmit:false,
         dateFormat:"YYYY-MM-DD",
@@ -156,7 +154,6 @@
         this.$nextTick(() => {
           this.form.setFieldsValue(pick(this.model,'loginName','username','roleId','orgaId','position','leaderFlag',
             'phonenum','email','userBlngOrgaDsplSeq','description'))
-          this.tenantRoleName = this.model.roleName
           autoJumpNextInput('userModal')
         });
       },

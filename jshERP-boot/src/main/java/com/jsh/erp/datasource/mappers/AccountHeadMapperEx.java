@@ -1,6 +1,5 @@
 package com.jsh.erp.datasource.mappers;
 
-import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.jsh.erp.datasource.entities.AccountHead;
 import com.jsh.erp.datasource.entities.AccountHeadExample;
 import com.jsh.erp.datasource.entities.AccountHeadVo4ListEx;
@@ -28,7 +27,6 @@ public interface AccountHeadMapperEx {
             @Param("number") String number,
             @Param("inOutItemId") Long inOutItemId);
 
-    @InterceptorIgnore(tenantLine = "true")
     List<AccountHeadVo4ListEx> getDetailByNumber(
             @Param("billNo") String billNo);
 
@@ -43,7 +41,6 @@ public interface AccountHeadMapperEx {
     List<AccountItem> getFinancialBillPriceByBillIdList(
             @Param("idList") List<Long> idList);
 
-    @InterceptorIgnore(tenantLine = "true")
     List<AccountHead> getFinancialBillNoByBillId(
             @Param("billId") Long billId);
 

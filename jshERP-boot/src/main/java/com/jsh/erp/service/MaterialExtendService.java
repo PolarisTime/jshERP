@@ -334,24 +334,6 @@ public class MaterialExtendService {
         return result;
     }
 
-    public List<MaterialExtend> getMaterialExtendByTenantAndTime(Long tenantId, Long lastTime, Long syncNum)throws Exception {
-        List<MaterialExtend> list=new ArrayList<MaterialExtend>();
-        try{
-            //先获取最大的时间戳，再查两个时间戳之间的数据，这样同步能够防止丢失数据（应为时间戳有重复）
-            Long maxTime = materialExtendMapperEx.getMaxTimeByTenantAndTime(tenantId, lastTime, syncNum);
-            if(tenantId!=null && lastTime!=null && maxTime!=null) {
-                MaterialExtendExample example = new MaterialExtendExample();
-                example.createCriteria().andTenantIdEqualTo(tenantId)
-                        .andUpdateTimeGreaterThan(lastTime)
-                        .andUpdateTimeLessThanOrEqualTo(maxTime);
-                list=materialExtendMapper.selectByExample(example);
-            }
-        }catch(Exception e){
-            JshException.readFail(logger, e);
-        }
-        return list;
-    }
-
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public Long selectIdByMaterialIdAndDefaultFlag(Long materialId, String defaultFlag) {
         Long id = 0L;

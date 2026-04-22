@@ -21,8 +21,6 @@ public class MaterialCategory {
 
     private Date updateTime;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     private String weightEditable;
@@ -97,14 +95,6 @@ public class MaterialCategory {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

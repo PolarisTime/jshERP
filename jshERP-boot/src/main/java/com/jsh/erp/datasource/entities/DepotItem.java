@@ -50,8 +50,6 @@ public class DepotItem {
 
     private Long linkId;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     private BigDecimal weight;
@@ -238,14 +236,6 @@ public class DepotItem {
 
     public void setLinkId(Long linkId) {
         this.linkId = linkId;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

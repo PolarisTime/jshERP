@@ -5,6 +5,7 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.PlatformConfig;
 import com.jsh.erp.service.PlatformConfigService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -35,11 +36,14 @@ public class PlatformConfigController extends BaseController {
 
     @Resource
     private PlatformConfigService platformConfigService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         PlatformConfig platformConfig = platformConfigService.getPlatformConfig(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(platformConfig != null) {
@@ -54,6 +58,7 @@ public class PlatformConfigController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String platformKey = StringUtil.getInfo(search, "platformKey");
         List<PlatformConfig> list = platformConfigService.select(platformKey);
         return getDataTable(list);
@@ -62,6 +67,7 @@ public class PlatformConfigController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = platformConfigService.insertPlatformConfig(obj, request);
         return returnStr(objectMap, insert);
@@ -70,6 +76,7 @@ public class PlatformConfigController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = platformConfigService.updatePlatformConfig(obj, request);
         return returnStr(objectMap, update);
@@ -78,6 +85,7 @@ public class PlatformConfigController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = platformConfigService.deletePlatformConfig(id, request);
         return returnStr(objectMap, delete);
@@ -86,6 +94,7 @@ public class PlatformConfigController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = platformConfigService.batchDeletePlatformConfig(ids, request);
         return returnStr(objectMap, delete);
@@ -132,26 +141,6 @@ public class PlatformConfigController extends BaseController {
     }
 
     /**
-     * 获取是否开启注册
-     * @param request
-     * @return
-     */
-    @GetMapping(value = "/getPlatform/registerFlag")
-    @Operation(summary = "获取是否开启注册")
-    public String getPlatformRegisterFlag(HttpServletRequest request)throws Exception {
-        String res;
-        try {
-            String platformKey = "register_flag";
-            PlatformConfig platformConfig = platformConfigService.getInfoByKey(platformKey);
-            res = platformConfig.getPlatformValue();
-        } catch(Exception e){
-            logger.error(e.getMessage(), e);
-            res = "#";
-        }
-        return res;
-    }
-
-    /**
      * 获取是否开启验证码
      * @param request
      * @return
@@ -181,6 +170,7 @@ public class PlatformConfigController extends BaseController {
     @Operation(summary = "根据platformKey更新platformValue")
     public String updatePlatformConfigByKey(@RequestBody JSONObject object,
                                             HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         String platformKey = object.getString("platformKey");
         String platformValue = object.getString("platformValue");
@@ -213,5 +203,9 @@ public class PlatformConfigController extends BaseController {
             res.data = "获取数据失败";
         }
         return res;
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

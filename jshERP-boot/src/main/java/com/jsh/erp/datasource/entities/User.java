@@ -31,8 +31,6 @@ public class User {
 
     private String weixinOpenId;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -153,14 +151,6 @@ public class User {
 
     public void setWeixinOpenId(String weixinOpenId) {
         this.weixinOpenId = weixinOpenId == null ? null : weixinOpenId.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

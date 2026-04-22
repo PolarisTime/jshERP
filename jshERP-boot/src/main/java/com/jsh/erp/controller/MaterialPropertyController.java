@@ -5,6 +5,7 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.MaterialProperty;
 import com.jsh.erp.service.MaterialPropertyService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -39,11 +40,14 @@ public class MaterialPropertyController extends BaseController {
 
     @Resource
     private MaterialPropertyService materialPropertyService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         MaterialProperty materialProperty = materialPropertyService.getMaterialProperty(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(materialProperty != null) {
@@ -58,6 +62,7 @@ public class MaterialPropertyController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String name = StringUtil.getInfo(search, "name");
         List<MaterialProperty> list = materialPropertyService.select(name);
         return getDataTable(list);
@@ -66,6 +71,7 @@ public class MaterialPropertyController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = materialPropertyService.insertMaterialProperty(obj, request);
         return returnStr(objectMap, insert);
@@ -74,6 +80,7 @@ public class MaterialPropertyController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = materialPropertyService.updateMaterialProperty(obj, request);
         return returnStr(objectMap, update);
@@ -82,6 +89,7 @@ public class MaterialPropertyController extends BaseController {
     @PostMapping(value = "/addOrUpdate")
     @Operation(summary = "新增或修改")
     public String addOrUpdate(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         String nativeName = obj.getString("nativeName");
         String anotherName = obj.getString("anotherName");
@@ -99,6 +107,7 @@ public class MaterialPropertyController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialPropertyService.deleteMaterialProperty(id, request);
         return returnStr(objectMap, delete);
@@ -107,6 +116,7 @@ public class MaterialPropertyController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = materialPropertyService.batchDeleteMaterialProperty(ids, request);
         return returnStr(objectMap, delete);
@@ -116,6 +126,7 @@ public class MaterialPropertyController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = materialPropertyService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -140,6 +151,10 @@ public class MaterialPropertyController extends BaseController {
             res.data = "获取数据失败";
         }
         return res;
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 
 }

@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS `jsh_price_approval` (
   `total_weight`    decimal(24,6) DEFAULT 0.000000 COMMENT '总重量',
   `total_amount`    decimal(24,6) DEFAULT 0.000000 COMMENT '总金额',
   `status`          varchar(1)    DEFAULT '0' COMMENT '0=待核准 1=已核准',
-  `tenant_id`       bigint        DEFAULT NULL COMMENT '租户ID',
   `create_time`     datetime      DEFAULT NULL COMMENT '创建时间',
   `creator`         bigint        DEFAULT NULL COMMENT '创建人',
   `update_time`     datetime      DEFAULT NULL COMMENT '更新时间',
@@ -26,7 +25,6 @@ CREATE TABLE IF NOT EXISTS `jsh_price_approval` (
   PRIMARY KEY (`id`),
   KEY `idx_pa_depot_head_id` (`depot_head_id`),
   KEY `idx_pa_organ_id` (`organ_id`),
-  KEY `idx_pa_tenant_id` (`tenant_id`),
   KEY `idx_pa_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格核准单头';
 
@@ -53,7 +51,6 @@ CREATE TABLE IF NOT EXISTS `jsh_price_approval_item` (
   `tax_money`           decimal(24,6) DEFAULT NULL COMMENT '税额',
   `tax_last_money`      decimal(24,6) DEFAULT NULL COMMENT '价税合计',
   `remark`              varchar(500)  DEFAULT NULL COMMENT '行备注',
-  `tenant_id`           bigint        DEFAULT NULL COMMENT '租户ID',
   `delete_flag`         varchar(1)    DEFAULT '0' COMMENT '0=未删除 1=已删除',
   PRIMARY KEY (`id`),
   KEY `idx_pai_approval_id` (`approval_id`),
@@ -83,7 +80,7 @@ INSERT INTO `jsh_function` (
 INSERT INTO `jsh_price_approval` (
   `approval_no`, `depot_head_id`, `organ_id`, `delivery_date`,
   `remark`, `total_weight`, `total_amount`, `status`,
-  `tenant_id`, `create_time`, `creator`, `delete_flag`
+  `create_time`, `creator`, `delete_flag`
 )
 SELECT
   CONCAT('HZ', DATE_FORMAT(dh.oper_time, '%Y%m%d'),
@@ -100,7 +97,6 @@ SELECT
   ), 0) AS total_weight,
   IFNULL(dh.discount_last_money, 0) AS total_amount,
   CASE WHEN dh.price_approved = '1' THEN '1' ELSE '0' END AS status,
-  dh.tenant_id,
   NOW() AS create_time,
   dh.creator,
   '0' AS delete_flag
@@ -120,7 +116,7 @@ INSERT INTO `jsh_price_approval_item` (
   `bar_code`, `name`, `standard`, `model`, `color`, `brand`,
   `oper_number`, `weight`, `unit_price`, `all_price`,
   `tax_rate`, `tax_money`, `tax_last_money`,
-  `remark`, `tenant_id`, `delete_flag`
+  `remark`, `delete_flag`
 )
 SELECT
   pa.id AS approval_id,
@@ -141,7 +137,6 @@ SELECT
   di.tax_money,
   di.tax_last_money,
   di.remark,
-  di.tenant_id,
   '0' AS delete_flag
 FROM jsh_depot_item di
 JOIN jsh_depot_head dh ON dh.id = di.header_id

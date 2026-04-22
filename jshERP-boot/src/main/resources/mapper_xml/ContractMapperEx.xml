@@ -14,7 +14,6 @@
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="attachments" jdbcType="VARCHAR" property="attachments" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -31,7 +30,7 @@
 
   <select id="selectByCondition" resultMap="ContractExResultMap">
     select c.id, c.contract_no, c.contract_name, c.organ_id, c.sign_date, c.effect_date,
-           c.expire_date, c.amount, c.status, c.attachments, c.remark, c.tenant_id,
+           c.expire_date, c.amount, c.status, c.attachments, c.remark,
            c.delete_flag, c.create_time, c.update_time, c.tonnage, c.audit_status, c.sign_status,
            s.supplier as organ_name,
            COALESCE(c.project_name, s.project_name) as project_name,
@@ -53,9 +52,6 @@
       group by dh.organ_id
     ) dh on dh.organ_id = c.organ_id
     where ifnull(c.delete_flag,'0') != '1'
-    <if test="tenantId != null">
-      and c.tenant_id = #{tenantId}
-    </if>
     <if test="contractNo != null and contractNo != ''">
       and c.contract_no like concat('%', #{contractNo}, '%')
     </if>
@@ -87,7 +83,7 @@
     left join (
       select SUM(amount) as totalAmount, SUM(tonnage) as totalTonnage
       from jsh_contract
-      where organ_id = #{organId} and tenant_id = #{tenantId} and ifnull(delete_flag,'0') != '1'
+      where organ_id = #{organId} and ifnull(delete_flag,'0') != '1'
     ) ct on 1=1
     left join (
       select
@@ -98,7 +94,7 @@
         select header_id, SUM(ifnull(weight,0)) as w
         from jsh_depot_item where ifnull(delete_flag,'0')!='1' group by header_id
       ) di_sum on di_sum.header_id = dh.id
-      where dh.organ_id = #{organId} and dh.tenant_id = #{tenantId}
+      where dh.organ_id = #{organId}
         and dh.type='出库' and dh.sub_type='销售'
         and ifnull(dh.delete_flag,'0')!='1'
     ) dv on 1=1

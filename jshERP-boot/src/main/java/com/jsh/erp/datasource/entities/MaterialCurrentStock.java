@@ -13,8 +13,6 @@ public class MaterialCurrentStock {
 
     private BigDecimal currentUnitPrice;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -55,14 +53,6 @@ public class MaterialCurrentStock {
 
     public void setCurrentUnitPrice(BigDecimal currentUnitPrice) {
         this.currentUnitPrice = currentUnitPrice;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

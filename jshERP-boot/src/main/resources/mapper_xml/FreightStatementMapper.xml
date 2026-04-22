@@ -25,7 +25,7 @@
            total_weight as totalWeight, total_freight as totalFreight,
            ifnull(paid_amount,0) as paidAmount,
            status, sign_status as signStatus, attachment, remark,
-           tenant_id as tenantId, delete_flag as deleteFlag,
+           delete_flag as deleteFlag,
            create_time as createTime, creator
     FROM jsh_freight_statement
     WHERE id=#{id} AND ifnull(delete_flag,'0') != '1'
@@ -34,9 +34,6 @@
   <select id="countTodayStatement" resultType="java.lang.Integer">
     SELECT count(1) FROM jsh_freight_statement
     WHERE statement_no LIKE concat('WDZ', #{datePrefix}, '%')
-    <if test="tenantId != null">
-      AND tenant_id = #{tenantId}
-    </if>
   </select>
 
   <!-- 未对账的物流单（已审核且未关联对账单） -->
@@ -58,9 +55,6 @@
     </if>
     <if test="endTime != null and endTime != ''">
       AND fh.bill_time &lt;= concat(#{endTime}, ' 23:59:59')
-    </if>
-    <if test="tenantId != null">
-      AND fh.tenant_id = #{tenantId}
     </if>
   </sql>
 
@@ -112,9 +106,6 @@
     <if test="endTime != null and endTime != ''">
       AND fs.end_time &lt;= concat(#{endTime}, ' 23:59:59')
     </if>
-    <if test="tenantId != null">
-      AND fs.tenant_id = #{tenantId}
-    </if>
     ORDER BY fs.create_time DESC
     LIMIT #{offset}, #{rows}
   </select>
@@ -137,9 +128,6 @@
     </if>
     <if test="endTime != null and endTime != ''">
       AND fs.end_time &lt;= concat(#{endTime}, ' 23:59:59')
-    </if>
-    <if test="tenantId != null">
-      AND fs.tenant_id = #{tenantId}
     </if>
   </select>
 

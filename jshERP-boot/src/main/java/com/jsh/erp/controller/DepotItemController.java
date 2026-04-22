@@ -950,8 +950,7 @@ public class DepotItemController {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             Map<String, Object> map = new HashMap<>();
-            String loginName = userService.getCurrentUser().getLoginName();
-            if(!"admin".equals(loginName)) {
+            if(!userService.isCurrentUserSystemAdmin()) {
                 Long userId = userService.getUserId(request);
                 List<String> monthList = Tools.getLastMonths(6);
                 String beginTime = Tools.firstDayOfMonth(monthList.get(0)) + BusinessConstants.DAY_FIRST_TIME;

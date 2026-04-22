@@ -15,8 +15,6 @@ public class MaterialInitialStock {
 
     private BigDecimal highSafeStock;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -65,14 +63,6 @@ public class MaterialInitialStock {
 
     public void setHighSafeStock(BigDecimal highSafeStock) {
         this.highSafeStock = highSafeStock;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

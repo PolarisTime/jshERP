@@ -39,9 +39,6 @@
         left join jsh_user u on fh.creator = u.id
         left join jsh_user u2 on fh.payment_operator = u2.id
         where fh.delete_flag = '0'
-        <if test="tenantId != null">
-            and fh.tenant_id = #{tenantId}
-        </if>
         <if test="billNo != null and billNo != ''">
             <bind name="bindBillNo" value="'%'+billNo+'%'"/>
             and fh.bill_no like #{bindBillNo}
@@ -94,9 +91,6 @@
         from jsh_freight_head fh
         left join jsh_freight_carrier fc on fh.carrier_id = fc.id
         where fh.delete_flag = '0' and fh.status = '1'
-        <if test="tenantId != null">
-            and fh.tenant_id = #{tenantId}
-        </if>
         <if test="carrierId != null">
             and fh.carrier_id = #{carrierId}
         </if>
@@ -127,9 +121,6 @@
         left join jsh_freight_carrier fc on fh.carrier_id = fc.id
         left join jsh_user u2 on fh.payment_operator = u2.id
         where fh.delete_flag = '0' and fh.status = '1'
-        <if test="tenantId != null">
-            and fh.tenant_id = #{tenantId}
-        </if>
         <if test="carrierId != null">
             and fh.carrier_id = #{carrierId}
         </if>

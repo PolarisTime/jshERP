@@ -42,8 +42,6 @@ public class CustomerStatement {
 
     private String remark;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     private Date createTime;
@@ -87,9 +85,6 @@ public class CustomerStatement {
 
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
-
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 
     public String getDeleteFlag() { return deleteFlag; }
     public void setDeleteFlag(String deleteFlag) { this.deleteFlag = deleteFlag; }

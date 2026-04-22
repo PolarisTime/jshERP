@@ -4,7 +4,6 @@
 
   <!-- ═══ 主表 ═══ -->
 
-  <!-- tenant_id 由多租户插件自动注入，不手动设置避免重复 -->
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.PriceApproval" useGeneratedKeys="true" keyProperty="id">
     INSERT INTO jsh_price_approval
       (approval_no, depot_head_id, organ_id, delivery_date, remark,
@@ -29,7 +28,7 @@
     SELECT id, approval_no as approvalNo, depot_head_id as depotHeadId,
            organ_id as organId, delivery_date as deliveryDate, remark,
            total_weight as totalWeight, total_amount as totalAmount,
-           status, tenant_id as tenantId, delete_flag as deleteFlag,
+           status, delete_flag as deleteFlag,
            create_time as createTime, creator,
            update_time as updateTime, updater
     FROM jsh_price_approval
@@ -39,13 +38,10 @@
   <select id="selectByDepotHeadId" resultType="com.jsh.erp.datasource.entities.PriceApproval">
     SELECT id, approval_no as approvalNo, depot_head_id as depotHeadId,
            organ_id as organId, delivery_date as deliveryDate,
-           status, tenant_id as tenantId
+           status
     FROM jsh_price_approval
     WHERE depot_head_id=#{depotHeadId}
       AND ifnull(delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND tenant_id = #{tenantId}
-      </if>
     LIMIT 1
   </select>
 
@@ -53,9 +49,6 @@
     SELECT count(1)
     FROM jsh_price_approval
     WHERE approval_no LIKE concat('HZ', #{datePrefix}, '%')
-      <if test="tenantId != null">
-        AND tenant_id = #{tenantId}
-      </if>
   </select>
 
   <!-- ═══ 核准单列表 ═══ -->
@@ -65,9 +58,6 @@
     JOIN jsh_depot_head dh ON dh.id = pa.depot_head_id
     LEFT JOIN jsh_supplier s ON s.id = pa.organ_id
     WHERE ifnull(pa.delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND pa.tenant_id = #{tenantId}
-      </if>
       <if test="organId != null">
         AND pa.organ_id = #{organId}
       </if>
@@ -163,7 +153,7 @@
            all_price as allPrice,
            tax_rate as taxRate, tax_money as taxMoney,
            tax_last_money as taxLastMoney,
-           remark, tenant_id as tenantId, delete_flag as deleteFlag
+           remark, delete_flag as deleteFlag
     FROM jsh_price_approval_item
     WHERE id = #{id}
       AND ifnull(delete_flag,'0') != '1'
@@ -223,15 +213,9 @@
     WHERE dh.type = '出库' AND dh.sub_type = '销售'
       AND dh.status = '1'
       AND ifnull(dh.delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND dh.tenant_id = #{tenantId}
-      </if>
       AND dh.id NOT IN (
         SELECT pa.depot_head_id FROM jsh_price_approval pa
         WHERE ifnull(pa.delete_flag,'0') != '1'
-        <if test="tenantId != null">
-          AND pa.tenant_id = #{tenantId}
-        </if>
       )
       <if test="organId != null">
         AND dh.organ_id = #{organId}

@@ -15,7 +15,7 @@ import java.io.IOException;
 @WebFilter(filterName = "LogCostFilter", urlPatterns = {"/*"},
         initParams = {@WebInitParam(name = "filterPath",
                       value = "/jshERP-boot/platformConfig/getPlatform/name#/jshERP-boot/platformConfig/getPlatform/url#" +
-                              "/jshERP-boot/platformConfig/getPlatform/registerFlag#/jshERP-boot/platformConfig/getPlatform/checkcodeFlag#" +
+                              "/jshERP-boot/platformConfig/getPlatform/checkcodeFlag#" +
                               "/jshERP-boot/v3/api-docs#/jshERP-boot/swagger-ui")})
 public class LogCostFilter implements Filter {
 
@@ -92,8 +92,8 @@ public class LogCostFilter implements Filter {
 
     private boolean isPublicPath(String requestUrl) {
         if (requestUrl.equals("/jshERP-boot/doc.html") || requestUrl.equals("/jshERP-boot/user/login")
-                || requestUrl.equals("/jshERP-boot/user/register") || requestUrl.equals("/jshERP-boot/user/weixinLogin")
-                || requestUrl.equals("/jshERP-boot/user/weixinBind") || requestUrl.equals("/jshERP-boot/user/registerUser")
+                || requestUrl.equals("/jshERP-boot/user/weixinLogin")
+                || requestUrl.equals("/jshERP-boot/user/weixinBind")
                 || requestUrl.equals("/jshERP-boot/user/randomImage")) {
             return true;
         }

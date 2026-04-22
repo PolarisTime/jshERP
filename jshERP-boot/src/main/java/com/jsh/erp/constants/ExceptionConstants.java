@@ -73,9 +73,6 @@ public class ExceptionConstants {
     //启用的用户数量超出限制
     public static final int USER_ENABLE_OVER_LIMIT_FAILED_CODE = 500006;
     public static final String USER_ENABLE_OVER_LIMIT_FAILED_MSG = "启用的用户数量超出限制，请联系平台管理员";
-    //租户不能被删除
-    public static final int USER_LIMIT_TENANT_DELETE_CODE = 500008;
-    public static final String USER_LIMIT_TENANT_DELETE_MSG = "抱歉，租户不能被删除";
     //当前机构已经存在经理
     public static final int USER_LEADER_IS_EXIST_CODE = 500009;
     public static final String USER_LEADER_IS_EXIST_MSG = "抱歉，当前机构已经存在经理";

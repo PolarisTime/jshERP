@@ -19,8 +19,6 @@ public class Organization {
 
     private Date updateTime;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -85,14 +83,6 @@ public class Organization {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

@@ -32,8 +32,6 @@ public class SerialNumber {
 
     private String outBillNo;
 
-    private Long tenantId;
-
     public Long getId() {
         return id;
     }
@@ -146,11 +144,4 @@ public class SerialNumber {
         this.outBillNo = outBillNo == null ? null : outBillNo.trim();
     }
 
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
 }

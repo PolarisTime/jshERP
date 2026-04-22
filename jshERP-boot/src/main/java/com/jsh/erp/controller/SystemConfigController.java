@@ -73,6 +73,7 @@ public class SystemConfigController extends BaseController {
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         SystemConfig systemConfig = systemConfigService.getSystemConfig(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(systemConfig != null) {
@@ -87,6 +88,7 @@ public class SystemConfigController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String companyName = StringUtil.getInfo(search, "companyName");
         List<SystemConfig> list = systemConfigService.select(companyName);
         return getDataTable(list);
@@ -95,6 +97,7 @@ public class SystemConfigController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = systemConfigService.insertSystemConfig(obj, request);
         return returnStr(objectMap, insert);
@@ -103,6 +106,7 @@ public class SystemConfigController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = systemConfigService.updateSystemConfig(obj, request);
         return returnStr(objectMap, update);
@@ -111,6 +115,7 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.deleteSystemConfig(id, request);
         return returnStr(objectMap, delete);
@@ -119,6 +124,7 @@ public class SystemConfigController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = systemConfigService.batchDeleteSystemConfig(ids, request);
         return returnStr(objectMap, delete);
@@ -128,6 +134,7 @@ public class SystemConfigController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = systemConfigService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -139,12 +146,12 @@ public class SystemConfigController extends BaseController {
     }
 
     /**
-     * 获取当前租户的配置信息
+     * 获取当前系统配置信息
      * @param request
      * @return
      */
     @GetMapping(value = "/getCurrentInfo")
-    @Operation(summary = "获取当前租户的配置信息")
+    @Operation(summary = "获取当前系统配置信息")
     public BaseResponseInfo getCurrentInfo(HttpServletRequest request) throws Exception {
         BaseResponseInfo res = new BaseResponseInfo();
         try{
@@ -450,5 +457,9 @@ public class SystemConfigController extends BaseController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

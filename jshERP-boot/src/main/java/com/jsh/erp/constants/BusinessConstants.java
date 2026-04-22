@@ -205,7 +205,7 @@ public class BusinessConstants {
     /**
      * 默认管理员账号
      */
-    public static final String DEFAULT_MANAGER = "admin";
+    public static final String DEFAULT_MANAGER = "steel";
 
     public static final String ROLE_TYPE_PRIVATE = "个人数据";
 

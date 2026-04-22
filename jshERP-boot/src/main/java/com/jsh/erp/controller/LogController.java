@@ -6,6 +6,7 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Log;
 import com.jsh.erp.datasource.vo.LogVo4List;
 import com.jsh.erp.service.LogService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
@@ -35,12 +36,15 @@ public class LogController extends BaseController {
 
     @Resource
     private LogService logService;
+    @Resource
+    private UserService userService;
 
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         Log log = logService.getLog(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(log != null) {
@@ -55,21 +59,21 @@ public class LogController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String operation = StringUtil.getInfo(search, "operation");
         String userInfo = StringUtil.getInfo(search, "userInfo");
         String clientIp = StringUtil.getInfo(search, "clientIp");
-        String tenantLoginName = StringUtil.getInfo(search, "tenantLoginName");
-        String tenantType = StringUtil.getInfo(search, "tenantType");
         String beginTime = StringUtil.getInfo(search, "beginTime");
         String endTime = StringUtil.getInfo(search, "endTime");
         String content = StringUtil.getInfo(search, "content");
-        List<LogVo4List> list = logService.select(operation, userInfo, clientIp, tenantLoginName, tenantType, beginTime, endTime, content);
+        List<LogVo4List> list = logService.select(operation, userInfo, clientIp, beginTime, endTime, content);
         return getDataTable(list);
     }
 
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<String, Object>();
         int insert = logService.insertLog(obj, request);
         return returnStr(objectMap, insert);
@@ -78,6 +82,7 @@ public class LogController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = logService.updateLog(obj, request);
         return returnStr(objectMap, update);
@@ -86,6 +91,7 @@ public class LogController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = logService.deleteLog(id, request);
         return returnStr(objectMap, delete);
@@ -94,8 +100,13 @@ public class LogController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = logService.batchDeleteLog(ids, request);
         return returnStr(objectMap, delete);
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

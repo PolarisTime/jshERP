@@ -45,6 +45,7 @@ public class OrganizationController {
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         Organization organization = organizationService.getOrganization(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(organization != null) {
@@ -58,6 +59,7 @@ public class OrganizationController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = organizationService.insertOrganization(obj, request);
         return returnStr(objectMap, insert);
@@ -66,6 +68,7 @@ public class OrganizationController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = organizationService.updateOrganization(obj, request);
         return returnStr(objectMap, update);
@@ -74,6 +77,7 @@ public class OrganizationController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = organizationService.deleteOrganization(id, request);
         return returnStr(objectMap, delete);
@@ -82,6 +86,7 @@ public class OrganizationController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = organizationService.batchDeleteOrganization(ids, request);
         return returnStr(objectMap, delete);
@@ -91,6 +96,7 @@ public class OrganizationController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = organizationService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -110,6 +116,7 @@ public class OrganizationController {
     @GetMapping(value = "/findById")
     @Operation(summary = "根据id来查询机构信息")
     public BaseResponseInfo findById(@RequestParam("id") Long id, HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         BaseResponseInfo res = new BaseResponseInfo();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
@@ -148,6 +155,7 @@ public class OrganizationController {
     @GetMapping(value = "/getOrganizationTree")
     @Operation(summary = "获取机构树数据")
     public JSONArray getOrganizationTree(@RequestParam("id") Long id) throws Exception{
+       assertSystemAdmin();
        JSONArray arr=new JSONArray();
        List<TreeNode> organizationTree= organizationService.getOrganizationTree(id);
        if(organizationTree!=null&&organizationTree.size()>0){
@@ -183,5 +191,9 @@ public class OrganizationController {
             }
         }
         return arr;
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

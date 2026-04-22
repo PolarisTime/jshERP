@@ -33,8 +33,6 @@ public class PriceApproval {
     /** 0=待核准 1=已核准 */
     private String status;
 
-    private Long tenantId;
-
     private Date createTime;
 
     private Long creator;
@@ -73,9 +71,6 @@ public class PriceApproval {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 
     public Date getCreateTime() { return createTime; }
     public void setCreateTime(Date createTime) { this.createTime = createTime; }

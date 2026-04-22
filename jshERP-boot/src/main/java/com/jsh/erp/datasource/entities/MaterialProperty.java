@@ -11,8 +11,6 @@ public class MaterialProperty {
 
     private String anotherName;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -53,14 +51,6 @@ public class MaterialProperty {
 
     public void setAnotherName(String anotherName) {
         this.anotherName = anotherName == null ? null : anotherName.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

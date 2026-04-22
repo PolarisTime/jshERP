@@ -14,21 +14,6 @@
         order by d.default_flag desc,d.id asc
     </select>
 
-    <select id="getMaxTimeByTenantAndTime" resultType="java.lang.Long">
-        select max(update_time) from
-        (
-        select update_time from jsh_material_extend
-        where 1=1
-        <if test="lastTime != null">
-            and update_time > #{lastTime}
-        </if>
-        order by update_time asc
-        <if test="syncNum != null">
-            limit 0,#{syncNum}
-        </if>
-        ) time_list
-    </select>
-
     <select id="getListByMId" resultType="com.jsh.erp.datasource.entities.MaterialExtend">
         select
         <include refid="com.jsh.erp.datasource.mappers.MaterialExtendMapper.Base_Column_List" />

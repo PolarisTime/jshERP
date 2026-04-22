@@ -28,8 +28,6 @@ public class DepotHeadVo4InOutMCount {
 
     private BigDecimal priceSum;
 
-    private Long tenantId;
-
     public Long getMaterialId() {
         return materialId;
     }
@@ -126,11 +124,4 @@ public class DepotHeadVo4InOutMCount {
         this.priceSum = priceSum;
     }
 
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
 }

@@ -77,8 +77,8 @@ public class MsgService {
     public List<MsgEx> select(String name)throws Exception {
         List<MsgEx> list=null;
         try{
-            User userInfo = userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
+                User userInfo = userService.getCurrentUser();
                 PageUtils.startPage();
                 list = msgMapperEx.selectByConditionMsg(userInfo.getId(), name);
                 if (null != list) {
@@ -105,8 +105,7 @@ public class MsgService {
         Msg msg = JSONObject.parseObject(obj.toJSONString(), Msg.class);
         int result=0;
         try{
-            User userInfo = userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
                 msg.setCreateTime(new Date());
                 msg.setStatus("1");
                 result=msgMapper.insertSelective(msg);
@@ -216,8 +215,8 @@ public class MsgService {
     public List<MsgEx> getMsgByStatus(String status)throws Exception {
         List<MsgEx> resList=new ArrayList<>();
         try{
-            User userInfo = userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
+                User userInfo = userService.getCurrentUser();
                 MsgExample example = new MsgExample();
                 example.createCriteria().andStatusEqualTo(status).andUserIdEqualTo(userInfo.getId())
                         .andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
@@ -267,8 +266,8 @@ public class MsgService {
     public Long getMsgCountByStatus(String status)throws Exception {
         Long result=null;
         try{
-            User userInfo=userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
+                User userInfo=userService.getCurrentUser();
                 result = msgMapperEx.getMsgCountByStatus(status, userInfo.getId());
             }
         }catch(Exception e){
@@ -283,8 +282,7 @@ public class MsgService {
     public Integer getMsgCountByType(String type)throws Exception {
         int msgCount = 0;
         try{
-            User userInfo = userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
                 MsgExample example = new MsgExample();
                 example.createCriteria().andTypeEqualTo(type).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
                 List<Msg> list = msgMapper.selectByExample(example);
@@ -302,8 +300,7 @@ public class MsgService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void readAllMsg() throws Exception{
         try{
-            User userInfo = userService.getCurrentUser();
-            if(!BusinessConstants.DEFAULT_MANAGER.equals(userInfo.getLoginName())) {
+            if(!userService.isCurrentUserSystemAdmin()) {
                 Msg msg = new Msg();
                 msg.setStatus("2");
                 MsgExample example = new MsgExample();

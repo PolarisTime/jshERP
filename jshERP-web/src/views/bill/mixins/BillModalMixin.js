@@ -36,7 +36,7 @@ export const BillModalMixin = {
       billUnitPirce: '',
       scanBarCode: '',
       scanStatus: true,
-      defaultTaxRate: 0, //租户默认税率(%)
+      defaultTaxRate: 0, //系统默认税率(%)
       billStatus: '0',
       minWidth: 1100,
       isCanCheck: true,
@@ -101,7 +101,7 @@ export const BillModalMixin = {
     this.width = realScreenWidth<1500?'1200px':'1550px'
     this.minWidth = realScreenWidth<1500?1150:1500
     this.normalizeDetailColumnsDefinition()
-    // 加载租户默认税率
+    // 加载系统默认税率
     getCurrentSystemConfig().then((res) => {
       if (res && res.code === 200 && res.data) {
         this.defaultTaxRate = res.data.defaultTaxRate != null ? res.data.defaultTaxRate - 0 : 0

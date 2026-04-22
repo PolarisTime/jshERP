@@ -7,7 +7,6 @@
     <result column="depot_id" jdbcType="BIGINT" property="depotId" />
     <result column="current_number" jdbcType="DECIMAL" property="currentNumber" />
     <result column="current_unit_price" jdbcType="DECIMAL" property="currentUnitPrice" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -69,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, material_id, depot_id, current_number, current_unit_price, tenant_id, delete_flag
+    id, material_id, depot_id, current_number, current_unit_price, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.MaterialCurrentStockExample" resultMap="BaseResultMap">
     select
@@ -103,10 +102,10 @@
   </delete>
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.MaterialCurrentStock">
     insert into jsh_material_current_stock (id, material_id, depot_id, 
-      current_number, current_unit_price, tenant_id, 
+      current_number, current_unit_price, 
       delete_flag)
     values (#{id,jdbcType=BIGINT}, #{materialId,jdbcType=BIGINT}, #{depotId,jdbcType=BIGINT}, 
-      #{currentNumber,jdbcType=DECIMAL}, #{currentUnitPrice,jdbcType=DECIMAL}, #{tenantId,jdbcType=BIGINT}, 
+      #{currentNumber,jdbcType=DECIMAL}, #{currentUnitPrice,jdbcType=DECIMAL}, 
       #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.MaterialCurrentStock">
@@ -127,9 +126,6 @@
       <if test="currentUnitPrice != null">
         current_unit_price,
       </if>
-      <if test="tenantId != null">
-        tenant_id,
-      </if>
       <if test="deleteFlag != null">
         delete_flag,
       </if>
@@ -149,9 +145,6 @@
       </if>
       <if test="currentUnitPrice != null">
         #{currentUnitPrice,jdbcType=DECIMAL},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -182,9 +175,6 @@
       <if test="record.currentUnitPrice != null">
         current_unit_price = #{record.currentUnitPrice,jdbcType=DECIMAL},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -200,7 +190,6 @@
       depot_id = #{record.depotId,jdbcType=BIGINT},
       current_number = #{record.currentNumber,jdbcType=DECIMAL},
       current_unit_price = #{record.currentUnitPrice,jdbcType=DECIMAL},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -221,9 +210,6 @@
       <if test="currentUnitPrice != null">
         current_unit_price = #{currentUnitPrice,jdbcType=DECIMAL},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -236,7 +222,6 @@
       depot_id = #{depotId,jdbcType=BIGINT},
       current_number = #{currentNumber,jdbcType=DECIMAL},
       current_unit_price = #{currentUnitPrice,jdbcType=DECIMAL},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

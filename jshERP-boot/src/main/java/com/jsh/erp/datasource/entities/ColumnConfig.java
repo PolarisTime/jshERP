@@ -1,13 +1,12 @@
 package com.jsh.erp.datasource.entities;
 
 /**
- * 租户列配置
+ * 列配置
  */
 public class ColumnConfig {
     private Long id;
     private String pageCode;
     private String columnConfig;
-    private Long tenantId;
     private String deleteFlag;
 
     public Long getId() {
@@ -32,14 +31,6 @@ public class ColumnConfig {
 
     public void setColumnConfig(String columnConfig) {
         this.columnConfig = columnConfig;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

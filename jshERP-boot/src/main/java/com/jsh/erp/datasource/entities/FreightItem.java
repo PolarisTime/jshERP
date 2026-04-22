@@ -18,8 +18,6 @@ public class FreightItem {
 
     private String remark;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -68,14 +66,6 @@ public class FreightItem {
 
     public void setRemark(String remark) {
         this.remark = remark == null ? null : remark.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

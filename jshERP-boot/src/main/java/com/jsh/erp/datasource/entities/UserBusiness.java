@@ -11,8 +11,6 @@ public class UserBusiness {
 
     private String btnStr;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -53,14 +51,6 @@ public class UserBusiness {
 
     public void setBtnStr(String btnStr) {
         this.btnStr = btnStr == null ? null : btnStr.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

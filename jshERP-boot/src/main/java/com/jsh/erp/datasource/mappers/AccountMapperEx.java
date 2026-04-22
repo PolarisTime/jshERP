@@ -1,6 +1,5 @@
 package com.jsh.erp.datasource.mappers;
 
-import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.jsh.erp.datasource.entities.Account;
 import com.jsh.erp.datasource.entities.AccountVo4Sum;
 import com.jsh.erp.datasource.entities.DepotHead;
@@ -61,7 +60,6 @@ public interface AccountMapperEx {
             @Param("endTime") String endTime,
             @Param("forceFlag") Boolean forceFlag);
 
-    @InterceptorIgnore(tenantLine = "true")
     List<AccountVo4InOutList> findAccountInOutList(
             @Param("accountId") Long accountId,
             @Param("number") String number,
@@ -71,7 +69,6 @@ public interface AccountMapperEx {
             @Param("offset") Integer offset,
             @Param("rows") Integer rows);
 
-    @InterceptorIgnore(tenantLine = "true")
     int findAccountInOutListCount(
             @Param("accountId") Long accountId,
             @Param("number") String number,

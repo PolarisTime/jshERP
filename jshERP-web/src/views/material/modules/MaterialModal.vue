@@ -662,12 +662,10 @@
       },
       /** 发起新增或修改的请求 */
       requestAddOrEdit(formData) {
-        //复制新增商品-初始化id和租户id
+        //复制新增商品时初始化主键字段
         if(this.action === 'copyAdd') {
           this.model.id = ''
-          this.model.tenantId = ''
           formData.id = ''
-          formData.tenantId = ''
         }
         if(formData.meList.length === 0) {
           this.$message.warning('抱歉，请输入条码信息！');

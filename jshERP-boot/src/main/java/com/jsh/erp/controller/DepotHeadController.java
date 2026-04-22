@@ -694,8 +694,7 @@ public class DepotHeadController extends BaseController {
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             Map<String, Object> map = new HashMap<>();
-            String loginName = userService.getCurrentUser().getLoginName();
-            if(!"admin".equals(loginName)) {
+            if(!userService.isCurrentUserSystemAdmin()) {
                 String today = Tools.getNow() + BusinessConstants.DAY_FIRST_TIME;
                 String monthFirstDay = Tools.firstDayOfMonth(Tools.getCurrentMonth()) + BusinessConstants.DAY_FIRST_TIME;
                 String yesterdayBegin = Tools.getYesterday() + BusinessConstants.DAY_FIRST_TIME;

@@ -16,7 +16,6 @@ public class FreightStatement {
     private String signStatus;
     private String attachment;
     private String remark;
-    private Long tenantId;
     private String deleteFlag;
     private Date createTime;
     private Long creator;
@@ -45,8 +44,6 @@ public class FreightStatement {
     public void setAttachment(String attachment) { this.attachment = attachment; }
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
     public String getDeleteFlag() { return deleteFlag; }
     public void setDeleteFlag(String deleteFlag) { this.deleteFlag = deleteFlag; }
     public Date getCreateTime() { return createTime; }

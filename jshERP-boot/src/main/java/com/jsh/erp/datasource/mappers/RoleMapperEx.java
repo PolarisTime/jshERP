@@ -1,6 +1,5 @@
 package com.jsh.erp.datasource.mappers;
 
-import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.jsh.erp.datasource.entities.Role;
 import com.jsh.erp.datasource.entities.RoleEx;
 import com.jsh.erp.datasource.entities.RoleExample;
@@ -17,7 +16,6 @@ public interface RoleMapperEx {
 
     int batchDeleteRoleByIds(@Param("updateTime") Date updateTime, @Param("updater") Long updater, @Param("ids") String ids[]);
 
-    @InterceptorIgnore(tenantLine = "true")
-    Role getRoleWithoutTenant(
+    Role getRoleById(
             @Param("roleId") Long roleId);
 }

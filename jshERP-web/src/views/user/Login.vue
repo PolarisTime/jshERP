@@ -44,9 +44,6 @@
 
       <a-form-item>
         <a-checkbox :checked="checked" @change="handleChange">记住密码</a-checkbox>
-        <router-link v-if="registerFlag==='1'" :to="{ name: 'register'}" class="forge-password" style="float: right;margin-right: 10px;" >
-          注册租户
-        </router-link>
       </a-form-item>
 
       <a-form-item :style="btnStyle">
@@ -126,7 +123,6 @@
         currdatetime:'',
         uuid:'',
         randCodeImage:'',
-        registerFlag:'',
         checkcodeFlag:'',
         mainStyle: '',
         btnStyle: 'margin-top:16px',
@@ -141,7 +137,6 @@
       Vue.ls.remove(ACCESS_TOKEN)
       clearStaticAccessToken()
       this.getRouterData()
-      this.getRegisterFlag()
       this.getCheckcodeFlag()
       this.handleChangeCheckCode()
     },
@@ -157,17 +152,6 @@
             this.checked = true
           }
         })
-        //从注册页面跳转过来，给登录名进行赋值
-        if(this.$route.params.loginName) {
-          this.$nextTick(() => {
-            //先清空缓存
-            Vue.ls.remove('cache_loginName')
-            Vue.ls.remove('cache_password')
-            this.form.setFieldsValue({'loginName':this.$route.params.loginName})
-            this.form.setFieldsValue({'password': ''})
-            this.checked = false
-          })
-        }
       },
       handleLoginName (rule, value, callback) {
         const regex = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/;
@@ -244,37 +228,15 @@
           },3000)
         }
         if(res.data && res.data.user) {
-          if(res.data.user.loginName === 'admin'){
-            let desc = 'admin只是平台运维用户，真正的管理员是租户(测试账号为jsh），admin不能编辑任何业务数据，只能配置平台菜单和创建租户'
-            this.$message.info(desc,30)
-          } else {
-            getPlatformConfigByKey({ "platformKey": "bill_excel_url" }).then((res) => {
-              if (res && res.code === 200) {
-                if(res.data.platformValue) {
-                  Vue.ls.set('isShowExcel', true);
-                } else {
-                  Vue.ls.set('isShowExcel', false);
-                }
+          getPlatformConfigByKey({ "platformKey": "bill_excel_url" }).then((res) => {
+            if (res && res.code === 200) {
+              if(res.data.platformValue) {
+                Vue.ls.set('isShowExcel', true);
+              } else {
+                Vue.ls.set('isShowExcel', false);
               }
-            })
-            getAction("/user/infoWithTenant",{}).then(res=>{
-              if(res && res.code === 200) {
-                let currentTime = new Date(); //新建一个日期对象，默认现在的时间
-                let expireTime = new Date(res.data.expireTime); //设置过去的一个时间点，"yyyy-MM-dd HH:mm:ss"格式化日期
-                let type = res.data.type  //租户类型，0免费租户，1付费租户
-                let difftime = expireTime - currentTime; //计算时间差
-                let tipInfo = '您好，服务即将到期，请及时续费！'
-                //0免费租户-如果距离到期还剩5天就进行提示续费
-                if(type === '0' && difftime<86400000*5) {
-                  this.$message.warning(tipInfo,8)
-                }
-                //1付费租户-如果距离到期还剩15天就进行提示续费
-                if(type === '1' && difftime<86400000*15) {
-                  this.$message.warning(tipInfo,8)
-                }
-              }
-            })
-          }
+            }
+          })
         }
         this.initMPropertyShort();
       },
@@ -316,18 +278,6 @@
             err.message = '用户被禁用';
             this.requestFailed(err)
             this.Logout();
-          } else if(res.data.msgTip === 'tenant is black'){
-            if(loginName === 'jsh') {
-              err.message = 'jsh用户已停用，请注册租户进行体验！';
-            } else {
-              err.message = '用户所属的租户被禁用';
-            }
-            this.requestFailed(err)
-            this.Logout();
-          } else if(res.data.msgTip === 'tenant is expire'){
-            err.message = '试用期已结束，请联系客服续费';
-            this.requestFailed(err)
-            this.Logout();
           } else if(res.data.msgTip === 'access service error'){
             err.message = '查询服务异常';
             this.requestFailed(err)
@@ -345,11 +295,6 @@
               'username': this.$route.params.username
             });
           }
-        })
-      },
-      getRegisterFlag(){
-        getAction('/platformConfig/getPlatform/registerFlag').then((res) => {
-          this.registerFlag = res + ''
         })
       },
       getCheckcodeFlag(){

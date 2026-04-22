@@ -13,8 +13,6 @@ public class InOutItem {
 
     private String sort;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -63,14 +61,6 @@ public class InOutItem {
 
     public void setSort(String sort) {
         this.sort = sort == null ? null : sort.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

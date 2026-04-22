@@ -2,7 +2,6 @@ package com.jsh.erp.service;
 
 import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.datasource.entities.FreightCarrier;
-import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.mappers.FreightCarrierMapper;
 import com.jsh.erp.datasource.mappers.FreightCarrierMapperEx;
 import com.jsh.erp.exception.JshException;
@@ -28,8 +27,6 @@ public class FreightCarrierService {
     @Resource
     private FreightCarrierMapperEx freightCarrierMapperEx;
     @Resource
-    private UserService userService;
-    @Resource
     private LogService logService;
 
     /**
@@ -38,10 +35,8 @@ public class FreightCarrierService {
     public List<FreightCarrier> select(String name) throws Exception {
         List<FreightCarrier> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo == null ? null : userInfo.getTenantId();
             PageUtils.startPage();
-            list = freightCarrierMapperEx.selectByCondition(name, null, null, tenantId);
+            list = freightCarrierMapperEx.selectByCondition(name, null, null);
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }
@@ -54,9 +49,7 @@ public class FreightCarrierService {
     public List<FreightCarrier> selectAll() throws Exception {
         List<FreightCarrier> list = new ArrayList<>();
         try {
-            User userInfo = userService.getCurrentUser();
-            Long tenantId = userInfo == null ? null : userInfo.getTenantId();
-            list = freightCarrierMapperEx.selectAll(tenantId);
+            list = freightCarrierMapperEx.selectAll();
         } catch (Exception e) {
             JshException.readFail(logger, e);
         }

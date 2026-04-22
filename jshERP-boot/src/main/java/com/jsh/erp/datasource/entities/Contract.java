@@ -29,8 +29,6 @@ public class Contract {
 
     private String remark;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     private Date createTime;
@@ -128,14 +126,6 @@ public class Contract {
 
     public void setRemark(String remark) {
         this.remark = remark == null ? null : remark.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

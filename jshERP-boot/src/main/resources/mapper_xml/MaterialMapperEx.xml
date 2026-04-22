@@ -194,9 +194,6 @@
             <if test="attribute != null">
                 attribute,
             </if>
-            <if test="tenantId != null">
-                tenant_id,
-            </if>
             <if test="deleteFlag != null">
                 delete_flag,
             </if>
@@ -270,9 +267,6 @@
             </if>
             <if test="attribute != null">
                 #{attribute,jdbcType=VARCHAR},
-            </if>
-            <if test="tenantId != null">
-                #{tenantId,jdbcType=BIGINT},
             </if>
             <if test="deleteFlag != null">
                 #{deleteFlag,jdbcType=VARCHAR},

@@ -7,6 +7,7 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Role;
 import com.jsh.erp.datasource.entities.RoleEx;
 import com.jsh.erp.service.RoleService;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.service.UserBusinessService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
@@ -40,11 +41,14 @@ public class RoleController extends BaseController {
 
     @Resource
     private UserBusinessService userBusinessService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         Role role = roleService.getRole(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(role != null) {
@@ -59,6 +63,7 @@ public class RoleController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String name = StringUtil.getInfo(search, "name");
         String description = StringUtil.getInfo(search, "description");
         List<RoleEx> list = roleService.select(name, description);
@@ -68,6 +73,7 @@ public class RoleController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = roleService.insertRole(obj, request);
         return returnStr(objectMap, insert);
@@ -76,6 +82,7 @@ public class RoleController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = roleService.updateRole(obj, request);
         return returnStr(objectMap, update);
@@ -84,6 +91,7 @@ public class RoleController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = roleService.deleteRole(id, request);
         return returnStr(objectMap, delete);
@@ -92,6 +100,7 @@ public class RoleController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = roleService.batchDeleteRole(ids, request);
         return returnStr(objectMap, delete);
@@ -101,6 +110,7 @@ public class RoleController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = roleService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -120,6 +130,7 @@ public class RoleController extends BaseController {
     @Operation(summary = "查询用户的角色")
     public JSONArray findUserRole(@RequestParam("UBType") String type, @RequestParam("UBKeyId") String keyId,
                                   HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         JSONArray arr = new JSONArray();
         try {
             //获取权限信息
@@ -146,6 +157,7 @@ public class RoleController extends BaseController {
     @GetMapping(value = "/allList")
     @Operation(summary = "查询全部角色列表")
     public List<Role> allList(HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         return roleService.allList();
     }
 
@@ -159,6 +171,7 @@ public class RoleController extends BaseController {
     @Operation(summary = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
@@ -168,5 +181,9 @@ public class RoleController extends BaseController {
         } else {
             return returnJson(objectMap, ErpInfo.ERROR.name, ErpInfo.ERROR.code);
         }
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

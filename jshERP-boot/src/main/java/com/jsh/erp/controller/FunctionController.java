@@ -7,7 +7,6 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.service.FunctionService;
 import com.jsh.erp.service.SystemConfigService;
-import com.jsh.erp.service.TenantModeService;
 import com.jsh.erp.service.UserBusinessService;
 import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*;;
+import java.util.*;
 
 import static com.jsh.erp.utils.ResponseJsonUtil.returnJson;
 import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
@@ -33,6 +32,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @Tag(name = "功能管理")
 public class FunctionController extends BaseController {
     private static final Long TENANT_MANAGEMENT_FUNCTION_ID = 18L;
+    private static final Long REMOVED_PLUGIN_FUNCTION_ID = 245L;
     private Logger logger = LoggerFactory.getLogger(FunctionController.class);
 
     @Resource
@@ -46,13 +46,12 @@ public class FunctionController extends BaseController {
 
     @Resource
     private SystemConfigService systemConfigService;
-    @Resource
-    private TenantModeService tenantModeService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         Function function = functionService.getFunction(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(function != null) {
@@ -67,6 +66,7 @@ public class FunctionController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String name = StringUtil.getInfo(search, "name");
         String type = StringUtil.getInfo(search, "type");
         List<FunctionEx> list = functionService.select(name, type);
@@ -76,6 +76,7 @@ public class FunctionController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = functionService.insertFunction(obj, request);
         return returnStr(objectMap, insert);
@@ -84,6 +85,7 @@ public class FunctionController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = functionService.updateFunction(obj, request);
         return returnStr(objectMap, update);
@@ -92,6 +94,7 @@ public class FunctionController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = functionService.deleteFunction(id, request);
         return returnStr(objectMap, delete);
@@ -100,6 +103,7 @@ public class FunctionController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = functionService.batchDeleteFunction(ids, request);
         return returnStr(objectMap, delete);
@@ -109,6 +113,7 @@ public class FunctionController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = functionService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -124,6 +129,7 @@ public class FunctionController extends BaseController {
     public String checkIsNumberExist(@RequestParam Long id,
                                      @RequestParam(value ="number", required = false) String number,
                                      HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<String, Object>();
         int exist = functionService.checkIsNumberExist(id, number);
         if(exist > 0) {
@@ -175,9 +181,7 @@ public class FunctionController extends BaseController {
             List<Function> dataList = functionService.getRoleFunction(pNumber);
             if (dataList.size() != 0) {
                 User userInfo = userService.getCurrentUser();
-                //获取当前用户所属的租户所拥有的功能id的map
-                Map<Long, Long> funIdMap = functionService.getCurrentTenantFunIdMap();
-                dataArray = getMenuByFunction(dataList, fc, approvalFlag, funIdMap, userInfo);
+                dataArray = getMenuByFunction(dataList, fc, approvalFlag, userInfo);
                 //增加首页菜单项
                 JSONObject homeItem = new JSONObject();
                 homeItem.put("id", 0);
@@ -194,54 +198,48 @@ public class FunctionController extends BaseController {
     }
 
     /**
-     * admin专属功能ID集合：功能管理(16)、租户管理(18)、插件管理(245)、平台配置(258)
-     * 这些功能仅admin可见，租户用户即使角色中分配了也不显示
+     * 系统管理员专属功能ID集合：系统配置、权限管理、平台配置。
      */
-    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, TENANT_MANAGEMENT_FUNCTION_ID, 245L, 258L));
+    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(13L, 14L, 15L, 16L, 234L, 236L, 243L, 245L, 258L));
 
     private boolean shouldHideFunction(Function function, boolean isAdmin) {
         Long functionId = function.getId();
         if (functionId == null) {
             return false;
         }
-        if (!tenantModeService.isEnabled() && TENANT_MANAGEMENT_FUNCTION_ID.equals(functionId)) {
+        if (TENANT_MANAGEMENT_FUNCTION_ID.equals(functionId) || REMOVED_PLUGIN_FUNCTION_ID.equals(functionId)) {
             return true;
         }
         return !isAdmin && ADMIN_ONLY_FUN_IDS.contains(functionId);
     }
 
-    public JSONArray getMenuByFunction(List<Function> dataList, String fc, String approvalFlag, Map<Long, Long> funIdMap, User userInfo) throws Exception {
+    public JSONArray getMenuByFunction(List<Function> dataList, String fc, String approvalFlag, User userInfo) throws Exception {
         JSONArray dataArray = new JSONArray();
-        boolean isAdmin = "admin".equals(userInfo.getLoginName());
+        boolean isAdmin = userService.isSystemAdmin(userInfo);
         for (Function function : dataList) {
             if (shouldHideFunction(function, isAdmin)) {
                 continue;
             }
-            //如果不是超管也不是租户就需要校验，防止分配下级用户的功能权限，大于租户的权限
-            if(isAdmin || !tenantModeService.isEnabled() || userInfo.getId().equals(userInfo.getTenantId())
-                    || (funIdMap != null && funIdMap.get(function.getId())!=null)) {
-                //如果关闭多级审核，遇到任务审核菜单直接跳过
-                if("0".equals(approvalFlag) && "/workflow".equals(function.getUrl())) {
-                    continue;
+            if("0".equals(approvalFlag) && "/workflow".equals(function.getUrl())) {
+                continue;
+            }
+            JSONObject item = new JSONObject();
+            List<Function> newList = functionService.getRoleFunction(function.getNumber());
+            item.put("id", function.getId());
+            item.put("text", function.getName());
+            item.put("icon", function.getIcon());
+            item.put("url", function.getUrl());
+            item.put("component", function.getComponent());
+            JSONArray childrenArr = new JSONArray();
+            if (newList.size() > 0) {
+                childrenArr = getMenuByFunction(newList, fc, approvalFlag, userInfo);
+                if(childrenArr.size() > 0) {
+                    item.put("children", childrenArr);
                 }
-                JSONObject item = new JSONObject();
-                List<Function> newList = functionService.getRoleFunction(function.getNumber());
-                item.put("id", function.getId());
-                item.put("text", function.getName());
-                item.put("icon", function.getIcon());
-                item.put("url", function.getUrl());
-                item.put("component", function.getComponent());
-                if (newList.size()>0) {
-                    JSONArray childrenArr = getMenuByFunction(newList, fc, approvalFlag, funIdMap, userInfo);
-                    if(childrenArr.size()>0) {
-                        item.put("children", childrenArr);
-                        dataArray.add(item);
-                    }
-                } else {
-                    if (fc.indexOf("[" + function.getId().toString() + "]") != -1) {
-                        dataArray.add(item);
-                    }
-                }
+            }
+            boolean hasPermission = isAdmin || fc.indexOf("[" + function.getId() + "]") != -1;
+            if (childrenArr.size() > 0 || hasPermission) {
+                dataArray.add(item);
             }
         }
         return dataArray;
@@ -256,12 +254,13 @@ public class FunctionController extends BaseController {
     @Operation(summary = "角色对应功能显示")
     public JSONArray findRoleFunction(@RequestParam("UBType") String type, @RequestParam("UBKeyId") String keyId,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         JSONArray arr = new JSONArray();
         try {
             User userInfo = userService.getCurrentUser();
             //获取当前用户所拥有的功能id列表
             List<Long> funIdList = functionService.getCurrentUserFunIdList();
-            if("admin".equals(userInfo.getLoginName())) {
+            if(userService.isSystemAdmin(userInfo)) {
                 funIdList = null;
             }
             List<Function> dataListFun = functionService.findRoleFunction("0", null);
@@ -275,20 +274,7 @@ public class FunctionController extends BaseController {
             //存放数据json数组
             JSONArray dataArray = new JSONArray();
             if (null != dataListFun) {
-                //根据条件从列表里面移除"系统管理"
-                List<Function> dataList = new ArrayList<>();
-                for (Function fun : dataListFun) {
-                    Long tenantId = tenantModeService.tenantIdFromToken(request.getHeader("X-Access-Token"));
-                    if (tenantModeService.isEnabled() && tenantId != null && tenantId != 0L) {
-                        if(!("系统管理").equals(fun.getName())) {
-                            dataList.add(fun);
-                        }
-                    } else {
-                        //超管
-                        dataList.add(fun);
-                    }
-                }
-                dataArray = getFunctionList(dataList, type, keyId, funIdList);
+                dataArray = getFunctionList(dataListFun, type, keyId, funIdList);
                 outer.put("children", dataArray);
             }
             arr.add(outer);
@@ -304,7 +290,8 @@ public class FunctionController extends BaseController {
         String ubValue = userBusinessService.getUBValueByTypeAndKeyId(type, keyId);
         if (null != dataList) {
             for (Function function : dataList) {
-                if (!tenantModeService.isEnabled() && TENANT_MANAGEMENT_FUNCTION_ID.equals(function.getId())) {
+                if (TENANT_MANAGEMENT_FUNCTION_ID.equals(function.getId())
+                        || REMOVED_PLUGIN_FUNCTION_ID.equals(function.getId())) {
                     continue;
                 }
                 JSONObject item = new JSONObject();
@@ -338,6 +325,7 @@ public class FunctionController extends BaseController {
     @Operation(summary = "根据id列表查找功能信息")
     public BaseResponseInfo findByIds(@RequestParam("roleId") Long roleId,
                                       HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             List<UserBusiness> list = userBusinessService.getBasicData(roleId.toString(), "RoleFunctions");
@@ -362,12 +350,13 @@ public class FunctionController extends BaseController {
                 JSONObject outer = new JSONObject();
                 User userInfo = userService.getCurrentUser();
                 Map<Long, Long> funIdMap = functionService.getCurrentUserFunIdMap();
+                boolean isSystemAdmin = userService.isSystemAdmin(userInfo);
                 //存放数据json数组
                 JSONArray dataArray = new JSONArray();
                 if (null != dataList) {
                     for (Function function : dataList) {
                         //如果不是超管需要校验，防止分配下级用户的按钮权限，大于自身的权限
-                        if("admin".equals(userInfo.getLoginName()) || funIdMap.get(function.getId())!=null) {
+                        if(isSystemAdmin || funIdMap.get(function.getId())!=null) {
                             JSONObject item = new JSONObject();
                             item.put("id", function.getId());
                             item.put("name", function.getName());
@@ -388,5 +377,9 @@ public class FunctionController extends BaseController {
             res.data = "获取数据失败";
         }
         return res;
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

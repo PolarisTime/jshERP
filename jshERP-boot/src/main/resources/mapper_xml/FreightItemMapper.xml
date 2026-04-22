@@ -8,11 +8,10 @@
     <result column="depot_number" jdbcType="VARCHAR" property="depotNumber" />
     <result column="weight" jdbcType="DECIMAL" property="weight" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, header_id, depot_head_id, depot_number, weight, remark, tenant_id, delete_flag
+    id, header_id, depot_head_id, depot_number, weight, remark, delete_flag
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select
@@ -27,10 +26,10 @@
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.FreightItem">
     insert into jsh_freight_item (id, header_id, depot_head_id,
       depot_number, weight, remark,
-      tenant_id, delete_flag)
+      delete_flag)
     values (#{id,jdbcType=BIGINT}, #{headerId,jdbcType=BIGINT}, #{depotHeadId,jdbcType=BIGINT},
       #{depotNumber,jdbcType=VARCHAR}, #{weight,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR},
-      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
+      #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.FreightItem">
     insert into jsh_freight_item
@@ -52,9 +51,6 @@
       </if>
       <if test="remark != null">
         remark,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -79,9 +75,6 @@
       <if test="remark != null">
         #{remark,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -105,9 +98,6 @@
       <if test="remark != null">
         remark = #{remark,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -121,7 +111,6 @@
       depot_number = #{depotNumber,jdbcType=VARCHAR},
       weight = #{weight,jdbcType=DECIMAL},
       remark = #{remark,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

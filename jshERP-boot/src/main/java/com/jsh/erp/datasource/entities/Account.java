@@ -21,8 +21,6 @@ public class Account {
 
     private Boolean isDefault;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -95,14 +93,6 @@ public class Account {
 
     public void setIsDefault(Boolean isDefault) {
         this.isDefault = isDefault;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

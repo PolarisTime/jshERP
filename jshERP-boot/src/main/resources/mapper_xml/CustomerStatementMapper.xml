@@ -27,7 +27,7 @@
            total_weight as totalWeight, total_amount as totalAmount,
            ifnull(received_amount,0) as receivedAmount,
            status, sign_status as signStatus, attachment, remark,
-           tenant_id as tenantId, delete_flag as deleteFlag,
+           delete_flag as deleteFlag,
            create_time as createTime, creator
     FROM jsh_customer_statement
     WHERE id=#{id} AND ifnull(delete_flag,'0') != '1'
@@ -37,9 +37,6 @@
     SELECT count(1)
     FROM jsh_customer_statement
     WHERE statement_no LIKE concat('DZ', #{datePrefix}, '%')
-      <if test="tenantId != null">
-        AND tenant_id = #{tenantId}
-      </if>
   </select>
 
   <!-- ═══ 未对账明细 ═══ -->
@@ -59,9 +56,6 @@
     LEFT JOIN jsh_supplier s           ON s.id  = dh.organ_id
     WHERE dh.type = '出库' AND dh.sub_type = '销售'
       AND ifnull(pai.delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND dh.tenant_id = #{tenantId}
-      </if>
       <if test="organId != null">
         AND dh.organ_id = #{organId}
       </if>
@@ -77,9 +71,6 @@
         JOIN jsh_customer_statement cs ON cs.id = csi.statement_id
         WHERE ifnull(cs.delete_flag,'0') != '1'
           AND ifnull(csi.delete_flag,'0') != '1'
-          <if test="tenantId != null">
-            AND cs.tenant_id = #{tenantId}
-          </if>
       )
   </sql>
 
@@ -127,9 +118,6 @@
     FROM jsh_customer_statement cs
     LEFT JOIN jsh_supplier s ON s.id = cs.organ_id
     WHERE ifnull(cs.delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND cs.tenant_id = #{tenantId}
-      </if>
       <if test="organId != null">
         AND cs.organ_id = #{organId}
       </if>
@@ -158,9 +146,6 @@
     SELECT count(1)
     FROM jsh_customer_statement cs
     WHERE ifnull(cs.delete_flag,'0') != '1'
-      <if test="tenantId != null">
-        AND cs.tenant_id = #{tenantId}
-      </if>
       <if test="organId != null">
         AND cs.organ_id = #{organId}
       </if>
@@ -246,9 +231,6 @@
       AND (cs.total_amount - ifnull(cs.received_amount,0)) > 0
     <if test="organId != null">
       AND cs.organ_id = #{organId}
-    </if>
-    <if test="tenantId != null">
-      AND cs.tenant_id = #{tenantId}
     </if>
     ORDER BY cs.create_time DESC
   </select>

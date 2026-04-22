@@ -1506,9 +1506,8 @@ public class DepotHeadService {
                 }
                 //价格核准送到日期（用于自定义打印默认送货日期）
                 try {
-                    Long tenantId = userService.getCurrentUser() != null ? userService.getCurrentUser().getTenantId() : null;
                     com.jsh.erp.datasource.entities.PriceApproval pa =
-                            priceApprovalMapper.selectByDepotHeadId(dh.getId(), tenantId);
+                            priceApprovalMapper.selectByDepotHeadId(dh.getId());
                     if (pa != null && pa.getDeliveryDate() != null) {
                         dh.setPriceApprovalDeliveryDate(
                                 new java.text.SimpleDateFormat("yyyyMMdd").format(pa.getDeliveryDate()));
@@ -1785,7 +1784,6 @@ public class DepotHeadService {
         purchaseIn.setOtherMoney(orderHead.getOtherMoney());
         purchaseIn.setChangeAmount(orderHead.getChangeAmount() != null ? orderHead.getChangeAmount().abs() : BigDecimal.ZERO);
         purchaseIn.setTotalPrice(orderHead.getTotalPrice() != null ? orderHead.getTotalPrice().abs() : BigDecimal.ZERO);
-        purchaseIn.setTenantId(orderHead.getTenantId());
         purchaseIn.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
         depotHeadMapper.insertSelective(purchaseIn);
         //通过编号查回自增ID
@@ -1821,7 +1819,6 @@ public class DepotHeadService {
             inItem.setExpirationDate(today);
             inItem.setLinkId(orderItem.getId()); //关联订单明细
             inItem.setDeleteFlag(BusinessConstants.DELETE_FLAG_EXISTS);
-            inItem.setTenantId(orderHead.getTenantId());
             depotItemMapper.insertSelective(inItem);
         }
         //更新入库单的 discount_last_money（从明细汇总）
@@ -1834,7 +1831,7 @@ public class DepotHeadService {
         orderUpdate.setLinkedFlag("1");
         depotHeadMapper.updateByPrimaryKeySelective(orderUpdate);
         //使用insertLogWithUserId避免与主单据日志在同一秒内触发防重检测导致用户被踢出
-        logService.insertLogWithUserId(orderHead.getCreator(), orderHead.getTenantId(),
+        logService.insertLogWithUserId(orderHead.getCreator(),
                 "单据", "自动生成采购入库单" + newNumber, request);
     }
 
@@ -2490,7 +2487,6 @@ public class DepotHeadService {
             depotHead.setFileName(null);
             depotHead.setSalesMan(null);
             depotHead.setStatus("0");
-            depotHead.setTenantId(null);
             //查询明细
             List<DepotItemVo4WithInfoEx> itemList = depotItemService.getDetailList(depotHead.getId());
             depotHead.setId(null);
@@ -2507,7 +2503,6 @@ public class DepotHeadService {
                 item.setUnitPrice(BigDecimal.ZERO);
                 item.setAllPrice(BigDecimal.ZERO);
                 item.setLinkId(item.getId());
-                item.setTenantId(null);
                 String itemStr = JSONObject.toJSONString(item);
                 JSONObject itemObj = JSONObject.parseObject(itemStr);
                 itemObj.put("unit", itemObj.getString("materialUnit"));

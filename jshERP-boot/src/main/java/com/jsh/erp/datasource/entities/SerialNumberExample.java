@@ -1004,68 +1004,7 @@ public class SerialNumberExample {
         public Criteria andOutBillNoNotBetween(String value1, String value2) {
             addCriterion("out_bill_no not between", value1, value2, "outBillNo");
             return (Criteria) this;
-        }
-
-        public Criteria andTenantIdIsNull() {
-            addCriterion("tenant_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdIsNotNull() {
-            addCriterion("tenant_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdEqualTo(Long value) {
-            addCriterion("tenant_id =", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdNotEqualTo(Long value) {
-            addCriterion("tenant_id <>", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdGreaterThan(Long value) {
-            addCriterion("tenant_id >", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("tenant_id >=", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdLessThan(Long value) {
-            addCriterion("tenant_id <", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdLessThanOrEqualTo(Long value) {
-            addCriterion("tenant_id <=", value, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdIn(List<Long> values) {
-            addCriterion("tenant_id in", values, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdNotIn(List<Long> values) {
-            addCriterion("tenant_id not in", values, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdBetween(Long value1, Long value2) {
-            addCriterion("tenant_id between", value1, value2, "tenantId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTenantIdNotBetween(Long value1, Long value2) {
-            addCriterion("tenant_id not between", value1, value2, "tenantId");
-            return (Criteria) this;
-        }
-    }
+        }    }
 
     public static class Criteria extends GeneratedCriteria {
         protected Criteria() {

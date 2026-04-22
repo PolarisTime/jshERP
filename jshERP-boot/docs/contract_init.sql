@@ -14,12 +14,10 @@ CREATE TABLE IF NOT EXISTS `jsh_contract` (
   `status`        varchar(20)   DEFAULT '草稿' COMMENT '草稿/已签订/履行中/已完成/已终止',
   `attachments`   varchar(2000) DEFAULT NULL COMMENT '附件路径(逗号分隔)',
   `remark`        varchar(500)  DEFAULT NULL COMMENT '备注',
-  `tenant_id`     bigint        DEFAULT NULL COMMENT '租户id',
   `delete_flag`   varchar(1)    DEFAULT '0' COMMENT '0未删除 1已删除',
   `create_time`   datetime      DEFAULT NULL COMMENT '创建时间',
   `update_time`   datetime      DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`),
-  KEY `idx_tenant_id` (`tenant_id`),
   KEY `idx_organ_id` (`organ_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='合同';
 

@@ -6,12 +6,8 @@
         <id column="id" jdbcType="BIGINT" property="id" />
         <result column="page_code" jdbcType="VARCHAR" property="pageCode" />
         <result column="column_config" jdbcType="VARCHAR" property="columnConfig" />
-        <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
         <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
     </resultMap>
-
-    <!-- tenant_id 由 TenantSqlParser 自动注入 -->
-
     <select id="selectByPageCode" resultMap="BaseResultMap">
         select * from jsh_column_config
         where page_code = #{pageCode}

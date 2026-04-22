@@ -11,7 +11,6 @@
     <result column="enabled" jdbcType="BIT" property="enabled" />
     <result column="sort" jdbcType="VARCHAR" property="sort" />
     <result column="is_default" jdbcType="BIT" property="isDefault" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -74,7 +73,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, name, serial_no, initial_amount, current_amount, remark, enabled, sort, is_default, 
-    tenant_id, delete_flag
+    delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.AccountExample" resultMap="BaseResultMap">
     select
@@ -109,11 +108,11 @@
   <insert id="insert" parameterType="com.jsh.erp.datasource.entities.Account">
     insert into jsh_account (id, name, serial_no, 
       initial_amount, current_amount, remark, 
-      enabled, sort, is_default, tenant_id, 
+      enabled, sort, is_default, 
       delete_flag)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{serialNo,jdbcType=VARCHAR}, 
       #{initialAmount,jdbcType=DECIMAL}, #{currentAmount,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR}, 
-      #{enabled,jdbcType=BIT}, #{sort,jdbcType=VARCHAR}, #{isDefault,jdbcType=BIT}, #{tenantId,jdbcType=BIGINT}, 
+      #{enabled,jdbcType=BIT}, #{sort,jdbcType=VARCHAR}, #{isDefault,jdbcType=BIT}, 
       #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.Account">
@@ -146,9 +145,6 @@
       <if test="isDefault != null">
         is_default,
       </if>
-      <if test="tenantId != null">
-        tenant_id,
-      </if>
       <if test="deleteFlag != null">
         delete_flag,
       </if>
@@ -180,9 +176,6 @@
       </if>
       <if test="isDefault != null">
         #{isDefault,jdbcType=BIT},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -225,9 +218,6 @@
       <if test="record.isDefault != null">
         is_default = #{record.isDefault,jdbcType=BIT},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -247,7 +237,6 @@
       enabled = #{record.enabled,jdbcType=BIT},
       sort = #{record.sort,jdbcType=VARCHAR},
       is_default = #{record.isDefault,jdbcType=BIT},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -280,9 +269,6 @@
       <if test="isDefault != null">
         is_default = #{isDefault,jdbcType=BIT},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -299,7 +285,6 @@
       enabled = #{enabled,jdbcType=BIT},
       sort = #{sort,jdbcType=VARCHAR},
       is_default = #{isDefault,jdbcType=BIT},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

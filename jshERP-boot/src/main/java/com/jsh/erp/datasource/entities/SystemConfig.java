@@ -53,8 +53,6 @@ public class SystemConfig {
 
     private java.math.BigDecimal defaultTaxRate;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -263,14 +261,6 @@ public class SystemConfig {
 
     public void setDefaultTaxRate(java.math.BigDecimal defaultTaxRate) {
         this.defaultTaxRate = defaultTaxRate;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

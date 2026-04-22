@@ -12,7 +12,6 @@
     <result column="remark" jdbcType="VARCHAR" property="remark" />
     <result column="principal" jdbcType="BIGINT" property="principal" />
     <result column="enabled" jdbcType="BIT" property="enabled" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_Flag" jdbcType="VARCHAR" property="deleteFlag" />
     <result column="is_default" jdbcType="BIT" property="isDefault" />
   </resultMap>
@@ -76,7 +75,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, name, address, warehousing, truckage, type, sort, remark, principal, enabled, 
-    tenant_id, delete_Flag, is_default
+    delete_Flag, is_default
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.DepotExample" resultMap="BaseResultMap">
     select
@@ -112,12 +111,12 @@
     insert into jsh_depot (id, name, address, 
       warehousing, truckage, type, 
       sort, remark, principal, 
-      enabled, tenant_id, delete_Flag, 
+      enabled, delete_Flag, 
       is_default)
     values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
       #{warehousing,jdbcType=DECIMAL}, #{truckage,jdbcType=DECIMAL}, #{type,jdbcType=INTEGER}, 
       #{sort,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{principal,jdbcType=BIGINT}, 
-      #{enabled,jdbcType=BIT}, #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR}, 
+      #{enabled,jdbcType=BIT}, #{deleteFlag,jdbcType=VARCHAR}, 
       #{isDefault,jdbcType=BIT})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.Depot">
@@ -152,9 +151,6 @@
       </if>
       <if test="enabled != null">
         enabled,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_Flag,
@@ -193,9 +189,6 @@
       </if>
       <if test="enabled != null">
         #{enabled,jdbcType=BIT},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -244,9 +237,6 @@
       <if test="record.enabled != null">
         enabled = #{record.enabled,jdbcType=BIT},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_Flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -270,7 +260,6 @@
       remark = #{record.remark,jdbcType=VARCHAR},
       principal = #{record.principal,jdbcType=BIGINT},
       enabled = #{record.enabled,jdbcType=BIT},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_Flag = #{record.deleteFlag,jdbcType=VARCHAR},
       is_default = #{record.isDefault,jdbcType=BIT}
     <if test="_parameter != null">
@@ -307,9 +296,6 @@
       <if test="enabled != null">
         enabled = #{enabled,jdbcType=BIT},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_Flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -330,7 +316,6 @@
       remark = #{remark,jdbcType=VARCHAR},
       principal = #{principal,jdbcType=BIGINT},
       enabled = #{enabled,jdbcType=BIT},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_Flag = #{deleteFlag,jdbcType=VARCHAR},
       is_default = #{isDefault,jdbcType=BIT}
     where id = #{id,jdbcType=BIGINT}

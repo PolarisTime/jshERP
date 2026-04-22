@@ -49,8 +49,6 @@ public class Material {
 
     private String attribute;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -235,14 +233,6 @@ public class Material {
 
     public void setAttribute(String attribute) {
         this.attribute = attribute == null ? null : attribute.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

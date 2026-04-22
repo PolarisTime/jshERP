@@ -23,8 +23,6 @@ public class Unit {
 
     private Boolean enabled;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -105,14 +103,6 @@ public class Unit {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

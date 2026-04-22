@@ -600,22 +600,6 @@ public class Tools {
     }
 
     /**
-     * 根据token截取租户id
-     * @param token
-     * @return
-     */
-    public static Long getTenantIdByToken(String token) {
-        Long tenantId = 0L;
-        if(StringUtil.isNotEmpty(token) && token.indexOf("_")>-1) {
-            String[] tokenArr = token.split("_");
-            if (tokenArr.length == 2) {
-                tenantId = Long.parseLong(tokenArr[1]);
-            }
-        }
-        return tenantId;
-    }
-
-    /**
      * 使用参数Format将字符串转为Date
      *
      * @param strDate

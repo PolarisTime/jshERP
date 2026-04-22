@@ -11,7 +11,6 @@
     <result column="finish_debt" jdbcType="DECIMAL" property="finishDebt" />
     <result column="each_amount" jdbcType="DECIMAL" property="eachAmount" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -74,7 +73,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, header_id, account_id, in_out_item_id, bill_id, need_debt, finish_debt, each_amount, 
-    remark, tenant_id, delete_flag
+    remark, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.AccountItemExample" resultMap="BaseResultMap">
     select
@@ -110,11 +109,11 @@
     insert into jsh_account_item (id, header_id, account_id, 
       in_out_item_id, bill_id, need_debt, 
       finish_debt, each_amount, remark, 
-      tenant_id, delete_flag)
+      delete_flag)
     values (#{id,jdbcType=BIGINT}, #{headerId,jdbcType=BIGINT}, #{accountId,jdbcType=BIGINT}, 
       #{inOutItemId,jdbcType=BIGINT}, #{billId,jdbcType=BIGINT}, #{needDebt,jdbcType=DECIMAL}, 
       #{finishDebt,jdbcType=DECIMAL}, #{eachAmount,jdbcType=DECIMAL}, #{remark,jdbcType=VARCHAR}, 
-      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
+      #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.AccountItem">
     insert into jsh_account_item
@@ -145,9 +144,6 @@
       </if>
       <if test="remark != null">
         remark,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -180,9 +176,6 @@
       </if>
       <if test="remark != null">
         #{remark,jdbcType=VARCHAR},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -225,9 +218,6 @@
       <if test="record.remark != null">
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -247,7 +237,6 @@
       finish_debt = #{record.finishDebt,jdbcType=DECIMAL},
       each_amount = #{record.eachAmount,jdbcType=DECIMAL},
       remark = #{record.remark,jdbcType=VARCHAR},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -280,9 +269,6 @@
       <if test="remark != null">
         remark = #{remark,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -299,7 +285,6 @@
       finish_debt = #{finishDebt,jdbcType=DECIMAL},
       each_amount = #{eachAmount,jdbcType=DECIMAL},
       remark = #{remark,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

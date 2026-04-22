@@ -26,18 +26,13 @@ public class FreightStatementService {
     @Resource
     private UserService userService;
 
-    private Long getTenantId() throws Exception {
-        User u = userService.getCurrentUser();
-        return u == null ? null : u.getTenantId();
-    }
-
     public List<Map<String, Object>> listUnreconciledItems(Long carrierId, String beginTime, String endTime,
                                                            Integer offset, Integer rows) throws Exception {
-        return freightStatementMapper.listUnreconciledItems(carrierId, beginTime, endTime, getTenantId(), offset, rows);
+        return freightStatementMapper.listUnreconciledItems(carrierId, beginTime, endTime, offset, rows);
     }
 
     public int countUnreconciledItems(Long carrierId, String beginTime, String endTime) throws Exception {
-        return freightStatementMapper.countUnreconciledItems(carrierId, beginTime, endTime, getTenantId());
+        return freightStatementMapper.countUnreconciledItems(carrierId, beginTime, endTime);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -46,11 +41,10 @@ public class FreightStatementService {
         if (itemIds == null || itemIds.isEmpty()) {
             throw new BusinessRunTimeException(ExceptionConstants.DATA_WRITE_FAIL_CODE, "请至少选择一条物流单");
         }
-        Long tenantId = getTenantId();
         User user = userService.getCurrentUser();
         // 生成单号 WDZ+yyyyMMdd+4位序号
         String datePrefix = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        int todayCount = freightStatementMapper.countTodayStatement(datePrefix, tenantId);
+        int todayCount = freightStatementMapper.countTodayStatement(datePrefix);
         String statementNo = "WDZ" + datePrefix + String.format("%04d", todayCount + 1);
 
         FreightStatement fs = new FreightStatement();
@@ -85,12 +79,12 @@ public class FreightStatementService {
     public List<Map<String, Object>> listStatements(Long carrierId, String status, String signStatus,
                                                     String beginTime, String endTime,
                                                     Integer offset, Integer rows) throws Exception {
-        return freightStatementMapper.listStatements(carrierId, status, signStatus, beginTime, endTime, getTenantId(), offset, rows);
+        return freightStatementMapper.listStatements(carrierId, status, signStatus, beginTime, endTime, offset, rows);
     }
 
     public int countStatements(Long carrierId, String status, String signStatus,
                                String beginTime, String endTime) throws Exception {
-        return freightStatementMapper.countStatements(carrierId, status, signStatus, beginTime, endTime, getTenantId());
+        return freightStatementMapper.countStatements(carrierId, status, signStatus, beginTime, endTime);
     }
 
     public Map<String, Object> getDetail(Long id) throws Exception {

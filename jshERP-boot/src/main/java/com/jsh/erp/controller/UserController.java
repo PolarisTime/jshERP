@@ -7,7 +7,6 @@ import com.jsh.erp.base.BaseController;
 import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.constants.BusinessConstants;
 import com.jsh.erp.constants.ExceptionConstants;
-import com.jsh.erp.datasource.entities.Tenant;
 import com.jsh.erp.datasource.entities.User;
 import com.jsh.erp.datasource.entities.UserEx;
 import com.jsh.erp.datasource.vo.TreeNodeEx;
@@ -41,19 +40,11 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 public class UserController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    @Value("${manage.roleId}")
-    private Integer manageRoleId;
-
     @Resource
     private UserService userService;
 
     @Resource
     private RoleService roleService;
-
-    @Resource
-    private TenantService tenantService;
-    @Resource
-    private TenantModeService tenantModeService;
 
     @Resource
     private UserBusinessService userBusinessService;
@@ -68,6 +59,7 @@ public class UserController extends BaseController {
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         User user = userService.getUser(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(user != null) {
@@ -82,6 +74,7 @@ public class UserController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         String userName = StringUtil.getInfo(search, "userName");
         String loginName = StringUtil.getInfo(search, "loginName");
         List<UserEx> list = userService.select(userName, loginName);
@@ -91,6 +84,7 @@ public class UserController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = userService.insertUser(obj, request);
         return returnStr(objectMap, insert);
@@ -99,6 +93,7 @@ public class UserController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = userService.updateUser(obj, request);
         return returnStr(objectMap, update);
@@ -107,6 +102,7 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.deleteUser(id, request);
         return returnStr(objectMap, delete);
@@ -115,6 +111,7 @@ public class UserController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userService.batchDeleteUser(ids, request);
         return returnStr(objectMap, delete);
@@ -124,6 +121,7 @@ public class UserController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = userService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -233,6 +231,7 @@ public class UserController extends BaseController {
     @Operation(summary = "重置密码")
     public String resetPwd(@RequestBody JSONObject jsonObject,
                                      HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         Long id = jsonObject.getLong("id");
         String md5Pwd = jsonObject.getString("password");
@@ -316,24 +315,10 @@ public class UserController extends BaseController {
     @Operation(summary = "新增用户")
     @ResponseBody
     public Object addUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
+        assertSystemAdmin();
         JSONObject result = ExceptionConstants.standardSuccess();
-        if (!tenantModeService.isEnabled()) {
-            UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
-            userService.addUserAndOrgUserRel(ue, request);
-            return result;
-        }
-        User userInfo = userService.getCurrentUser();
-        Tenant tenant = tenantService.getTenantByTenantId(userInfo.getTenantId());
-        Long count = userService.countUser(null,null);
-        if(tenant!=null) {
-            if(count>= tenant.getUserNumLimit()) {
-                throw new BusinessParamCheckingException(ExceptionConstants.USER_OVER_LIMIT_FAILED_CODE,
-                        ExceptionConstants.USER_OVER_LIMIT_FAILED_MSG);
-            } else {
-                UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
-                userService.addUserAndOrgUserRel(ue, request);
-            }
-        }
+        UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
+        userService.addUserAndOrgUserRel(ue, request);
         return result;
     }
 
@@ -349,27 +334,10 @@ public class UserController extends BaseController {
     @Operation(summary = "修改用户")
     @ResponseBody
     public Object updateUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
+        assertSystemAdmin();
         JSONObject result = ExceptionConstants.standardSuccess();
         UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
         userService.updateUserAndOrgUserRel(ue, request);
-        return result;
-    }
-
-    /**
-     * 注册用户
-     * @param ue
-     * @return
-     * @throws Exception
-     */
-    @PostMapping(value = "/registerUser")
-    @Operation(summary = "注册用户")
-    public Object registerUser(@RequestBody UserEx ue,
-                               HttpServletRequest request)throws Exception{
-        JSONObject result = ExceptionConstants.standardSuccess();
-        ue.setUsername(ue.getLoginName());
-        userService.validateCaptcha(ue.getCode(), ue.getUuid());
-        userService.checkLoginName(ue); //检查登录名
-        userService.registerUser(ue,manageRoleId,request);
         return result;
     }
 
@@ -381,6 +349,7 @@ public class UserController extends BaseController {
     @RequestMapping("/getOrganizationUserTree")
     @Operation(summary = "获取机构用户树")
     public JSONArray getOrganizationUserTree()throws Exception{
+        assertSystemAdmin();
         JSONArray arr=new JSONArray();
         List<TreeNodeEx> organizationUserTree= userService.getOrganizationUserTree();
         if(organizationUserTree!=null&&organizationUserTree.size()>0){
@@ -447,11 +416,8 @@ public class UserController extends BaseController {
         try {
             Map<String, Object> data = new HashMap<>();
             Long userId = userService.getUserId(request);
-            String loginName = userService.getUser(userId).getLoginName();
             JSONArray btnStrArr = userService.getBtnStrArrById(userId);
-            if(!"admin".equals(loginName)) {
-                data.put("userBtn", btnStrArr);
-            }
+            data.put("userBtn", btnStrArr);
             res.code = 200;
             res.data = data;
         } catch(Exception e){
@@ -473,6 +439,7 @@ public class UserController extends BaseController {
     @Operation(summary = "获取对应的用户显示")
     public JSONArray getUserWithChecked(@RequestParam("UBType") String type, @RequestParam("UBValue") String oneValue,
                                   HttpServletRequest request) throws Exception{
+        assertSystemAdmin();
         JSONArray arr = new JSONArray();
         try {
             //获取权限信息
@@ -548,6 +515,7 @@ public class UserController extends BaseController {
     @Operation(summary = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Byte status = jsonObject.getByte("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();
@@ -559,55 +527,8 @@ public class UserController extends BaseController {
         }
     }
 
-    /**
-     * 获取当前用户的用户数量和租户信息
-     * @param request
-     * @return
-     */
-    @GetMapping(value = "/infoWithTenant")
-    @Operation(summary = "获取当前用户的用户数量和租户信息")
-    public BaseResponseInfo infoWithTenant(HttpServletRequest request){
-        BaseResponseInfo res = new BaseResponseInfo();
-        try {
-            Map<String, Object> data = new HashMap<>();
-            Long userId = Long.parseLong(redisService.getObjectFromSessionByKey(request,"userId").toString());
-            User user = userService.getUser(userId);
-            //获取当前用户数
-            int userCurrentNum = userService.getUser(request).size();
-            if (!tenantModeService.isEnabled()) {
-                Tenant tenant = tenantModeService.buildDefaultTenant(user);
-                data.put("type", tenant.getType());
-                data.put("expireTime", null);
-                data.put("userCurrentNum", userCurrentNum);
-                data.put("userNumLimit", tenant.getUserNumLimit());
-                data.put("tenantId", null);
-                res.code = 200;
-                res.data = data;
-                return res;
-            }
-            Tenant tenant = tenantService.getTenantByTenantId(user.getTenantId());
-            if (tenant == null) {
-                redisService.deleteSessionByRequest(request);
-                res.code = 401;
-                res.data = "租户不存在";
-                return res;
-            }
-            if(tenant.getExpireTime()!=null && tenant.getExpireTime().getTime()<System.currentTimeMillis()){
-                //租户已经过期，移除token
-                redisService.deleteSessionByRequest(request);
-            }
-            data.put("type", tenant.getType()); //租户类型，0免费租户，1付费租户
-            data.put("expireTime", Tools.parseDateToStr(tenant.getExpireTime()));
-            data.put("userCurrentNum", userCurrentNum);
-            data.put("userNumLimit", tenant.getUserNumLimit());
-            data.put("tenantId", tenant.getTenantId());
-            res.code = 200;
-            res.data = data;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            res.code = 500;
-            res.data = "获取失败";
-        }
-        return res;
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
+
 }

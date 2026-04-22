@@ -14,11 +14,6 @@ public interface MaterialExtendMapperEx {
     List<MaterialExtendVo4List> getDetailList(
             @Param("materialId") Long materialId);
 
-    Long getMaxTimeByTenantAndTime(
-            @Param("tenantId") Long tenantId,
-            @Param("lastTime") Long lastTime,
-            @Param("syncNum") Long syncNum);
-
     List<MaterialExtend> getListByMId(@Param("ids") Long ids[]);
 
     int batchDeleteMaterialExtendByMIds(@Param("ids") String ids[]);

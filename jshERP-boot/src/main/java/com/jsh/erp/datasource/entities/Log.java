@@ -17,8 +17,6 @@ public class Log {
 
     private String content;
 
-    private Long tenantId;
-
     public Long getId() {
         return id;
     }
@@ -75,11 +73,4 @@ public class Log {
         this.content = content == null ? null : content.trim();
     }
 
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
 }

@@ -51,8 +51,7 @@ public interface FreightItemMapperEx {
      * 查询可关联的销售出库单（已审核且未被关联）
      */
     List<Map<String, Object>> selectAvailableSaleOut(
-            @Param("number") String number,
-            @Param("tenantId") Long tenantId);
+            @Param("number") String number);
 
     /**
      * 根据出库单ID列表批量查询关联的物流单号

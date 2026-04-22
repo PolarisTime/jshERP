@@ -17,8 +17,6 @@ public class Msg {
 
     private String status;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -75,14 +73,6 @@ public class Msg {
 
     public void setStatus(String status) {
         this.status = status == null ? null : status.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

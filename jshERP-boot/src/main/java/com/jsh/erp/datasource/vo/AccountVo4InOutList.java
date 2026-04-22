@@ -26,8 +26,6 @@ public class AccountVo4InOutList {
 
     private String remark;
 
-    private Long tenantId;
-
     public Long getAccountId() {
         return accountId;
     }
@@ -116,11 +114,4 @@ public class AccountVo4InOutList {
         this.remark = remark;
     }
 
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
 }

@@ -344,7 +344,6 @@
         //复制新增单据-初始化单号和日期
         if(this.action === 'copyAdd') {
           this.model.id = ''
-          this.model.tenantId = ''
           this.copyAddInit(this.prefixNo)
         }
         this.initSystemConfig()

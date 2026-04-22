@@ -9,7 +9,6 @@ const editRole = (params)=>putAction("/role/update",params);
 const checkRole = (params)=>getAction("/role/checkIsNameExist",params);
 const roleAllList = (params)=>getAction("/role/allList",params);
 //用户管理
-const registerUser = (params)=>postAction("/user/registerUser",params);
 const addUser = (params)=>postAction("/user/addUser",params);
 const editUser = (params)=>putAction("/user/updateUser",params);
 const getUserList = (params)=>getAction("/user/getUserList",params);
@@ -186,7 +185,6 @@ export {
   editRole,
   checkRole,
   roleAllList,
-  registerUser,
   addUser,
   editUser,
   getUserList,

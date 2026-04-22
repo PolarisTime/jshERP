@@ -3,6 +3,7 @@ package com.jsh.erp.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.datasource.entities.UserBusiness;
+import com.jsh.erp.service.UserService;
 import com.jsh.erp.service.UserBusinessService;
 import com.jsh.erp.utils.BaseResponseInfo;
 import com.jsh.erp.utils.ErpInfo;
@@ -32,11 +33,14 @@ public class UserBusinessController {
 
     @Resource
     private UserBusinessService userBusinessService;
+    @Resource
+    private UserService userService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
+        assertSystemAdmin();
         UserBusiness userBusiness = userBusinessService.getUserBusiness(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(userBusiness != null) {
@@ -50,6 +54,7 @@ public class UserBusinessController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int insert = userBusinessService.insertUserBusiness(obj, request);
         return returnStr(objectMap, insert);
@@ -58,6 +63,7 @@ public class UserBusinessController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int update = userBusinessService.updateUserBusiness(obj, request);
         return returnStr(objectMap, update);
@@ -66,6 +72,7 @@ public class UserBusinessController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userBusinessService.deleteUserBusiness(id, request);
         return returnStr(objectMap, delete);
@@ -74,6 +81,7 @@ public class UserBusinessController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int delete = userBusinessService.batchDeleteUserBusiness(ids, request);
         return returnStr(objectMap, delete);
@@ -83,6 +91,7 @@ public class UserBusinessController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<>();
         int exist = userBusinessService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -106,6 +115,7 @@ public class UserBusinessController {
     public BaseResponseInfo getBasicData(@RequestParam(value = "KeyId") String keyId,
                                          @RequestParam(value = "Type") String type,
                                          HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             List<UserBusiness> list = userBusinessService.getBasicData(keyId, type);
@@ -134,6 +144,7 @@ public class UserBusinessController {
     public String checkIsValueExist(@RequestParam(value ="type", required = false) String type,
                                    @RequestParam(value ="keyId", required = false) String keyId,
                                    HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         Map<String, Object> objectMap = new HashMap<String, Object>();
         Long id = userBusinessService.checkIsValueExist(type, keyId);
         objectMap.put("id", id);
@@ -150,6 +161,7 @@ public class UserBusinessController {
     @Operation(summary = "更新角色的按钮权限")
     public BaseResponseInfo updateBtnStr(@RequestBody JSONObject jsonObject,
                                          HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             String roleId = jsonObject.getString("roleId");
@@ -179,6 +191,7 @@ public class UserBusinessController {
     @Operation(summary = "根据KeyId和类型更新一个值")
     public BaseResponseInfo updateOneValueByKeyIdAndType(@RequestBody JSONObject jsonObject,
                                                          HttpServletRequest request)throws Exception {
+        assertSystemAdmin();
         BaseResponseInfo res = new BaseResponseInfo();
         try {
             String type = jsonObject.getString("type");
@@ -195,5 +208,9 @@ public class UserBusinessController {
             res.data = "更新权限失败";
         }
         return res;
+    }
+
+    private void assertSystemAdmin() throws Exception {
+        userService.assertCurrentUserSystemAdmin();
     }
 }

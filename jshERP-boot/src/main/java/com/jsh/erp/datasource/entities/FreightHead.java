@@ -32,8 +32,6 @@ public class FreightHead {
 
     private Date createTime;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     /** 送达状态：0=未送达，1=已送达 */
@@ -146,14 +144,6 @@ public class FreightHead {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

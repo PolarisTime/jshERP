@@ -24,8 +24,6 @@ public class FreightCarrier {
 
     private String sort;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -106,14 +104,6 @@ public class FreightCarrier {
 
     public void setSort(String sort) {
         this.sort = sort == null ? null : sort.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

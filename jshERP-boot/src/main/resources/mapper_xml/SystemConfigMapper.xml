@@ -27,7 +27,6 @@
     <result column="customer_static_price_flag" jdbcType="VARCHAR" property="customerStaticPriceFlag" />
     <result column="material_price_tax_flag" jdbcType="VARCHAR" property="materialPriceTaxFlag" />
     <result column="price_by_weight_flag" jdbcType="VARCHAR" property="priceByWeightFlag" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
   </resultMap>
   <sql id="Example_Where_Clause">
@@ -94,7 +93,7 @@
     multi_level_approval_flag, multi_bill_type, force_approval_flag, update_unit_price_flag, 
     over_link_bill_flag, in_out_manage_flag, multi_account_flag, move_avg_price_flag, 
     audit_print_flag, zero_change_amount_flag, customer_static_price_flag, material_price_tax_flag,
-    price_by_weight_flag, tenant_id, delete_flag
+    price_by_weight_flag, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.SystemConfigExample" resultMap="BaseResultMap">
     select
@@ -136,7 +135,7 @@
       over_link_bill_flag, in_out_manage_flag, multi_account_flag, 
       move_avg_price_flag, audit_print_flag, zero_change_amount_flag, 
       customer_static_price_flag, material_price_tax_flag,
-      price_by_weight_flag, tenant_id, delete_flag)
+      price_by_weight_flag, delete_flag)
     values (#{id,jdbcType=BIGINT}, #{companyName,jdbcType=VARCHAR}, #{companyContacts,jdbcType=VARCHAR},
       #{companyAddress,jdbcType=VARCHAR}, #{companyTel,jdbcType=VARCHAR}, #{companyFax,jdbcType=VARCHAR},
       #{companyPostCode,jdbcType=VARCHAR}, #{saleAgreement,jdbcType=VARCHAR}, #{depotFlag,jdbcType=VARCHAR},
@@ -146,7 +145,7 @@
       #{overLinkBillFlag,jdbcType=VARCHAR}, #{inOutManageFlag,jdbcType=VARCHAR}, #{multiAccountFlag,jdbcType=VARCHAR},
       #{moveAvgPriceFlag,jdbcType=VARCHAR}, #{auditPrintFlag,jdbcType=VARCHAR}, #{zeroChangeAmountFlag,jdbcType=VARCHAR},
       #{customerStaticPriceFlag,jdbcType=VARCHAR}, #{materialPriceTaxFlag,jdbcType=VARCHAR},
-      #{priceByWeightFlag,jdbcType=VARCHAR}, #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
+      #{priceByWeightFlag,jdbcType=VARCHAR}, #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.SystemConfig">
     insert into jsh_system_config
@@ -225,9 +224,6 @@
       </if>
       <if test="priceByWeightFlag != null">
         price_by_weight_flag,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -308,9 +304,6 @@
       </if>
       <if test="priceByWeightFlag != null">
         #{priceByWeightFlag,jdbcType=VARCHAR},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -401,9 +394,6 @@
       <if test="record.priceByWeightFlag != null">
         price_by_weight_flag = #{record.priceByWeightFlag,jdbcType=VARCHAR},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -439,7 +429,6 @@
       customer_static_price_flag = #{record.customerStaticPriceFlag,jdbcType=VARCHAR},
       material_price_tax_flag = #{record.materialPriceTaxFlag,jdbcType=VARCHAR},
       price_by_weight_flag = #{record.priceByWeightFlag,jdbcType=VARCHAR},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -520,9 +509,6 @@
       <if test="priceByWeightFlag != null">
         price_by_weight_flag = #{priceByWeightFlag,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -555,7 +541,6 @@
       customer_static_price_flag = #{customerStaticPriceFlag,jdbcType=VARCHAR},
       material_price_tax_flag = #{materialPriceTaxFlag,jdbcType=VARCHAR},
       price_by_weight_flag = #{priceByWeightFlag,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

@@ -32,8 +32,6 @@ public class MaterialExtend {
 
     private Long updateTime;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -146,14 +144,6 @@ public class MaterialExtend {
 
     public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

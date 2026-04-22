@@ -34,8 +34,6 @@ public class AccountHead {
 
     private String source;
 
-    private Long tenantId;
-
     private String deleteFlag;
 
     public Long getId() {
@@ -156,14 +154,6 @@ public class AccountHead {
 
     public void setSource(String source) {
         this.source = source == null ? null : source.trim();
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
     }
 
     public String getDeleteFlag() {

@@ -34,7 +34,6 @@
     <result column="source" jdbcType="VARCHAR" property="source" />
     <result column="link_number" jdbcType="VARCHAR" property="linkNumber" />
     <result column="link_apply" jdbcType="VARCHAR" property="linkApply" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
     <result column="linked_flag" jdbcType="VARCHAR" property="linkedFlag" />
   </resultMap>
@@ -101,7 +100,7 @@
     account_id, change_amount, back_amount, total_price, pay_type, bill_type, remark, 
     file_name, sales_man, account_id_list, account_money_list, discount, discount_money, 
     discount_last_money, other_money, deposit, status, price_approved, weight_approved, purchase_status, source, link_number,
-    link_apply, tenant_id, delete_flag, linked_flag
+    link_apply, delete_flag, linked_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.DepotHeadExample" resultMap="BaseResultMap">
     select
@@ -144,7 +143,7 @@
       discount_money, discount_last_money, other_money, 
       deposit, status, price_approved, weight_approved,
       purchase_status, source, link_number, link_apply,
-      tenant_id, delete_flag, linked_flag)
+      delete_flag, linked_flag)
     values (#{id,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, #{subType,jdbcType=VARCHAR},
       #{defaultNumber,jdbcType=VARCHAR}, #{number,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{operTime,jdbcType=TIMESTAMP}, #{organId,jdbcType=BIGINT}, #{creator,jdbcType=BIGINT},
@@ -155,7 +154,7 @@
       #{discountMoney,jdbcType=DECIMAL}, #{discountLastMoney,jdbcType=DECIMAL}, #{otherMoney,jdbcType=DECIMAL},
       #{deposit,jdbcType=DECIMAL}, #{status,jdbcType=VARCHAR}, #{priceApproved,jdbcType=CHAR}, #{weightApproved,jdbcType=VARCHAR},
       #{purchaseStatus,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, #{linkNumber,jdbcType=VARCHAR}, #{linkApply,jdbcType=VARCHAR},
-      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR}, #{linkedFlag,jdbcType=VARCHAR})
+      #{deleteFlag,jdbcType=VARCHAR}, #{linkedFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.DepotHead">
     insert into jsh_depot_head
@@ -255,9 +254,6 @@
       </if>
       <if test="linkApply != null">
         link_apply,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -362,9 +358,6 @@
       </if>
       <if test="linkApply != null">
         #{linkApply,jdbcType=VARCHAR},
-      </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
       </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
@@ -479,9 +472,6 @@
       <if test="record.linkApply != null">
         link_apply = #{record.linkApply,jdbcType=VARCHAR},
       </if>
-      <if test="record.tenantId != null">
-        tenant_id = #{record.tenantId,jdbcType=BIGINT},
-      </if>
       <if test="record.deleteFlag != null">
         delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -527,7 +517,6 @@
       source = #{record.source,jdbcType=VARCHAR},
       link_number = #{record.linkNumber,jdbcType=VARCHAR},
       link_apply = #{record.linkApply,jdbcType=VARCHAR},
-      tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR},
       linked_flag = #{record.linkedFlag,jdbcType=VARCHAR}
     <if test="_parameter != null">
@@ -630,9 +619,6 @@
       <if test="linkApply != null">
         link_apply = #{linkApply,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -675,7 +661,6 @@
       source = #{source,jdbcType=VARCHAR},
       link_number = #{linkNumber,jdbcType=VARCHAR},
       link_apply = #{linkApply,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       linked_flag = #{linkedFlag,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}

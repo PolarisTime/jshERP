@@ -13,7 +13,6 @@
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="attachments" jdbcType="VARCHAR" property="attachments" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
-    <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -24,7 +23,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     id, contract_no, contract_name, organ_id, sign_date, effect_date, expire_date,
-    amount, status, attachments, remark, tenant_id, delete_flag, create_time, update_time,
+    amount, status, attachments, remark, delete_flag, create_time, update_time,
     project_name, tonnage, audit_status, sign_status
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
@@ -41,13 +40,13 @@
     insert into jsh_contract (id, contract_no, contract_name,
       organ_id, sign_date, effect_date,
       expire_date, amount, status,
-      attachments, remark, tenant_id,
+      attachments, remark,
       delete_flag, create_time, update_time,
       project_name, tonnage, audit_status, sign_status)
     values (#{id,jdbcType=BIGINT}, #{contractNo,jdbcType=VARCHAR}, #{contractName,jdbcType=VARCHAR},
       #{organId,jdbcType=BIGINT}, #{signDate,jdbcType=TIMESTAMP}, #{effectDate,jdbcType=TIMESTAMP},
       #{expireDate,jdbcType=TIMESTAMP}, #{amount,jdbcType=DECIMAL}, #{status,jdbcType=VARCHAR},
-      #{attachments,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{tenantId,jdbcType=BIGINT},
+      #{attachments,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR},
       #{deleteFlag,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{projectName,jdbcType=VARCHAR}, #{tonnage,jdbcType=DECIMAL}, #{auditStatus,jdbcType=VARCHAR}, #{signStatus,jdbcType=VARCHAR})
   </insert>
@@ -86,9 +85,6 @@
       </if>
       <if test="remark != null">
         remark,
-      </if>
-      <if test="tenantId != null">
-        tenant_id,
       </if>
       <if test="deleteFlag != null">
         delete_flag,
@@ -146,9 +142,6 @@
       <if test="remark != null">
         #{remark,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -205,9 +198,6 @@
       <if test="remark != null">
         remark = #{remark,jdbcType=VARCHAR},
       </if>
-      <if test="tenantId != null">
-        tenant_id = #{tenantId,jdbcType=BIGINT},
-      </if>
       <if test="deleteFlag != null">
         delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       </if>
@@ -244,7 +234,6 @@
       status = #{status,jdbcType=VARCHAR},
       attachments = #{attachments,jdbcType=VARCHAR},
       remark = #{remark,jdbcType=VARCHAR},
-      tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

@@ -60,8 +60,6 @@ public class SystemConfigService {
     private UserService userService;
     @Resource
     private LogService logService;
-    @Resource
-    private TenantModeService tenantModeService;
 
     @Value(value="${file.uploadType}")
     private Long fileUploadType;
@@ -113,7 +111,7 @@ public class SystemConfigService {
         try{
             result=systemConfigMapper.insertSelective(systemConfig);
             String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(), "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_ADD).append(logInfo).toString(), request);
         }catch(Exception e){
             JshException.writeFail(logger, e);
@@ -128,7 +126,7 @@ public class SystemConfigService {
         try{
             result = systemConfigMapper.updateByPrimaryKeySelective(systemConfig);
             String logInfo = StringUtil.isNotEmpty(systemConfig.getCompanyName())?systemConfig.getCompanyName():"配置信息";
-            logService.insertLogWithUserId(userService.getCurrentUser().getId(), userService.getCurrentUser().getTenantId(), "系统配置",
+            logService.insertLogWithUserId(userService.getCurrentUser().getId(), "系统配置",
                     new StringBuffer(BusinessConstants.LOG_OPERATION_TYPE_EDIT).append(logInfo).toString(), request);
         }catch(Exception e){
             JshException.writeFail(logger, e);
@@ -412,11 +410,6 @@ public class SystemConfigService {
             if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
-            String token = request.getHeader("X-Access-Token");
-            Long tenantId = tenantModeService.tenantIdFromToken(token);
-            if (tenantId != null) {
-                bizPath = bizPath + File.separator + tenantId;
-            }
             String ctxPath = filePath;
             File file = new File(ctxPath + File.separator + bizPath + File.separator );
             if (!file.exists()) {
@@ -460,11 +453,6 @@ public class SystemConfigService {
         // Validate bizPath to prevent directory traversal
         if (bizPath.contains("..") || bizPath.contains("/") || bizPath.contains("\\")) {
             throw new IllegalArgumentException("Invalid bizPath");
-        }
-        String token = request.getHeader("X-Access-Token");
-        Long tenantId = tenantModeService.tenantIdFromToken(token);
-        if (tenantId != null) {
-            bizPath = bizPath + "/" + tenantId;
         }
         String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
         String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
@@ -884,7 +872,7 @@ public class SystemConfigService {
     }
 
     /**
-     * 获取当前租户的默认税率，未设置时返回13
+     * 获取默认税率，未设置时返回13
      * @return 默认税率(%)
      * @throws Exception
      */
