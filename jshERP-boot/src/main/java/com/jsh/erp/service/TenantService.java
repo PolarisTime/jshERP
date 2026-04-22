@@ -51,6 +51,9 @@ public class TenantService {
     @Resource
     private RedisService redisService;
 
+    @Resource
+    private TenantModeService tenantModeService;
+
     @Value("${manage.roleId}")
     private Integer manageRoleId;
 
@@ -79,6 +82,9 @@ public class TenantService {
     public List<TenantEx> select(String loginName, String type, String enabled, String remark)throws Exception {
         List<TenantEx> list = null;
         try{
+            if (!tenantModeService.isEnabled()) {
+                return list;
+            }
             if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
                 PageUtils.startPage();
                 list = tenantMapperEx.selectByConditionTenant(loginName, type, enabled, remark);
@@ -97,6 +103,9 @@ public class TenantService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int insertTenant(JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         UserEx ue = JSONObject.parseObject(obj.toJSONString(), UserEx.class);
         int result = 0;
         try{
@@ -112,6 +121,9 @@ public class TenantService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int updateTenant(JSONObject obj, HttpServletRequest request)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         Tenant tenant = JSONObject.parseObject(obj.toJSONString(), Tenant.class);
         int result=0;
         try{
@@ -139,6 +151,9 @@ public class TenantService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int deleteTenant(Long id, HttpServletRequest request)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         int result=0;
         try{
             if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {
@@ -152,6 +167,9 @@ public class TenantService {
 
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public int batchDeleteTenant(String ids, HttpServletRequest request)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         List<Long> idList = StringUtil.strToLongList(ids);
         TenantExample example = new TenantExample();
         example.createCriteria().andIdIn(idList);
@@ -167,6 +185,9 @@ public class TenantService {
     }
 
     public int checkIsNameExist(Long id, String name)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         TenantExample example = new TenantExample();
         example.createCriteria().andIdNotEqualTo(id).andLoginNameEqualTo(name).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
         List<Tenant> list=null;
@@ -178,7 +199,17 @@ public class TenantService {
         return list==null?0:list.size();
     }
 
-    public Tenant getTenantByTenantId(long tenantId) {
+    public Tenant getTenantByTenantId(Long tenantId) {
+        if (!tenantModeService.isEnabled()) {
+            try {
+                return tenantModeService.buildDefaultTenant(userService.getCurrentUser());
+            } catch (Exception e) {
+                return tenantModeService.buildDefaultTenant(null);
+            }
+        }
+        if (tenantId == null) {
+            return null;
+        }
         TenantExample example = new TenantExample();
         example.createCriteria().andTenantIdEqualTo(tenantId).andDeleteFlagNotEqualTo(BusinessConstants.DELETE_FLAG_DELETED);
         List<Tenant> list = tenantMapper.selectByExample(example);
@@ -189,6 +220,9 @@ public class TenantService {
     }
 
     public boolean isTenantAvailable(Long tenantId) {
+        if (!tenantModeService.isEnabled()) {
+            return true;
+        }
         if (tenantId == null) {
             return true;
         }
@@ -207,6 +241,9 @@ public class TenantService {
     }
 
     public int batchSetStatus(Boolean status, String ids)throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return 0;
+        }
         int result=0;
         try{
             if(BusinessConstants.DEFAULT_MANAGER.equals(userService.getCurrentUser().getLoginName())) {

@@ -7,6 +7,7 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.*;
 import com.jsh.erp.service.FunctionService;
 import com.jsh.erp.service.SystemConfigService;
+import com.jsh.erp.service.TenantModeService;
 import com.jsh.erp.service.UserBusinessService;
 import com.jsh.erp.service.UserService;
 import com.jsh.erp.utils.*;
@@ -44,6 +45,8 @@ public class FunctionController extends BaseController {
 
     @Resource
     private SystemConfigService systemConfigService;
+    @Resource
+    private TenantModeService tenantModeService;
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
@@ -204,7 +207,8 @@ public class FunctionController extends BaseController {
                 continue;
             }
             //如果不是超管也不是租户就需要校验，防止分配下级用户的功能权限，大于租户的权限
-            if(isAdmin || userInfo.getId().equals(userInfo.getTenantId()) || funIdMap.get(function.getId())!=null) {
+            if(isAdmin || !tenantModeService.isEnabled() || userInfo.getId().equals(userInfo.getTenantId())
+                    || (funIdMap != null && funIdMap.get(function.getId())!=null)) {
                 //如果关闭多级审核，遇到任务审核菜单直接跳过
                 if("0".equals(approvalFlag) && "/workflow".equals(function.getUrl())) {
                     continue;
@@ -263,9 +267,8 @@ public class FunctionController extends BaseController {
                 //根据条件从列表里面移除"系统管理"
                 List<Function> dataList = new ArrayList<>();
                 for (Function fun : dataListFun) {
-                    String token = request.getHeader("X-Access-Token");
-                    Long tenantId = Tools.getTenantIdByToken(token);
-                    if (tenantId!=0L) {
+                    Long tenantId = tenantModeService.tenantIdFromToken(request.getHeader("X-Access-Token"));
+                    if (tenantModeService.isEnabled() && tenantId != null && tenantId != 0L) {
                         if(!("系统管理").equals(fun.getName())) {
                             dataList.add(fun);
                         }

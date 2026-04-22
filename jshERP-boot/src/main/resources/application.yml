@@ -56,6 +56,7 @@ manage:
   roleId: 10
 
 tenant:
+  enabled: false
   # 租户允许创建的用户数
   userNumLimit: 1000000
   # 租户允许试用的天数

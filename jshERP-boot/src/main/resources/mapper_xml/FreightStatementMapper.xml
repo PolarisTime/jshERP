@@ -33,7 +33,10 @@
 
   <select id="countTodayStatement" resultType="java.lang.Integer">
     SELECT count(1) FROM jsh_freight_statement
-    WHERE statement_no LIKE concat('WDZ', #{datePrefix}, '%') AND tenant_id = #{tenantId}
+    WHERE statement_no LIKE concat('WDZ', #{datePrefix}, '%')
+    <if test="tenantId != null">
+      AND tenant_id = #{tenantId}
+    </if>
   </select>
 
   <!-- 未对账的物流单（已审核且未关联对账单） -->

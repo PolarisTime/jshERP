@@ -41,6 +41,8 @@ public class FunctionService {
 
     @Resource
     private LogService logService;
+    @Resource
+    private TenantModeService tenantModeService;
 
     public Function getFunction(long id)throws Exception {
         Function result=null;
@@ -247,6 +249,9 @@ public class FunctionService {
      * @return
      */
     public List<Long> getCurrentTenantFunIdList() throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return getCurrentUserFunIdList();
+        }
         List<Long> funIdList = new ArrayList<>();
         Long roleId = 0L;
         String fc = "";
@@ -278,6 +283,9 @@ public class FunctionService {
      * @return
      */
     public Map<Long, Long> getCurrentTenantFunIdMap() throws Exception {
+        if (!tenantModeService.isEnabled()) {
+            return new HashMap<>();
+        }
         Map<Long, Long> funIdMap = new HashMap<>();
         List<Long> list = getCurrentTenantFunIdList();
         if(list.size()>0) {

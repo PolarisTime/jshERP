@@ -52,6 +52,8 @@ public class UserController extends BaseController {
 
     @Resource
     private TenantService tenantService;
+    @Resource
+    private TenantModeService tenantModeService;
 
     @Resource
     private UserBusinessService userBusinessService;
@@ -315,6 +317,11 @@ public class UserController extends BaseController {
     @ResponseBody
     public Object addUser(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception{
         JSONObject result = ExceptionConstants.standardSuccess();
+        if (!tenantModeService.isEnabled()) {
+            UserEx ue= JSONObject.parseObject(obj.toJSONString(), UserEx.class);
+            userService.addUserAndOrgUserRel(ue, request);
+            return result;
+        }
         User userInfo = userService.getCurrentUser();
         Tenant tenant = tenantService.getTenantByTenantId(userInfo.getTenantId());
         Long count = userService.countUser(null,null);
@@ -567,6 +574,17 @@ public class UserController extends BaseController {
             User user = userService.getUser(userId);
             //获取当前用户数
             int userCurrentNum = userService.getUser(request).size();
+            if (!tenantModeService.isEnabled()) {
+                Tenant tenant = tenantModeService.buildDefaultTenant(user);
+                data.put("type", tenant.getType());
+                data.put("expireTime", null);
+                data.put("userCurrentNum", userCurrentNum);
+                data.put("userNumLimit", tenant.getUserNumLimit());
+                data.put("tenantId", null);
+                res.code = 200;
+                res.data = data;
+                return res;
+            }
             Tenant tenant = tenantService.getTenantByTenantId(user.getTenantId());
             if (tenant == null) {
                 redisService.deleteSessionByRequest(request);

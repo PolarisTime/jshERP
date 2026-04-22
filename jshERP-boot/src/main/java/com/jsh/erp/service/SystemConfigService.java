@@ -60,6 +60,8 @@ public class SystemConfigService {
     private UserService userService;
     @Resource
     private LogService logService;
+    @Resource
+    private TenantModeService tenantModeService;
 
     @Value(value="${file.uploadType}")
     private Long fileUploadType;
@@ -411,8 +413,10 @@ public class SystemConfigService {
                 throw new IllegalArgumentException("Invalid bizPath");
             }
             String token = request.getHeader("X-Access-Token");
-            Long tenantId = Tools.getTenantIdByToken(token);
-            bizPath = bizPath + File.separator + tenantId;
+            Long tenantId = tenantModeService.tenantIdFromToken(token);
+            if (tenantId != null) {
+                bizPath = bizPath + File.separator + tenantId;
+            }
             String ctxPath = filePath;
             File file = new File(ctxPath + File.separator + bizPath + File.separator );
             if (!file.exists()) {
@@ -458,8 +462,10 @@ public class SystemConfigService {
             throw new IllegalArgumentException("Invalid bizPath");
         }
         String token = request.getHeader("X-Access-Token");
-        Long tenantId = Tools.getTenantIdByToken(token);
-        bizPath = bizPath + "/" + tenantId;
+        Long tenantId = tenantModeService.tenantIdFromToken(token);
+        if (tenantId != null) {
+            bizPath = bizPath + "/" + tenantId;
+        }
         String endpoint = platformConfigService.getPlatformConfigByKey("aliOss_endpoint").getPlatformValue();
         String accessKeyId = platformConfigService.getPlatformConfigByKey("aliOss_accessKeyId").getPlatformValue();
         String accessKeySecret = platformConfigService.getPlatformConfigByKey("aliOss_accessKeySecret").getPlatformValue();

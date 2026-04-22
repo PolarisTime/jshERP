@@ -52,6 +52,8 @@ public class SupplierService {
     @Resource
     private UserBusinessService userBusinessService;
     @Resource
+    private TenantModeService tenantModeService;
+    @Resource
     private UserBusinessMapper userBusinessMapper;
 
     @Value(value="${file.exportTmp}")
@@ -801,7 +803,7 @@ public class SupplierService {
             String ubKey = "[" + supplierId + "]";
             //授权当前用户
             setPermissionByParam(user.getId(), ubKey);
-            if(!user.getId().equals(user.getTenantId())) {
+            if(tenantModeService.isEnabled() && user.getTenantId() != null && !tenantModeService.isTenantOwner(user)) {
                 //授权当前租户
                 setPermissionByParam(user.getTenantId(), ubKey);
             }
