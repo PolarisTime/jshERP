@@ -3,11 +3,14 @@ package com.jsh.erp.exception;
 import com.alibaba.fastjson.JSONObject;
 import com.jsh.erp.constants.ExceptionConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestControllerAdvice
@@ -15,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    public Object handleException(Exception e, HttpServletRequest request) {
+    public Object handleException(Exception e, HttpServletRequest request, HttpServletResponse response) {
         JSONObject status = new JSONObject();
 
         // 针对业务参数异常的处理
@@ -29,6 +32,14 @@ public class GlobalExceptionHandler {
         if (e instanceof BusinessRunTimeException) {
             status.put(ExceptionConstants.GLOBAL_RETURNS_CODE, ((BusinessRunTimeException) e).getCode());
             status.put(ExceptionConstants.GLOBAL_RETURNS_DATA, ((BusinessRunTimeException) e).getData());
+            return status;
+        }
+
+        if (e instanceof NoResourceFoundException) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            status.put(ExceptionConstants.GLOBAL_RETURNS_CODE, ExceptionConstants.SERVICE_RESOURCE_NOT_FOUND_CODE);
+            status.put(ExceptionConstants.GLOBAL_RETURNS_DATA, ExceptionConstants.SERVICE_RESOURCE_NOT_FOUND_MSG);
+            log.warn("Request resource not found => url : {}, msg : {}", request.getRequestURL(), e.getMessage());
             return status;
         }
 

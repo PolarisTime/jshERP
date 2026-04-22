@@ -6,12 +6,12 @@ import com.jsh.erp.base.TableDataInfo;
 import com.jsh.erp.datasource.entities.Tenant;
 import com.jsh.erp.datasource.entities.TenantEx;
 import com.jsh.erp.service.TenantService;
-import com.jsh.erp.service.TenantModeService;
 import com.jsh.erp.utils.Constants;
 import com.jsh.erp.utils.ErpInfo;
 import com.jsh.erp.utils.StringUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
@@ -29,24 +29,16 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @RestController
 @RequestMapping(value = "/tenant")
 @Tag(name = "租户管理")
+@ConditionalOnProperty(name = "tenant.enabled", havingValue = "true", matchIfMissing = true)
 public class TenantController extends BaseController {
 
     @Resource
     private TenantService tenantService;
-    @Resource
-    private TenantModeService tenantModeService;
-
-    private String tenantDisabled() {
-        return returnJson(new HashMap<>(), "单租户模式已停用租户管理", ErpInfo.ERROR.code);
-    }
 
     @GetMapping(value = "/info")
     @Operation(summary = "根据id获取信息")
     public String getList(@RequestParam("id") Long id,
                           HttpServletRequest request) throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Tenant tenant = tenantService.getTenant(id);
         Map<String, Object> objectMap = new HashMap<>();
         if(tenant != null) {
@@ -61,9 +53,6 @@ public class TenantController extends BaseController {
     @Operation(summary = "获取信息列表")
     public TableDataInfo getList(@RequestParam(value = Constants.SEARCH, required = false) String search,
                                  HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return getDataTable(java.util.Collections.emptyList());
-        }
         String loginName = StringUtil.getInfo(search, "loginName");
         String type = StringUtil.getInfo(search, "type");
         String enabled = StringUtil.getInfo(search, "enabled");
@@ -75,9 +64,6 @@ public class TenantController extends BaseController {
     @PostMapping(value = "/add")
     @Operation(summary = "新增")
     public String addResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Map<String, Object> objectMap = new HashMap<>();
         int insert = tenantService.insertTenant(obj, request);
         return returnStr(objectMap, insert);
@@ -86,9 +72,6 @@ public class TenantController extends BaseController {
     @PutMapping(value = "/update")
     @Operation(summary = "修改")
     public String updateResource(@RequestBody JSONObject obj, HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Map<String, Object> objectMap = new HashMap<>();
         int update = tenantService.updateTenant(obj, request);
         return returnStr(objectMap, update);
@@ -97,9 +80,6 @@ public class TenantController extends BaseController {
     @DeleteMapping(value = "/delete")
     @Operation(summary = "删除")
     public String deleteResource(@RequestParam("id") Long id, HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = tenantService.deleteTenant(id, request);
         return returnStr(objectMap, delete);
@@ -108,9 +88,6 @@ public class TenantController extends BaseController {
     @DeleteMapping(value = "/deleteBatch")
     @Operation(summary = "批量删除")
     public String batchDeleteResource(@RequestParam("ids") String ids, HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Map<String, Object> objectMap = new HashMap<>();
         int delete = tenantService.batchDeleteTenant(ids, request);
         return returnStr(objectMap, delete);
@@ -120,9 +97,6 @@ public class TenantController extends BaseController {
     @Operation(summary = "检查名称是否存在")
     public String checkIsNameExist(@RequestParam Long id, @RequestParam(value ="name", required = false) String name,
                                    HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return returnJson(new HashMap<>(), ErpInfo.OK.name, ErpInfo.OK.code);
-        }
         Map<String, Object> objectMap = new HashMap<>();
         int exist = tenantService.checkIsNameExist(id, name);
         if(exist > 0) {
@@ -143,9 +117,6 @@ public class TenantController extends BaseController {
     @Operation(summary = "批量设置状态")
     public String batchSetStatus(@RequestBody JSONObject jsonObject,
                                  HttpServletRequest request)throws Exception {
-        if (!tenantModeService.isEnabled()) {
-            return tenantDisabled();
-        }
         Boolean status = jsonObject.getBoolean("status");
         String ids = jsonObject.getString("ids");
         Map<String, Object> objectMap = new HashMap<>();

@@ -32,6 +32,7 @@ import static com.jsh.erp.utils.ResponseJsonUtil.returnStr;
 @RequestMapping(value = "/function")
 @Tag(name = "功能管理")
 public class FunctionController extends BaseController {
+    private static final Long TENANT_MANAGEMENT_FUNCTION_ID = 18L;
     private Logger logger = LoggerFactory.getLogger(FunctionController.class);
 
     @Resource
@@ -196,14 +197,24 @@ public class FunctionController extends BaseController {
      * admin专属功能ID集合：功能管理(16)、租户管理(18)、插件管理(245)、平台配置(258)
      * 这些功能仅admin可见，租户用户即使角色中分配了也不显示
      */
-    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, 18L, 245L, 258L));
+    private static final Set<Long> ADMIN_ONLY_FUN_IDS = new HashSet<>(Arrays.asList(16L, TENANT_MANAGEMENT_FUNCTION_ID, 245L, 258L));
+
+    private boolean shouldHideFunction(Function function, boolean isAdmin) {
+        Long functionId = function.getId();
+        if (functionId == null) {
+            return false;
+        }
+        if (!tenantModeService.isEnabled() && TENANT_MANAGEMENT_FUNCTION_ID.equals(functionId)) {
+            return true;
+        }
+        return !isAdmin && ADMIN_ONLY_FUN_IDS.contains(functionId);
+    }
 
     public JSONArray getMenuByFunction(List<Function> dataList, String fc, String approvalFlag, Map<Long, Long> funIdMap, User userInfo) throws Exception {
         JSONArray dataArray = new JSONArray();
         boolean isAdmin = "admin".equals(userInfo.getLoginName());
         for (Function function : dataList) {
-            //非admin用户跳过平台管理专属功能
-            if(!isAdmin && ADMIN_ONLY_FUN_IDS.contains(function.getId())) {
+            if (shouldHideFunction(function, isAdmin)) {
                 continue;
             }
             //如果不是超管也不是租户就需要校验，防止分配下级用户的功能权限，大于租户的权限
@@ -293,6 +304,9 @@ public class FunctionController extends BaseController {
         String ubValue = userBusinessService.getUBValueByTypeAndKeyId(type, keyId);
         if (null != dataList) {
             for (Function function : dataList) {
+                if (!tenantModeService.isEnabled() && TENANT_MANAGEMENT_FUNCTION_ID.equals(function.getId())) {
+                    continue;
+                }
                 JSONObject item = new JSONObject();
                 item.put("id", function.getId());
                 item.put("key", function.getId());

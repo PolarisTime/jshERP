@@ -34,6 +34,8 @@ public class ExceptionConstants {
      **/
     public static final int SERVICE_SYSTEM_ERROR_CODE = 500;
     public static final String SERVICE_SYSTEM_ERROR_MSG = "未知异常";
+    public static final int SERVICE_RESOURCE_NOT_FOUND_CODE = 404;
+    public static final String SERVICE_RESOURCE_NOT_FOUND_MSG = "接口不存在";
     /**
      * 检测到存在依赖数据，是否强制删除？
      **/
